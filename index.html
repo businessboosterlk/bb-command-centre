@@ -1790,8 +1790,8 @@ function renderClientTasks(id){
       const odCount=catTasks.filter(t=>isOverdue(t)).length;
       html+=`<div style="margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:4px;border-bottom:1px solid var(--border)">
-          <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
-          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${color}">${cat}</span>
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange)">${cat}</span>
           <span style="font-size:10px;color:var(--text3);font-weight:300">${catTasks.length} task${catTasks.length>1?'s':''}${odCount?' · '+odCount+' overdue':''}</span>
         </div>
         ${catTasks.map(t=>taskHTML(t)).join('')}
