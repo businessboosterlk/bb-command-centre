@@ -1720,7 +1720,7 @@ function renderClientProfile(id){
   renderClientTasks(id);
 }
 
-async async function saveFieldChange(){
+async function saveFieldChange(){saveFieldAsync();}async function saveFieldAsync(){
   if(!currentClientId)return;
   const data={
     month:parseInt(document.getElementById('cpf-month').value)||1,
