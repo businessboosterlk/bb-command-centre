@@ -168,7 +168,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 .task-check{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;font-size:9px}
 .task-check.done{background:var(--green);border-color:var(--green);color:#000}
 .task-body{flex:1}
-.task-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em}
+.task-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.02em;color:var(--text)}
 .task-title.done{text-decoration:line-through;color:var(--text3);font-weight:400}
 .task-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;align-items:center}
 .tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid}
@@ -542,12 +542,12 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   <!-- Pillars -->
   <div class="g2" style="margin-bottom:14px">
     <div class="card">
-      <div class="stitle"><div class="av av-t">TH</div>Thulaib's Pillars<span class="cnt" id="d-th-cnt">0/7</span></div>
+      <div class="stitle"><div class="av av-t">TH</div>Thulaib's Pillars<span class="cnt" id="d-th-cnt">0/7</span><button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:2px 8px;font-size:10px" onclick="resetPillars('th')">Reset</button></div>
       <div class="prog-wrap"><div class="prog-bar" id="d-th-bar" style="width:0%"></div></div>
       <div id="d-th-list"></div>
     </div>
     <div class="card">
-      <div class="stitle"><div class="av av-s">SH</div>Shiara's Pillars<span class="cnt" id="d-sh-cnt">0/7</span></div>
+      <div class="stitle"><div class="av av-s">SH</div>Shiara's Pillars<span class="cnt" id="d-sh-cnt">0/7</span><button class="btn btn-ghost btn-sm" style="margin-left:auto;padding:2px 8px;font-size:10px" onclick="resetPillars('sh')">Reset</button></div>
       <div class="prog-wrap"><div class="prog-bar pink" id="d-sh-bar" style="width:0%"></div></div>
       <div id="d-sh-list"></div>
     </div>
@@ -1689,7 +1689,7 @@ function renderClientProfile(id){
   document.getElementById('cpf-package').value=c.package||'Spark';
   document.getElementById('cpf-industry').value=c.industry||'';
   document.getElementById('cpf-contact').value=c.contact||'';
-  document.getElementById('cpf-start').value=c.start||'';
+  document.getElementById('cpf-start').value=c.start_date||c.start||'';
 
   // stats
   const phase=PHASES.find(p=>p.m===c.month)||PHASES[0];
@@ -1720,7 +1720,7 @@ function renderClientProfile(id){
   renderClientTasks(id);
 }
 
-async function saveFieldChange(){
+async async function saveFieldChange(){
   if(!currentClientId)return;
   const data={
     month:parseInt(document.getElementById('cpf-month').value)||1,
@@ -1745,18 +1745,63 @@ function renderClientTasks(id){
   const open=tasks.filter(t=>!t.done);
   const done=tasks.filter(t=>t.done);
 
-  // sort open: overdue first, then by date
-  open.sort((a,b)=>{const ao=isOverdue(a),bo=isOverdue(b);if(ao&&!bo)return-1;if(!ao&&bo)return 1;if(a.due&&b.due)return a.due.localeCompare(b.due);return 0});
+  // Sort: overdue first → high priority → medium → low → by due date
+  const priOrder={high:0,medium:1,low:2};
+  function sortTasks(arr){
+    return arr.sort((a,b)=>{
+      const ao=isOverdue(a),bo=isOverdue(b);
+      if(ao&&!bo)return -1;if(!ao&&bo)return 1;
+      const pa=priOrder[a.priority]??3,pb=priOrder[b.priority]??3;
+      if(pa!==pb)return pa-pb;
+      if(a.due&&b.due)return a.due.localeCompare(b.due);
+      if(a.due)return -1;if(b.due)return 1;
+      return 0;
+    });
+  }
 
   const openEl=document.getElementById('cp-tasks-open');
   const doneEl=document.getElementById('cp-tasks-done');
 
   if(cpTaskFilter!=='done'&&open.length){
-    openEl.innerHTML=`<div class="task-section-hdr"><div class="task-section-dot" style="background:var(--orange)"></div><span class="task-section-lbl">Open</span><span class="task-section-cnt">${open.length}</span></div>`+open.map(t=>taskHTML(t)).join('');
+    // Group open tasks by category
+    const sortedOpen=sortTasks(open);
+    const categories={};
+    sortedOpen.forEach(t=>{
+      const cat=t.category||'General';
+      if(!categories[cat])categories[cat]=[];
+      categories[cat].push(t);
+    });
+
+    // Category color map
+    const catColor={
+      'Content Creation':'var(--blue)',
+      'Payment':'var(--green)',
+      'Strategy & Planning':'var(--purple)',
+      'Reporting':'var(--yellow)',
+      'Follow-Up':'var(--orange)',
+      'Shoot':'var(--pink)',
+      'Other':'var(--text3)',
+      'General':'var(--text3)'
+    };
+
+    let html='';
+    Object.entries(categories).forEach(([cat,catTasks])=>{
+      const color=catColor[cat]||'var(--text2)';
+      const odCount=catTasks.filter(t=>isOverdue(t)).length;
+      html+=`<div style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:4px;border-bottom:1px solid var(--border)">
+          <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0"></div>
+          <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:${color}">${cat}</span>
+          <span style="font-size:10px;color:var(--text3);font-weight:300">${catTasks.length} task${catTasks.length>1?'s':''}${odCount?' · '+odCount+' overdue':''}</span>
+        </div>
+        ${catTasks.map(t=>taskHTML(t)).join('')}
+      </div>`;
+    });
+    openEl.innerHTML=html;
   } else openEl.innerHTML='';
 
   if(cpTaskFilter!=='open'&&done.length){
-    doneEl.innerHTML=`<div class="task-section-hdr"><div class="task-section-dot" style="background:var(--green)"></div><span class="task-section-lbl">Completed</span><span class="task-section-cnt">${done.length}</span></div>`+done.map(t=>taskHTML(t)).join('');
+    doneEl.innerHTML=`<div class="task-section-hdr"><div class="task-section-dot" style="background:var(--green)"></div><span class="task-section-lbl">Completed</span><span class="task-section-cnt">${done.length}</span></div>`+sortTasks(done).map(t=>taskHTML(t)).join('');
   } else doneEl.innerHTML='';
 
   if(!open.length&&!done.length){
