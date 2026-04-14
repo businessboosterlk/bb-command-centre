@@ -1247,6 +1247,28 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   </div>
 </div>
 
+<!-- Copy Task Modal -->
+<div class="overlay" id="modal-copy-task">
+  <div class="modal">
+    <div class="modal-title">Copy Task to Another Client</div>
+    <input type="hidden" id="copy-task-id">
+    <div style="padding:10px 0;border-bottom:1px solid var(--border);margin-bottom:14px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">Task</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)" id="copy-task-title">—</div>
+    </div>
+    <div class="fg">
+      <label class="flbl">Copy to Client</label>
+      <select class="fs" id="copy-task-client">
+        <option value="">Select client</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-copy-task')">Cancel</button>
+      <button class="btn btn-primary" onclick="copyTaskToClient()">Copy Task</button>
+    </div>
+  </div>
+</div>
+
 <!-- Revenue -->
 <div class="overlay" id="modal-rev">
   <div class="modal">
@@ -1827,6 +1849,7 @@ function taskHTML(t){
     </div>
     <div class="av ${avClass}" title="${{th:'Thulaib',sh:'Shiara',both:'Both'}[t.assign]||''}">${avTxt}</div>
     <button class="btn btn-ghost btn-sm" style="margin-left:4px;padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
+    <button class="btn btn-ghost btn-sm" style="margin-left:2px;padding:2px 7px;font-size:10px;color:var(--text2)" onclick="openCopyTaskModal(${t.id})">Copy</button>
     <button class="btn btn-danger btn-sm" style="margin-left:2px" onclick="deleteTask(${t.id})">×</button>
   </div>`;
 }
@@ -2204,6 +2227,45 @@ function pipetaskHTML(t){
     <button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
     <button class="btn btn-danger btn-sm" style="padding:2px 7px;font-size:10px" onclick="deletePipeTask(${t.id})">×</button>
   </div>`;
+}
+
+function openCopyTaskModal(id){
+  const t=CACHE.tasks.find(x=>x.id===id);
+  if(!t)return;
+  document.getElementById('copy-task-id').value=id;
+  document.getElementById('copy-task-title').textContent=t.title;
+  const sel=document.getElementById('copy-task-client');
+  sel.innerHTML='<option value="">Select client</option>'+(CACHE.clients||[])
+    .filter(c=>c.id!==(t.clientId||t.client_id))
+    .map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  openModal('modal-copy-task');
+}
+
+async function copyTaskToClient(){
+  const taskId=parseInt(document.getElementById('copy-task-id').value);
+  const clientId=parseInt(document.getElementById('copy-task-client').value);
+  if(!clientId)return alert('Please select a client');
+  const t=CACHE.tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  const data={
+    client_id:clientId,
+    pipeline_id:null,
+    title:t.title,
+    assign:t.assign,
+    due:t.due||null,
+    priority:t.priority,
+    category:t.category,
+    notes:t.notes||'',
+    done:false
+  };
+  showLoading(true);
+  await SB.insert('tasks',data);
+  await loadAll();
+  showLoading(false);
+  closeModal('modal-copy-task');
+  renderDashboard();
+  if(document.getElementById('page-taskbook')?.classList.contains('active'))renderTaskBook();
+  alert('Task copied successfully!');
 }
 
 function openEditTaskModal(id){
