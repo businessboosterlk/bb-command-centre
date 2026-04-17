@@ -892,6 +892,9 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
         <option value="">Everyone</option>
         <option value="th">Thulaib</option>
         <option value="sh">Shiara</option>
+        <option value="smm">SMM</option>
+        <option value="gd">Graphic Designer</option>
+        <option value="video">Video Editor</option>
       </select>
       <select class="fs" style="width:130px;padding:6px 10px;font-size:12px" id="tb-filter-status" onchange="renderTaskBook()">
         <option value="open">Open tasks</option>
@@ -1185,7 +1188,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     </div>
     <div class="fg-row">
       <div class="fg"><label class="flbl">Assigned To</label>
-        <select class="fs" id="t-assign"><option value="th">Thulaib</option><option value="sh">Shiara</option><option value="both">Both</option></select>
+        <select class="fs" id="t-assign"><option value="th">Thulaib</option><option value="sh">Shiara</option><option value="both">Both</option><option value="smm">SMM</option><option value="gd">Graphic Designer</option><option value="video">Video Editor</option></select>
       </div>
       <div class="fg"><label class="flbl">Due Date</label><input class="fi" id="t-due" type="date"></div>
     </div>
@@ -1983,8 +1986,8 @@ function renderClientTasks(id){
 
 function taskHTML(t){
   const od=isOverdue(t);
-  const avClass={th:'av-t',sh:'av-s',both:'av-t'}[t.assign]||'av-t';
-  const avTxt={th:'TH',sh:'SH',both:'T+S'}[t.assign]||'TH';
+  const avClass={th:'av-t',sh:'av-s',both:'av-t',smm:'av-smm',gd:'av-gd',video:'av-vid'}[t.assign]||'av-t';
+  const avTxt={th:'TH',sh:'SH',both:'T+S',smm:'SM',gd:'GD',video:'VE'}[t.assign]||'TH';
   return `<div class="task-row">
     <div class="task-check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
     <div class="task-body">
@@ -1996,7 +1999,7 @@ function taskHTML(t){
         ${t.notes?`<span class="tag tag-cat" style="color:var(--text3)">${t.notes.substring(0,30)}</span>`:''}
       </div>
     </div>
-    <div class="av ${avClass}" title="${{th:'Thulaib',sh:'Shiara',both:'Both'}[t.assign]||''}">${avTxt}</div>
+    <div class="av ${avClass}" title="${{th:'Thulaib',sh:'Shiara',both:'Both',smm:'SMM',gd:'GD',video:'Video'}[t.assign]||''}">${avTxt}</div>
     <button class="btn btn-ghost btn-sm" style="margin-left:4px;padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
     <button class="btn btn-ghost btn-sm" style="margin-left:2px;padding:2px 7px;font-size:10px;color:var(--text2)" onclick="openCopyTaskModal(${t.id})">Copy</button>
     <button class="btn btn-danger btn-sm" style="margin-left:2px" onclick="deleteTask(${t.id})">×</button>
@@ -2369,7 +2372,7 @@ function pipetaskHTML(t){
       <div class="pc-task-title ${t.done?'done':''}">${t.title}</div>
       <div class="pc-task-meta">
         ${t.due?`<span class="${od?'pc-task-od':''}">${od?'OVERDUE — ':''}${fmtDate(t.due)}</span>`:''}
-        ${t.assign?`<span>${{th:'Thulaib',sh:'Shiara',both:'Both'}[t.assign]||''}</span>`:''}
+        ${t.assign?`<span>${{th:'Thulaib',sh:'Shiara',both:'Both',smm:'SMM',gd:'GD',video:'Video'}[t.assign]||''}</span>`:''}
         ${t.priority?`<span style="color:${priColor(t.priority)};font-weight:500">${(t.priority||'').toUpperCase()}</span>`:''}
       </div>
     </div>
@@ -2677,7 +2680,7 @@ function renderTaskBook(){
     const weekDue=t.due&&t.due<=weekStr&&t.due>=todayStr;
     const avCls={th:'av-t',sh:'av-s',both:'av-t'}[t.assign]||'av-t';
     const avTxt={th:'TH',sh:'SH',both:'T+S'}[t.assign]||'?';
-    const assignLbl={th:'Thulaib',sh:'Shiara',both:'Both'}[t.assign]||'—';
+    const assignLbl={th:'Thulaib',sh:'Shiara',both:'Both',smm:'SMM',gd:'GD',video:'Video'}[t.assign]||'—';
     // Title color: overdue=red, done=muted, high=orange, medium=yellow, else white
     const titleColor=t.done?'var(--text3)':od?'var(--red)':t.priority==='high'?'var(--orange)':t.priority==='medium'?'var(--yellow)':'var(--text)';
     const dueColor=od?'var(--red)':weekDue?'var(--yellow)':'var(--text2)';
