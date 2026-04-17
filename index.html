@@ -190,6 +190,21 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 .phase-name{font-size:13px;font-weight:600}
 .phase-desc{font-size:11px;color:var(--text3);margin-top:2px}
 
+/* ── SHOOTS KANBAN ── */
+.kanban-col{flex-shrink:0;width:220px;background:var(--bg2);border-radius:var(--rs);border:1px solid var(--border);display:flex;flex-direction:column}
+.kanban-col-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.kanban-col-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.kanban-col-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;flex:1}
+.kanban-col-cnt{font-size:10px;font-weight:700;background:var(--bg4);padding:1px 7px;border-radius:10px;color:var(--text3)}
+.kanban-cards{flex:1;padding:8px;display:flex;flex-direction:column;gap:6px;min-height:80px;overflow-y:auto;max-height:70vh}
+.kanban-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px;cursor:grab;transition:border-color 0.15s;user-select:none}
+.kanban-card:hover{border-color:var(--border2)}
+.kanban-card.dragging{opacity:0.35}
+.kanban-col.drag-over .kanban-cards{outline:2px dashed var(--orange);outline-offset:-4px;border-radius:6px}
+.kanban-card-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.kanban-card-client{font-size:10px;color:var(--orange);font-weight:700;margin-bottom:4px}
+.kanban-card-meta{font-size:9px;color:var(--text3);display:flex;gap:6px;flex-wrap:wrap}
+
 /* ── PIPELINE CARDS ── */
 .pc{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;transition:all 0.15s;border-left:3px solid transparent}
 .pc:hover{border-color:var(--border2);transform:translateX(2px)}
@@ -775,7 +790,10 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 <!-- ══ SHOOTS BOARD ══ -->
 <div class="page" id="page-shoots">
   <div class="ph">
-    <div><div class="ph-title">Shoots Board</div><div class="ph-sub">All client shoots across all quarters — full pipeline view</div></div>
+    <div>
+      <div class="ph-title">Shoots Board</div>
+      <div class="ph-sub">Drag cards between columns to update stage</div>
+    </div>
     <div class="ph-right">
       <select class="fs" id="gshoots-quarter" style="width:90px" onchange="renderShootsBoard()">
         <option value="">All Q</option>
@@ -799,9 +817,11 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
         <option value="November">November</option>
         <option value="December">December</option>
       </select>
+      <button class="btn btn-primary" onclick="openShootModalGlobal()">+ Add Shoot</button>
     </div>
   </div>
-  <div id="shoots-board-list"></div>
+  <!-- Kanban columns -->
+  <div id="shoots-kanban" style="display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:16px;min-height:60vh"></div>
 </div>
 
 <!-- ══ PIPELINE ══ -->
@@ -1319,6 +1339,10 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="modal-title" id="shoot-modal-title">Add Shoot</div>
     <input type="hidden" id="shoot-edit-id">
     <input type="hidden" id="shoot-client-id">
+    <div class="fg" id="sh-client-wrap">
+      <label class="flbl">Client</label>
+      <select class="fs" id="sh-client-select"><option value="">Select client</option></select>
+    </div>
     <div class="fg"><label class="flbl">Shoot Title / Description</label>
       <input class="fi" id="sh-title" placeholder="e.g. April Product Shoot"></div>
     <div class="fg-row">
@@ -3201,6 +3225,15 @@ function openShootModal(id=null){
   document.getElementById('shoot-modal-title').textContent=id?'Edit Shoot':'Add Shoot';
   document.getElementById('shoot-edit-id').value=id||'';
   document.getElementById('shoot-client-id').value=currentClientId||'';
+  // Show/hide client selector
+  const wrap=document.getElementById('sh-client-wrap');
+  const sel=document.getElementById('sh-client-select');
+  if(currentClientId){
+    if(wrap)wrap.style.display='none';
+  } else {
+    if(wrap)wrap.style.display='block';
+    if(sel)sel.innerHTML='<option value="">Select client</option>'+(CACHE.clients||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
   if(id){
     const s=(CACHE.shoots||[]).find(x=>x.id===id);
     if(s){document.getElementById('sh-title').value=s.title||'';document.getElementById('sh-quarter').value=s.quarter||'Q2';document.getElementById('sh-month').value=s.month||'April';document.getElementById('sh-stage').value=s.stage||'Videos Confirmed';document.getElementById('sh-date').value=s.shoot_date||'';document.getElementById('sh-videos').value=s.video_count||'';document.getElementById('sh-notes').value=s.notes||'';}
@@ -3217,8 +3250,13 @@ function openShootModal(id=null){
 
 async function saveShoot(){
   const editId=parseInt(document.getElementById('shoot-edit-id').value)||null;
-  const clientId=parseInt(document.getElementById('shoot-client-id').value)||null;
+  let clientId=parseInt(document.getElementById('shoot-client-id').value)||null;
+  if(!clientId){
+    const sel=document.getElementById('sh-client-select');
+    clientId=parseInt(sel?.value)||null;
+  }
   const data={client_id:clientId,title:document.getElementById('sh-title').value.trim()||'Untitled Shoot',quarter:document.getElementById('sh-quarter').value,month:document.getElementById('sh-month').value,stage:document.getElementById('sh-stage').value,shoot_date:document.getElementById('sh-date').value||null,video_count:parseInt(document.getElementById('sh-videos').value)||null,notes:document.getElementById('sh-notes').value.trim()};
+  if(!data.client_id)return alert('Please select a client');
   showLoading(true);
   if(editId)await SB.update('shoots',editId,data);else await SB.insert('shoots',data);
   await loadAll();showLoading(false);
@@ -3270,7 +3308,7 @@ function renderClientShoots(){
 }
 
 function renderShootsBoard(){
-  const el=document.getElementById('shoots-board-list');
+  const el=document.getElementById('shoots-kanban');
   if(!el)return;
   const qFilter=document.getElementById('gshoots-quarter')?.value||'';
   const mFilter=document.getElementById('gshoots-month')?.value||'';
@@ -3278,29 +3316,85 @@ function renderShootsBoard(){
   let shoots=CACHE.shoots||[];
   if(qFilter)shoots=shoots.filter(s=>s.quarter===qFilter);
   if(mFilter)shoots=shoots.filter(s=>s.month===mFilter);
-  if(!shoots.length){el.innerHTML='<div class="empty">No shoots found. Add shoots from inside each client profile under the Shoots tab.</div>';return;}
-  const byClient={};
-  shoots.forEach(s=>{if(!byClient[s.client_id])byClient[s.client_id]=[];byClient[s.client_id].push(s);});
-  el.innerHTML=Object.entries(byClient).map(([cid,cShoots])=>{
-    const client=clients.find(c=>c.id==cid);
-    return `<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
-      <div style="padding:12px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-        <span style="font-size:12px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer" onclick="openClientProfile(${cid})">${client?client.name:'Unknown'}</span>
-        <span style="font-size:10px;color:var(--text3)">${cShoots.length} shoot${cShoots.length>1?'s':''}</span>
+
+  const stageColors={
+    'Videos Confirmed':'#3b82f6',
+    'Script Made':'#eab308',
+    'Script Changes':'#f97316',
+    'Final Script':'#a855f7',
+    'Shoot Date Set':'#ec4899',
+    'Shot':'#22c55e'
+  };
+
+  el.innerHTML=SHOOT_STAGES.map(stage=>{
+    const stageCards=shoots.filter(s=>s.stage===stage);
+    const color=stageColors[stage]||'#888';
+    return `<div class="kanban-col" id="kcol-${stage.replace(/\s+/g,'-')}"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="handleShootDrop(event,'${stage}');this.classList.remove('drag-over')">
+      <div class="kanban-col-hdr">
+        <div class="kanban-col-dot" style="background:${color}"></div>
+        <span class="kanban-col-title" style="color:${color}">${stage}</span>
+        <span class="kanban-col-cnt">${stageCards.length}</span>
       </div>
-      ${cShoots.map(s=>{const sc=STAGE_COLORS[s.stage]||'var(--text2)';return `<div style="padding:12px 18px;border-bottom:1px solid var(--border)">
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div style="flex:1;min-width:100px"><div style="font-size:12px;font-weight:600;color:var(--text)">${s.title}</div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">${s.quarter} · ${s.month}${s.video_count?' · '+s.video_count+' videos':''}${s.shoot_date?' · '+fmtDate(s.shoot_date):''}</div></div>
-          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;background:${sc}18;color:${sc};border:1px solid ${sc}33;white-space:nowrap">${s.stage}</span>
-          <select class="fs" style="font-size:10px;padding:3px 6px;width:auto" onchange="updateShootStage(${s.id},this.value)">
-            ${SHOOT_STAGES.map(st=>`<option value="${st}" ${s.stage===st?'selected':''}>${st}</option>`).join('')}
-          </select>
-        </div>
-        ${shootStageBar(s.stage)}
-      </div>`;}).join('')}
+      <div class="kanban-cards">
+        ${stageCards.length?stageCards.map(s=>{
+          const client=clients.find(c=>c.id===s.client_id);
+          return `<div class="kanban-card" draggable="true"
+            ondragstart="handleShootDragStart(event,${s.id})"
+            ondragend="this.classList.remove('dragging')">
+            <div class="kanban-card-client">${client?client.name:'Unknown'}</div>
+            <div class="kanban-card-name">${s.title}</div>
+            <div class="kanban-card-meta">
+              <span>${s.quarter||''}</span>
+              <span>${s.month||''}</span>
+              ${s.video_count?`<span>${s.video_count} vids</span>`:''}
+              ${s.shoot_date?`<span>${fmtDate(s.shoot_date)}</span>`:''}
+            </div>
+            <div style="display:flex;gap:4px;margin-top:8px">
+              <button class="btn btn-ghost btn-sm" style="padding:1px 6px;font-size:9px;flex:1" onclick="openShootModal(${s.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" style="padding:1px 6px;font-size:9px" onclick="deleteShoot(${s.id})">×</button>
+            </div>
+          </div>`;
+        }).join(''):`<div style="font-size:10px;color:var(--text3);text-align:center;padding:16px 8px;font-weight:300">No shoots</div>`}
+      </div>
     </div>`;
   }).join('');
+}
+
+let dragShootId=null;
+function handleShootDragStart(event,id){
+  dragShootId=id;
+  event.target.classList.add('dragging');
+  event.dataTransfer.effectAllowed='move';
+}
+async function handleShootDrop(event,stage){
+  event.preventDefault();
+  if(!dragShootId)return;
+  await updateShootStage(dragShootId,stage);
+  dragShootId=null;
+}
+
+function openShootModalGlobal(){
+  // Open shoot modal without a specific client — let user pick
+  document.getElementById('shoot-modal-title').textContent='Add Shoot';
+  document.getElementById('shoot-edit-id').value='';
+  document.getElementById('shoot-client-id').value='';
+
+  // Add client selector to modal temporarily
+  const clientSel=document.getElementById('sh-client-select');
+  if(clientSel){
+    clientSel.innerHTML='<option value="">Select client</option>'+(CACHE.clients||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+    clientSel.parentElement.style.display='block';
+  }
+  ['sh-title','sh-notes'].forEach(x=>document.getElementById(x).value='');
+  document.getElementById('sh-quarter').value='Q2';
+  document.getElementById('sh-month').value=new Date().toLocaleString('en',{month:'long'});
+  document.getElementById('sh-stage').value='Videos Confirmed';
+  document.getElementById('sh-date').value='';
+  document.getElementById('sh-videos').value='';
+  openModal('modal-shoot');
 }
 
 function setMobileNav(id){
