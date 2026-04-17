@@ -509,6 +509,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="sb-grp">Business</div>
     <div class="sb-item" onclick="nav('clients')"><span>Clients</span></div>
     <div class="sb-item" onclick="nav('taskbook')"><span>Task Book</span><span class="sb-badge" id="sb-overdue-badge" style="display:none">!</span></div>
+    <div class="sb-item" onclick="nav('shoots')"><span>Shoots</span></div>
     <div class="sb-item" onclick="nav('pipeline')"><span>Pipeline</span><span class="sb-badge" id="sb-hot-badge" style="display:none">Hot</span></div>
     <div class="sb-item" onclick="nav('revenue')"><span>Revenue</span></div>
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
@@ -707,6 +708,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   <!-- Tabs -->
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('tasks')">Tasks</button>
+    <button class="tab-btn" onclick="switchTab('shoots')">Shoots</button>
     <button class="tab-btn" onclick="switchTab('phases')">Phases</button>
     <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
   </div>
@@ -725,6 +727,38 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div id="cp-tasks-done" class="task-section"></div>
   </div>
 
+  <!-- SHOOTS TAB -->
+  <div class="tab-panel" id="tab-shoots">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <select class="fs" id="shoot-quarter-filter" style="width:90px;font-size:11px;padding:5px 8px" onchange="renderClientShoots()">
+          <option value="">All</option>
+          <option value="Q1">Q1</option>
+          <option value="Q2">Q2</option>
+          <option value="Q3">Q3</option>
+          <option value="Q4">Q4</option>
+        </select>
+        <select class="fs" id="shoot-month-filter" style="width:110px;font-size:11px;padding:5px 8px" onchange="renderClientShoots()">
+          <option value="">All Months</option>
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September">September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openShootModal()">+ Add Shoot</button>
+    </div>
+    <div id="cp-shoots-list"></div>
+  </div>
+
   <div class="tab-panel" id="tab-phases">
     <div id="cp-phases-list"></div>
   </div>
@@ -736,6 +770,38 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
       <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="editCurrentClient()">Edit Notes</button>
     </div>
   </div>
+</div>
+
+<!-- ══ SHOOTS BOARD ══ -->
+<div class="page" id="page-shoots">
+  <div class="ph">
+    <div><div class="ph-title">Shoots Board</div><div class="ph-sub">All client shoots across all quarters — full pipeline view</div></div>
+    <div class="ph-right">
+      <select class="fs" id="gshoots-quarter" style="width:90px" onchange="renderShootsBoard()">
+        <option value="">All Q</option>
+        <option value="Q1">Q1</option>
+        <option value="Q2">Q2</option>
+        <option value="Q3">Q3</option>
+        <option value="Q4">Q4</option>
+      </select>
+      <select class="fs" id="gshoots-month" style="width:120px" onchange="renderShootsBoard()">
+        <option value="">All Months</option>
+        <option value="January">January</option>
+        <option value="February">February</option>
+        <option value="March">March</option>
+        <option value="April">April</option>
+        <option value="May">May</option>
+        <option value="June">June</option>
+        <option value="July">July</option>
+        <option value="August">August</option>
+        <option value="September">September</option>
+        <option value="October">October</option>
+        <option value="November">November</option>
+        <option value="December">December</option>
+      </select>
+    </div>
+  </div>
+  <div id="shoots-board-list"></div>
 </div>
 
 <!-- ══ PIPELINE ══ -->
@@ -1247,6 +1313,63 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   </div>
 </div>
 
+<!-- Shoot Modal -->
+<div class="overlay" id="modal-shoot">
+  <div class="modal">
+    <div class="modal-title" id="shoot-modal-title">Add Shoot</div>
+    <input type="hidden" id="shoot-edit-id">
+    <input type="hidden" id="shoot-client-id">
+    <div class="fg"><label class="flbl">Shoot Title / Description</label>
+      <input class="fi" id="sh-title" placeholder="e.g. April Product Shoot"></div>
+    <div class="fg-row">
+      <div class="fg"><label class="flbl">Quarter</label>
+        <select class="fs" id="sh-quarter">
+          <option value="Q1">Q1 (Jan–Mar)</option>
+          <option value="Q2" selected>Q2 (Apr–Jun)</option>
+          <option value="Q3">Q3 (Jul–Sep)</option>
+          <option value="Q4">Q4 (Oct–Dec)</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl">Month</label>
+        <select class="fs" id="sh-month">
+          <option value="January">January</option>
+          <option value="February">February</option>
+          <option value="March">March</option>
+          <option value="April">April</option>
+          <option value="May">May</option>
+          <option value="June">June</option>
+          <option value="July">July</option>
+          <option value="August">August</option>
+          <option value="September">September</option>
+          <option value="October">October</option>
+          <option value="November">November</option>
+          <option value="December">December</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Stage</label>
+      <select class="fs" id="sh-stage">
+        <option value="Videos Confirmed">Videos Confirmed</option>
+        <option value="Script Made">Script Made</option>
+        <option value="Script Changes">Script Changes</option>
+        <option value="Final Script">Final Script</option>
+        <option value="Shoot Date Set">Shoot Date Set</option>
+        <option value="Shot">Shot ✓</option>
+      </select>
+    </div>
+    <div class="fg"><label class="flbl">Shoot Date (optional)</label>
+      <input class="fi" id="sh-date" type="date"></div>
+    <div class="fg"><label class="flbl">Number of Videos</label>
+      <input class="fi" id="sh-videos" type="number" placeholder="e.g. 5" min="1"></div>
+    <div class="fg"><label class="flbl">Notes</label>
+      <textarea class="fta" id="sh-notes" placeholder="Any details..." style="min-height:50px"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-shoot')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveShoot()">Save Shoot</button>
+    </div>
+  </div>
+</div>
+
 <!-- Copy Task Modal -->
 <div class="overlay" id="modal-copy-task">
   <div class="modal">
@@ -1375,15 +1498,16 @@ const SB={
 };
 
 // In-memory cache (refreshed on each page nav)
-let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[]};
+let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[],shoots:[]};
 
 async function loadAll(){
-  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs]=await Promise.all([
+  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots]=await Promise.all([
     SB.getAll('clients'),SB.getAll('tasks'),SB.getAll('pipeline'),
     SB.getAll('revenue'),SB.getAll('pillars'),
     SB.getAll('events').catch(()=>[]),
     SB.getAll('invoices').catch(()=>[]),
-    SB.getAll('costs').catch(()=>[])
+    SB.getAll('costs').catch(()=>[]),
+    SB.getAll('shoots').catch(()=>[])
   ]);
   CACHE.clients=clients||[];
   CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:t.client_id,pipelineId:t.pipeline_id,done:t.done||false}));
@@ -1393,6 +1517,7 @@ async function loadAll(){
   CACHE.events=Array.isArray(events)?events:[];
   CACHE.invoices=Array.isArray(invoices)?invoices:[];
   CACHE.costs=Array.isArray(costs)?costs:[];
+  CACHE.shoots=Array.isArray(shoots)?shoots:[];
   if(CACHE.clients.length===0) await seedClients();
 }
 
@@ -1509,7 +1634,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,advisor:renderAdvisor,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,advisor:renderAdvisor,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard})[id]?.();
 }
 
 function showLoading(v){
@@ -3063,6 +3188,121 @@ function updateTaskSuggestions(){
   const unique=[...new Set(existing.map(t=>t.title).filter(t=>t&&t.toLowerCase().includes(val)))].slice(0,8);
   dl.innerHTML=unique.map(t=>`<option value="${t}">`).join('');
 }
+
+// ═══ SHOOTS ══════════════════════════════════════
+const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Shoot Date Set','Shot'];
+const STAGE_COLORS={'Videos Confirmed':'var(--blue)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
+
+function shootStageBar(currentStage){
+  return `<div style="display:flex;gap:3px;margin-top:8px;flex-wrap:wrap">${SHOOT_STAGES.map((s,i)=>{const idx=SHOOT_STAGES.indexOf(currentStage);const done=i<=idx;const isCurrent=s===currentStage;return `<div style="flex:1;min-width:55px;padding:3px 5px;border-radius:4px;font-size:8px;font-weight:${isCurrent?700:500};text-align:center;background:${done?(isCurrent?STAGE_COLORS[s]:'rgba(255,255,255,0.06)'):'var(--bg4)'};color:${done?(isCurrent?'#000':'var(--text2)'):'var(--text3)'};border:1px solid ${isCurrent?STAGE_COLORS[s]:'var(--border)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>`;}).join('')}</div>`;
+}
+
+function openShootModal(id=null){
+  document.getElementById('shoot-modal-title').textContent=id?'Edit Shoot':'Add Shoot';
+  document.getElementById('shoot-edit-id').value=id||'';
+  document.getElementById('shoot-client-id').value=currentClientId||'';
+  if(id){
+    const s=(CACHE.shoots||[]).find(x=>x.id===id);
+    if(s){document.getElementById('sh-title').value=s.title||'';document.getElementById('sh-quarter').value=s.quarter||'Q2';document.getElementById('sh-month').value=s.month||'April';document.getElementById('sh-stage').value=s.stage||'Videos Confirmed';document.getElementById('sh-date').value=s.shoot_date||'';document.getElementById('sh-videos').value=s.video_count||'';document.getElementById('sh-notes').value=s.notes||'';}
+  } else {
+    ['sh-title','sh-notes'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('sh-quarter').value='Q2';
+    document.getElementById('sh-month').value=new Date().toLocaleString('en',{month:'long'});
+    document.getElementById('sh-stage').value='Videos Confirmed';
+    document.getElementById('sh-date').value='';
+    document.getElementById('sh-videos').value='';
+  }
+  openModal('modal-shoot');
+}
+
+async function saveShoot(){
+  const editId=parseInt(document.getElementById('shoot-edit-id').value)||null;
+  const clientId=parseInt(document.getElementById('shoot-client-id').value)||null;
+  const data={client_id:clientId,title:document.getElementById('sh-title').value.trim()||'Untitled Shoot',quarter:document.getElementById('sh-quarter').value,month:document.getElementById('sh-month').value,stage:document.getElementById('sh-stage').value,shoot_date:document.getElementById('sh-date').value||null,video_count:parseInt(document.getElementById('sh-videos').value)||null,notes:document.getElementById('sh-notes').value.trim()};
+  showLoading(true);
+  if(editId)await SB.update('shoots',editId,data);else await SB.insert('shoots',data);
+  await loadAll();showLoading(false);
+  closeModal('modal-shoot');
+  renderClientShoots();
+  if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
+}
+
+async function updateShootStage(id,stage){
+  showLoading(true);await SB.update('shoots',id,{stage});await loadAll();showLoading(false);
+  renderClientShoots();
+  if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
+}
+
+async function deleteShoot(id){
+  if(!confirm('Delete this shoot?'))return;
+  showLoading(true);await SB.delete('shoots',id);await loadAll();showLoading(false);
+  renderClientShoots();
+  if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
+}
+
+function renderClientShoots(){
+  const el=document.getElementById('cp-shoots-list');
+  if(!el)return;
+  const qFilter=document.getElementById('shoot-quarter-filter')?.value||'';
+  const mFilter=document.getElementById('shoot-month-filter')?.value||'';
+  let shoots=(CACHE.shoots||[]).filter(s=>s.client_id===currentClientId);
+  if(qFilter)shoots=shoots.filter(s=>s.quarter===qFilter);
+  if(mFilter)shoots=shoots.filter(s=>s.month===mFilter);
+  if(!shoots.length){el.innerHTML='<div class="empty">No shoots yet. Add one to track your video production pipeline.</div>';return;}
+  el.innerHTML=shoots.map(s=>{
+    const sc=STAGE_COLORS[s.stage]||'var(--text2)';
+    return `<div class="card" style="margin-bottom:10px;padding:14px 16px;border-left:3px solid ${sc}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px">
+        <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--text)">${s.title}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:3px"><span style="background:var(--o10);color:var(--orange);padding:1px 6px;border-radius:3px;font-weight:600;margin-right:6px">${s.quarter}</span><span>${s.month}</span>${s.video_count?` · ${s.video_count} videos`:''}${s.shoot_date?` · ${fmtDate(s.shoot_date)}`:''}</div></div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="openShootModal(${s.id})">Edit</button>
+          <button class="btn btn-danger btn-sm" style="padding:2px 7px;font-size:10px" onclick="deleteShoot(${s.id})">×</button>
+        </div>
+      </div>
+      ${shootStageBar(s.stage)}
+      <div style="display:flex;gap:4px;margin-top:8px;flex-wrap:wrap">
+        ${SHOOT_STAGES.map(stage=>`<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:9px;${s.stage===stage?'color:var(--orange);border-color:var(--o20)':''}" onclick="updateShootStage(${s.id},'${stage}')">${stage}</button>`).join('')}
+      </div>
+      ${s.notes?`<div style="font-size:11px;color:var(--text3);margin-top:8px;font-style:italic">${s.notes}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function renderShootsBoard(){
+  const el=document.getElementById('shoots-board-list');
+  if(!el)return;
+  const qFilter=document.getElementById('gshoots-quarter')?.value||'';
+  const mFilter=document.getElementById('gshoots-month')?.value||'';
+  const clients=CACHE.clients||[];
+  let shoots=CACHE.shoots||[];
+  if(qFilter)shoots=shoots.filter(s=>s.quarter===qFilter);
+  if(mFilter)shoots=shoots.filter(s=>s.month===mFilter);
+  if(!shoots.length){el.innerHTML='<div class="empty">No shoots found. Add shoots from inside each client profile under the Shoots tab.</div>';return;}
+  const byClient={};
+  shoots.forEach(s=>{if(!byClient[s.client_id])byClient[s.client_id]=[];byClient[s.client_id].push(s);});
+  el.innerHTML=Object.entries(byClient).map(([cid,cShoots])=>{
+    const client=clients.find(c=>c.id==cid);
+    return `<div class="card" style="margin-bottom:14px;padding:0;overflow:hidden">
+      <div style="padding:12px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:0.06em;cursor:pointer" onclick="openClientProfile(${cid})">${client?client.name:'Unknown'}</span>
+        <span style="font-size:10px;color:var(--text3)">${cShoots.length} shoot${cShoots.length>1?'s':''}</span>
+      </div>
+      ${cShoots.map(s=>{const sc=STAGE_COLORS[s.stage]||'var(--text2)';return `<div style="padding:12px 18px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:100px"><div style="font-size:12px;font-weight:600;color:var(--text)">${s.title}</div>
+          <div style="font-size:10px;color:var(--text3);margin-top:2px">${s.quarter} · ${s.month}${s.video_count?' · '+s.video_count+' videos':''}${s.shoot_date?' · '+fmtDate(s.shoot_date):''}</div></div>
+          <span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:4px;background:${sc}18;color:${sc};border:1px solid ${sc}33;white-space:nowrap">${s.stage}</span>
+          <select class="fs" style="font-size:10px;padding:3px 6px;width:auto" onchange="updateShootStage(${s.id},this.value)">
+            ${SHOOT_STAGES.map(st=>`<option value="${st}" ${s.stage===st?'selected':''}>${st}</option>`).join('')}
+          </select>
+        </div>
+        ${shootStageBar(s.stage)}
+      </div>`;}).join('')}
+    </div>`;
+  }).join('');
+}
+
 function setMobileNav(id){
   document.querySelectorAll('.mobile-nav-item').forEach(el=>el.classList.remove('active'));
   const el=document.getElementById('mn-'+id);
