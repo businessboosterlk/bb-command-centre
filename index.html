@@ -190,51 +190,6 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 .phase-name{font-size:13px;font-weight:600}
 .phase-desc{font-size:11px;color:var(--text3);margin-top:2px}
 
-
-/* ── NEW FEATURE BUTTONS ── */
-.tb-feature-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
-.btn-focus{background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.18);border-radius:8px;padding:7px 14px;font-size:10px;font-weight:700;color:#A855F7;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:0.04em;transition:all 0.15s;display:flex;align-items:center;gap:6px;}
-.btn-focus:hover{background:rgba(168,85,247,0.16);}
-.btn-notif{position:relative;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.4);transition:all 0.15s;}
-.btn-notif:hover{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);}
-.notif-badge{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#FF2D78;border:2px solid var(--bg);font-size:7px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px rgba(255,45,120,0.5);}
-.btn-cmd{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:7px 12px;font-size:10px;color:rgba(255,255,255,0.22);cursor:pointer;transition:all 0.15s;font-family:'Poppins',sans-serif;}
-.btn-cmd:hover{border-color:rgba(255,255,255,0.1);}
-.kbd-badge{font-size:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:1px 5px;color:rgba(255,255,255,0.25);}
-
-/* ── INTEL CARD ── */
-.intel-card{background:rgba(255,255,255,0.025);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 22px;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);}
-.intel-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);}
-.intel-card::after{content:'';position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,43,0.06),transparent 70%);pointer-events:none;}
-.intel-tag{display:flex;align-items:center;gap:7px;font-size:8px;font-weight:700;color:rgba(255,107,43,0.55);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:10px;}
-.intel-pulse{width:5px;height:5px;border-radius:50%;background:#FF6B2B;box-shadow:0 0 5px rgba(255,107,43,0.5);animation:ldot-pulse 2s infinite;}
-@keyframes ldot-pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.intel-text{font-size:14px;font-weight:400;color:rgba(255,255,255,0.72);line-height:1.7;letter-spacing:-0.01em;}
-.intel-text strong{color:#fff;font-weight:600;}
-.intel-btns{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap;}
-.intel-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 13px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.38);cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.15s;}
-.intel-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);}
-.intel-btn.primary{background:rgba(255,107,43,0.09);border-color:rgba(255,107,43,0.18);color:#FF6B2B;}
-
-/* ── MOOD SCORE RING ── */
-.mood-ring-wrap{position:relative;width:32px;height:32px;flex-shrink:0;}
-.mood-ring-wrap svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
-.mood-score-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:8px;font-weight:800;}
-
-/* ── NOTIF ITEM ── */
-.notif-item{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);border-radius:11px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.15s;display:flex;align-items:flex-start;gap:10px;}
-.notif-item:hover{background:rgba(255,255,255,0.04);}
-.notif-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
-.notif-title{font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:2px;}
-.notif-sub{font-size:10px;color:rgba(255,255,255,0.28);line-height:1.4;}
-.notif-time{font-size:9px;color:rgba(255,255,255,0.18);margin-top:4px;}
-.notif-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
-.notif-section{font-size:8px;font-weight:700;color:rgba(255,255,255,0.18);text-transform:uppercase;letter-spacing:0.16em;padding:8px 4px 5px;}
-
-/* CURSOR BLINK */
-@keyframes cur-blink{0%,100%{opacity:1;}50%{opacity:0;}}
-.intel-cursor{display:inline-block;width:2px;height:12px;background:#FF6B2B;margin-left:2px;vertical-align:middle;animation:cur-blink 1s infinite;}
-
 /* ── SHOOTS KANBAN ── */
 .kanban-col{flex-shrink:0;width:220px;background:var(--bg2);border-radius:var(--rs);border:1px solid var(--border);display:flex;flex-direction:column}
 .kanban-col-hdr{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
@@ -540,9 +495,123 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 .cc-login-btn:hover{opacity:0.9;}
 .cc-login-err{color:var(--red);font-size:11px;margin-top:10px;display:none;font-weight:500;}
 
+
+/* ══ GLASS UPGRADES ══ */
+.sidebar{background:rgba(255,255,255,0.022)!important;backdrop-filter:blur(60px);-webkit-backdrop-filter:blur(60px);}
+.card{background:rgba(255,255,255,0.025)!important;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,0.07)!important;}
+.stat{background:rgba(255,255,255,0.022)!important;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-color:rgba(255,255,255,0.06)!important;transition:border-color 0.2s,transform 0.2s;cursor:pointer;}
+.stat:hover{border-color:rgba(255,255,255,0.1)!important;transform:translateY(-1px);}
+
+/* ══ INTEL CARD ══ */
+.intel-card{background:rgba(255,255,255,0.025);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:20px 22px;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);}
+.intel-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);}
+.intel-tag{display:flex;align-items:center;gap:7px;font-size:8px;font-weight:700;color:rgba(255,107,43,0.6);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:10px;}
+.intel-pulse{width:5px;height:5px;border-radius:50%;background:#FF6B2B;box-shadow:0 0 5px rgba(255,107,43,0.5);animation:ipulse 2s infinite;}
+@keyframes ipulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.intel-text{font-size:14px;font-weight:400;color:rgba(255,255,255,0.75);line-height:1.7;letter-spacing:-0.01em;}
+.intel-text strong{color:#fff;font-weight:600;}
+.intel-btns{display:flex;gap:7px;margin-top:14px;flex-wrap:wrap;}
+.intel-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 13px;font-size:10px;font-weight:500;color:rgba(255,255,255,0.4);cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.15s;}
+.intel-btn:hover{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.7);}
+.intel-btn.primary{background:rgba(255,107,43,0.09);border-color:rgba(255,107,43,0.18);color:#FF6B2B;}
+@keyframes cur-blink{0%,100%{opacity:1;}50%{opacity:0;}}
+.intel-cursor{display:inline-block;width:2px;height:12px;background:#FF6B2B;margin-left:2px;vertical-align:middle;animation:cur-blink 1s infinite;}
+
+/* ══ FEATURE BUTTONS ══ */
+.btn-focus{background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.18);border-radius:8px;padding:7px 14px;font-size:10px;font-weight:700;color:#A855F7;cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.15s;}
+.btn-focus:hover{background:rgba(168,85,247,0.18);}
+.btn-notif{position:relative;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;justify-content:center;cursor:pointer;color:rgba(255,255,255,0.4);transition:all 0.15s;}
+.btn-notif:hover{border-color:rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);}
+.notif-badge{position:absolute;top:-3px;right:-3px;width:14px;height:14px;border-radius:50%;background:#FF2D78;border:2px solid var(--bg);font-size:7px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 8px rgba(255,45,120,0.5);}
+.btn-cmd-dash{display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:7px 12px;font-size:10px;color:rgba(255,255,255,0.25);cursor:pointer;font-family:'Poppins',sans-serif;transition:all 0.15s;}
+.btn-cmd-dash:hover{border-color:rgba(255,255,255,0.1);}
+.kbd-sm{font-size:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:1px 5px;color:rgba(255,255,255,0.25);}
+
+/* ══ FOCUS OVERLAY ══ */
+#focus-overlay{position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,0.97);backdrop-filter:blur(60px);display:none;align-items:center;justify-content:center;flex-direction:column;}
+#focus-overlay.open{display:flex;}
+.focus-tag{font-size:9px;font-weight:700;color:rgba(255,107,43,0.5);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:28px;display:flex;align-items:center;gap:8px;}
+.focus-tag-dot{width:5px;height:5px;border-radius:50%;background:#FF6B2B;animation:ipulse 2s infinite;}
+.focus-task{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px 22px;margin-bottom:10px;display:flex;align-items:center;gap:16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);transition:all 0.2s;}
+.focus-task:hover{border-color:rgba(255,255,255,0.12);background:rgba(255,255,255,0.045);}
+.focus-num{font-size:11px;font-weight:800;color:rgba(255,255,255,0.15);width:20px;flex-shrink:0;}
+.focus-exit{margin-top:32px;font-size:10px;color:rgba(255,255,255,0.2);cursor:pointer;background:none;border:none;font-family:'Poppins',sans-serif;letter-spacing:0.05em;}
+.focus-exit:hover{color:rgba(255,255,255,0.5);}
+
+/* ══ NOTIFICATION PANEL ══ */
+#notif-panel{position:fixed;top:0;right:0;bottom:0;z-index:7000;width:340px;background:rgba(10,10,14,0.97);backdrop-filter:blur(60px);border-left:1px solid rgba(255,255,255,0.07);transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;}
+#notif-panel.open{transform:translateX(0);}
+.np-head{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.np-close{width:26px;height:26px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);color:rgba(255,255,255,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;}
+.np-body{flex:1;overflow-y:auto;padding:12px 16px;}
+.np-body::-webkit-scrollbar{display:none;}
+.np-sec{font-size:8px;font-weight:700;color:rgba(255,255,255,0.18);text-transform:uppercase;letter-spacing:0.16em;padding:8px 4px 5px;}
+.ni{background:rgba(255,255,255,0.025);border:1px solid rgba(255,255,255,0.05);border-radius:11px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;transition:all 0.15s;}
+.ni:hover{background:rgba(255,255,255,0.04);}
+.ni-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.ni-title{font-size:11px;font-weight:600;color:rgba(255,255,255,0.8);margin-bottom:2px;}
+.ni-sub{font-size:10px;color:rgba(255,255,255,0.28);line-height:1.4;}
+.ni-time{font-size:9px;color:rgba(255,255,255,0.18);margin-top:4px;}
+.ni-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+
+/* ══ COMMAND BAR ══ */
+#cmd-overlay{position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,0.6);backdrop-filter:blur(20px);display:none;align-items:flex-start;justify-content:center;padding-top:14vh;}
+#cmd-overlay.open{display:flex;}
+.cmd-box{width:100%;max-width:560px;background:rgba(12,12,16,0.97);border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 40px 120px rgba(0,0,0,0.8),inset 0 1px 0 rgba(255,255,255,0.07);overflow:hidden;}
+.cmd-input-row{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.cmd-input{flex:1;background:none;border:none;outline:none;font-size:15px;color:#fff;font-family:'Poppins',sans-serif;}
+.cmd-input::placeholder{color:rgba(255,255,255,0.2);}
+.cmd-results{padding:8px;max-height:360px;overflow-y:auto;}
+.cmd-results::-webkit-scrollbar{display:none;}
+.cmd-section{font-size:9px;font-weight:600;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.14em;padding:8px 12px 4px;}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background 0.1s;}
+.cmd-item:hover,.cmd-item.sel{background:rgba(255,255,255,0.06);}
+.cmd-item-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+.cmd-item-title{font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);}
+.cmd-item-sub{font-size:10px;color:rgba(255,255,255,0.28);margin-top:1px;}
+.cmd-item-badge{font-size:9px;font-weight:600;padding:2px 8px;border-radius:5px;margin-left:auto;flex-shrink:0;}
+.cmd-foot{padding:10px 16px;border-top:1px solid rgba(255,255,255,0.05);display:flex;gap:14px;}
+.cmd-key{display:flex;align-items:center;gap:5px;font-size:9px;color:rgba(255,255,255,0.2);}
+.cmd-kbd{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:2px 6px;font-size:9px;color:rgba(255,255,255,0.3);}
+
 </style>
 </head>
 <body>
+
+<!-- ══ FOCUS OVERLAY ══ -->
+<div id="focus-overlay">
+  <div class="focus-tag"><div class="focus-tag-dot"></div>Focus Mode · Top 3 Today</div>
+  <div style="font-size:11px;font-weight:300;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:32px;">Everything else can wait.</div>
+  <div id="focus-tasks" style="width:100%;max-width:500px;padding:0 20px;"></div>
+  <button class="focus-exit" onclick="toggleFocus()">Exit Focus Mode →</button>
+</div>
+
+<!-- ══ NOTIFICATION PANEL ══ -->
+<div id="notif-panel">
+  <div class="np-head">
+    <div style="font-size:14px;font-weight:700;color:#fff;">Notifications</div>
+    <div class="np-close" onclick="toggleNotif()">×</div>
+  </div>
+  <div id="notif-body" class="np-body"></div>
+</div>
+
+<!-- ══ COMMAND BAR ══ -->
+<div id="cmd-overlay">
+  <div class="cmd-box">
+    <div class="cmd-input-row">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input class="cmd-input" id="cmd-input" placeholder="Search clients, tasks, navigate..." oninput="renderCmdResults()">
+      <span style="font-size:10px;color:rgba(255,255,255,0.18);">ESC</span>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+    <div class="cmd-foot">
+      <div class="cmd-key"><span class="cmd-kbd">↑↓</span>Navigate</div>
+      <div class="cmd-key"><span class="cmd-kbd">↵</span>Open</div>
+      <div class="cmd-key"><span class="cmd-kbd">ESC</span>Close</div>
+    </div>
+  </div>
+</div>
+
 
 <!-- LOGIN SCREEN -->
 <div id="cc-login">
@@ -614,8 +683,28 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 
 <!-- ══ DASHBOARD ══ -->
 <div class="page active" id="page-dashboard">
-  <div class="ph">
+  <div class="ph" style="flex-wrap:wrap;gap:10px;">
     <div><div class="ph-title">Dashboard</div><div class="ph-sub" id="dash-date">—</div></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;">
+      <div class="btn-cmd-dash" onclick="openCmd()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Search <span class="kbd-sm">⌘K</span>
+      </div>
+      <button class="btn-focus" onclick="toggleFocus()">◎ Focus</button>
+      <div class="btn-notif" onclick="toggleNotif()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <div class="notif-badge" id="notif-count" style="display:none;">0</div>
+      </div>
+    </div>
+  </div>
+  <div class="intel-card" id="intel-card" style="display:none;">
+    <div class="intel-tag"><div class="intel-pulse"></div>BB Intelligence · Live</div>
+    <div class="intel-text" id="intel-text"><span class="intel-cursor"></span></div>
+    <div class="intel-btns" id="intel-btns" style="display:none;">
+      <button class="intel-btn primary" onclick="nav('taskbook')">View Overdue Tasks</button>
+      <button class="intel-btn" onclick="nav('clients')">All Clients</button>
+      <button class="intel-btn" onclick="nav('pipeline')">Pipeline</button>
+    </div>
   </div>
   <div class="g4 stat-row" style="margin-bottom:14px">
     <div class="stat"><div class="stat-lbl">Active Clients</div><div class="stat-val c-orange" id="s-clients">—</div><div class="stat-note">Target: 35 by 2026</div></div>
@@ -1761,8 +1850,8 @@ async function openClientProfile(id){
 
 // ═══ DASHBOARD ═══════════════════════════════════
 function renderDashboard(){
-  setTimeout(renderIntelCard,100);
-  setTimeout(renderNotifications,200);
+  setTimeout(renderIntelCard,500);
+  setTimeout(renderNotifications,600);
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const clients=CACHE.clients||[];
   const mrr=clients.reduce((s,c)=>s+getMRR(c),0);
@@ -3546,7 +3635,9 @@ function ccLogin(){
 // Always show login on page load
 
 
-// ═══ INTELLIGENCE CARD — Claude API powered ═══════════
+// ══════════════════════════════════════════════════
+// BB INTELLIGENCE — Claude API powered
+// ══════════════════════════════════════════════════
 async function renderIntelCard(){
   const card=document.getElementById('intel-card');
   const el=document.getElementById('intel-text');
@@ -3559,34 +3650,20 @@ async function renderIntelCard(){
   const tasks=CACHE.tasks||[];
   const pipeline=CACHE.pipeline||[];
   const overdue=tasks.filter(t=>!t.done&&isOverdue(t));
-  const openTasks=tasks.filter(t=>!t.done);
-  const mrr=clients.reduce((s,c)=>s+(c.mrr||0),0);
+  const mrr=clients.reduce((s,c)=>s+(getMRR?getMRR(c):(c.mrr||0)),0);
   const hot=pipeline.filter(p=>p.status==='hot');
-  const renewals=clients.filter(c=>c.month>=5);
+  const renewals=clients.filter(c=>(c.month||0)>=5);
 
-  // Build data snapshot for Claude
-  const dataSnap=`
-TODAY: ${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
-ACTIVE CLIENTS (${clients.length}): ${clients.map(c=>`${c.name} [M${c.month||'?'} ${c.package||''} LKR${c.mrr||0} health:${c.health||'?'}]`).join(', ')}
+  const dataSnap=`TODAY: ${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+CLIENTS (${clients.length}): ${clients.map(c=>c.name+' [M'+(c.month||'?')+' '+(c.package||'')+' health:'+(c.health||'?')+']').join(', ')}
 MRR: LKR ${mrr.toLocaleString()}
-OPEN TASKS: ${openTasks.length} total
-OVERDUE TASKS (${overdue.length}): ${overdue.map(t=>{const c=clients.find(x=>x.id===(t.clientId||t.client_id));return `${c?c.name+':':''} "${t.title}" (${t.priority||''})`}).join(' | ')||'none'}
-PIPELINE HOT LEADS (${hot.length}): ${hot.map(p=>p.name).join(', ')||'none'}
-RENEWALS AT RISK — clients month 5+: ${renewals.map(c=>c.name).join(', ')||'none'}
-SHOOTS: ${(CACHE.shoots||[]).length} total`;
+OVERDUE TASKS (${overdue.length}): ${overdue.map(t=>{const c=clients.find(x=>x.id===(t.clientId||t.client_id));return (c?c.name+': ':'')+'"'+t.title+'"';}).join(' | ')||'none'}
+HOT PIPELINE (${hot.length}): ${hot.map(p=>p.name).join(', ')||'none'}
+RENEWAL RISK (month 5+): ${renewals.map(c=>c.name).join(', ')||'none'}`;
 
-  const systemPrompt=`You are BB Intelligence — the smart morning briefing for Business Booster, a Sri Lanka digital marketing agency run by Thulaib.
-
-Your job: Read the live agency data and write ONE clear, direct paragraph (3-5 sentences max) that tells Thulaib exactly what matters most right now. 
-
-RULES:
-- Address him by name once at the start
-- Be brutally specific — name actual clients, actual numbers
-- Prioritise in order: overdue tasks → renewal risks → pipeline → MRR
-- Short sentences. No fluff. No generic advice.
-- Do NOT use bullet points or headers — pure flowing sentences only
-- Sound like a sharp advisor who knows his business inside out
-- End with ONE specific action he should take first today`;
+  const sysPrompt=`You are BB Intelligence — the morning briefing for Business Booster, a Sri Lanka digital marketing agency run by Thulaib.
+Read the live agency data and write ONE clear paragraph (3-5 sentences max) telling Thulaib what matters most right now.
+Rules: address him by name once at the start. Be brutally specific — name actual clients and numbers. Prioritise: overdue tasks → renewal risks → pipeline → MRR. Short sentences. No bullet points. End with ONE specific action to take first today.`;
 
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -3595,145 +3672,116 @@ RULES:
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:200,
-        system:systemPrompt,
-        messages:[{role:'user',content:`Here is the live agency data:\n${dataSnap}\n\nWrite the morning intelligence brief.`}]
+        system:sysPrompt,
+        messages:[{role:'user',content:'Live agency data:
+'+dataSnap+'
+
+Write the morning brief.'}]
       })
     });
     const data=await res.json();
     const reply=data.content?.[0]?.text||null;
-
     if(reply){
-      // Type it out word by word
-      const words=reply.split(' ');
-      let wi=0;
+      const words=reply.split(' ');let wi=0;
       el.innerHTML='<span class="intel-cursor"></span>';
-      function nextWord(){
+      function nw(){
         if(wi>=words.length){el.innerHTML=reply;btns.style.display='flex';return;}
         el.innerHTML=words.slice(0,wi+1).join(' ')+'<span class="intel-cursor"></span>';
-        wi++;setTimeout(nextWord,wi<4?80:38);
+        wi++;setTimeout(nw,wi<4?80:38);
       }
-      nextWord();
+      nw();
     } else {
-      // Fallback to template if API fails
-      el.innerHTML=`Good morning, <strong>Thulaib.</strong> You have <span style="color:#FF2D78;font-weight:600;">${overdue.length} overdue tasks</span> and <span style="color:#FBBF24;font-weight:600;">${renewals.length} clients</span> approaching renewal. MRR is <span style="color:#00FF85;font-weight:600;">LKR ${mrr.toLocaleString()}</span>.`;
-      btns.style.display='flex';
+      fallbackIntel(el,btns,overdue,renewals,mrr,hot);
     }
-  } catch(e){
-    // Fallback
-    el.innerHTML=`Good morning, <strong>Thulaib.</strong> You have <span style="color:#FF2D78;font-weight:600;">${overdue.length} overdue tasks</span>. MRR is <span style="color:#00FF85;font-weight:600;">LKR ${mrr.toLocaleString()}</span>. ${hot.length} hot leads in pipeline.`;
-    btns.style.display='flex';
+  }catch(e){
+    fallbackIntel(el,btns,overdue,renewals,mrr,hot);
   }
 }
 
-// ═══ NOTIFICATIONS ════════════════════════════════════
+function fallbackIntel(el,btns,overdue,renewals,mrr,hot){
+  el.innerHTML='Good morning, <strong>Thulaib.</strong> You have <span style="color:#FF2D78;font-weight:600;">'+overdue.length+' overdue tasks</span> across your clients.'+(renewals.length?' <span style="color:#FBBF24;font-weight:600;">'+renewals.map(c=>c.name).join(' and ')+'</span> approaching renewal.':'')+' MRR is <span style="color:#00FF85;font-weight:600;">LKR '+mrr.toLocaleString()+'</span>.'+(hot.length?' <span style="color:#A855F7;font-weight:600;">'+hot.length+' hot leads</span> need follow-up.':'');
+  btns.style.display='flex';
+}
+
+// ══════════════════════════════════════════════════
+// NOTIFICATIONS
+// ══════════════════════════════════════════════════
 function renderNotifications(){
   const body=document.getElementById('notif-body');
   const badge=document.getElementById('notif-count');
   if(!body)return;
-
   const tasks=CACHE.tasks||[];
   const clients=CACHE.clients||[];
   const overdue=tasks.filter(t=>!t.done&&isOverdue(t));
-  const renewals=clients.filter(c=>c.month>=5);
-
+  const renewals=clients.filter(c=>(c.month||0)>=5);
+  const mrr=clients.reduce((s,c)=>s+(getMRR?getMRR(c):(c.mrr||0)),0);
   let items=[];
-  // Overdue tasks
-  overdue.slice(0,3).forEach(t=>{
+  overdue.slice(0,4).forEach(t=>{
     const c=clients.find(x=>x.id===(t.clientId||t.client_id));
-    items.push({icon:'⚠️',iconBg:'rgba(255,45,120,0.1)',title:`${c?c.name+' — ':''} ${t.title}`,sub:'Overdue task needs attention',time:'Today',dot:'#FF2D78'});
+    items.push({icon:'⚠️',bg:'rgba(255,45,120,0.1)',title:(c?c.name+' — ':'')+t.title,sub:'Overdue task needs attention',time:'Today',dot:'#FF2D78'});
   });
-  // Renewals
   renewals.forEach(c=>{
-    items.push({icon:'📋',iconBg:'rgba(251,191,36,0.1)',title:`${c.name} — Renewal approaching`,sub:`Month ${c.month} — contract review needed`,time:'Today',dot:'#FBBF24'});
+    items.push({icon:'📋',bg:'rgba(251,191,36,0.1)',title:c.name+' — Renewal approaching',sub:'Month '+c.month+' — schedule the conversation',time:'Today',dot:'#FBBF24'});
   });
-  // MRR update
-  const mrr=(clients.reduce((s,c)=>s+(c.mrr||0),0)).toLocaleString();
-  items.push({icon:'💰',iconBg:'rgba(0,255,133,0.08)',title:`MRR stands at LKR ${mrr}`,sub:'Up to date from your client roster',time:'Just now',dot:'#00FF85'});
-
+  items.push({icon:'💰',bg:'rgba(0,255,133,0.08)',title:'MRR: LKR '+mrr.toLocaleString(),sub:'Live from your client roster',time:'Just now',dot:'#00FF85'});
   const total=items.length;
   if(badge){badge.textContent=total;badge.style.display=total>0?'flex':'none';}
-
-  body.innerHTML=`<div class="notif-section">Live Alerts</div>`+
-    items.map(i=>`<div class="notif-item">
-      <div class="notif-icon" style="background:${i.iconBg};">${i.icon}</div>
-      <div style="flex:1;min-width:0;">
-        <div class="notif-title">${i.title}</div>
-        <div class="notif-sub">${i.sub}</div>
-        <div class="notif-time">${i.time}</div>
-      </div>
-      <div class="notif-dot" style="background:${i.dot};box-shadow:0 0 5px ${i.dot};"></div>
-    </div>`).join('');
+  body.innerHTML='<div class="np-sec">Live Alerts</div>'+items.map(i=>
+    '<div class="ni"><div class="ni-icon" style="background:'+i.bg+'">'+i.icon+'</div><div style="flex:1;min-width:0;"><div class="ni-title">'+i.title+'</div><div class="ni-sub">'+i.sub+'</div><div class="ni-time">'+i.time+'</div></div><div class="ni-dot" style="background:'+i.dot+';box-shadow:0 0 5px '+i.dot+';"></div></div>'
+  ).join('');
 }
 
 function toggleNotif(){
-  const panel=document.getElementById('notif-panel');
-  if(panel.style.transform==='translateX(0px)'||panel.style.transform==='translateX(0)'){
-    panel.style.transform='translateX(100%)';
-  } else {
-    panel.style.transform='translateX(0)';
-    renderNotifications();
-  }
+  const p=document.getElementById('notif-panel');
+  if(p.classList.contains('open')){p.classList.remove('open');}
+  else{p.classList.add('open');renderNotifications();}
 }
 
-// ═══ FOCUS MODE ═══════════════════════════════════════
+// ══════════════════════════════════════════════════
+// FOCUS MODE
+// ══════════════════════════════════════════════════
 function toggleFocus(){
-  const overlay=document.getElementById('focus-overlay');
-  const isOpen=overlay.style.display==='flex';
-  if(isOpen){overlay.style.display='none';return;}
-  overlay.style.display='flex';
-  renderFocusTasks();
-}
-
-function renderFocusTasks(){
+  const o=document.getElementById('focus-overlay');
+  if(o.classList.contains('open')){o.classList.remove('open');return;}
+  o.classList.add('open');
   const el=document.getElementById('focus-tasks');
   if(!el)return;
   const tasks=CACHE.tasks||[];
   const clients=CACHE.clients||[];
-
-  // Get top 3: overdue first, then high priority, then by date
   const priOrder={high:0,medium:1,low:2};
   const open=tasks.filter(t=>!t.done).sort((a,b)=>{
     const ao=isOverdue(a),bo=isOverdue(b);
     if(ao&&!bo)return -1;if(!ao&&bo)return 1;
     return (priOrder[a.priority]??3)-(priOrder[b.priority]??3);
   }).slice(0,3);
-
-  if(!open.length){el.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;">No open tasks. You're ahead of the game.</div>';return;}
-
+  if(!open.length){el.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;">No open tasks. You're ahead.</div>';return;}
   el.innerHTML=open.map((t,i)=>{
     const c=clients.find(x=>x.id===(t.clientId||t.client_id));
     const od=isOverdue(t);
-    const badgeColor=od?'#FF2D78':t.priority==='high'?'#FBBF24':'#A855F7';
-    const badgeLabel=od?'Overdue':t.priority==='high'?'Urgent':'Priority';
-    return `<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:18px 22px;margin-bottom:10px;display:flex;align-items:center;gap:16px;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);">
-      <div style="font-size:11px;font-weight:800;color:rgba(255,255,255,0.15);width:20px;flex-shrink:0;">0${i+1}</div>
-      <div style="flex:1;">
-        <div style="font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.01em;margin-bottom:3px;">${t.title}</div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.28);">${c?c.name+' · ':''}${t.category||''}</div>
-      </div>
-      <span style="font-size:9px;font-weight:700;padding:3px 10px;border-radius:6px;background:${badgeColor}18;color:${badgeColor};border:1px solid ${badgeColor}33;">${badgeLabel}</span>
-    </div>`;
+    const bc=od?'#FF2D78':t.priority==='high'?'#FBBF24':'#A855F7';
+    const bl=od?'Overdue':t.priority==='high'?'Urgent':'Priority';
+    return '<div class="focus-task"><div class="focus-num">0'+(i+1)+'</div><div style="flex:1;"><div style="font-size:14px;font-weight:600;color:#fff;margin-bottom:3px;">'+t.title+'</div><div style="font-size:10px;color:rgba(255,255,255,0.28);">'+(c?c.name+' · ':''+(t.category||''))+'</div></div><span style="font-size:9px;font-weight:700;padding:3px 10px;border-radius:6px;background:'+bc+'18;color:'+bc+';border:1px solid '+bc+'33;">'+bl+'</span></div>';
   }).join('');
 }
 
-// ═══ COMMAND BAR ══════════════════════════════════════
+// ══════════════════════════════════════════════════
+// COMMAND BAR
+// ══════════════════════════════════════════════════
 function openCmd(){
-  document.getElementById('cmd-overlay').style.display='flex';
+  document.getElementById('cmd-overlay').classList.add('open');
   setTimeout(()=>document.getElementById('cmd-input').focus(),50);
   renderCmdResults();
 }
 function closeCmd(){
-  document.getElementById('cmd-overlay').style.display='none';
+  document.getElementById('cmd-overlay').classList.remove('open');
   document.getElementById('cmd-input').value='';
 }
-
 function renderCmdResults(){
   const el=document.getElementById('cmd-results');
   if(!el)return;
   const q=(document.getElementById('cmd-input').value||'').toLowerCase().trim();
   const clients=CACHE.clients||[];
   const tasks=CACHE.tasks||[];
-
   const pages=[
     {label:'Dashboard',icon:'⌘',fn:"nav('dashboard')"},
     {label:'My Day',icon:'◷',fn:"nav('myday')"},
@@ -3745,68 +3793,42 @@ function renderCmdResults(){
     {label:'Revenue',icon:'$',fn:"nav('revenue')"},
     {label:'BB Advisor',icon:'✦',fn:"nav('advisor')"},
   ];
-
-  const filteredPages=q?pages.filter(p=>p.label.toLowerCase().includes(q)):pages.slice(0,4);
-  const filteredClients=q?clients.filter(c=>c.name.toLowerCase().includes(q)):clients.slice(0,5);
-  const overdueCount=tasks.filter(t=>!t.done&&isOverdue(t)).length;
-
-  let html='';
+  const fp=q?pages.filter(p=>p.label.toLowerCase().includes(q)):pages.slice(0,4);
+  const fc=q?clients.filter(c=>c.name.toLowerCase().includes(q)):clients.slice(0,5);
+  const od=tasks.filter(t=>!t.done&&isOverdue(t)).length;
+  let out='';
   if(!q){
-    html+=`<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.14em;padding:8px 12px 4px;">Quick Actions</div>`;
-    html+=`<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;cursor:pointer;background:rgba(255,255,255,0.06);" onclick="nav('taskbook');closeCmd()">
-      <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,45,120,0.1);color:#FF2D78;display:flex;align-items:center;justify-content:center;">!</div>
-      <div><div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);">View Overdue Tasks</div><div style="font-size:10px;color:rgba(255,255,255,0.28);">${overdueCount} tasks past due</div></div>
-      <span style="margin-left:auto;font-size:9px;background:rgba(255,45,120,0.1);color:#FF2D78;padding:2px 8px;border-radius:5px;">${overdueCount}</span>
-    </div>`;
-    html+=`<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;cursor:pointer;" onclick="toggleFocus();closeCmd()">
-      <div style="width:28px;height:28px;border-radius:8px;background:rgba(168,85,247,0.1);color:#A855F7;display:flex;align-items:center;justify-content:center;">◎</div>
-      <div><div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);">Focus Mode</div><div style="font-size:10px;color:rgba(255,255,255,0.28);">See only your Top 3 for today</div></div>
-    </div>`;
+    out+='<div class="cmd-section">Quick Actions</div>';
+    out+='<div class="cmd-item sel" onclick="nav('taskbook');closeCmd()"><div class="cmd-item-icon" style="background:rgba(255,45,120,0.1);color:#FF2D78;">!</div><div><div class="cmd-item-title">View Overdue Tasks</div><div class="cmd-item-sub">'+od+' tasks past due</div></div><span class="cmd-item-badge" style="background:rgba(255,45,120,0.1);color:#FF2D78;margin-left:auto;">'+od+'</span></div>';
+    out+='<div class="cmd-item" onclick="toggleFocus();closeCmd()"><div class="cmd-item-icon" style="background:rgba(168,85,247,0.1);color:#A855F7;">◎</div><div><div class="cmd-item-title">Focus Mode</div><div class="cmd-item-sub">See only your Top 3 today</div></div></div>';
   }
-
-  if(filteredPages.length){
-    html+=`<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.14em;padding:8px 12px 4px;">Pages</div>`;
-    filteredPages.forEach(p=>{
-      html+=`<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''" onclick="${p.fn};closeCmd()">
-        <div style="width:28px;height:28px;border-radius:8px;background:rgba(255,107,43,0.1);color:#FF6B2B;display:flex;align-items:center;justify-content:center;font-size:11px;">${p.icon}</div>
-        <div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);">${p.label}</div>
-      </div>`;
+  if(fp.length){
+    out+='<div class="cmd-section">Pages</div>';
+    fp.forEach(p=>{out+='<div class="cmd-item" onclick="'+p.fn+';closeCmd()"><div class="cmd-item-icon" style="background:rgba(255,107,43,0.1);color:#FF6B2B;">'+p.icon+'</div><div class="cmd-item-title">'+p.label+'</div></div>';});
+  }
+  if(fc.length){
+    out+='<div class="cmd-section">Clients</div>';
+    fc.forEach(c=>{
+      const cod=tasks.filter(t=>(t.clientId===c.id||t.client_id===c.id)&&!t.done&&isOverdue(t)).length;
+      out+='<div class="cmd-item" onclick="openClientProfile('+c.id+');closeCmd()"><div class="cmd-item-icon" style="background:rgba(0,229,255,0.1);color:#00E5FF;font-size:9px;font-weight:800;">'+c.name.slice(0,2).toUpperCase()+'</div><div><div class="cmd-item-title">'+c.name+'</div><div class="cmd-item-sub">'+(c.package||'')+' · Month '+(c.month||'?')+'</div></div>'+(cod>0?'<span class="cmd-item-badge" style="background:rgba(255,45,120,0.1);color:#FF2D78;margin-left:auto;">'+cod+' overdue</span>':'')+' </div>';
     });
   }
-
-  if(filteredClients.length){
-    html+=`<div style="font-size:9px;font-weight:600;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.14em;padding:8px 12px 4px;">Clients</div>`;
-    filteredClients.forEach(c=>{
-      const od=tasks.filter(t=>(t.clientId===c.id||t.client_id===c.id)&&!t.done&&isOverdue(t)).length;
-      html+=`<div style="display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:9px;cursor:pointer;transition:background 0.1s;" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''" onclick="openClientProfile(${c.id});closeCmd()">
-        <div style="width:28px;height:28px;border-radius:8px;background:rgba(0,229,255,0.1);color:#00E5FF;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;">${c.name.slice(0,2).toUpperCase()}</div>
-        <div style="flex:1;"><div style="font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);">${c.name}</div><div style="font-size:10px;color:rgba(255,255,255,0.28);">${c.package||''} · Month ${c.month||'?'}</div></div>
-        ${od>0?`<span style="font-size:9px;background:rgba(255,45,120,0.1);color:#FF2D78;padding:2px 8px;border-radius:5px;font-weight:700;">${od} overdue</span>`:''}
-      </div>`;
-    });
-  }
-
-  if(!html)html='<div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">No results found</div>';
-  el.innerHTML=html;
+  if(!out)out='<div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">No results</div>';
+  el.innerHTML=out;
 }
 
-// Keyboard shortcut
+// ══════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ══════════════════════════════════════════════════
 document.addEventListener('keydown',function(e){
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmd();}
   if(e.key==='Escape'){
     closeCmd();
-    const np=document.getElementById('notif-panel');
-    if(np)np.style.transform='translateX(100%)';
-    const fo=document.getElementById('focus-overlay');
-    if(fo)fo.style.display='none';
+    document.getElementById('notif-panel').classList.remove('open');
+    document.getElementById('focus-overlay').classList.remove('open');
   }
 });
-
-// Click outside command bar
-document.getElementById('cmd-overlay').addEventListener('click',function(e){
-  if(e.target===this)closeCmd();
-});
-
+document.getElementById('cmd-overlay').addEventListener('click',function(e){if(e.target===this)closeCmd();});
 
 </script>
 </body>
