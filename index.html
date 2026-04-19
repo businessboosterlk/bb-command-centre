@@ -1693,24 +1693,31 @@ const SB={
 let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[],shoots:[]};
 
 async function loadAll(){
-  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots]=await Promise.all([
-    SB.getAll('clients'),SB.getAll('tasks'),SB.getAll('pipeline'),
-    SB.getAll('revenue'),SB.getAll('pillars'),
-    SB.getAll('events').catch(()=>[]),
-    SB.getAll('invoices').catch(()=>[]),
-    SB.getAll('costs').catch(()=>[]),
-    SB.getAll('shoots').catch(()=>[])
-  ]);
-  CACHE.clients=clients||[];
-  CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:t.client_id,pipelineId:t.pipeline_id,done:t.done||false}));
-  CACHE.pipeline=(pipeline||[]).map(p=>({...p,next:p.next_action}));
-  CACHE.revenue=revenue||[];
-  CACHE.pillars=pillars||[];
-  CACHE.events=Array.isArray(events)?events:[];
-  CACHE.invoices=Array.isArray(invoices)?invoices:[];
-  CACHE.costs=Array.isArray(costs)?costs:[];
-  CACHE.shoots=Array.isArray(shoots)?shoots:[];
-  if(CACHE.clients.length===0) await seedClients();
+  try{
+    const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots]=await Promise.all([
+      SB.getAll('clients'),SB.getAll('tasks'),SB.getAll('pipeline'),
+      SB.getAll('revenue'),SB.getAll('pillars'),
+      SB.getAll('events').catch(()=>[]),
+      SB.getAll('invoices').catch(()=>[]),
+      SB.getAll('costs').catch(()=>[]),
+      SB.getAll('shoots').catch(()=>[])
+    ]);
+    CACHE.clients=clients||[];
+    CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:t.client_id,pipelineId:t.pipeline_id,done:t.done||false}));
+    CACHE.pipeline=(pipeline||[]).map(p=>({...p,next:p.next_action}));
+    CACHE.revenue=revenue||[];
+    CACHE.pillars=pillars||[];
+    CACHE.events=Array.isArray(events)?events:[];
+    CACHE.invoices=Array.isArray(invoices)?invoices:[];
+    CACHE.costs=Array.isArray(costs)?costs:[];
+    CACHE.shoots=Array.isArray(shoots)?shoots:[];
+    if(CACHE.clients.length===0) await seedClients();
+  }catch(e){
+    console.warn('loadAll error — Supabase may be blocked:',e);
+    CACHE.clients=[];CACHE.tasks=[];CACHE.pipeline=[];
+    CACHE.revenue=[];CACHE.pillars=[];CACHE.events=[];
+    CACHE.invoices=[];CACHE.costs=[];CACHE.shoots=[];
+  }
 }
 
 async function seedClients(){
@@ -2088,17 +2095,6 @@ function renderClientTasks(id){
 
   // Sort: overdue first → high priority → medium → low → by due date
   const priOrder={high:0,medium:1,low:2};
-  function sortTasks(arr){
-    return arr.sort((a,b)=>{
-      const ao=isOverdue(a),bo=isOverdue(b);
-      if(ao&&!bo)return -1;if(!ao&&bo)return 1;
-      const pa=priOrder[a.priority]??3,pb=priOrder[b.priority]??3;
-      if(pa!==pb)return pa-pb;
-      if(a.due&&b.due)return a.due.localeCompare(b.due);
-      if(a.due)return -1;if(b.due)return 1;
-      return 0;
-    });
-  }
 
   const openEl=document.getElementById('cp-tasks-open');
   const doneEl=document.getElementById('cp-tasks-done');
@@ -2647,98 +2643,6 @@ async function deletePipeTask(id){
 }
 
 // ═══ TASK BOOK ════════════════════════════════════
-function renderTaskBook(){
-  const allTasks=CACHE.tasks||[];
-  const clients=CACHE.clients||[];
-  const filterAssign=document.getElementById('tb-filter-assign')?.value||'';
-  const filterStatus=document.getElementById('tb-filter-status')?.value||'open';
-  const todayStr=today();
-  const weekStr=new Date(Date.now()+7*864e5).toISOString().split('T')[0];
-
-  // Stats
-  const openTasks=allTasks.filter(t=>!t.done);
-  document.getElementById('tb-s-overdue').textContent=openTasks.filter(t=>isOverdue(t)).length;
-  document.getElementById('tb-s-high').textContent=openTasks.filter(t=>t.priority==='high').length;
-  document.getElementById('tb-s-week').textContent=openTasks.filter(t=>t.due&&t.due>=todayStr&&t.due<=weekStr).length;
-  document.getElementById('tb-s-done').textContent=allTasks.filter(t=>t.done).length;
-
-  // Update overdue badge on sidebar
-  const odCount=openTasks.filter(t=>isOverdue(t)).length;
-  const odBadge=document.getElementById('sb-overdue-badge');
-  if(odBadge)odBadge.style.display=odCount>0?'':'none';
-
-  // Filter tasks
-  let tasks=[...allTasks];
-  if(filterAssign)tasks=tasks.filter(t=>t.assign===filterAssign||t.assign==='both');
-  if(filterStatus==='open')tasks=tasks.filter(t=>!t.done);
-  else if(filterStatus==='overdue')tasks=tasks.filter(t=>isOverdue(t));
-  else if(filterStatus==='done')tasks=tasks.filter(t=>t.done);
-
-  // Sort: overdue first, then by due date asc, then no-date, done at bottom
-  tasks.sort((a,b)=>{
-    if(a.done&&!b.done)return 1;
-    if(!a.done&&b.done)return -1;
-    const ao=isOverdue(a),bo=isOverdue(b);
-    if(ao&&!bo)return -1;
-    if(!ao&&bo)return 1;
-    if(a.due&&b.due)return a.due.localeCompare(b.due);
-    if(a.due&&!b.due)return -1;
-    if(!a.due&&b.due)return 1;
-    // priority tiebreak
-    const po={high:0,medium:1,low:2};
-    return (po[a.priority]||1)-(po[b.priority]||1);
-  });
-
-  const tbody=document.getElementById('tb-tbody');
-  if(!tasks.length){
-    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);font-size:13px">No tasks found</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML=tasks.map(t=>{
-    const client=clients.find(c=>c.id===(t.clientId||t.client_id));
-    const clientName=client?client.name:(t.pipeline_id?'Pipeline':'—');
-    const od=isOverdue(t);
-    const dueInWeek=!t.done&&t.due&&t.due>=todayStr&&t.due<=weekStr&&!od;
-    const priColor={high:'var(--orange)',medium:'var(--yellow)',low:'var(--text3)'}[t.priority]||'var(--text3)';
-    const assignMap={th:'TH',sh:'SH',both:'T+S'};
-    const assignClass={th:'av-t',sh:'av-s',both:'av-t'};
-    let dueTxt='—';
-    let dueStyle='color:var(--text3)';
-    if(t.due){
-      dueTxt=fmtDate(t.due);
-      if(od)dueStyle='color:var(--red);font-weight:700';
-      else if(dueInWeek)dueStyle='color:var(--yellow);font-weight:600';
-    }
-    return `<tr style="cursor:default;${t.done?'opacity:0.45':''}">
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div class="task-check ${t.done?'done':''}" onclick="toggleTaskFromBook(${t.id})" style="width:16px;height:16px;font-size:9px">${t.done?'✓':''}</div>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div style="font-size:12px;font-weight:${t.done?'400':'600'};text-transform:uppercase;letter-spacing:0.02em;${t.done?'text-decoration:line-through;color:var(--text3)':''}">${t.title}</div>
-        ${t.notes?`<div style="font-size:10px;color:var(--text3);margin-top:2px;font-weight:300">${t.notes.substring(0,50)}</div>`:''}
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        ${client?`<span style="font-size:11px;font-weight:600;color:var(--text2);cursor:pointer" onclick="openClientProfile(${client.id})">${clientName}</span>`:`<span style="font-size:11px;color:var(--text3)">${clientName}</span>`}
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">${t.category||'—'}</span>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div class="av ${assignClass[t.assign]||'av-t'}" style="width:24px;height:24px;font-size:9px">${assignMap[t.assign]||'TH'}</div>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-size:12px;font-weight:500;${dueStyle}">${od?'OVERDUE':dueTxt}</span>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${priColor}">${t.priority||'—'}</span>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:10px" onclick="deleteTaskFromBook(${t.id})">×</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
 
 async function toggleTaskFromBook(id){
   const t=CACHE.tasks.find(x=>x.id===id);
@@ -2759,24 +2663,6 @@ async function deleteTaskFromBook(id){
   renderDashboard();
 }
 
-function openGlobalTaskModal(){
-  document.getElementById('task-client-id').value='';
-  document.getElementById('task-pipeline-id').value='';
-  document.getElementById('t-title').value='';
-  document.getElementById('t-assign').value='th';
-  document.getElementById('t-due').value=today();
-  document.getElementById('t-priority').value='high';
-  document.getElementById('t-category').value='Content Creation';
-  document.getElementById('t-notes').value='';
-  // Populate client dropdown
-  const sel=document.getElementById('task-client-select');
-  if(sel){
-    sel.innerHTML='<option value="">No client</option>'+(CACHE.clients||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    sel.value='';
-  }
-  document.getElementById('task-client-select-wrap').style.display='block';
-  openModal('modal-task');
-}
 
 // ═══ TASK BOOK ═══════════════════════════════════
 function renderTaskBook(){
@@ -3594,15 +3480,21 @@ async function mobileNav(id){
 
 // ═══ INIT ════════════════════════════════════════
 async function init(){
-  initSidebar();
-  showLoading(true);
-  await loadAll();
-  const thState=await getPillarState('th');
-  const shState=await getPillarState('sh');
-  pillarStateCache.th=thState;
-  pillarStateCache.sh=shState;
-  showLoading(false);
-  renderDashboard();
+  try{
+    initSidebar();
+    showLoading(true);
+    await loadAll();
+    const thState=await getPillarState('th');
+    const shState=await getPillarState('sh');
+    pillarStateCache.th=thState;
+    pillarStateCache.sh=shState;
+    showLoading(false);
+    renderDashboard();
+  }catch(e){
+    console.warn('init error:',e);
+    showLoading(false);
+    renderDashboard();
+  }
 }
 // init only runs after successful login
 
@@ -3621,11 +3513,9 @@ function ccLogin(){
   if(CC_USERS[name]&&CC_USERS[name]===pin){
     err.style.display='none';
     document.getElementById('cc-login').classList.add('gone');
-    // no session storage — login required every reload
-    // update sidebar name
     const dateEl=document.getElementById('sb-date');
     if(dateEl)dateEl.textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-    init();
+    try{init();}catch(e){console.warn('init error:',e);nav('dashboard');}
   } else {
     err.style.display='block';
     document.getElementById('cc-pin').value='';
@@ -3654,12 +3544,7 @@ async function renderIntelCard(){
   const hot=pipeline.filter(p=>p.status==='hot');
   const renewals=clients.filter(c=>(c.month||0)>=5);
 
-  const dataSnap=`TODAY: ${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
-CLIENTS (${clients.length}): ${clients.map(c=>c.name+' [M'+(c.month||'?')+' '+(c.package||'')+' health:'+(c.health||'?')+']').join(', ')}
-MRR: LKR ${mrr.toLocaleString()}
-OVERDUE TASKS (${overdue.length}): ${overdue.map(t=>{const c=clients.find(x=>x.id===(t.clientId||t.client_id));return (c?c.name+': ':'')+'"'+t.title+'"';}).join(' | ')||'none'}
-HOT PIPELINE (${hot.length}): ${hot.map(p=>p.name).join(', ')||'none'}
-RENEWAL RISK (month 5+): ${renewals.map(c=>c.name).join(', ')||'none'}`;
+  const dataSnap='TODAY: '+new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'\nCLIENTS ('+clients.length+'): '+clients.map(c=>c.name+' [M'+(c.month||'?')+' '+(c.package||'')+' health:'+(c.health||'?')+']').join(', ')+'\nMRR: LKR '+mrr.toLocaleString()+'\nOVERDUE TASKS ('+overdue.length+'): '+(overdue.map(t=>{const c=clients.find(x=>x.id===(t.clientId||t.client_id));return (c?c.name+': ':'')+t.title;}).join(' | ')||'none')+'\nHOT PIPELINE ('+hot.length+'): '+(hot.map(p=>p.name).join(', ')||'none')+'\nRENEWAL RISK (month 5+): '+(renewals.map(c=>c.name).join(', ')||'none');
 
   const sysPrompt=`You are BB Intelligence — the morning briefing for Business Booster, a Sri Lanka digital marketing agency run by Thulaib.
 Read the live agency data and write ONE clear paragraph (3-5 sentences max) telling Thulaib what matters most right now.
@@ -3673,10 +3558,7 @@ Rules: address him by name once at the start. Be brutally specific — name actu
         model:'claude-sonnet-4-20250514',
         max_tokens:200,
         system:sysPrompt,
-        messages:[{role:'user',content:'Live agency data:
-'+dataSnap+'
-
-Write the morning brief.'}]
+        messages:[{role:'user',content:'Live agency data:\n'+dataSnap+'\n\nWrite the morning brief.'}]
       })
     });
     const data=await res.json();
@@ -3754,7 +3636,7 @@ function toggleFocus(){
     if(ao&&!bo)return -1;if(!ao&&bo)return 1;
     return (priOrder[a.priority]??3)-(priOrder[b.priority]??3);
   }).slice(0,3);
-  if(!open.length){el.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;">No open tasks. You're ahead.</div>';return;}
+  if(!open.length){el.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:13px;text-align:center;">No open tasks. You are ahead.</div>';return;}
   el.innerHTML=open.map((t,i)=>{
     const c=clients.find(x=>x.id===(t.clientId||t.client_id));
     const od=isOverdue(t);
@@ -3777,43 +3659,59 @@ function closeCmd(){
   document.getElementById('cmd-input').value='';
 }
 function renderCmdResults(){
-  const el=document.getElementById('cmd-results');
+  var el=document.getElementById('cmd-results');
   if(!el)return;
-  const q=(document.getElementById('cmd-input').value||'').toLowerCase().trim();
-  const clients=CACHE.clients||[];
-  const tasks=CACHE.tasks||[];
-  const pages=[
-    {label:'Dashboard',icon:'⌘',fn:"nav('dashboard')"},
-    {label:'My Day',icon:'◷',fn:"nav('myday')"},
-    {label:'Clients',icon:'◎',fn:"nav('clients')"},
-    {label:'Task Book',icon:'✓',fn:"nav('taskbook')"},
-    {label:'Shoots',icon:'◈',fn:"nav('shoots')"},
-    {label:'Pipeline',icon:'◆',fn:"nav('pipeline')"},
-    {label:'Finance',icon:'▤',fn:"nav('finance')"},
-    {label:'Revenue',icon:'$',fn:"nav('revenue')"},
-    {label:'BB Advisor',icon:'✦',fn:"nav('advisor')"},
+  var q=(document.getElementById('cmd-input').value||'').toLowerCase().trim();
+  var clients=CACHE.clients||[];
+  var tasks=CACHE.tasks||[];
+  var pages=[
+    {label:'Dashboard',icon:'⌘',page:'dashboard'},
+    {label:'My Day',icon:'◷',page:'myday'},
+    {label:'Clients',icon:'◎',page:'clients'},
+    {label:'Task Book',icon:'✓',page:'taskbook'},
+    {label:'Shoots',icon:'◈',page:'shoots'},
+    {label:'Pipeline',icon:'◆',page:'pipeline'},
+    {label:'Finance',icon:'▤',page:'finance'},
+    {label:'Revenue',icon:'$',page:'revenue'},
+    {label:'BB Advisor',icon:'✦',page:'advisor'}
   ];
-  const fp=q?pages.filter(p=>p.label.toLowerCase().includes(q)):pages.slice(0,4);
-  const fc=q?clients.filter(c=>c.name.toLowerCase().includes(q)):clients.slice(0,5);
-  const od=tasks.filter(t=>!t.done&&isOverdue(t)).length;
-  let out='';
+  var fp=q?pages.filter(function(p){return p.label.toLowerCase().indexOf(q)>-1;}):pages.slice(0,4);
+  var fc=q?clients.filter(function(c){return c.name.toLowerCase().indexOf(q)>-1;}):clients.slice(0,5);
+  var od=tasks.filter(function(t){return !t.done&&isOverdue(t);}).length;
+  var out='';
   if(!q){
     out+='<div class="cmd-section">Quick Actions</div>';
-    out+='<div class="cmd-item sel" onclick="nav('taskbook');closeCmd()"><div class="cmd-item-icon" style="background:rgba(255,45,120,0.1);color:#FF2D78;">!</div><div><div class="cmd-item-title">View Overdue Tasks</div><div class="cmd-item-sub">'+od+' tasks past due</div></div><span class="cmd-item-badge" style="background:rgba(255,45,120,0.1);color:#FF2D78;margin-left:auto;">'+od+'</span></div>';
-    out+='<div class="cmd-item" onclick="toggleFocus();closeCmd()"><div class="cmd-item-icon" style="background:rgba(168,85,247,0.1);color:#A855F7;">◎</div><div><div class="cmd-item-title">Focus Mode</div><div class="cmd-item-sub">See only your Top 3 today</div></div></div>';
+    out+='<div class="cmd-item sel" onclick="nav('taskbook');closeCmd()">';
+    out+='<div class="cmd-item-icon" style="background:rgba(255,45,120,0.1);color:#FF2D78;">!</div>';
+    out+='<div><div class="cmd-item-title">View Overdue Tasks</div>';
+    out+='<div class="cmd-item-sub">'+od+' tasks past due</div></div>';
+    out+='<span class="cmd-item-badge" style="background:rgba(255,45,120,0.1);color:#FF2D78;margin-left:auto;">'+od+'</span></div>';
+    out+='<div class="cmd-item" onclick="toggleFocus();closeCmd()">';
+    out+='<div class="cmd-item-icon" style="background:rgba(168,85,247,0.1);color:#A855F7;">◎</div>';
+    out+='<div><div class="cmd-item-title">Focus Mode</div>';
+    out+='<div class="cmd-item-sub">See only your Top 3 today</div></div></div>';
   }
   if(fp.length){
     out+='<div class="cmd-section">Pages</div>';
-    fp.forEach(p=>{out+='<div class="cmd-item" onclick="'+p.fn+';closeCmd()"><div class="cmd-item-icon" style="background:rgba(255,107,43,0.1);color:#FF6B2B;">'+p.icon+'</div><div class="cmd-item-title">'+p.label+'</div></div>';});
+    fp.forEach(function(p){
+      out+='<div class="cmd-item" onclick="nav(''+p.page+'');closeCmd()">';
+      out+='<div class="cmd-item-icon" style="background:rgba(255,107,43,0.1);color:#FF6B2B;">'+p.icon+'</div>';
+      out+='<div class="cmd-item-title">'+p.label+'</div></div>';
+    });
   }
   if(fc.length){
     out+='<div class="cmd-section">Clients</div>';
-    fc.forEach(c=>{
-      const cod=tasks.filter(t=>(t.clientId===c.id||t.client_id===c.id)&&!t.done&&isOverdue(t)).length;
-      out+='<div class="cmd-item" onclick="openClientProfile('+c.id+');closeCmd()"><div class="cmd-item-icon" style="background:rgba(0,229,255,0.1);color:#00E5FF;font-size:9px;font-weight:800;">'+c.name.slice(0,2).toUpperCase()+'</div><div><div class="cmd-item-title">'+c.name+'</div><div class="cmd-item-sub">'+(c.package||'')+' · Month '+(c.month||'?')+'</div></div>'+(cod>0?'<span class="cmd-item-badge" style="background:rgba(255,45,120,0.1);color:#FF2D78;margin-left:auto;">'+cod+' overdue</span>':'')+' </div>';
+    fc.forEach(function(c){
+      var cod=tasks.filter(function(t){return (t.clientId===c.id||t.client_id===c.id)&&!t.done&&isOverdue(t);}).length;
+      out+='<div class="cmd-item" onclick="openClientProfile('+c.id+');closeCmd()">';
+      out+='<div class="cmd-item-icon" style="background:rgba(0,229,255,0.1);color:#00E5FF;font-size:9px;font-weight:800;">'+c.name.slice(0,2).toUpperCase()+'</div>';
+      out+='<div><div class="cmd-item-title">'+c.name+'</div>';
+      out+='<div class="cmd-item-sub">'+(c.package||'')+' · Month '+(c.month||'?')+'</div></div>';
+      if(cod>0){out+='<span class="cmd-item-badge" style="background:rgba(255,45,120,0.1);color:#FF2D78;margin-left:auto;">'+cod+' overdue</span>';}
+      out+='</div>';
     });
   }
-  if(!out)out='<div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">No results</div>';
+  if(!out){out='<div style="padding:20px;text-align:center;font-size:12px;color:rgba(255,255,255,0.2);">No results</div>';}
   el.innerHTML=out;
 }
 
