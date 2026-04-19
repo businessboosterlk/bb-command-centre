@@ -42,6 +42,26 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 .filter-clear{color:var(--text3);font-size:11px;cursor:pointer;padding:4px 8px;text-decoration:underline}
 .filter-clear:hover{color:var(--pink)}
 
+/* VIEW TOGGLE */
+.view-toggle{padding:14px 32px 0;display:flex;gap:6px}
+.vt-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.vt-btn:hover{color:var(--text);border-color:var(--border2)}
+.vt-btn.active{background:linear-gradient(135deg,#FF6B2B,#FF2D78);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(255,45,120,0.25)}
+.vt-btn svg{flex-shrink:0}
+
+/* PIPELINE VIEW */
+.pipeline-wrap{padding:16px 32px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:flex-start}
+.pipe-col{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;min-height:200px}
+.pipe-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:2px 4px}
+.pipe-col-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em}
+.pipe-col-count{font-size:11px;color:var(--text3);background:var(--bg4);padding:3px 8px;border-radius:999px;font-weight:700}
+.pipe-col.not .pipe-col-title{color:var(--text2)}
+.pipe-col.prog .pipe-col-title{color:var(--cyan)}
+.pipe-col.impl .pipe-col-title{color:var(--green)}
+.pipe-col .card{margin-bottom:10px;padding:14px}
+.pipe-col .card-notes{-webkit-line-clamp:2}
+.pipe-empty{color:var(--text3);font-size:12px;text-align:center;padding:30px 10px;font-style:italic}
+
 /* STATS */
 .stats{padding:18px 32px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
 .stat{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
@@ -136,6 +156,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
   .modal{padding:20px}
   .perf{grid-template-columns:repeat(2,1fr)}
   .play-perf{grid-template-columns:repeat(2,1fr)}
+  .view-toggle{padding:12px 18px 0}
+  .pipeline-wrap{grid-template-columns:1fr;padding:14px 18px;gap:12px}
 }
 </style>
 </head>
@@ -166,12 +188,25 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
 <div class="filters">
   <input type="text" class="search" id="f-search" placeholder="Search title or notes..." oninput="renderCards()">
   <select id="f-client" onchange="renderCards()"><option value="">All clients</option></select>
-  <select id="f-industry" onchange="renderCards()"><option value="">All industries</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option><option>General</option></select>
+  <select id="f-industry" onchange="renderCards()"><option value="">All industries</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option><option>BPO</option><option>Lighting</option><option>Fish</option><option>Food Shop</option><option>Teacher</option><option>General</option></select>
   <select id="f-platform" onchange="renderCards()"><option value="">All platforms</option><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>General</option></select>
-  <select id="f-category" onchange="renderCards()"><option value="">All categories</option><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select>
+  <select id="f-category" onchange="renderCards()"><option value="">All categories</option><option>Video to Create</option><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select>
   <select id="f-priority" onchange="renderCards()"><option value="">Any priority</option><option>High</option><option>Medium</option><option>Low</option></select>
   <select id="f-status" onchange="renderCards()"><option value="">Any status</option><option>Not Tried</option><option>In Progress</option><option>Implemented</option></select>
+  <select id="f-daterange" onchange="renderCards()"><option value="">All time</option><option value="1">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select>
+  <select id="f-sort" onchange="renderCards()"><option value="desc">Newest first</option><option value="asc">Oldest first</option></select>
   <span class="filter-clear" onclick="clearFilters()">Clear all</span>
+</div>
+
+<div class="view-toggle">
+  <button class="vt-btn active" id="vt-grid" onclick="setView('grid')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+    Grid
+  </button>
+  <button class="vt-btn" id="vt-pipe" onclick="setView('pipeline')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="18"/><rect x="17" y="3" width="5" height="18"/></svg>
+    Pipeline
+  </button>
 </div>
 
 <div id="cards-container"></div>
@@ -186,11 +221,11 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-
     <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="What's interesting about this? Why save it?"></textarea></div>
     <div class="field-row">
       <div class="field"><label>Platform</label><select id="f-plat"><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>General</option></select></div>
-      <div class="field"><label>Category</label><select id="f-cat"><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select></div>
+      <div class="field"><label>Category</label><select id="f-cat"><option>Video to Create</option><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select></div>
     </div>
     <div class="field-row">
       <div class="field"><label>Client (optional)</label><select id="f-clientid"><option value="">None — general reference</option></select></div>
-      <div class="field"><label>Industry</label><select id="f-ind"><option>General</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option></select></div>
+      <div class="field"><label>Industry</label><select id="f-ind"><option>General</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option><option>BPO</option><option>Lighting</option><option>Fish</option><option>Food Shop</option><option>Teacher</option></select></div>
     </div>
     <div class="field-row">
       <div class="field"><label>Added By</label><select id="f-by"><option>Thulaib</option><option>Shiara</option><option>Suhana</option><option>Kenuli</option><option>Rukshan</option><option>Ushane</option><option>Rajeewa</option><option>Tharuka</option><option>Kishini</option><option>Nidwin</option></select></div>
@@ -277,7 +312,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 
 const STALE_DAYS=14;
-const STATE={links:[],plays:[],clients:[],currentId:null};
+const STATE={links:[],plays:[],clients:[],currentId:null,view:'grid'};
 
 // ── SUPABASE HELPERS ──
 async function sb(path,opts){
@@ -391,6 +426,46 @@ function renderStats(){
   document.getElementById('stat-plays').textContent=STATE.plays.length;
 }
 
+function cardHTML(l){
+  const status=getStatus(l.id);
+  const perf=aggPerf(l.id);
+  const stale=isStale(l);
+  const priCls={High:'tag-pri-high',Medium:'tag-pri-med',Low:'tag-pri-low'}[l.priority]||'tag-pri-low';
+  const stCls={'Not Tried':'tag-status-not','In Progress':'tag-status-prog','Implemented':'tag-status-impl'}[status];
+  const client=STATE.clients.find(x=>x.id===l.client_id);
+  return `<div class="card${stale?' stale':''}" onclick="openDetail(${l.id})">
+    <div class="card-head">
+      ${platIcon(l.platform)}
+      <div class="card-title">${escapeHtml(l.title)}</div>
+    </div>
+    ${l.notes?`<div class="card-notes">${escapeHtml(l.notes)}</div>`:''}
+    <div class="tags">
+      <span class="tag tag-cat">${l.category||'—'}</span>
+      ${l.industry?`<span class="tag tag-ind">${l.industry}</span>`:''}
+      ${client?`<span class="tag tag-ind">${escapeHtml(client.name)}</span>`:''}
+      <span class="tag ${priCls}">${l.priority||'Medium'}</span>
+      <span class="tag ${stCls}">${status}</span>
+    </div>
+    ${perf?`<div class="perf">
+      <div class="perf-item"><div class="perf-lbl">Plays</div><div class="perf-val">${perf.n}</div></div>
+      <div class="perf-item"><div class="perf-lbl">Views</div><div class="perf-val">${fmtNum(perf.views)}</div></div>
+      <div class="perf-item"><div class="perf-lbl">Likes</div><div class="perf-val">${fmtNum(perf.likes)}</div></div>
+      <div class="perf-item"><div class="perf-lbl">Avg ★</div><div class="perf-val" style="color:var(--amber)">${perf.avgRating||'—'}</div></div>
+    </div>`:''}
+    <div class="card-meta">
+      <span>By ${escapeHtml(l.added_by||'—')} · ${fmtDate(l.date_added)}</span>
+      ${l.last_reviewed?`<span title="Last reviewed">✓ ${fmtDate(l.last_reviewed)}</span>`:''}
+    </div>
+  </div>`;
+}
+
+function setView(v){
+  STATE.view=v;
+  document.getElementById('vt-grid').classList.toggle('active',v==='grid');
+  document.getElementById('vt-pipe').classList.toggle('active',v==='pipeline');
+  renderCards();
+}
+
 function renderCards(){
   const c=document.getElementById('f-client').value;
   const i=document.getElementById('f-industry').value;
@@ -399,6 +474,8 @@ function renderCards(){
   const pri=document.getElementById('f-priority').value;
   const st=document.getElementById('f-status').value;
   const q=document.getElementById('f-search').value.toLowerCase().trim();
+  const dr=document.getElementById('f-daterange').value;
+  const sort=document.getElementById('f-sort').value;
 
   let filtered=STATE.links.filter(l=>{
     if(c&&String(l.client_id)!==c)return false;
@@ -407,6 +484,10 @@ function renderCards(){
     if(cat&&l.category!==cat)return false;
     if(pri&&l.priority!==pri)return false;
     if(st&&getStatus(l.id)!==st)return false;
+    if(dr){
+      const days=daysSince(l.date_added);
+      if(days>parseInt(dr))return false;
+    }
     if(q){
       const hay=(l.title+' '+(l.notes||'')).toLowerCase();
       if(!hay.includes(q))return false;
@@ -414,50 +495,46 @@ function renderCards(){
     return true;
   });
 
+  // sort
+  filtered.sort((a,b)=>{
+    const ta=new Date(a.date_added||0).getTime();
+    const tb=new Date(b.date_added||0).getTime();
+    return sort==='asc'?ta-tb:tb-ta;
+  });
+
   const container=document.getElementById('cards-container');
+
   if(filtered.length===0){
     container.innerHTML=`<div class="grid"><div class="empty" style="grid-column:1/-1"><div class="empty-ico">💡</div><div class="empty-title">${STATE.links.length===0?'No inspo saved yet':'No matches'}</div><div style="font-size:13px;margin-top:6px">${STATE.links.length===0?'Click "+ New Inspo" to add your first reference.':'Try clearing filters.'}</div></div></div>`;
     return;
   }
 
-  container.innerHTML='<div class="grid">'+filtered.map(l=>{
-    const status=getStatus(l.id);
-    const perf=aggPerf(l.id);
-    const stale=isStale(l);
-    const priCls={High:'tag-pri-high',Medium:'tag-pri-med',Low:'tag-pri-low'}[l.priority]||'tag-pri-low';
-    const stCls={'Not Tried':'tag-status-not','In Progress':'tag-status-prog','Implemented':'tag-status-impl'}[status];
-    const client=STATE.clients.find(x=>x.id===l.client_id);
+  if(STATE.view==='pipeline'){
+    const cols=[
+      {key:'Not Tried',cls:'not',items:filtered.filter(l=>getStatus(l.id)==='Not Tried')},
+      {key:'In Progress',cls:'prog',items:filtered.filter(l=>getStatus(l.id)==='In Progress')},
+      {key:'Implemented',cls:'impl',items:filtered.filter(l=>getStatus(l.id)==='Implemented')}
+    ];
+    container.innerHTML='<div class="pipeline-wrap">'+cols.map(col=>
+      `<div class="pipe-col ${col.cls}">
+        <div class="pipe-col-head">
+          <span class="pipe-col-title">${col.key}</span>
+          <span class="pipe-col-count">${col.items.length}</span>
+        </div>
+        ${col.items.length===0?'<div class="pipe-empty">Nothing here</div>':col.items.map(cardHTML).join('')}
+      </div>`
+    ).join('')+'</div>';
+    return;
+  }
 
-    return `<div class="card${stale?' stale':''}" onclick="openDetail(${l.id})">
-      <div class="card-head">
-        ${platIcon(l.platform)}
-        <div class="card-title">${escapeHtml(l.title)}</div>
-      </div>
-      ${l.notes?`<div class="card-notes">${escapeHtml(l.notes)}</div>`:''}
-      <div class="tags">
-        <span class="tag tag-cat">${l.category||'—'}</span>
-        ${l.industry?`<span class="tag tag-ind">${l.industry}</span>`:''}
-        ${client?`<span class="tag tag-ind">${escapeHtml(client.name)}</span>`:''}
-        <span class="tag ${priCls}">${l.priority||'Medium'}</span>
-        <span class="tag ${stCls}">${status}</span>
-      </div>
-      ${perf?`<div class="perf">
-        <div class="perf-item"><div class="perf-lbl">Plays</div><div class="perf-val">${perf.n}</div></div>
-        <div class="perf-item"><div class="perf-lbl">Views</div><div class="perf-val">${fmtNum(perf.views)}</div></div>
-        <div class="perf-item"><div class="perf-lbl">Likes</div><div class="perf-val">${fmtNum(perf.likes)}</div></div>
-        <div class="perf-item"><div class="perf-lbl">Avg ★</div><div class="perf-val" style="color:var(--amber)">${perf.avgRating||'—'}</div></div>
-      </div>`:''}
-      <div class="card-meta">
-        <span>By ${escapeHtml(l.added_by||'—')} · ${fmtDate(l.date_added)}</span>
-        ${l.last_reviewed?`<span title="Last reviewed">✓ ${fmtDate(l.last_reviewed)}</span>`:''}
-      </div>
-    </div>`;
-  }).join('')+'</div>';
+  // grid view
+  container.innerHTML='<div class="grid">'+filtered.map(cardHTML).join('')+'</div>';
 }
 
 function clearFilters(){
-  ['f-client','f-industry','f-platform','f-category','f-priority','f-status'].forEach(id=>document.getElementById(id).value='');
+  ['f-client','f-industry','f-platform','f-category','f-priority','f-status','f-daterange'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f-search').value='';
+  document.getElementById('f-sort').value='desc';
   renderCards();
 }
 
