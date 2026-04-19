@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BB Inspo Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000; --bg2:#0a0a0a; --bg3:#111; --bg4:#1a1a1a;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.12);
+  --text:#fff; --text2:rgba(255,255,255,0.7); --text3:rgba(255,255,255,0.45);
+  --orange:#FF6B2B; --pink:#FF2D78; --cyan:#00E5FF; --purple:#A855F7; --green:#00FF85;
+  --red:#FF3B3B; --amber:#FBBF24;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+
+/* HEADER */
+.hdr{padding:24px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:sticky;top:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);z-index:10}
+.hdr-left{display:flex;align-items:center;gap:14px}
+.hdr-logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#FF6B2B,#FF2D78);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;box-shadow:0 4px 18px rgba(255,45,120,0.35)}
+.hdr-title{font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;letter-spacing:-0.01em}
+.hdr-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-top:2px}
+.btn{padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s}
+.btn:hover{background:var(--bg4);border-color:var(--border2)}
+.btn-primary{background:linear-gradient(135deg,#FF6B2B,#FF2D78);border:none;color:#fff;box-shadow:0 4px 14px rgba(255,45,120,0.3)}
+.btn-primary:hover{box-shadow:0 6px 20px rgba(255,45,120,0.45);transform:translateY(-1px)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-ghost{background:transparent;border:1px solid var(--border)}
+.btn-danger{background:rgba(255,59,59,0.12);color:var(--red);border:1px solid rgba(255,59,59,0.25)}
+.btn-back{background:rgba(255,255,255,0.04);color:var(--text2);border:1px solid var(--border);font-size:12px;padding:8px 14px;display:inline-flex;align-items:center;gap:6px}
+.btn-back:hover{color:var(--text)}
+
+/* FILTER BAR */
+.filters{padding:18px 32px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filters label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-right:4px}
+.filters select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;min-width:130px}
+.filters select:focus{outline:none;border-color:var(--pink)}
+.search{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:12px;font-family:inherit;min-width:200px;flex:1;max-width:300px}
+.search:focus{outline:none;border-color:var(--pink)}
+.filter-clear{color:var(--text3);font-size:11px;cursor:pointer;padding:4px 8px;text-decoration:underline}
+.filter-clear:hover{color:var(--pink)}
+
+/* STATS */
+.stats{padding:18px 32px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.stat{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px}
+.stat-val{font-size:22px;font-weight:800;font-family:'Poppins',sans-serif}
+
+/* GRID */
+.grid{padding:20px 32px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:all 0.15s;position:relative}
+.card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+.card.stale{border-color:rgba(255,59,59,0.35);box-shadow:0 0 0 1px rgba(255,59,59,0.15)}
+.card.stale::before{content:'STALE';position:absolute;top:12px;right:12px;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:3px 7px;border-radius:4px;letter-spacing:0.08em}
+
+.card-head{display:flex;align-items:flex-start;gap:10px}
+.plat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.plat-tiktok{background:rgba(255,255,255,0.08);color:#fff}
+.plat-instagram{background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737);color:#fff}
+.plat-youtube{background:#FF0000;color:#fff}
+.plat-facebook{background:#1877F2;color:#fff}
+.plat-general{background:var(--bg4);color:var(--text2)}
+.card-title{font-size:14px;font-weight:700;line-height:1.35;flex:1;word-break:break-word}
+.card-notes{font-size:12.5px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.tags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:0.02em}
+.tag-cat{background:rgba(168,85,247,0.12);color:var(--purple)}
+.tag-ind{background:rgba(0,229,255,0.1);color:var(--cyan)}
+.tag-pri-high{background:rgba(255,59,59,0.12);color:var(--red)}
+.tag-pri-med{background:rgba(251,191,36,0.12);color:var(--amber)}
+.tag-pri-low{background:rgba(255,255,255,0.06);color:var(--text3)}
+.tag-status-not{background:rgba(255,255,255,0.06);color:var(--text3)}
+.tag-status-prog{background:rgba(0,229,255,0.1);color:var(--cyan)}
+.tag-status-impl{background:rgba(0,255,133,0.1);color:var(--green)}
+
+.perf{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;background:var(--bg4);border-radius:8px;margin-top:4px}
+.perf-item{text-align:center}
+.perf-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700}
+.perf-val{font-size:13px;font-weight:700;margin-top:2px}
+
+.card-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text3);padding-top:10px;border-top:1px solid var(--border)}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.6)}
+.modal-title{font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;margin-bottom:18px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:10px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--pink)}
+.field textarea{min-height:70px;resize:vertical}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+
+/* PLAYS LIST */
+.plays-list{margin-top:16px}
+.play-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
+.play-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.play-client{font-weight:700;font-size:13px}
+.play-date{font-size:11px;color:var(--text3)}
+.play-rating{color:var(--amber);font-size:13px}
+.play-perf{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.play-url{display:inline-block;color:var(--cyan);font-size:11px;margin-top:8px;word-break:break-all}
+.play-notes{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5}
+
+/* LOADER */
+.loader{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty{text-align:center;padding:80px 20px;color:var(--text3)}
+.empty-ico{font-size:48px;margin-bottom:12px;opacity:0.4}
+.empty-title{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--bg3);border:1px solid var(--border);padding:14px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{border-color:rgba(0,255,133,0.35);color:var(--green)}
+.toast.error{border-color:rgba(255,59,59,0.35);color:var(--red)}
+
+/* MOBILE */
+@media(max-width:720px){
+  .hdr{padding:16px 18px}
+  .hdr-title{font-size:16px}
+  .filters{padding:14px 18px;gap:8px}
+  .filters select,.search{min-width:0;flex:1 1 45%;font-size:11px;padding:7px 10px}
+  .stats{padding:14px 18px;grid-template-columns:repeat(2,1fr);gap:8px}
+  .stat{padding:12px}
+  .stat-val{font-size:18px}
+  .grid{padding:14px 18px;grid-template-columns:1fr;gap:12px}
+  .card{padding:16px}
+  .field-row,.field-row-3{grid-template-columns:1fr}
+  .modal{padding:20px}
+  .perf{grid-template-columns:repeat(2,1fr)}
+  .play-perf{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo">💡</div>
+    <div>
+      <div class="hdr-title">Inspo Hub</div>
+      <div class="hdr-sub">References · Plays · Performance</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <button class="btn-back" onclick="window.close();if(!window.closed)history.back()">&larr; Back</button>
+    <button class="btn btn-primary" onclick="openAddModal()">+ New Inspo</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-lbl">Total</div><div class="stat-val" id="stat-total">—</div></div>
+  <div class="stat"><div class="stat-lbl">Not Tried</div><div class="stat-val" id="stat-not" style="color:var(--text2)">—</div></div>
+  <div class="stat"><div class="stat-lbl">Implemented</div><div class="stat-val" id="stat-impl" style="color:var(--green)">—</div></div>
+  <div class="stat"><div class="stat-lbl">Stale</div><div class="stat-val" id="stat-stale" style="color:var(--red)">—</div></div>
+  <div class="stat"><div class="stat-lbl">Total Plays</div><div class="stat-val" id="stat-plays" style="color:var(--cyan)">—</div></div>
+</div>
+
+<div class="filters">
+  <input type="text" class="search" id="f-search" placeholder="Search title or notes..." oninput="renderCards()">
+  <select id="f-client" onchange="renderCards()"><option value="">All clients</option></select>
+  <select id="f-industry" onchange="renderCards()"><option value="">All industries</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option><option>General</option></select>
+  <select id="f-platform" onchange="renderCards()"><option value="">All platforms</option><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>General</option></select>
+  <select id="f-category" onchange="renderCards()"><option value="">All categories</option><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select>
+  <select id="f-priority" onchange="renderCards()"><option value="">Any priority</option><option>High</option><option>Medium</option><option>Low</option></select>
+  <select id="f-status" onchange="renderCards()"><option value="">Any status</option><option>Not Tried</option><option>In Progress</option><option>Implemented</option></select>
+  <span class="filter-clear" onclick="clearFilters()">Clear all</span>
+</div>
+
+<div id="cards-container"></div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-bg" id="add-modal">
+  <div class="modal">
+    <div class="modal-title" id="add-title">Add New Inspo</div>
+    <input type="hidden" id="edit-id">
+    <div class="field"><label>Title *</label><input type="text" id="f-title" placeholder="Short descriptive name"></div>
+    <div class="field"><label>URL *</label><input type="text" id="f-url" placeholder="https://..."></div>
+    <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="What's interesting about this? Why save it?"></textarea></div>
+    <div class="field-row">
+      <div class="field"><label>Platform</label><select id="f-plat"><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>General</option></select></div>
+      <div class="field"><label>Category</label><select id="f-cat"><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Client (optional)</label><select id="f-clientid"><option value="">None — general reference</option></select></div>
+      <div class="field"><label>Industry</label><select id="f-ind"><option>General</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Added By</label><select id="f-by"><option>Thulaib</option><option>Shiara</option><option>Suhana</option><option>Kenuli</option><option>Rukshan</option><option>Ushane</option><option>Rajeewa</option><option>Tharuka</option><option>Kishini</option><option>Nidwin</option></select></div>
+      <div class="field"><label>Priority</label><select id="f-pri"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInspo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL / PLAYS MODAL -->
+<div class="modal-bg" id="detail-modal">
+  <div class="modal" style="max-width:680px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
+      <div style="flex:1;min-width:0">
+        <div class="modal-title" id="d-title" style="margin-bottom:6px">—</div>
+        <a id="d-url" target="_blank" style="color:var(--cyan);font-size:12px;word-break:break-all">—</a>
+      </div>
+      <button class="btn-back" onclick="closeModal('detail-modal')">Close</button>
+    </div>
+    <div id="d-notes" style="color:var(--text2);font-size:13px;margin-bottom:14px;line-height:1.6"></div>
+    <div id="d-tags" class="tags" style="margin-bottom:20px"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:16px;border-top:1px solid var(--border)">
+      <div style="font-weight:700;font-size:14px">Plays <span id="d-play-count" style="color:var(--text3);font-weight:400"></span></div>
+      <button class="btn btn-sm btn-primary" onclick="openPlayModal()">+ Log Play</button>
+    </div>
+    <div id="d-plays"></div>
+
+    <div style="display:flex;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap">
+      <button class="btn btn-sm" onclick="markReviewed()">✓ Mark Reviewed</button>
+      <button class="btn btn-sm btn-ghost" onclick="editCurrent()">Edit</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteCurrent()" style="margin-left:auto">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW NOTE MODAL -->
+<div class="modal-bg" id="review-modal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">Mark as Reviewed</div>
+    <div style="color:var(--text2);font-size:13px;margin-bottom:14px">What did you learn from reviewing this? (required)</div>
+    <div class="field"><textarea id="review-note" placeholder="e.g. Still relevant, tried hook style on AutoMuseum reel — got 8k views"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('review-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveReview()">Save Review</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOG PLAY MODAL -->
+<div class="modal-bg" id="play-modal">
+  <div class="modal">
+    <div class="modal-title">Log a Play</div>
+    <input type="hidden" id="play-edit-id">
+    <div class="field-row">
+      <div class="field"><label>Client</label><select id="p-client"><option value="">Choose...</option></select></div>
+      <div class="field"><label>Date Posted</label><input type="date" id="p-date"></div>
+    </div>
+    <div class="field"><label>Output URL (the post you made)</label><input type="text" id="p-url" placeholder="https://instagram.com/..."></div>
+    <div class="field-row-3">
+      <div class="field"><label>Views</label><input type="number" id="p-views" min="0" value="0"></div>
+      <div class="field"><label>Likes</label><input type="number" id="p-likes" min="0" value="0"></div>
+      <div class="field"><label>Shares</label><input type="number" id="p-shares" min="0" value="0"></div>
+      <div class="field"><label>Comments</label><input type="number" id="p-comments" min="0" value="0"></div>
+    </div>
+    <div class="field"><label>Rating (1 = flop, 5 = banger)</label><select id="p-rating"><option value="">—</option><option>1</option><option>2</option><option value="3" selected>3</option><option>4</option><option>5</option></select></div>
+    <div class="field"><label>Notes — what you'd change next time</label><textarea id="p-notes" placeholder="e.g. Hook was too slow, cut 2 sec from intro next time"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('play-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="savePlay()">Save Play</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+console.log('%c[INSPO] script parsing started','color:#FF2D78;font-weight:700');
+
+const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
+const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
+
+const STALE_DAYS=14;
+const STATE={links:[],plays:[],clients:[],currentId:null};
+
+// ── SUPABASE HELPERS ──
+async function sb(path,opts){
+  const url=SUPA_URL+'/rest/v1/'+path;
+  const res=await fetch(url,{
+    ...opts,
+    headers:{
+      'apikey':SUPA_KEY,
+      'Authorization':'Bearer '+SUPA_KEY,
+      'Content-Type':'application/json',
+      'Prefer':'return=representation',
+      ...(opts&&opts.headers)
+    }
+  });
+  if(!res.ok){
+    const txt=await res.text();
+    throw new Error('Supabase '+res.status+': '+txt);
+  }
+  if(res.status===204)return null;
+  const t=await res.text();
+  return t?JSON.parse(t):null;
+}
+
+function toast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast '+(type||'')+' show';
+  setTimeout(()=>{el.className='toast '+(type||'');},2800);
+}
+
+// ── LOAD ──
+async function loadAll(){
+  try{
+    const [links,plays,clients]=await Promise.all([
+      sb('inspo_links?select=*&order=date_added.desc'),
+      sb('inspo_plays?select=*&order=created_at.desc'),
+      sb('clients?select=id,name,industry&order=name.asc')
+    ]);
+    STATE.links=links||[];
+    STATE.plays=plays||[];
+    STATE.clients=clients||[];
+    populateClientDropdowns();
+    renderCards();
+    renderStats();
+  }catch(e){
+    console.error('[INSPO] Load failed:',e);
+    toast('Load failed — check Supabase tables exist','error');
+    document.getElementById('cards-container').innerHTML=
+      '<div class="empty"><div class="empty-ico">⚠</div><div class="empty-title">Couldn\'t load data</div>'+
+      '<div style="font-size:13px;margin-top:8px">Make sure you ran the SQL to create <code>inspo_links</code> and <code>inspo_plays</code> tables in Supabase.</div>'+
+      '<div style="font-size:11px;color:var(--text3);margin-top:14px">'+String(e.message||e)+'</div></div>';
+  }
+}
+
+function populateClientDropdowns(){
+  const filter=document.getElementById('f-client');
+  const form=document.getElementById('f-clientid');
+  const play=document.getElementById('p-client');
+  const opts=STATE.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  filter.innerHTML='<option value="">All clients</option>'+opts;
+  form.innerHTML='<option value="">None — general reference</option>'+opts;
+  play.innerHTML='<option value="">Choose a client...</option>'+opts;
+}
+
+// ── HELPERS ──
+function daysSince(d){if(!d)return 9999;return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
+function isStale(link){
+  if(getStatus(link.id)!=='Not Tried')return false;
+  const days=daysSince(link.last_reviewed||link.date_added);
+  return days>=STALE_DAYS;
+}
+function getPlays(linkId){return STATE.plays.filter(p=>p.inspo_link_id===linkId);}
+function getStatus(linkId){
+  const plays=getPlays(linkId);
+  if(plays.length===0)return 'Not Tried';
+  const published=plays.filter(p=>p.output_url&&p.output_url.trim());
+  return published.length>0?'Implemented':'In Progress';
+}
+function platIcon(p){
+  const map={TikTok:'TT',Instagram:'IG',YouTube:'YT',Facebook:'FB',General:'LK'};
+  const cls={TikTok:'plat-tiktok',Instagram:'plat-instagram',YouTube:'plat-youtube',Facebook:'plat-facebook',General:'plat-general'};
+  return `<div class="plat-icon ${cls[p]||'plat-general'}">${map[p]||'LK'}</div>`;
+}
+function fmtNum(n){n=parseInt(n)||0;if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n;}
+function fmtDate(d){if(!d)return '—';const dt=new Date(d);return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
+function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+
+function aggPerf(linkId){
+  const plays=getPlays(linkId);
+  if(plays.length===0)return null;
+  return {
+    n:plays.length,
+    views:plays.reduce((s,p)=>s+(p.views||0),0),
+    likes:plays.reduce((s,p)=>s+(p.likes||0),0),
+    shares:plays.reduce((s,p)=>s+(p.shares||0),0),
+    comments:plays.reduce((s,p)=>s+(p.comments||0),0),
+    avgRating:plays.filter(p=>p.rating).length?(plays.reduce((s,p)=>s+(p.rating||0),0)/plays.filter(p=>p.rating).length).toFixed(1):null
+  };
+}
+
+// ── RENDER ──
+function renderStats(){
+  const total=STATE.links.length;
+  const not=STATE.links.filter(l=>getStatus(l.id)==='Not Tried').length;
+  const impl=STATE.links.filter(l=>getStatus(l.id)==='Implemented').length;
+  const stale=STATE.links.filter(l=>isStale(l)).length;
+  document.getElementById('stat-total').textContent=total;
+  document.getElementById('stat-not').textContent=not;
+  document.getElementById('stat-impl').textContent=impl;
+  document.getElementById('stat-stale').textContent=stale;
+  document.getElementById('stat-plays').textContent=STATE.plays.length;
+}
+
+function renderCards(){
+  const c=document.getElementById('f-client').value;
+  const i=document.getElementById('f-industry').value;
+  const p=document.getElementById('f-platform').value;
+  const cat=document.getElementById('f-category').value;
+  const pri=document.getElementById('f-priority').value;
+  const st=document.getElementById('f-status').value;
+  const q=document.getElementById('f-search').value.toLowerCase().trim();
+
+  let filtered=STATE.links.filter(l=>{
+    if(c&&String(l.client_id)!==c)return false;
+    if(i&&l.industry!==i)return false;
+    if(p&&l.platform!==p)return false;
+    if(cat&&l.category!==cat)return false;
+    if(pri&&l.priority!==pri)return false;
+    if(st&&getStatus(l.id)!==st)return false;
+    if(q){
+      const hay=(l.title+' '+(l.notes||'')).toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    return true;
+  });
+
+  const container=document.getElementById('cards-container');
+  if(filtered.length===0){
+    container.innerHTML=`<div class="grid"><div class="empty" style="grid-column:1/-1"><div class="empty-ico">💡</div><div class="empty-title">${STATE.links.length===0?'No inspo saved yet':'No matches'}</div><div style="font-size:13px;margin-top:6px">${STATE.links.length===0?'Click "+ New Inspo" to add your first reference.':'Try clearing filters.'}</div></div></div>`;
+    return;
+  }
+
+  container.innerHTML='<div class="grid">'+filtered.map(l=>{
+    const status=getStatus(l.id);
+    const perf=aggPerf(l.id);
+    const stale=isStale(l);
+    const priCls={High:'tag-pri-high',Medium:'tag-pri-med',Low:'tag-pri-low'}[l.priority]||'tag-pri-low';
+    const stCls={'Not Tried':'tag-status-not','In Progress':'tag-status-prog','Implemented':'tag-status-impl'}[status];
+    const client=STATE.clients.find(x=>x.id===l.client_id);
+
+    return `<div class="card${stale?' stale':''}" onclick="openDetail(${l.id})">
+      <div class="card-head">
+        ${platIcon(l.platform)}
+        <div class="card-title">${escapeHtml(l.title)}</div>
+      </div>
+      ${l.notes?`<div class="card-notes">${escapeHtml(l.notes)}</div>`:''}
+      <div class="tags">
+        <span class="tag tag-cat">${l.category||'—'}</span>
+        ${l.industry?`<span class="tag tag-ind">${l.industry}</span>`:''}
+        ${client?`<span class="tag tag-ind">${escapeHtml(client.name)}</span>`:''}
+        <span class="tag ${priCls}">${l.priority||'Medium'}</span>
+        <span class="tag ${stCls}">${status}</span>
+      </div>
+      ${perf?`<div class="perf">
+        <div class="perf-item"><div class="perf-lbl">Plays</div><div class="perf-val">${perf.n}</div></div>
+        <div class="perf-item"><div class="perf-lbl">Views</div><div class="perf-val">${fmtNum(perf.views)}</div></div>
+        <div class="perf-item"><div class="perf-lbl">Likes</div><div class="perf-val">${fmtNum(perf.likes)}</div></div>
+        <div class="perf-item"><div class="perf-lbl">Avg ★</div><div class="perf-val" style="color:var(--amber)">${perf.avgRating||'—'}</div></div>
+      </div>`:''}
+      <div class="card-meta">
+        <span>By ${escapeHtml(l.added_by||'—')} · ${fmtDate(l.date_added)}</span>
+        ${l.last_reviewed?`<span title="Last reviewed">✓ ${fmtDate(l.last_reviewed)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+function clearFilters(){
+  ['f-client','f-industry','f-platform','f-category','f-priority','f-status'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-search').value='';
+  renderCards();
+}
+
+// ── MODALS ──
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+
+function openAddModal(){
+  document.getElementById('edit-id').value='';
+  document.getElementById('add-title').textContent='Add New Inspo';
+  ['f-title','f-url','f-notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f-plat').value='TikTok';
+  document.getElementById('f-cat').value='Video Style';
+  document.getElementById('f-clientid').value='';
+  document.getElementById('f-ind').value='General';
+  document.getElementById('f-by').value='Thulaib';
+  document.getElementById('f-pri').value='Medium';
+  openModal('add-modal');
+}
+
+async function saveInspo(){
+  const id=document.getElementById('edit-id').value;
+  const title=document.getElementById('f-title').value.trim();
+  const url=document.getElementById('f-url').value.trim();
+  if(!title||!url){toast('Title and URL required','error');return;}
+  const clientId=document.getElementById('f-clientid').value;
+  const client=clientId?STATE.clients.find(c=>String(c.id)===clientId):null;
+  const payload={
+    title,url,
+    notes:document.getElementById('f-notes').value.trim()||null,
+    platform:document.getElementById('f-plat').value,
+    category:document.getElementById('f-cat').value,
+    client_id:clientId?parseInt(clientId):null,
+    industry:(client&&client.industry)||document.getElementById('f-ind').value,
+    added_by:document.getElementById('f-by').value,
+    priority:document.getElementById('f-pri').value
+  };
+  try{
+    if(id){
+      await sb('inspo_links?id=eq.'+id,{method:'PATCH',body:JSON.stringify(payload)});
+      toast('Updated','success');
+    }else{
+      await sb('inspo_links',{method:'POST',body:JSON.stringify(payload)});
+      toast('Added','success');
+    }
+    closeModal('add-modal');
+    await loadAll();
+  }catch(e){toast('Save failed: '+e.message,'error');}
+}
+
+function openDetail(id){
+  const l=STATE.links.find(x=>x.id===id);
+  if(!l)return;
+  STATE.currentId=id;
+  document.getElementById('d-title').textContent=l.title;
+  const urlEl=document.getElementById('d-url');
+  urlEl.textContent=l.url;
+  urlEl.href=l.url;
+  document.getElementById('d-notes').textContent=l.notes||'No notes.';
+  const client=STATE.clients.find(x=>x.id===l.client_id);
+  const status=getStatus(id);
+  const priCls={High:'tag-pri-high',Medium:'tag-pri-med',Low:'tag-pri-low'}[l.priority]||'tag-pri-low';
+  const stCls={'Not Tried':'tag-status-not','In Progress':'tag-status-prog','Implemented':'tag-status-impl'}[status];
+  document.getElementById('d-tags').innerHTML=
+    `<span class="tag tag-cat">${l.category||'—'}</span>`+
+    (l.platform?`<span class="tag tag-cat">${l.platform}</span>`:'')+
+    (l.industry?`<span class="tag tag-ind">${l.industry}</span>`:'')+
+    (client?`<span class="tag tag-ind">${escapeHtml(client.name)}</span>`:'')+
+    `<span class="tag ${priCls}">${l.priority||'Medium'}</span>`+
+    `<span class="tag ${stCls}">${status}</span>`;
+  renderPlays(id);
+  openModal('detail-modal');
+}
+
+function renderPlays(linkId){
+  const plays=getPlays(linkId);
+  document.getElementById('d-play-count').textContent=plays.length?`(${plays.length})`:'';
+  const container=document.getElementById('d-plays');
+  if(plays.length===0){
+    container.innerHTML='<div style="color:var(--text3);font-size:13px;padding:14px 0;text-align:center">No plays logged. Click "+ Log Play" after you use this on a client.</div>';
+    return;
+  }
+  container.innerHTML=plays.map(p=>{
+    const client=STATE.clients.find(c=>c.id===p.client_id);
+    const stars=p.rating?'★'.repeat(p.rating)+'☆'.repeat(5-p.rating):'';
+    return `<div class="play-item">
+      <div class="play-head">
+        <div class="play-client">${client?escapeHtml(client.name):'No client'}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${stars?`<div class="play-rating">${stars}</div>`:''}
+          <div class="play-date">${fmtDate(p.date_posted)}</div>
+          <button class="btn btn-sm btn-danger" onclick="deletePlay(${p.id})" style="padding:3px 8px;font-size:10px">×</button>
+        </div>
+      </div>
+      <div class="play-perf">
+        <div class="perf-item"><div class="perf-lbl">Views</div><div class="perf-val">${fmtNum(p.views)}</div></div>
+        <div class="perf-item"><div class="perf-lbl">Likes</div><div class="perf-val">${fmtNum(p.likes)}</div></div>
+        <div class="perf-item"><div class="perf-lbl">Shares</div><div class="perf-val">${fmtNum(p.shares)}</div></div>
+        <div class="perf-item"><div class="perf-lbl">Comments</div><div class="perf-val">${fmtNum(p.comments)}</div></div>
+      </div>
+      ${p.output_url?`<a href="${escapeHtml(p.output_url)}" target="_blank" class="play-url">View post ↗</a>`:''}
+      ${p.notes?`<div class="play-notes">${escapeHtml(p.notes)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function openPlayModal(){
+  document.getElementById('play-edit-id').value='';
+  document.getElementById('p-client').value='';
+  document.getElementById('p-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('p-url').value='';
+  ['p-views','p-likes','p-shares','p-comments'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('p-rating').value='3';
+  document.getElementById('p-notes').value='';
+  openModal('play-modal');
+}
+
+async function savePlay(){
+  if(!STATE.currentId){toast('No inspo selected','error');return;}
+  const payload={
+    inspo_link_id:STATE.currentId,
+    client_id:document.getElementById('p-client').value?parseInt(document.getElementById('p-client').value):null,
+    output_url:document.getElementById('p-url').value.trim()||null,
+    date_posted:document.getElementById('p-date').value||null,
+    views:parseInt(document.getElementById('p-views').value)||0,
+    likes:parseInt(document.getElementById('p-likes').value)||0,
+    shares:parseInt(document.getElementById('p-shares').value)||0,
+    comments:parseInt(document.getElementById('p-comments').value)||0,
+    rating:document.getElementById('p-rating').value?parseInt(document.getElementById('p-rating').value):null,
+    notes:document.getElementById('p-notes').value.trim()||null
+  };
+  try{
+    await sb('inspo_plays',{method:'POST',body:JSON.stringify(payload)});
+    toast('Play logged','success');
+    closeModal('play-modal');
+    await loadAll();
+    openDetail(STATE.currentId);
+  }catch(e){toast('Save failed: '+e.message,'error');}
+}
+
+async function deletePlay(id){
+  if(!confirm('Delete this play?'))return;
+  try{
+    await sb('inspo_plays?id=eq.'+id,{method:'DELETE'});
+    toast('Play deleted','success');
+    await loadAll();
+    if(STATE.currentId)openDetail(STATE.currentId);
+  }catch(e){toast('Delete failed','error');}
+}
+
+function markReviewed(){
+  openModal('review-modal');
+  document.getElementById('review-note').value='';
+  setTimeout(()=>document.getElementById('review-note').focus(),100);
+}
+
+async function saveReview(){
+  const note=document.getElementById('review-note').value.trim();
+  if(!note){toast('Note required','error');return;}
+  if(!STATE.currentId)return;
+  try{
+    await sb('inspo_links?id=eq.'+STATE.currentId,{
+      method:'PATCH',
+      body:JSON.stringify({last_reviewed:new Date().toISOString().slice(0,10),last_reviewed_note:note})
+    });
+    toast('Reviewed','success');
+    closeModal('review-modal');
+    await loadAll();
+    openDetail(STATE.currentId);
+  }catch(e){toast('Save failed','error');}
+}
+
+function editCurrent(){
+  const l=STATE.links.find(x=>x.id===STATE.currentId);
+  if(!l)return;
+  closeModal('detail-modal');
+  document.getElementById('edit-id').value=l.id;
+  document.getElementById('add-title').textContent='Edit Inspo';
+  document.getElementById('f-title').value=l.title||'';
+  document.getElementById('f-url').value=l.url||'';
+  document.getElementById('f-notes').value=l.notes||'';
+  document.getElementById('f-plat').value=l.platform||'TikTok';
+  document.getElementById('f-cat').value=l.category||'Video Style';
+  document.getElementById('f-clientid').value=l.client_id||'';
+  document.getElementById('f-ind').value=l.industry||'General';
+  document.getElementById('f-by').value=l.added_by||'Thulaib';
+  document.getElementById('f-pri').value=l.priority||'Medium';
+  openModal('add-modal');
+}
+
+async function deleteCurrent(){
+  if(!STATE.currentId)return;
+  if(!confirm('Delete this inspo and all its plays?'))return;
+  try{
+    await sb('inspo_links?id=eq.'+STATE.currentId,{method:'DELETE'});
+    toast('Deleted','success');
+    closeModal('detail-modal');
+    await loadAll();
+  }catch(e){toast('Delete failed','error');}
+}
+
+// ── BOOT ──
+loadAll();
+console.log('%c[INSPO] script parsed fully','color:#00FF85;font-weight:700');
+</script>
+</body>
+</html>
