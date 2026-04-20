@@ -1658,13 +1658,12 @@ const SB={
 let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[],shoots:[]};
 
 async function loadAll(){
-  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots,smmContent,smmShoots,sharedIdeas]=await Promise.all([
+  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,smmContent,smmShoots,sharedIdeas]=await Promise.all([
     SB.getAll('clients'),SB.getAll('tasks'),SB.getAll('pipeline'),
     SB.getAll('revenue'),SB.getAll('pillars'),
     SB.getAll('events').catch(()=>[]),
     SB.getAll('invoices').catch(()=>[]),
     SB.getAll('costs').catch(()=>[]),
-    SB.getAll('shoots').catch(()=>[]),
     SB.getAll('smm_content').catch(()=>[]),
     SB.getAll('smm_shoots').catch(()=>[]),
     SB.getAll('shared_ideas').catch(()=>[])
@@ -1677,9 +1676,10 @@ async function loadAll(){
   CACHE.events=Array.isArray(events)?events:[];
   CACHE.invoices=Array.isArray(invoices)?invoices:[];
   CACHE.costs=Array.isArray(costs)?costs:[];
-  CACHE.shoots=Array.isArray(shoots)?shoots:[];
   CACHE.smmContent=Array.isArray(smmContent)?smmContent:[];
   CACHE.smmShoots=Array.isArray(smmShoots)?smmShoots:[];
+  // Shoots Board now reads from smm_shoots — single source of truth
+  CACHE.shoots=CACHE.smmShoots;
   CACHE.sharedIdeas=Array.isArray(sharedIdeas)?sharedIdeas:[];
   // Update Idea Hub badge
   const openIdeas=CACHE.sharedIdeas.filter(i=>i.status==='open').length;
@@ -3912,8 +3912,8 @@ function updateTaskSuggestions(){
 }
 
 // ═══ SHOOTS ══════════════════════════════════════
-const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Shoot Date Set','Shot'];
-const STAGE_COLORS={'Videos Confirmed':'var(--blue)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
+const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Get Shoot Date','Shoot Date Set','Shot'];
+const STAGE_COLORS={'Videos Confirmed':'var(--blue)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Get Shoot Date':'var(--teal,#00E5FF)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
 
 function shootStageBar(currentStage){
   return `<div style="display:flex;gap:3px;margin-top:8px;flex-wrap:wrap">${SHOOT_STAGES.map((s,i)=>{const idx=SHOOT_STAGES.indexOf(currentStage);const done=i<=idx;const isCurrent=s===currentStage;return `<div style="flex:1;min-width:55px;padding:3px 5px;border-radius:4px;font-size:8px;font-weight:${isCurrent?700:500};text-align:center;background:${done?(isCurrent?STAGE_COLORS[s]:'rgba(255,255,255,0.06)'):'var(--bg4)'};color:${done?(isCurrent?'#000':'var(--text2)'):'var(--text3)'};border:1px solid ${isCurrent?STAGE_COLORS[s]:'var(--border)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>`;}).join('')}</div>`;
@@ -3956,7 +3956,7 @@ async function saveShoot(){
   const data={client_id:clientId,title:document.getElementById('sh-title').value.trim()||'Untitled Shoot',quarter:document.getElementById('sh-quarter').value,month:document.getElementById('sh-month').value,stage:document.getElementById('sh-stage').value,shoot_date:document.getElementById('sh-date').value||null,video_count:parseInt(document.getElementById('sh-videos').value)||null,notes:document.getElementById('sh-notes').value.trim()};
   if(!data.client_id)return alert('Please select a client');
   showLoading(true);
-  if(editId)await SB.update('shoots',editId,data);else await SB.insert('shoots',data);
+  if(editId)await SB.update('smm_shoots',editId,data);else await SB.insert('smm_shoots',data);
   await loadAll();showLoading(false);
   closeModal('modal-shoot');
   renderClientShoots();
@@ -3964,14 +3964,14 @@ async function saveShoot(){
 }
 
 async function updateShootStage(id,stage){
-  showLoading(true);await SB.update('shoots',id,{stage});await loadAll();showLoading(false);
+  showLoading(true);await SB.update('smm_shoots',id,{stage});await loadAll();showLoading(false);
   renderClientShoots();
   if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
 }
 
 async function deleteShoot(id){
   if(!confirm('Delete this shoot?'))return;
-  showLoading(true);await SB.delete('shoots',id);await loadAll();showLoading(false);
+  showLoading(true);await SB.delete('smm_shoots',id);await loadAll();showLoading(false);
   renderClientShoots();
   if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
 }
@@ -4020,12 +4020,20 @@ function renderShootsBoard(){
     'Script Made':'#eab308',
     'Script Changes':'#f97316',
     'Final Script':'#a855f7',
+    'Get Shoot Date':'#00E5FF',
     'Shoot Date Set':'#ec4899',
     'Shot':'#22c55e'
   };
 
   el.innerHTML=SHOOT_STAGES.map(stage=>{
-    const stageCards=shoots.filter(s=>s.stage===stage);
+    const stageCards=shoots.filter(s=>{
+      // Back-compat: map legacy SMM status values
+      let shootStage=s.stage||s.status||'Videos Confirmed';
+      if(shootStage==='requested')shootStage='Videos Confirmed';
+      if(shootStage==='scheduled')shootStage='Shoot Date Set';
+      if(shootStage==='delivered')shootStage='Shot';
+      return shootStage===stage;
+    });
     const color=stageColors[stage]||'#888';
     return `<div class="kanban-col" id="kcol-${stage.replace(/\s+/g,'-')}"
       ondragover="event.preventDefault();this.classList.add('drag-over')"
