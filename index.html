@@ -1,17 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BB — Command Centre</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- ============================================================
+BB COMMAND CENTRE — FULL DESIGN REFERENCE
+For SMM Workspace rebuild — match this exactly
+Includes: CSS, Login, Clients, Client Profile, JS
+============================================================ -->
+
+<!-- ══ 1. FULL CSS ══ -->
 <style>
+
 :root{
   --bg:#0B0C0F;--bg2:#111318;--bg3:#181B22;--bg4:#1E2229;--bg5:#252B35;
   --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.11);
   --text:#E8EAF0;--text2:#7B8099;--text3:#3D4260;
-  --orange:#FF6B2B;--orange2:#FF8C5A;--o10:rgba(255,107,43,0.10);--o20:rgba(255,107,43,0.22);--neon-pink:#FF2D78;--np10:rgba(255,45,120,0.10);--np20:rgba(255,45,120,0.20);--neon-cyan:#00E5FF;--nc10:rgba(0,229,255,0.10);--nc20:rgba(0,229,255,0.20);--neon-purple:#A855F7;--npu10:rgba(168,85,247,0.10);--npu20:rgba(168,85,247,0.20);--neon-green:#00FF85;--ng10:rgba(0,255,133,0.10);--ng20:rgba(0,255,133,0.20);
+  --orange:#FF6B35;--orange2:#FF8C5A;--o10:rgba(255,107,53,0.10);--o20:rgba(255,107,53,0.22);
   --green:#34D399;--g10:rgba(52,211,153,0.10);--g20:rgba(52,211,153,0.22);
   --yellow:#FBBF24;--y10:rgba(251,191,36,0.10);--y20:rgba(251,191,36,0.22);
   --pink:#F472B6;--p10:rgba(244,114,182,0.10);--p20:rgba(244,114,182,0.22);
@@ -495,10 +495,10 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 .cc-login-btn:hover{opacity:0.9;}
 .cc-login-err{color:var(--red);font-size:11px;margin-top:10px;display:none;font-weight:500;}
 
-</style>
-</head>
-<body>
 
+</style>
+
+<!-- ══ 2. LOGIN SCREEN ══ -->
 <!-- LOGIN SCREEN -->
 <div id="cc-login">
   <div class="cc-login-box">
@@ -557,7 +557,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
     <div class="sb-item" onclick="nav('advisor')"><span>BB Advisor</span></div>
-    <div class="sb-item" onclick="window.open('inspo-hub.html','_blank')" style="color:#FF2D78;display:flex;align-items:center;gap:8px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2V16h6v-1.3c0-.8.4-1.5 1-2A7 7 0 0 0 12 2Z"/></svg><span>Inspo Hub ↗</span></div>
+    <div class="sb-item" onclick="nav('ideahub')"><span>Idea Hub</span><span class="sb-badge" id="sb-ideas-badge" style="display:none">0</span></div>
     <div class="sb-grp">TEAM SYSTEMS</div>
     <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="color:var(--teal,#2dd4bf)"><span>SMM Workspace ↗</span></div>
     <div class="sb-item" style="opacity:0.4;cursor:not-allowed"><span>GD System — Soon</span></div>
@@ -573,6 +573,10 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   <div class="ph">
     <div><div class="ph-title">Dashboard</div><div class="ph-sub" id="dash-date">—</div></div>
   </div>
+  
+  <!-- BB INTELLIGENCE PANEL -->
+  <div id="intel-panel-cc" style="margin-bottom:14px"></div>
+  
   <div class="g4 stat-row" style="margin-bottom:14px">
     <div class="stat"><div class="stat-lbl">Active Clients</div><div class="stat-val c-orange" id="s-clients">—</div><div class="stat-note">Target: 35 by 2026</div></div>
     <div class="stat"><div class="stat-lbl">Monthly MRR</div><div class="stat-val c-green" id="s-mrr">—</div><div class="stat-note">LKR / month</div></div>
@@ -621,6 +625,15 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
         <div class="health-box"><div class="health-lbl c-red">Red</div><div class="health-val c-red" id="h-red">0</div></div>
       </div>
     </div>
+  </div>
+
+  <!-- SMM PULSE -->
+  <div style="margin-top:14px;background:linear-gradient(135deg,rgba(0,229,255,0.06),rgba(168,85,247,0.04));border:1px solid rgba(0,229,255,0.2);border-left:4px solid #00E5FF;border-radius:var(--rs);padding:16px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:#00E5FF">SMM Pulse — Kenuli's Workspace</div>
+      <button class="btn btn-ghost btn-sm" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="font-size:10px">Open SMM Workspace ↗</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px" id="smm-pulse-grid"></div>
   </div>
 
   <!-- CEO Non-Negotiables -->
@@ -874,8 +887,8 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   </div>
   <!-- Pipeline Stats -->
   <div class="g4 stat-row" style="margin-bottom:14px">
-    <div class="stat" style="border-left:3px solid var(--neon-pink)"><div class="stat-lbl">Hot Leads</div><div class="stat-val c-orange" id="pp-hot">0</div><div class="stat-note">Needs action now</div></div>
-    <div class="stat" style="border-left:3px solid var(--neon-cyan)"><div class="stat-lbl">Active</div><div class="stat-val c-blue" id="pp-active">0</div><div class="stat-note">In conversation</div></div>
+    <div class="stat" style="border-left:3px solid var(--orange)"><div class="stat-lbl">Hot Leads</div><div class="stat-val c-orange" id="pp-hot">0</div><div class="stat-note">Needs action now</div></div>
+    <div class="stat" style="border-left:3px solid var(--blue)"><div class="stat-lbl">Active</div><div class="stat-val c-blue" id="pp-active">0</div><div class="stat-note">In conversation</div></div>
     <div class="stat" style="border-left:3px solid var(--yellow)"><div class="stat-lbl">Converted</div><div class="stat-val c-yellow" id="pp-converted">0</div><div class="stat-note">Became clients</div></div>
     <div class="stat" style="border-left:3px solid var(--red)"><div class="stat-lbl">Overdue Tasks</div><div class="stat-val c-red" id="pp-overdue">0</div><div class="stat-note">Across pipeline</div></div>
   </div>
@@ -986,8 +999,8 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 <div class="page" id="page-calendar">
   <div class="ph">
     <div>
-      <div class="ph-title">Calendar & Events</div>
-      <div class="ph-sub">Shoots, client calls, deadlines and plans</div>
+      <div class="ph-title">Unified Calendar</div>
+      <div class="ph-sub">All events, shoots, content posts and task deadlines across every client</div>
     </div>
     <div class="ph-right">
       <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Prev</button>
@@ -995,6 +1008,40 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
       <button class="btn btn-ghost btn-sm" onclick="calNav(1)">Next →</button>
       <button class="btn btn-primary" onclick="openEventModal()">+ Add Event</button>
     </div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs)">
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-right:4px">Filter</span>
+    <select class="fs" id="cc-cal-filter-assignee" onchange="renderCalendar()" style="width:auto;min-width:140px;max-width:180px;font-size:11px;padding:6px 10px">
+      <option value="all">All Assignees</option>
+      <option value="TH">Thulaib</option>
+      <option value="SH">Shiara</option>
+      <option value="KE">Kenuli</option>
+    </select>
+    <select class="fs" id="cc-cal-filter-client" onchange="renderCalendar()" style="width:auto;min-width:160px;max-width:200px;font-size:11px;padding:6px 10px">
+      <option value="all">All Clients</option>
+    </select>
+    <select class="fs" id="cc-cal-filter-type" onchange="renderCalendar()" style="width:auto;min-width:130px;max-width:170px;font-size:11px;padding:6px 10px">
+      <option value="all">All Types</option>
+      <option value="event">Events</option>
+      <option value="task">Tasks</option>
+      <option value="post">Posts</option>
+      <option value="video">Videos</option>
+      <option value="story">Stories</option>
+      <option value="shoot">Shoots</option>
+    </select>
+    <button class="btn btn-ghost btn-sm" onclick="clearCCCalFilters()">Clear</button>
+  </div>
+
+  <!-- LEGEND -->
+  <div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;align-items:center;padding:0 4px">
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-weight:600;letter-spacing:0.04em"><div style="width:8px;height:8px;border-radius:50%;background:var(--orange)"></div>Event</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-weight:600;letter-spacing:0.04em"><div style="width:8px;height:8px;border-radius:50%;background:var(--yellow,#FBBF24)"></div>Task</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-weight:600;letter-spacing:0.04em"><div style="width:8px;height:8px;border-radius:50%;background:var(--teal,#00E5FF)"></div>Post</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-weight:600;letter-spacing:0.04em"><div style="width:8px;height:8px;border-radius:50%;background:var(--pink,#FF2D78)"></div>Video</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-weight:600;letter-spacing:0.04em"><div style="width:8px;height:8px;border-radius:50%;background:var(--purple,#A855F7)"></div>Story</div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text2);font-weight:600;letter-spacing:0.04em"><div style="width:8px;height:8px;border-radius:50%;background:var(--green,#00FF85)"></div>Shoot</div>
   </div>
 
   <!-- FULL WIDTH CALENDAR GRID -->
@@ -1148,6 +1195,49 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
         <div class="stitle" style="margin-bottom:8px">Live Snapshot</div>
         <div id="ai-snapshot" style="font-size:12px;color:var(--text2);line-height:1.9"></div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ IDEA HUB ══ -->
+<div class="page" id="page-ideahub">
+  <div class="ph">
+    <div><div class="ph-title">Idea Hub</div><div class="ph-sub">Shared across all BB systems — capture, convert, or dismiss</div></div>
+    <div class="ph-right"><button class="btn btn-primary" onclick="openIdeaModal()">+ Capture Idea</button></div>
+  </div>
+
+  <!-- FILTER BAR -->
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs)">
+    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--text3);margin-right:4px">Filter</span>
+    <select class="fs" id="idea-filter-status" onchange="renderIdeaHub()" style="width:auto;min-width:140px;max-width:180px;font-size:11px;padding:6px 10px">
+      <option value="open">Open Only</option>
+      <option value="all">All Ideas</option>
+      <option value="converted">Converted</option>
+      <option value="dismissed">Dismissed</option>
+    </select>
+    <select class="fs" id="idea-filter-by" onchange="renderIdeaHub()" style="width:auto;min-width:140px;max-width:180px;font-size:11px;padding:6px 10px">
+      <option value="all">Captured by All</option>
+      <option value="THULAIB">Thulaib</option>
+      <option value="SHIARA">Shiara</option>
+      <option value="KENULI">Kenuli</option>
+    </select>
+    <select class="fs" id="idea-filter-client" onchange="renderIdeaHub()" style="width:auto;min-width:160px;max-width:200px;font-size:11px;padding:6px 10px">
+      <option value="all">All Clients</option>
+    </select>
+  </div>
+
+  <div id="idea-hub-list"></div>
+</div>
+
+<!-- ══ IDEA CAPTURE MODAL ══ -->
+<div class="overlay" id="modal-idea">
+  <div class="modal">
+    <div class="modal-title">Capture Idea</div>
+    <div class="fg"><label class="flbl">Idea</label><textarea class="fi" id="idea-text" rows="4" placeholder="What's the idea?"></textarea></div>
+    <div class="fg"><label class="flbl">Client (optional)</label><select class="fs" id="idea-client"><option value="">No specific client</option></select></div>
+    <div class="fg-row">
+      <button class="btn btn-ghost" style="flex:1" onclick="closeModal('modal-idea')">Cancel</button>
+      <button class="btn btn-primary" style="flex:1" onclick="saveIdea()">Capture</button>
     </div>
   </div>
 </div>
@@ -1465,6 +1555,18 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   </div>
 </div>
 
+<!-- Day Detail Modal -->
+<div class="overlay" id="modal-day-detail-cc">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-title" id="dd-cc-title">Day Detail</div>
+    <div id="dd-cc-content" style="max-height:60vh;overflow-y:auto;padding-right:4px"></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-day-detail-cc')">Close</button>
+      <button class="btn btn-primary" onclick="ddCCAddEvent()">+ Event</button>
+    </div>
+  </div>
+</div>
+
 <!-- Top 3 -->
 <div class="overlay" id="modal-top3">
   <div class="modal">
@@ -1512,9 +1614,6 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 </div>
 
 <script>
-// ══ BB CC v6 — diagnostic markers ══
-console.log('%c[BB_CC] script parsing started','color:#FF6B2B;font-weight:700');
-window.addEventListener('error',function(e){console.error('[BB_CC] Runtime error:',e.message,'at',e.filename+':'+e.lineno);});
 // ═══ SUPABASE CONFIG ══════════════════════════════
 const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
@@ -1563,13 +1662,16 @@ const SB={
 let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[],shoots:[]};
 
 async function loadAll(){
-  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots]=await Promise.all([
+  const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots,smmContent,smmShoots,sharedIdeas]=await Promise.all([
     SB.getAll('clients'),SB.getAll('tasks'),SB.getAll('pipeline'),
     SB.getAll('revenue'),SB.getAll('pillars'),
     SB.getAll('events').catch(()=>[]),
     SB.getAll('invoices').catch(()=>[]),
     SB.getAll('costs').catch(()=>[]),
-    SB.getAll('shoots').catch(()=>[])
+    SB.getAll('shoots').catch(()=>[]),
+    SB.getAll('smm_content').catch(()=>[]),
+    SB.getAll('smm_shoots').catch(()=>[]),
+    SB.getAll('shared_ideas').catch(()=>[])
   ]);
   CACHE.clients=clients||[];
   CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:t.client_id,pipelineId:t.pipeline_id,done:t.done||false}));
@@ -1580,6 +1682,16 @@ async function loadAll(){
   CACHE.invoices=Array.isArray(invoices)?invoices:[];
   CACHE.costs=Array.isArray(costs)?costs:[];
   CACHE.shoots=Array.isArray(shoots)?shoots:[];
+  CACHE.smmContent=Array.isArray(smmContent)?smmContent:[];
+  CACHE.smmShoots=Array.isArray(smmShoots)?smmShoots:[];
+  CACHE.sharedIdeas=Array.isArray(sharedIdeas)?sharedIdeas:[];
+  // Update Idea Hub badge
+  const openIdeas=CACHE.sharedIdeas.filter(i=>i.status==='open').length;
+  const badge=document.getElementById('sb-ideas-badge');
+  if(badge){
+    if(openIdeas>0){badge.style.display='inline-flex';badge.textContent=openIdeas;}
+    else badge.style.display='none';
+  }
   if(CACHE.clients.length===0) await seedClients();
 }
 
@@ -1696,7 +1808,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,advisor:renderAdvisor,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,advisor:renderAdvisor,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,ideahub:renderIdeaHub})[id]?.();
 }
 
 function showLoading(v){
@@ -1740,6 +1852,8 @@ function renderDashboard(){
   renderDashTaskAlerts('th','d-th-tasks');
   renderDashTaskAlerts('sh','d-sh-tasks');
   renderWeekStrip();
+  renderSMMPulse();
+  renderCCIntel();
 }
 
 function renderWeekStrip(){
@@ -2267,6 +2381,277 @@ function renderTop3(who,elId){
   el.innerHTML=t.map((x,i)=>`<div class="top3-item"><span class="top3-num">0${i+1}</span><span class="top3-txt">${x}</span></div>`).join('');
 }
 function renderMyDay(){renderPillarList('th','th-pillars');renderPillarList('sh','sh-pillars');renderTop3('th','top3-th-view');renderTop3('sh','top3-sh-view');}
+
+// ═══ SMM PULSE ═══════════════════════════════════
+function renderSMMPulse(){
+  const grid=document.getElementById('smm-pulse-grid');
+  if(!grid)return;
+
+  const todayStr=today();
+  const tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr=tomorrow.toISOString().split('T')[0];
+
+  const smmContent=CACHE.smmContent||[];
+  const smmShoots=CACHE.smmShoots||[];
+  const tasks=CACHE.tasks||[];
+  const clients=CACHE.clients||[];
+  const ideas=CACHE.sharedIdeas||[];
+
+  // Posts live today
+  const postsToday=smmContent.filter(c=>c.scheduled_date===todayStr&&c.status==='live').length;
+  // Posts scheduled today (all statuses)
+  const postsSchedToday=smmContent.filter(c=>c.scheduled_date===todayStr).length;
+  // Shoots tomorrow
+  const shootsTomorrow=smmShoots.filter(s=>s.shoot_date===tomorrowStr).length;
+  // Kenuli's overdue tasks
+  const now=new Date();
+  const kenuliOverdue=tasks.filter(t=>t.assign==='KE'&&!t.done&&t.due&&new Date(t.due)<now&&new Date(t.due).toDateString()!==now.toDateString()).length;
+  // Kenuli's total open tasks
+  const kenuliOpen=tasks.filter(t=>t.assign==='KE'&&!t.done).length;
+  // Amber/red clients (auto-calc)
+  let amberRed=0;
+  clients.forEach(c=>{
+    const ct=tasks.filter(t=>t.client_id===c.id);
+    const overdue=ct.filter(t=>!t.done&&t.due&&new Date(t.due)<now&&new Date(t.due).toDateString()!==now.toDateString()).length;
+    if(overdue>=1)amberRed++;
+  });
+  // Open ideas
+  const openIdeas=ideas.filter(i=>i.status==='open').length;
+  // Content in review
+  const inReview=smmContent.filter(c=>c.status==='review').length;
+
+  const cards=[
+    {num:postsSchedToday,lbl:'Scheduled Today',sub:postsSchedToday===0?'No posts today':'Posts going out',color:'#00E5FF'},
+    {num:inReview,lbl:'In Review',sub:inReview===0?'Nothing pending':'Awaiting approval',color:'#FF2D78'},
+    {num:shootsTomorrow,lbl:'Shoot Tomorrow',sub:shootsTomorrow===0?'None scheduled':'Confirm gear',color:'#FF6B2B'},
+    {num:kenuliOverdue,lbl:'KE Overdue',sub:kenuliOverdue===0?'On track':'Flag Kenuli',color:kenuliOverdue>0?'#F87171':'#7B8099'},
+    {num:openIdeas,lbl:'Open Ideas',sub:openIdeas===0?'Empty':'Awaiting triage',color:'#A855F7'}
+  ];
+
+  grid.innerHTML=cards.map(c=>`
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;border-left:3px solid ${c.color};cursor:pointer" onclick="nav('calendar')">
+      <div style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${c.color};line-height:1">${c.num}</div>
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-top:6px">${c.lbl}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${c.sub}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════
+// DAY DETAIL MODAL (CC)
+// ═══════════════════════════════════════════
+let ccDayDetailDate = null;
+
+function openDayDetailCC(dateStr){
+  ccDayDetailDate = dateStr;
+  const d = new Date(dateStr);
+  const title = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  document.getElementById('dd-cc-title').textContent = title;
+  
+  const clients = CACHE.clients || [];
+  const events = (CACHE.events || []).filter(e => e.date === dateStr);
+  const tasks = (CACHE.tasks || []).filter(t => t.due === dateStr);
+  const content = (CACHE.smmContent || []).filter(c => c.scheduled_date === dateStr);
+  const shoots = (CACHE.smmShoots || []).filter(s => s.shoot_date === dateStr);
+  
+  const wrap = document.getElementById('dd-cc-content');
+  const esc = (s) => String(s || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  
+  const renderGroup = (title, items, color, renderer) => {
+    if (!items.length) return '';
+    return `<div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:${color};margin-bottom:8px">${title} · ${items.length}</div>
+      ${items.map(renderer).join('')}
+    </div>`;
+  };
+  
+  const sections = [];
+  
+  sections.push(renderGroup('Events', events, 'var(--orange)', e => {
+    const c = e.client_id ? clients.find(x => x.id == e.client_id) : null;
+    return `<div style="background:var(--bg3);border-left:3px solid var(--orange);border-radius:6px;padding:10px 12px;margin-bottom:6px;cursor:pointer" onclick="closeModal('modal-day-detail-cc');editEvent(${e.id})">
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(e.title)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">${e.time ? esc(e.time) + ' · ' : ''}${c ? esc(c.name) : 'All BB'}${e.type ? ' · ' + esc(e.type) : ''}</div>
+      ${e.notes ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">${esc(e.notes)}</div>` : ''}
+    </div>`;
+  }));
+  
+  sections.push(renderGroup('Content (from SMM)', content, 'var(--teal,#00E5FF)', c => {
+    const cl = c.client_id ? clients.find(x => x.id == c.client_id) : null;
+    const typeColor = c.content_type === 'video' ? '#FF2D78' : c.content_type === 'story' ? '#A855F7' : '#00E5FF';
+    const typeIcon = c.content_type === 'video' ? '🎬' : c.content_type === 'story' ? '📸' : '📄';
+    return `<div style="background:var(--bg3);border-left:3px solid ${typeColor};border-radius:6px;padding:10px 12px;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${typeIcon} ${esc(c.title)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">${cl ? esc(cl.name) : 'General'} · ${esc(c.status || 'ideas')}</div>
+    </div>`;
+  }));
+  
+  sections.push(renderGroup('Shoots (from SMM)', shoots, '#00FF85', s => {
+    const cl = s.client_id ? clients.find(x => x.id == s.client_id) : null;
+    return `<div style="background:var(--bg3);border-left:3px solid #00FF85;border-radius:6px;padding:10px 12px;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:600;color:var(--text)">📷 ${esc(s.title)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">${cl ? esc(cl.name) : 'General'} · ${esc(s.status || 'requested')}</div>
+      ${s.notes ? `<div style="font-size:11px;color:var(--text2);margin-top:4px">${esc(s.notes)}</div>` : ''}
+    </div>`;
+  }));
+  
+  sections.push(renderGroup('Tasks', tasks, '#FBBF24', t => {
+    const cl = clients.find(x => x.id === (t.clientId || t.client_id));
+    const done = t.done ? 'text-decoration:line-through;opacity:0.55' : '';
+    return `<div style="background:var(--bg3);border-left:3px solid #FBBF24;border-radius:6px;padding:10px 12px;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:600;color:var(--text);${done}">📋 ${esc(t.title)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:3px">${cl ? esc(cl.name) : 'General'} · ${esc(t.priority || 'MEDIUM')} · Assigned ${esc(t.assign || '—')}</div>
+    </div>`;
+  }));
+  
+  const combined = sections.filter(x => x).join('');
+  wrap.innerHTML = combined || '<div style="text-align:center;color:var(--text3);padding:24px;font-size:12px">Nothing scheduled for this day yet. Use + Event to add one.</div>';
+  
+  openModal('modal-day-detail-cc');
+}
+
+function ddCCAddEvent(){
+  closeModal('modal-day-detail-cc');
+  setTimeout(() => {
+    if (typeof openEventModalOnDate === 'function') openEventModalOnDate(ccDayDetailDate);
+  }, 200);
+}
+
+// ═══════════════════════════════════════════
+// BB INTELLIGENCE PANEL (CC)
+// ═══════════════════════════════════════════
+let ccIntelIndex = 0;
+let ccIntelTimer = null;
+
+function buildCCIntelCards(){
+  const now = new Date();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  
+  const clients = CACHE.clients || [];
+  const tasks = CACHE.tasks || [];
+  const pipe = CACHE.pipeline || [];
+  const invoices = CACHE.invoices || [];
+  const ideas = CACHE.sharedIdeas || [];
+  const events = CACHE.events || [];
+  const smmContent = CACHE.smmContent || [];
+  const smmShoots = CACHE.smmShoots || [];
+  
+  const cards = [];
+  
+  // Overdue tasks (all of them)
+  const overdueAll = tasks.filter(t => !t.done && t.due && t.due < todayStr).length;
+  if (overdueAll > 0) cards.push({ cls: 'alert', num: overdueAll, lbl: 'Overdue Tasks', sub: 'Clear these before anything else', page: 'taskbook' });
+  
+  // YOUR overdue (TH)
+  const yourOverdue = tasks.filter(t => !t.done && t.due && t.due < todayStr && t.assign === 'TH').length;
+  if (yourOverdue > 0) cards.push({ cls: 'alert', num: yourOverdue, lbl: 'Your Overdue Tasks', sub: 'These are assigned to you', page: 'taskbook' });
+  
+  // Hot pipeline
+  const hot = pipe.filter(p => p.status === 'hot').length;
+  if (hot > 0) cards.push({ cls: 'warn', num: hot, lbl: 'Hot Pipeline Leads', sub: 'Follow up today — close the deal', page: 'pipeline' });
+  
+  // Amber/Red clients
+  const atRisk = clients.filter(c => c.health === 'amber' || c.health === 'red').length;
+  if (atRisk > 0) cards.push({ cls: 'warn', num: atRisk, lbl: 'Clients At Risk', sub: 'Amber or red status — intervene', page: 'clients' });
+  
+  // Unpaid invoices
+  const unpaid = invoices.filter(i => !i.paid).reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+  if (unpaid > 0) cards.push({ cls: 'warn', num: 'LKR ' + unpaid.toLocaleString(), lbl: 'Pending Invoices', sub: 'Chase payments', page: 'finance' });
+  
+  // Events today
+  const eventsToday = events.filter(e => e.date === todayStr).length;
+  if (eventsToday > 0) cards.push({ cls: 'neutral', num: eventsToday, lbl: 'Events Today', sub: 'Meetings and calls scheduled', page: 'calendar' });
+  
+  // Events tomorrow
+  const eventsTomorrow = events.filter(e => e.date === tomorrowStr).length;
+  if (eventsTomorrow > 0) cards.push({ cls: 'neutral', num: eventsTomorrow, lbl: 'Events Tomorrow', sub: 'Prep ahead — not at morning', page: 'calendar' });
+  
+  // Open ideas
+  const openIdeas = ideas.filter(i => i.status === 'open').length;
+  if (openIdeas > 0) cards.push({ cls: 'good', num: openIdeas, lbl: 'Ideas Awaiting Review', sub: 'Captured by team · triage', page: 'ideahub' });
+  
+  // SMM posts today
+  const smmToday = smmContent.filter(c => c.scheduled_date === todayStr).length;
+  if (smmToday > 0) cards.push({ cls: 'neutral', num: smmToday, lbl: 'SMM Posts Going Live', sub: 'Check final before they ship', page: 'calendar' });
+  
+  // SMM shoots tomorrow
+  const shootTomorrow = smmShoots.filter(s => s.shoot_date === tomorrowStr).length;
+  if (shootTomorrow > 0) cards.push({ cls: 'warn', num: shootTomorrow, lbl: 'Shoot Tomorrow', sub: 'Kenuli needs gear confirmed', page: 'calendar' });
+  
+  if (!cards.length) {
+    cards.push({ cls: 'good', num: '✓', lbl: 'All Clear', sub: 'Nothing urgent. Focus on growth.', page: 'dashboard' });
+  }
+  
+  return cards;
+}
+
+function renderCCIntel(){
+  const wrap = document.getElementById('intel-panel-cc');
+  if (!wrap) return;
+  const cards = buildCCIntelCards();
+  
+  if (ccIntelIndex >= cards.length) ccIntelIndex = 0;
+  const c = cards[ccIntelIndex];
+  const total = cards.length;
+  
+  const colorMap = {
+    alert: { bg: 'rgba(248,113,113,0.08)', border: 'var(--red)', accent: 'var(--red)' },
+    warn:  { bg: 'rgba(255,107,43,0.08)',  border: 'var(--orange)', accent: 'var(--orange)' },
+    neutral:{ bg: 'rgba(0,229,255,0.06)',  border: 'var(--teal,#00E5FF)', accent: 'var(--teal,#00E5FF)' },
+    good:  { bg: 'rgba(0,255,133,0.08)',  border: 'var(--green)', accent: 'var(--green)' }
+  };
+  const col = colorMap[c.cls];
+  
+  wrap.innerHTML = `
+    <div style="background:${col.bg};border:1px solid ${col.border}22;border-left:4px solid ${col.border};border-radius:var(--rs);padding:18px 22px;display:flex;align-items:center;gap:20px;cursor:pointer" onclick="nav('${c.page}')">
+      <div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:0.18em;color:${col.accent};text-transform:uppercase;margin-bottom:4px">BB INTELLIGENCE</div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="font-family:'Poppins',sans-serif;font-size:36px;font-weight:800;letter-spacing:-0.03em;color:${col.accent};line-height:1">${c.num}</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.04em">${c.lbl}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">${c.sub}</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();ccIntelPrev()" style="padding:6px 10px;font-size:14px">‹</button>
+        <div style="font-size:10px;color:var(--text3);font-weight:600;min-width:40px;text-align:center">${ccIntelIndex + 1} / ${total}</div>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();ccIntelNext()" style="padding:6px 10px;font-size:14px">›</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:5px;justify-content:center;margin-top:8px">
+      ${cards.map((_, i) => `<div style="width:5px;height:5px;border-radius:50%;background:${i === ccIntelIndex ? 'var(--orange)' : 'var(--border2)'};transition:background 0.15s"></div>`).join('')}
+    </div>
+  `;
+  
+  if (ccIntelTimer) clearTimeout(ccIntelTimer);
+  const panelEl = document.getElementById('intel-panel-cc');
+  if (panelEl) {
+    panelEl.onmouseenter = () => { if (ccIntelTimer) clearTimeout(ccIntelTimer); };
+    panelEl.onmouseleave = () => { startCCIntelTimer(); };
+  }
+  startCCIntelTimer();
+}
+
+function startCCIntelTimer(){
+  if (ccIntelTimer) clearTimeout(ccIntelTimer);
+  ccIntelTimer = setTimeout(() => { ccIntelNext(); }, 8000);
+}
+
+function ccIntelNext(){
+  const cards = buildCCIntelCards();
+  ccIntelIndex = (ccIntelIndex + 1) % cards.length;
+  renderCCIntel();
+}
+
+function ccIntelPrev(){
+  const cards = buildCCIntelCards();
+  ccIntelIndex = (ccIntelIndex - 1 + cards.length) % cards.length;
+  renderCCIntel();
+}
 
 // ═══ PIPELINE ════════════════════════════════════
 let pipeFilter='';
@@ -2814,24 +3199,46 @@ function calNav(dir){calMonth+=dir;if(calMonth>11){calMonth=0;calYear++;}if(calM
 function evTypeColor(type){return {shoot:'var(--blue)',meeting:'var(--green)',deadline:'var(--red)',call:'var(--yellow)',internal:'var(--purple)',other:'var(--text2)'}[type]||'var(--text2)';}
 function evTypeBg(type){return {shoot:'var(--b10)',meeting:'var(--g10)',deadline:'var(--r10)',call:'var(--y10)',internal:'rgba(168,85,247,0.1)',other:'var(--bg4)'}[type]||'var(--bg4)';}
 
+function clearCCCalFilters(){
+  const a=document.getElementById('cc-cal-filter-assignee');
+  const c=document.getElementById('cc-cal-filter-client');
+  const t=document.getElementById('cc-cal-filter-type');
+  if(a)a.value='all';if(c)c.value='all';if(t)t.value='all';
+  renderCalendar();
+}
+
+function populateCCCalClientDropdown(){
+  const el=document.getElementById('cc-cal-filter-client');
+  if(!el||el.options.length>1)return;
+  const clients=CACHE.clients||[];
+  const opts=clients.map(c=>`<option value="${c.id}">${(c.name||'').replace(/"/g,'&quot;')}</option>`).join('');
+  el.innerHTML='<option value="all">All Clients</option>'+opts;
+}
+
 function renderCalendar(){
+  populateCCCalClientDropdown();
   const todayStr=today();
   const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const lbl=document.getElementById('cal-month-label');
   if(lbl)lbl.textContent=months[calMonth]+' '+calYear;
+
+  // Read filter values
+  const fAssignee=(document.getElementById('cc-cal-filter-assignee')||{}).value||'all';
+  const fClient=(document.getElementById('cc-cal-filter-client')||{}).value||'all';
+  const fType=(document.getElementById('cc-cal-filter-type')||{}).value||'all';
 
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const tasks=CACHE.tasks||[];
   const events=CACHE.events||[];
   const clients=CACHE.clients||[];
+  const smmContent=CACHE.smmContent||[];
+  const smmShoots=CACHE.smmShoots||[];
 
-  // Build event+task lookup by date string
   function pad(n){return String(n).padStart(2,'0');}
   function dateKey(d){return `${calYear}-${pad(calMonth+1)}-${pad(d)}`;}
 
   let cells='';
-  // Empty cells before first day
   for(let i=0;i<firstDay;i++){
     const isLastCol=i%7===6;
     cells+=`<div style="min-height:120px;border-right:${isLastCol?'none':'1px solid var(--border)'};border-bottom:1px solid var(--border);background:var(--bg);opacity:0.4"></div>`;
@@ -2840,35 +3247,82 @@ function renderCalendar(){
   for(let d=1;d<=daysInMonth;d++){
     const ds=dateKey(d);
     const isToday=ds===todayStr;
-    const dayEvents=events.filter(e=>e.date===ds);
-    const dayTasks=tasks.filter(t=>!t.done&&t.due===ds);
+    
+    // Apply filters to each data source
+    const dayEvents=events.filter(e=>{
+      if(e.date!==ds)return false;
+      if(fType!=='all'&&fType!=='event')return false;
+      if(fClient!=='all'&&String(e.client_id||e.clientId)!==String(fClient))return false;
+      return true;
+    });
+    const dayTasks=tasks.filter(t=>{
+      if(t.done||t.due!==ds)return false;
+      if(fType!=='all'&&fType!=='task')return false;
+      if(fAssignee!=='all'&&t.assign!==fAssignee)return false;
+      if(fClient!=='all'&&String(t.clientId||t.client_id)!==String(fClient))return false;
+      return true;
+    });
+    const dayContent=smmContent.filter(c=>{
+      if(c.scheduled_date!==ds)return false;
+      if(fType!=='all'&&fType!==c.content_type)return false;
+      if(fClient!=='all'&&String(c.client_id)!==String(fClient))return false;
+      return true;
+    });
+    const dayShoots=smmShoots.filter(s=>{
+      if(s.shoot_date!==ds)return false;
+      if(fType!=='all'&&fType!=='shoot')return false;
+      if(fClient!=='all'&&String(s.client_id)!==String(fClient))return false;
+      return true;
+    });
+    
     const colIndex=(firstDay+d-1)%7;
     const isLastCol=colIndex===6;
-    const allItems=[...dayEvents.map(e=>({type:'event',e})),...dayTasks.map(t=>({type:'task',t}))];
+    
+    const allItems=[
+      ...dayEvents.map(e=>({kind:'event',e})),
+      ...dayTasks.map(t=>({kind:'task',t})),
+      ...dayContent.map(c=>({kind:'content',c})),
+      ...dayShoots.map(s=>({kind:'shoot',s}))
+    ];
     const shown=allItems.slice(0,3);
     const extra=allItems.length-3;
+    
     const itemsHTML=shown.map(item=>{
-      if(item.type==='event'){
+      if(item.kind==='event'){
         const e=item.e;
         const title=e.title.length>18?e.title.slice(0,18)+'…':e.title;
         return `<div style="font-size:10px;font-weight:600;color:${evTypeColor(e.type)};background:${evTypeBg(e.type)};padding:2px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer" onclick="event.stopPropagation();editEvent(${e.id})" title="${e.title}">${title}</div>`;
-      } else {
+      } else if(item.kind==='task'){
         const t=item.t;
         const c=clients.find(x=>x.id===(t.clientId||t.client_id));
         const label=c?c.name:t.title;
         const short=label.length>16?label.slice(0,16)+'…':label;
-        return `<div style="font-size:9px;font-weight:500;color:var(--text2);background:var(--bg4);padding:2px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${t.title}">${short}</div>`;
+        return `<div style="font-size:9px;font-weight:500;color:#FBBF24;background:rgba(251,191,36,0.12);padding:2px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid #FBBF24" title="${t.title}">📋 ${short}</div>`;
+      } else if(item.kind==='content'){
+        const c=item.c;
+        const client=clients.find(x=>x.id===c.client_id);
+        const label=client?client.name:c.title;
+        const short=label.length>14?label.slice(0,14)+'…':label;
+        const color=c.content_type==='video'?'#FF2D78':c.content_type==='story'?'#A855F7':'#00E5FF';
+        const bg=c.content_type==='video'?'rgba(255,45,120,0.12)':c.content_type==='story'?'rgba(168,85,247,0.12)':'rgba(0,229,255,0.12)';
+        const icon=c.content_type==='video'?'🎬':c.content_type==='story'?'📸':'📄';
+        return `<div style="font-size:9px;font-weight:500;color:${color};background:${bg};padding:2px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid ${color}" title="${c.title}">${icon} ${short}</div>`;
+      } else if(item.kind==='shoot'){
+        const s=item.s;
+        const client=clients.find(x=>x.id===s.client_id);
+        const label=client?client.name:s.title;
+        const short=label.length>14?label.slice(0,14)+'…':label;
+        return `<div style="font-size:9px;font-weight:500;color:#00FF85;background:rgba(0,255,133,0.12);padding:2px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-left:2px solid #00FF85" title="Shoot: ${s.title}">📷 ${short}</div>`;
       }
     }).join('');
     const moreHTML=extra>0?`<div style="font-size:9px;font-weight:600;color:var(--text3);margin-top:2px">+${extra} more</div>`:'';
 
-    cells+=`<div style="min-height:110px;max-height:150px;overflow:hidden;padding:8px;border-right:${isLastCol?'none':'1px solid var(--border)'};border-bottom:1px solid var(--border);background:${isToday?'var(--o10)':'transparent'};cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='${isToday?'var(--o10)':'rgba(255,255,255,0.02)'}'" onmouseout="this.style.background='${isToday?'var(--o10)':'transparent'}'" onclick="openEventModalOnDate('${ds}')">
+    cells+=`<div style="min-height:110px;max-height:180px;overflow:hidden;padding:8px;border-right:${isLastCol?'none':'1px solid var(--border)'};border-bottom:1px solid var(--border);background:${isToday?'var(--o10)':'transparent'};cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='${isToday?'var(--o10)':'rgba(255,255,255,0.02)'}'" onmouseout="this.style.background='${isToday?'var(--o10)':'transparent'}'" onclick="openDayDetailCC('${ds}')">
       <div style="font-size:12px;font-weight:${isToday?700:500};color:${isToday?'var(--orange)':'var(--text2)'};margin-bottom:5px;${isToday?'background:var(--orange);color:#fff;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700':''}">${d}</div>
       ${itemsHTML}${moreHTML}
     </div>`;
   }
 
-  // Fill remaining cells to complete last row
   const totalCells=firstDay+daysInMonth;
   const remainder=totalCells%7;
   if(remainder>0){
@@ -2881,7 +3335,7 @@ function renderCalendar(){
   const grid=document.getElementById('cal-grid');
   if(grid)grid.innerHTML=cells;
 
-  // Upcoming sidebar — next 14 days of events
+  // Upcoming
   const upcoming=[];
   for(let i=0;i<30;i++){
     const fd=new Date();fd.setDate(fd.getDate()+i);
@@ -2890,6 +3344,10 @@ function renderCalendar(){
     tasks.filter(t=>!t.done&&t.due===ds).forEach(t=>{
       const c=clients.find(x=>x.id===(t.clientId||t.client_id));
       upcoming.push({id:'t'+t.id,title:(c?c.name+': ':'')+t.title,date:ds,type:'deadline',time:'',notes:'',isTask:true,dateStr:ds});
+    });
+    smmShoots.filter(s=>s.shoot_date===ds).forEach(s=>{
+      const c=clients.find(x=>x.id===s.client_id);
+      upcoming.push({id:'s'+s.id,title:(c?c.name+': ':'')+'SHOOT '+s.title,date:ds,type:'shoot',time:'',notes:s.notes||'',isShoot:true,dateStr:ds});
     });
   }
   upcoming.sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
@@ -2921,6 +3379,212 @@ function renderCalendar(){
       </div>`;
     }).join('');
   }
+}
+
+// ═══════════════════════════════════════════
+// IDEA HUB
+// ═══════════════════════════════════════════
+function renderIdeaHub(){
+  // Populate client dropdown in filter bar (once)
+  const clientFilter=document.getElementById('idea-filter-client');
+  if(clientFilter&&clientFilter.options.length<=1){
+    const clients=CACHE.clients||[];
+    const opts=clients.map(c=>`<option value="${c.id}">${(c.name||'').replace(/"/g,'&quot;')}</option>`).join('');
+    clientFilter.innerHTML='<option value="all">All Clients</option>'+opts;
+  }
+  // Populate modal client dropdown too
+  const modalClient=document.getElementById('idea-client');
+  if(modalClient&&modalClient.options.length<=1){
+    const clients=CACHE.clients||[];
+    const opts=clients.map(c=>`<option value="${c.id}">${(c.name||'').replace(/"/g,'&quot;')}</option>`).join('');
+    modalClient.innerHTML='<option value="">No specific client</option>'+opts;
+  }
+
+  const fStatus=(document.getElementById('idea-filter-status')||{}).value||'open';
+  const fBy=(document.getElementById('idea-filter-by')||{}).value||'all';
+  const fClient=(document.getElementById('idea-filter-client')||{}).value||'all';
+
+  let ideas=CACHE.sharedIdeas||[];
+  if(fStatus!=='all')ideas=ideas.filter(i=>i.status===fStatus);
+  if(fBy!=='all')ideas=ideas.filter(i=>i.captured_by===fBy);
+  if(fClient!=='all')ideas=ideas.filter(i=>String(i.client_id)===String(fClient));
+
+  // Sort newest first
+  ideas.sort((a,b)=>new Date(b.captured_at||b.created_at||0)-new Date(a.captured_at||a.created_at||0));
+
+  const wrap=document.getElementById('idea-hub-list');
+  if(!wrap)return;
+
+  if(!ideas.length){
+    wrap.innerHTML='<div class="card" style="padding:30px;text-align:center;color:var(--text3);font-size:12px">No ideas match your filter. Click + Capture Idea to add one.</div>';
+    return;
+  }
+
+  const clients=CACHE.clients||[];
+  const roleNames={THULAIB:'Thulaib',SHIARA:'Shiara',KENULI:'Kenuli'};
+
+  wrap.innerHTML=ideas.map(i=>{
+    const c=i.client_id?clients.find(x=>x.id==i.client_id):null;
+    const captured=i.captured_at?new Date(i.captured_at):null;
+    const timeAgo=captured?ccGetTimeAgo(captured):'';
+    const byName=roleNames[i.captured_by]||i.captured_by;
+    const statusBadge=i.status==='open'?'<span class="pill" style="background:var(--c10,rgba(0,229,255,0.12));color:#00E5FF;border:1px solid rgba(0,229,255,0.22);font-size:10px;padding:2px 8px;border-radius:20px">OPEN</span>':
+      i.status==='converted'?'<span class="pill" style="background:rgba(0,255,133,0.12);color:#00FF85;border:1px solid rgba(0,255,133,0.22);font-size:10px;padding:2px 8px;border-radius:20px">CONVERTED</span>':
+      '<span class="pill" style="background:var(--bg5);color:var(--text2);border:1px solid var(--border2);font-size:10px;padding:2px 8px;border-radius:20px">DISMISSED</span>';
+    
+    const actions=i.status==='open'?`
+      <button class="btn btn-primary btn-sm" onclick="convertIdeaToContent(${i.id})">→ Content</button>
+      <button class="btn btn-ghost btn-sm" onclick="convertIdeaToTask(${i.id})">→ Task</button>
+      <button class="btn btn-ghost btn-sm" onclick="dismissIdea(${i.id})">Dismiss</button>
+    `:i.status==='dismissed'?`
+      <button class="btn btn-ghost btn-sm" onclick="reopenIdea(${i.id})">Reopen</button>
+    `:`
+      <span style="font-size:10px;color:var(--text3)">Converted to ${i.converted_to_type||'item'}</span>
+    `;
+    
+    return `<div class="card" style="padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="width:8px;height:8px;border-radius:50%;background:#A855F7;flex-shrink:0"></div>
+      <div style="flex:1;min-width:220px">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${(i.text||'').replace(/</g,'&lt;')}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">
+          By ${byName} · ${timeAgo}${c?' · '+c.name.replace(/</g,'&lt;'):''}
+        </div>
+      </div>
+      ${statusBadge}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+function ccGetTimeAgo(date){
+  const now=new Date();
+  const diff=now-date;
+  const mins=Math.floor(diff/60000);
+  if(mins<1)return 'just now';
+  if(mins<60)return mins+' min ago';
+  const hrs=Math.floor(mins/60);
+  if(hrs<24)return hrs+' hr ago';
+  const days=Math.floor(hrs/24);
+  if(days<7)return days+' day'+(days>1?'s':'')+' ago';
+  return date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+function openIdeaModal(){
+  // Populate client dropdown in modal
+  const modalClient=document.getElementById('idea-client');
+  if(modalClient&&modalClient.options.length<=1){
+    const clients=CACHE.clients||[];
+    const opts=clients.map(c=>`<option value="${c.id}">${(c.name||'').replace(/"/g,'&quot;')}</option>`).join('');
+    modalClient.innerHTML='<option value="">No specific client</option>'+opts;
+  }
+  document.getElementById('idea-text').value='';
+  document.getElementById('modal-idea').classList.add('open');
+}
+
+async function saveIdea(){
+  const text=document.getElementById('idea-text').value.trim();
+  const client_id=document.getElementById('idea-client').value||null;
+  if(!text){alert('Please enter an idea');return;}
+  showLoading(true);
+  try{
+    await SB.insert('shared_ideas',{
+      text:text,
+      client_id:client_id?parseInt(client_id):null,
+      captured_by:'THULAIB',
+      status:'open'
+    });
+    closeModal('modal-idea');
+    await loadAll();
+    renderIdeaHub();
+  }catch(e){
+    console.error(e);
+    alert('Failed to save idea: '+(e.message||'unknown error'));
+  }
+  showLoading(false);
+}
+
+async function convertIdeaToContent(ideaId){
+  const idea=(CACHE.sharedIdeas||[]).find(i=>i.id===ideaId);
+  if(!idea)return;
+  if(!idea.client_id){alert('This idea needs a client first. Open the SMM Workspace or edit via Supabase.');return;}
+  if(!confirm('Convert this idea to a content card?\n\n"'+idea.text+'"\n\nIt will be added to the Content Pipeline (Ideas column).'))return;
+  showLoading(true);
+  try{
+    const res=await SB.insert('smm_content',{
+      title:idea.text,
+      client_id:idea.client_id,
+      content_type:'post',
+      status:'ideas'
+    });
+    const newId=res&&res[0]?res[0].id:null;
+    await SB.update('shared_ideas',ideaId,{
+      status:'converted',
+      converted_to_type:'content',
+      converted_to_id:newId
+    });
+    await loadAll();
+    renderIdeaHub();
+  }catch(e){
+    console.error(e);
+    alert('Conversion failed: '+(e.message||'unknown error'));
+  }
+  showLoading(false);
+}
+
+async function convertIdeaToTask(ideaId){
+  const idea=(CACHE.sharedIdeas||[]).find(i=>i.id===ideaId);
+  if(!idea)return;
+  if(!confirm('Convert this idea to a task?\n\n"'+idea.text+'"\n\nWill be assigned to you (TH).'))return;
+  showLoading(true);
+  try{
+    const res=await SB.insert('tasks',{
+      title:idea.text,
+      client_id:idea.client_id||null,
+      assign:'TH',
+      priority:'MEDIUM',
+      category:'Other',
+      done:false
+    });
+    const newId=res&&res[0]?res[0].id:null;
+    await SB.update('shared_ideas',ideaId,{
+      status:'converted',
+      converted_to_type:'task',
+      converted_to_id:newId
+    });
+    await loadAll();
+    renderIdeaHub();
+  }catch(e){
+    console.error(e);
+    alert('Conversion failed: '+(e.message||'unknown error'));
+  }
+  showLoading(false);
+}
+
+async function dismissIdea(ideaId){
+  if(!confirm('Dismiss this idea?'))return;
+  showLoading(true);
+  try{
+    await SB.update('shared_ideas',ideaId,{status:'dismissed'});
+    await loadAll();
+    renderIdeaHub();
+  }catch(e){
+    console.error(e);
+    alert('Failed: '+(e.message||'unknown error'));
+  }
+  showLoading(false);
+}
+
+async function reopenIdea(ideaId){
+  showLoading(true);
+  try{
+    await SB.update('shared_ideas',ideaId,{status:'open'});
+    await loadAll();
+    renderIdeaHub();
+  }catch(e){
+    console.error(e);
+    alert('Failed: '+(e.message||'unknown error'));
+  }
+  showLoading(false);
 }
 
 function openEventModal(){
@@ -3253,7 +3917,7 @@ function updateTaskSuggestions(){
 
 // ═══ SHOOTS ══════════════════════════════════════
 const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Shoot Date Set','Shot'];
-const STAGE_COLORS={'Videos Confirmed':'var(--neon-cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--neon-purple)','Shoot Date Set':'var(--neon-pink)','Shot':'var(--neon-green)'};
+const STAGE_COLORS={'Videos Confirmed':'var(--blue)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
 
 function shootStageBar(currentStage){
   return `<div style="display:flex;gap:3px;margin-top:8px;flex-wrap:wrap">${SHOOT_STAGES.map((s,i)=>{const idx=SHOOT_STAGES.indexOf(currentStage);const done=i<=idx;const isCurrent=s===currentStage;return `<div style="flex:1;min-width:55px;padding:3px 5px;border-radius:4px;font-size:8px;font-weight:${isCurrent?700:500};text-align:center;background:${done?(isCurrent?STAGE_COLORS[s]:'rgba(255,255,255,0.06)'):'var(--bg4)'};color:${done?(isCurrent?'#000':'var(--text2)'):'var(--text3)'};border:1px solid ${isCurrent?STAGE_COLORS[s]:'var(--border)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>`;}).join('')}</div>`;
@@ -3356,12 +4020,12 @@ function renderShootsBoard(){
   if(mFilter)shoots=shoots.filter(s=>s.month===mFilter);
 
   const stageColors={
-    'Videos Confirmed':'#00E5FF',
-    'Script Made':'#FBBF24',
-    'Script Changes':'#FF6B2B',
-    'Final Script':'#A855F7',
-    'Shoot Date Set':'#FF2D78',
-    'Shot':'#00FF85'
+    'Videos Confirmed':'#3b82f6',
+    'Script Made':'#eab308',
+    'Script Changes':'#f97316',
+    'Final Script':'#a855f7',
+    'Shoot Date Set':'#ec4899',
+    'Shot':'#22c55e'
   };
 
   el.innerHTML=SHOOT_STAGES.map(stage=>{
@@ -3502,9 +4166,6 @@ function ccLogin(){
 }
 // Always show login on page load
 
-
-// ══ BB CC v6 — end marker ══
-console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
 </script>
 </body>
 </html>
