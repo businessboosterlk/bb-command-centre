@@ -817,9 +817,9 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   </div>
 
   <div class="tab-panel" id="tab-content-plan">
-    <!-- Header row: month filter + add buttons -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap">
-      <select class="fs" id="cplan-month" style="padding:6px 10px;font-size:12px;min-width:130px" onchange="renderContentPlan()">
+    <!-- Month/Year selector + summary bar -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <select class="fs" id="cplan-month" style="padding:7px 12px;font-size:13px;font-weight:600;min-width:130px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text)" onchange="renderContentPlan()">
         <option value="1">January</option><option value="2">February</option>
         <option value="3">March</option><option value="4">April</option>
         <option value="5">May</option><option value="6">June</option>
@@ -827,24 +827,22 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
         <option value="9">September</option><option value="10">October</option>
         <option value="11">November</option><option value="12">December</option>
       </select>
-      <select class="fs" id="cplan-year" style="padding:6px 10px;font-size:12px;width:90px" onchange="renderContentPlan()">
+      <select class="fs" id="cplan-year" style="padding:7px 12px;font-size:13px;font-weight:600;width:95px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--rs);color:var(--text)" onchange="renderContentPlan()">
         <option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
       </select>
-      <div style="margin-left:auto;display:flex;gap:8px">
-        <button class="btn btn-ghost btn-sm" onclick="addContentPlanItem('post')">+ Post</button>
-        <button class="btn btn-primary btn-sm" onclick="addContentPlanItem('video')">+ Video</button>
-      </div>
+      <!-- Inline summary pill -->
+      <div id="cplan-inline-summary" style="flex:1;font-size:12px;color:var(--text2);font-weight:500"></div>
+      <button class="btn btn-ghost btn-sm" onclick="openCPlanModal('post')" style="gap:5px">+ Post</button>
+      <button class="btn btn-primary btn-sm" onclick="openCPlanModal('video')" style="gap:5px">+ Video</button>
     </div>
-    <!-- Progress summary -->
-    <div id="cplan-summary" style="margin-bottom:14px"></div>
     <!-- Posts section -->
     <div style="margin-bottom:20px">
-      <div class="stitle" style="margin-bottom:10px">Posts <span class="cnt" id="cplan-post-cnt">0</span></div>
+      <div class="stitle" style="margin-bottom:8px">Posts <span class="cnt" id="cplan-post-cnt">0</span></div>
       <div id="cplan-posts"></div>
     </div>
     <!-- Videos section -->
     <div>
-      <div class="stitle" style="margin-bottom:10px">Videos <span class="cnt" id="cplan-video-cnt">0</span></div>
+      <div class="stitle" style="margin-bottom:8px">Videos <span class="cnt" id="cplan-video-cnt">0</span></div>
       <div id="cplan-videos"></div>
     </div>
   </div>
@@ -3842,63 +3840,60 @@ function renderContentPlan(){
   const plans=(CACHE.contentPlans||[]).filter(p=>p.client_id==cid&&p.month===month&&p.year===year);
   const posts=plans.filter(p=>p.type==='post');
   const videos=plans.filter(p=>p.type==='video');
-
-  // Summary
   const postedPosts=posts.filter(p=>p.posted).length;
   const postedVideos=videos.filter(p=>p.posted).length;
-  const sumEl=document.getElementById('cplan-summary');
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const mName=monthNames[month-1];
+
+  // Inline summary
+  const sumEl=document.getElementById('cplan-inline-summary');
   if(sumEl){
-    sumEl.innerHTML=`
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 18px;flex:1;min-width:140px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:4px">Posts</div>
-          <div style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;color:var(--cyan)">${postedPosts}<span style="font-size:13px;color:var(--text3);font-weight:400"> / ${posts.length}</span></div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">posted this month</div>
-        </div>
-        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:12px 18px;flex:1;min-width:140px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:4px">Videos</div>
-          <div style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;color:var(--pink)">${postedVideos}<span style="font-size:13px;color:var(--text3);font-weight:400"> / ${videos.length}</span></div>
-          <div style="font-size:10px;color:var(--text3);margin-top:2px">posted this month</div>
-        </div>
-      </div>`;
+    sumEl.innerHTML=`<span style="font-weight:700;color:var(--text)">${mName}</span>
+      <span style="margin:0 8px;color:var(--border2)">·</span>
+      <span style="color:var(--cyan);font-weight:700">${postedPosts}/${posts.length}</span>
+      <span style="color:var(--text3);font-weight:400"> posts up</span>
+      <span style="margin:0 8px;color:var(--border2)">·</span>
+      <span style="color:var(--pink);font-weight:700">${postedVideos}/${videos.length}</span>
+      <span style="color:var(--text3);font-weight:400"> videos up</span>`;
   }
 
-  // Counts
   const pCnt=document.getElementById('cplan-post-cnt');
   const vCnt=document.getElementById('cplan-video-cnt');
   if(pCnt)pCnt.textContent=posts.length;
   if(vCnt)vCnt.textContent=videos.length;
 
-  // Posts list
   const postsEl=document.getElementById('cplan-posts');
   if(postsEl){
-    if(!posts.length){
-      postsEl.innerHTML='<div style="font-size:12px;color:var(--text3);padding:12px 0">No posts added yet. Click + Post to add.</div>';
-    } else {
-      postsEl.innerHTML=posts.map((p,i)=>renderCPlanRow(p,i+1,'post')).join('');
-    }
+    postsEl.innerHTML=posts.length
+      ?posts.map((p,i)=>renderCPlanRow(p,i+1,'post')).join('')
+      :'<div style="font-size:12px;color:var(--text3);padding:14px 0;text-align:center">No posts added. Click + Post.</div>';
   }
-
-  // Videos list
   const videosEl=document.getElementById('cplan-videos');
   if(videosEl){
-    if(!videos.length){
-      videosEl.innerHTML='<div style="font-size:12px;color:var(--text3);padding:12px 0">No videos added yet. Click + Video to add.</div>';
-    } else {
-      videosEl.innerHTML=videos.map((p,i)=>renderCPlanRow(p,i+1,'video')).join('');
-    }
+    videosEl.innerHTML=videos.length
+      ?videos.map((p,i)=>renderCPlanRow(p,i+1,'video')).join('')
+      :'<div style="font-size:12px;color:var(--text3);padding:14px 0;text-align:center">No videos added. Click + Video.</div>';
   }
 }
 
 function renderCPlanRow(p,num,type){
   const color=type==='post'?'var(--cyan)':'var(--pink)';
-  const dateStr=p.scheduled_date?new Date(p.scheduled_date+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'—';
-  return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);margin-bottom:6px;transition:background 0.1s" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
-    <div style="width:18px;height:18px;border-radius:4px;border:1.5px solid ${p.posted?color:'var(--border2)'};background:${p.posted?color:'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:#000;flex-shrink:0;transition:all 0.15s" onclick="toggleCPlanPosted(${p.id})">${p.posted?'✓':''}</div>
-    <div style="font-size:11px;font-weight:700;color:${color};min-width:24px">${String(num).padStart(2,'0')}</div>
-    <div style="flex:1;font-size:12px;font-weight:${p.posted?400:600};color:${p.posted?'var(--text3)':'var(--text)'};${p.posted?'text-decoration:line-through':''}" onclick="editCPlanItem(${p.id})">${p.title||'Untitled'}</div>
-    <div style="font-size:10px;color:var(--text3);min-width:60px;text-align:right">${dateStr}</div>
-    <button onclick="deleteCPlanItem(${p.id})" style="background:var(--r10);color:var(--red);border:1px solid var(--r20);border-radius:4px;padding:2px 7px;font-size:10px;cursor:pointer;font-family:inherit;flex-shrink:0">×</button>
+  const bg=type==='post'?'var(--c10)':'var(--p10)';
+  const dateStr=p.scheduled_date?new Date(p.scheduled_date+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'No date';
+  const posted=p.posted;
+  return `<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--bg2);border:1px solid ${posted?color+'44':'var(--border)'};border-radius:var(--rs);margin-bottom:6px;transition:all 0.15s;cursor:default" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+    <!-- Checkbox -->
+    <div onclick="toggleCPlanPosted(${p.id})" style="width:20px;height:20px;border-radius:5px;border:2px solid ${posted?color:'var(--border2)'};background:${posted?color:'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s">
+      ${posted?`<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
+    </div>
+    <!-- Number -->
+    <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:800;color:${posted?'var(--text3)':color};min-width:22px;letter-spacing:0.04em">${String(num).padStart(2,'0')}</div>
+    <!-- Title -->
+    <div style="flex:1;font-size:12px;font-weight:${posted?400:600};color:${posted?'var(--text3)':'var(--text)'};${posted?'text-decoration:line-through':''};cursor:pointer" onclick="openCPlanModal('${type}',${p.id})">${p.title||'Untitled'}</div>
+    <!-- Date chip -->
+    <div style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:${posted?'var(--bg4)':bg};color:${posted?'var(--text3)':color};white-space:nowrap;flex-shrink:0">${dateStr}</div>
+    <!-- Delete -->
+    <button onclick="deleteCPlanItem(${p.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;transition:color 0.15s;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
   </div>`;
 }
 
@@ -3907,47 +3902,53 @@ async function toggleCPlanPosted(id){
   if(!item)return;
   item.posted=!item.posted;
   renderContentPlan();
-  try{
-    await SB.update('content_plans',id,{posted:item.posted});
-  }catch(e){item.posted=!item.posted;renderContentPlan();showToast('Failed','error');}
+  try{await SB.update('content_plans',id,{posted:item.posted});}
+  catch(e){item.posted=!item.posted;renderContentPlan();showToast('Failed','error');}
 }
 
-async function addContentPlanItem(type){
-  const title=prompt(`${type==='post'?'Post':'Video'} topic?`);
-  if(!title||!title.trim())return;
-  const dateInput=prompt('Scheduled date? (YYYY-MM-DD) Leave blank to skip','');
-  const month=parseInt(document.getElementById('cplan-month')?.value||new Date().getMonth()+1);
-  const year=parseInt(document.getElementById('cplan-year')?.value||new Date().getFullYear());
-  const payload={
-    client_id:currentClientId,
-    month,year,type,
-    title:title.trim(),
-    scheduled_date:dateInput&&dateInput.trim()?dateInput.trim():null,
-    posted:false
-  };
-  try{
-    const res=await SB.insert('content_plans',payload);
-    if(res&&res[0]){
-      CACHE.contentPlans=CACHE.contentPlans||[];
-      CACHE.contentPlans.push(res[0]);
-      renderContentPlan();
+function openCPlanModal(type,editId){
+  const isEdit=!!editId;
+  document.getElementById('cplan-modal-title').textContent=isEdit?`Edit ${type==='post'?'Post':'Video'}`:`Add ${type==='post'?'Post':'Video'}`;
+  document.getElementById('cplan-submit-btn').textContent=isEdit?'Save':'Add';
+  document.getElementById('cplan-edit-id').value=editId||'';
+  document.getElementById('cplan-edit-type').value=type;
+  if(isEdit){
+    const item=(CACHE.contentPlans||[]).find(p=>p.id===editId);
+    document.getElementById('cplan-title').value=item?item.title:'';
+    document.getElementById('cplan-date').value=item?.scheduled_date||'';
+  } else {
+    document.getElementById('cplan-title').value='';
+    document.getElementById('cplan-date').value='';
+  }
+  openModal('modal-cplan');
+  setTimeout(()=>document.getElementById('cplan-title').focus(),100);
+}
+
+async function submitCPlanModal(){
+  const editId=document.getElementById('cplan-edit-id').value;
+  const type=document.getElementById('cplan-edit-type').value;
+  const title=document.getElementById('cplan-title').value.trim();
+  const dateVal=document.getElementById('cplan-date').value;
+  if(!title){showToast('Enter a topic','error');return;}
+  if(editId){
+    const item=(CACHE.contentPlans||[]).find(p=>p.id==editId);
+    if(!item)return;
+    const oldTitle=item.title;const oldDate=item.scheduled_date;
+    item.title=title;item.scheduled_date=dateVal||null;
+    renderContentPlan();closeModal('modal-cplan');
+    try{await SB.update('content_plans',editId,{title,scheduled_date:dateVal||null});showToast('Updated','success');}
+    catch(e){item.title=oldTitle;item.scheduled_date=oldDate;renderContentPlan();showToast('Failed','error');}
+  } else {
+    const month=parseInt(document.getElementById('cplan-month')?.value||new Date().getMonth()+1);
+    const year=parseInt(document.getElementById('cplan-year')?.value||new Date().getFullYear());
+    const payload={client_id:currentClientId,month,year,type,title,scheduled_date:dateVal||null,posted:false};
+    try{
+      const res=await SB.insert('content_plans',payload);
+      if(res&&res[0]){CACHE.contentPlans=CACHE.contentPlans||[];CACHE.contentPlans.push(res[0]);}
+      renderContentPlan();closeModal('modal-cplan');
       showToast(type==='post'?'Post added':'Video added','success');
-    }
-  }catch(e){showToast('Failed: '+(e.message||''),'error');}
-}
-
-async function editCPlanItem(id){
-  const item=(CACHE.contentPlans||[]).find(p=>p.id===id);
-  if(!item)return;
-  const newTitle=prompt('Edit topic:',item.title);
-  if(!newTitle||newTitle===item.title)return;
-  const old=item.title;
-  item.title=newTitle.trim();
-  renderContentPlan();
-  try{
-    await SB.update('content_plans',id,{title:item.title});
-    showToast('Updated','success');
-  }catch(e){item.title=old;renderContentPlan();showToast('Failed','error');}
+    }catch(e){showToast('Failed: '+(e.message||''),'error');}
+  }
 }
 
 async function deleteCPlanItem(id){
@@ -3955,8 +3956,7 @@ async function deleteCPlanItem(id){
   try{
     await SB.delete('content_plans',id);
     CACHE.contentPlans=(CACHE.contentPlans||[]).filter(p=>p.id!==id);
-    renderContentPlan();
-    showToast('Removed','success');
+    renderContentPlan();showToast('Removed','success');
   }catch(e){showToast('Failed','error');}
 }
 
@@ -3979,6 +3979,31 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
     <div style="display:flex;gap:8px;margin-top:4px">
       <button class="btn btn-ghost" onclick="closeModal('modal-content-add')" style="flex:1">Cancel</button>
       <button class="btn btn-primary" onclick="submitContentAdd()" style="flex:1">Add Card</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ CONTENT PLAN ADD/EDIT MODAL ══ -->
+<div class="overlay" id="modal-cplan" onclick="if(event.target===this)closeModal('modal-cplan')">
+  <div class="modal-box" style="max-width:460px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div class="modal-title" id="cplan-modal-title">Add Post</div>
+      <button onclick="closeModal('modal-cplan')" style="background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <input type="hidden" id="cplan-edit-id">
+    <input type="hidden" id="cplan-edit-type">
+    <div class="fg">
+      <label class="fl">Topic / Title</label>
+      <input class="fi" id="cplan-title" placeholder="What is this post about?" autofocus>
+    </div>
+    <div class="fg">
+      <label class="fl">Scheduled Date <span style="color:var(--text3);font-weight:400;text-transform:none">(optional)</span></label>
+      <input class="fi" type="date" id="cplan-date">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn btn-ghost" onclick="closeModal('modal-cplan')" style="flex:1;justify-content:center">Cancel</button>
+      <button class="btn btn-primary" onclick="submitCPlanModal()" style="flex:1;justify-content:center" id="cplan-submit-btn">Add</button>
     </div>
   </div>
 </div>
