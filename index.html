@@ -1568,7 +1568,7 @@ async function loadAll(){
     SB.getAll('events').catch(()=>[]),
     SB.getAll('invoices').catch(()=>[]),
     SB.getAll('costs').catch(()=>[]),
-    SB.getAll('shoots').catch(()=>[])
+    SB.getAll('smm_shoots').catch(()=>[])
   ]);
   CACHE.clients=clients||[];
   CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:t.client_id,pipelineId:t.pipeline_id,done:t.done||false}));
@@ -1578,7 +1578,14 @@ async function loadAll(){
   CACHE.events=Array.isArray(events)?events:[];
   CACHE.invoices=Array.isArray(invoices)?invoices:[];
   CACHE.costs=Array.isArray(costs)?costs:[];
-  CACHE.shoots=Array.isArray(shoots)?shoots:[];
+  CACHE.shoots=(Array.isArray(shoots)?shoots:[]).map(sh=>{
+    let stage=sh.stage||sh.status||'Videos Confirmed';
+    // translate legacy status values to current stage names
+    if(stage==='requested')stage='Videos Confirmed';
+    if(stage==='scheduled')stage='Shoot Date Set';
+    if(stage==='delivered')stage='Shot';
+    return {...sh,stage};
+  });
   if(CACHE.clients.length===0) await seedClients();
 }
 
@@ -3295,7 +3302,7 @@ async function saveShoot(){
   const data={client_id:clientId,title:document.getElementById('sh-title').value.trim()||'Untitled Shoot',quarter:document.getElementById('sh-quarter').value,month:document.getElementById('sh-month').value,stage:document.getElementById('sh-stage').value,shoot_date:document.getElementById('sh-date').value||null,video_count:parseInt(document.getElementById('sh-videos').value)||null,notes:document.getElementById('sh-notes').value.trim()};
   if(!data.client_id)return alert('Please select a client');
   showLoading(true);
-  if(editId)await SB.update('shoots',editId,data);else await SB.insert('shoots',data);
+  if(editId)await SB.update('smm_shoots',editId,data);else await SB.insert('smm_shoots',data);
   await loadAll();showLoading(false);
   closeModal('modal-shoot');
   renderClientShoots();
@@ -3303,14 +3310,14 @@ async function saveShoot(){
 }
 
 async function updateShootStage(id,stage){
-  showLoading(true);await SB.update('shoots',id,{stage});await loadAll();showLoading(false);
+  showLoading(true);await SB.update('smm_shoots',id,{stage});await loadAll();showLoading(false);
   renderClientShoots();
   if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
 }
 
 async function deleteShoot(id){
   if(!confirm('Delete this shoot?'))return;
-  showLoading(true);await SB.delete('shoots',id);await loadAll();showLoading(false);
+  showLoading(true);await SB.delete('smm_shoots',id);await loadAll();showLoading(false);
   renderClientShoots();
   if(document.getElementById('page-shoots')?.classList.contains('active'))renderShootsBoard();
 }
