@@ -2039,6 +2039,8 @@ function taskHTML(t){
         ${t.category?`<span class="tag tag-cat">${t.category}</span>`:''}
         ${t.notes?`<span class="tag tag-cat" style="color:var(--text3)">${t.notes.substring(0,30)}</span>`:''}
       </div>
+      ${t.created_at?`<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;font-weight:300">· ${new Date(t.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}
+    </div>
     </div>
     <div class="av ${avClass}" title="${{th:'Thulaib',sh:'Shiara',both:'Both',smm:'SMM',gd:'GD',video:'Video'}[t.assign]||''}">${avTxt}</div>
     <button class="btn btn-ghost btn-sm" style="margin-left:4px;padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
