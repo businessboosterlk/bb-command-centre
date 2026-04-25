@@ -552,7 +552,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="sb-item" onclick="nav('pipeline')"><span>Potential Leads</span></div>
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
-    <div class="sb-item" onclick="nav('advisor')"><span>BB Advisor</span></div>
+    <div class="sb-item" onclick="nav('weekly-log')"><span>Weekly Log</span></div>
     <div class="sb-grp">Team Systems</div>
     <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="color:var(--cyan)"><span>SMM Workspace ↗</span></div>
 <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-gd-workspace','_blank')" style="color:var(--pink)"><span>GD Workspace ↗</span></div>    <div class="sb-item" style="opacity:0.45;cursor:not-allowed"><span>Video System — Soon</span></div>
@@ -1097,6 +1097,9 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   <div class="ph">
     <div><div class="ph-title">Finance</div><div class="ph-sub">Track by month — revenue received, costs paid, profit auto-calculated</div></div>
     <div class="ph-right">
+      <button class="btn btn-ghost btn-sm" id="fin-view-month" onclick="setFinView('month')" style="color:var(--orange);border-color:var(--o20)">Monthly</button>
+      <button class="btn btn-ghost btn-sm" id="fin-view-year" onclick="setFinView('year')">Yearly</button>
+      <button class="btn btn-ghost btn-sm" id="fin-view-client" onclick="setFinView('client')">By Client</button>
       <!-- Month selector -->
       <select class="fs" id="fin-month-select" style="width:160px;font-weight:600" onchange="renderFinance()">
         <option value="2026-01">January 2026</option>
@@ -1155,7 +1158,12 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     </div>
   </div>
 
-  <div class="g2">
+  <!-- Yearly summary panel -->
+  <div id="fin-yearly-panel" style="display:none"></div>
+  <!-- Client history panel -->
+  <div id="fin-client-panel" style="display:none"></div>
+
+  <div class="g2" id="fin-monthly-panel">
     <!-- PAYMENTS TO RECEIVE (Invoices) -->
     <div class="card" style="padding:0;overflow:hidden">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)">
@@ -1188,40 +1196,19 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
       <div id="fin-cost-list" style="max-height:520px;overflow-y:auto"></div>
     </div>
   </div>
+  </div><!-- /fin-monthly-panel -->
 </div>
 
 <!-- ══ BB ADVISOR ══ -->
-<div class="page" id="page-advisor">
-  <div class="ph"><div><div class="ph-title">BB Advisor</div><div class="ph-sub">Powered by Claude. Reads your live data. Answers like a 25-year veteran.</div></div></div>
-  <div class="g2">
-    <div>
-      <div class="ai-wrap">
-        <div class="ai-msgs" id="ai-msgs">
-          <div class="ai-msg ai">I'm your BB Advisor. I have your live data — clients, MRR, tasks, pipeline. Ask me anything about strategy, sales, clients or operations and I'll give you a specific answer based on what's actually happening in your business right now.</div>
-        </div>
-        <div class="ai-input-row">
-          <input class="fi" id="ai-input" placeholder="Ask anything..." onkeydown="if(event.key==='Enter')sendAI()">
-          <button class="btn btn-primary" onclick="sendAI()">Send</button>
-        </div>
-      </div>
-    </div>
-    <div>
-      <div class="card" style="padding:14px 18px;margin-bottom:10px">
-        <div class="stitle" style="margin-bottom:10px">Quick Questions</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;text-align:left" onclick="quickQ('Which client is most at risk of churning right now?')">Which client is most at risk of churning?</button>
-          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;text-align:left" onclick="quickQ('What should my sales focus be this week based on the pipeline?')">What should my sales focus be this week?</button>
-          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;text-align:left" onclick="quickQ('How do I get to 35 clients fastest from where I am now?')">How do I get to 35 clients fastest?</button>
-          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;text-align:left" onclick="quickQ('What tasks are overdue across all clients?')">What tasks are overdue?</button>
-          <button class="btn btn-ghost btn-sm" style="justify-content:flex-start;text-align:left" onclick="quickQ('Give me a cold call opening for a prospect in my pipeline.')">Cold call opening for a pipeline lead</button>
-        </div>
-      </div>
-      <div class="card" style="padding:14px 18px">
-        <div class="stitle" style="margin-bottom:8px">Live Snapshot</div>
-        <div id="ai-snapshot" style="font-size:12px;color:var(--text2);line-height:1.9"></div>
-      </div>
+<div class="page" id="page-weekly-log">
+  <div class="ph">
+    <div><div class="ph-title">Weekly Log</div><div class="ph-sub">Your business journal — one entry per week, every week</div></div>
+    <div class="ph-right">
+      <button class="btn btn-primary" onclick="openWeeklyLogModal()">+ Log This Week</button>
     </div>
   </div>
+  <!-- Last 2 weeks only -->
+  <div id="weekly-log-list"></div>
 </div>
 
 </div><!-- /main -->
@@ -1779,7 +1766,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,advisor:renderAdvisor,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,'weekly-log':renderWeeklyLog,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -2118,7 +2105,7 @@ function taskHTML(t){
         ${t.category?`<span class="tag tag-cat">${t.category}</span>`:''}
         ${t.notes?`<span class="tag tag-cat" style="color:var(--text3)">${t.notes.substring(0,30)}</span>`:''}
       </div>
-      ${t.created_at?`<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;font-weight:300">· ${new Date(t.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}
+      ${t.created_at?`<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;font-weight:300">· Added ${new Date(t.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${t.created_by?' by '+t.created_by:''}</div>`:''}
     </div>
     <div class="av ${avClass}" title="${{th:'Thulaib',sh:'Shiara',both:'Both',smm:'SMM',gd:'GD',video:'Video'}[t.assign]||''}">${avTxt}</div>
     <button class="btn btn-ghost btn-sm" style="margin-left:4px;padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
@@ -2181,6 +2168,7 @@ async function saveTask(){
     await SB.update('tasks',editId,data);
   } else {
     data.done=false;
+    data.created_by=getCurrentUser();
     await SB.insert('tasks',data);
   }
   await loadAll();showLoading(false);
@@ -2813,7 +2801,7 @@ function renderTaskBook(){
       <td style="padding:9px 14px;max-width:260px">
         <div style="font-size:12px;font-weight:600;color:${titleColor};text-transform:uppercase;letter-spacing:0.02em;${t.done?'text-decoration:line-through':''}">${t.title}</div>
         ${t.category?`<div style="font-size:10px;color:var(--text3);margin-top:1px;font-weight:300">${t.category}</div>`:''}
-        ${t.created_at?`<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;font-weight:300">· ${new Date(t.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>`:''}
+        ${t.created_at?`<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;font-weight:300">· Added ${new Date(t.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${t.created_by?' by '+t.created_by:''}</div>`:''}
       </td>
       <td style="padding:9px 14px">
         <div class="av ${avCls}" style="width:24px;height:24px;font-size:9px;font-weight:700" title="${assignLbl}">${avTxt}</div>
@@ -3670,6 +3658,8 @@ function ccLogin(){
   if(CC_USERS[name]&&CC_USERS[name]===pin){
     err.style.display='none';
     document.getElementById('cc-login').classList.add('gone');
+    // Store current user for audit trail
+    window.CC_CURRENT_USER=name;
     // no session storage — login required every reload
     // update sidebar name
     const dateEl=document.getElementById('sb-date');
@@ -3923,6 +3913,251 @@ async function deleteCPlanItem(id){
 }
 
 
+
+// ══ WEEKLY LOG ══════════════════════════════════
+async function loadWeeklyLogs(){
+  if(!CACHE.weeklyLogs)CACHE.weeklyLogs=[];
+  try{
+    const logs=await SB.getAll('weekly_logs');
+    CACHE.weeklyLogs=(logs||[]).sort((a,b)=>b.created_at?.localeCompare(a.created_at||'')||0);
+  }catch(e){CACHE.weeklyLogs=[];}
+}
+
+function renderWeeklyLog(){
+  loadWeeklyLogs().then(()=>{
+    const el=document.getElementById('weekly-log-list');
+    if(!el)return;
+    const logs=(CACHE.weeklyLogs||[]).slice(0,2);
+    if(!logs.length){
+      el.innerHTML=`<div class="card" style="text-align:center;padding:48px 24px">
+        <div style="font-size:32px;margin-bottom:12px">📓</div>
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">No entries yet</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Start your business journal. One entry per week tracks where BB is at any point in time.</div>
+        <button class="btn btn-primary" onclick="openWeeklyLogModal()">+ Log This Week</button>
+      </div>`;
+      return;
+    }
+    el.innerHTML=logs.map(log=>weeklyLogCard(log)).join('');
+  });
+}
+
+function weeklyLogCard(log){
+  const date=log.created_at?new Date(log.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+  return `<div class="card" style="margin-bottom:14px;border-left:3px solid var(--orange)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${log.week||'Untitled Week'}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${date}</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        ${log.mrr?`<div style="font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;color:var(--green)">LKR ${parseInt(log.mrr).toLocaleString()}</div>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="editWeeklyLog(${log.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteWeeklyLog(${log.id})">Delete</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      ${log.win?`<div style="background:var(--g10);border:1px solid var(--g20);border-radius:var(--rs);padding:12px 14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:6px">Biggest Win</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">${log.win}</div>
+      </div>`:''}
+      ${log.problem?`<div style="background:var(--r10);border:1px solid var(--r20);border-radius:var(--rs);padding:12px 14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:6px">Biggest Problem</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">${log.problem}</div>
+      </div>`:''}
+      ${log.clients_at_risk?`<div style="background:var(--y10);border:1px solid var(--y20);border-radius:var(--rs);padding:12px 14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);margin-bottom:6px">Clients at Risk</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">${log.clients_at_risk}</div>
+      </div>`:''}
+      ${log.focus?`<div style="background:var(--o10);border:1px solid var(--o20);border-radius:var(--rs);padding:12px 14px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:6px">Focus Next Week</div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${log.focus}</div>
+      </div>`:''}
+    </div>
+  </div>`;
+}
+
+function openWeeklyLogModal(id=null){
+  document.getElementById('wl-modal-title').textContent=id?'Edit Entry':'Log This Week';
+  document.getElementById('wl-edit-id').value=id||'';
+  if(id){
+    const log=(CACHE.weeklyLogs||[]).find(l=>l.id===id);
+    if(log){
+      document.getElementById('wl-week').value=log.week||'';
+      document.getElementById('wl-mrr').value=log.mrr||'';
+      document.getElementById('wl-win').value=log.win||'';
+      document.getElementById('wl-problem').value=log.problem||'';
+      document.getElementById('wl-risk').value=log.clients_at_risk||'';
+      document.getElementById('wl-focus').value=log.focus||'';
+    }
+  } else {
+    // Auto-fill week label
+    const now=new Date();
+    const weekNum=Math.ceil((now.getDate()+(new Date(now.getFullYear(),now.getMonth(),1).getDay()))/7);
+    const monthName=now.toLocaleString('en',{month:'long'});
+    document.getElementById('wl-week').value=`Week ${weekNum} — ${monthName} ${now.getFullYear()}`;
+    document.getElementById('wl-mrr').value=(CACHE.clients||[]).reduce((s,c)=>s+getMRR(c),0)||'';
+    ['wl-win','wl-problem','wl-risk','wl-focus'].forEach(x=>document.getElementById(x).value='');
+  }
+  openModal('modal-weekly-log');
+}
+
+function editWeeklyLog(id){openWeeklyLogModal(id);}
+
+async function saveWeeklyLog(){
+  const editId=parseInt(document.getElementById('wl-edit-id').value)||null;
+  const data={
+    week:document.getElementById('wl-week').value.trim(),
+    mrr:parseInt(document.getElementById('wl-mrr').value)||null,
+    win:document.getElementById('wl-win').value.trim(),
+    problem:document.getElementById('wl-problem').value.trim(),
+    clients_at_risk:document.getElementById('wl-risk').value.trim(),
+    focus:document.getElementById('wl-focus').value.trim(),
+  };
+  if(!data.week)return alert('Enter a week label');
+  showLoading(true);
+  if(editId)await SB.update('weekly_logs',editId,data);
+  else await SB.insert('weekly_logs',data);
+  await loadWeeklyLogs();
+  showLoading(false);
+  closeModal('modal-weekly-log');
+  renderWeeklyLog();
+}
+
+async function deleteWeeklyLog(id){
+  if(!confirm('Permanently delete this entry? This cannot be undone.'))return;
+  showLoading(true);
+  await SB.delete('weekly_logs',id);
+  await loadWeeklyLogs();
+  showLoading(false);
+  renderWeeklyLog();
+}
+
+
+
+function getCurrentUser(){return window.CC_CURRENT_USER||'UNKNOWN';}
+
+
+
+// ══ FINANCE VIEW SWITCHING ═══════════════════════
+let finView='month';
+function setFinView(v){
+  finView=v;
+  ['month','year','client'].forEach(x=>{
+    const btn=document.getElementById('fin-view-'+x);
+    if(btn){btn.style.color=x===v?'var(--orange)':'';btn.style.borderColor=x===v?'var(--o20)':'';}
+  });
+  document.getElementById('fin-monthly-panel').style.display=v==='month'?'':'none';
+  document.getElementById('fin-yearly-panel').style.display=v==='year'?'block':'none';
+  document.getElementById('fin-client-panel').style.display=v==='client'?'block':'none';
+  document.getElementById('fin-month-select').style.display=v==='month'?'':'none';
+  if(v==='year')renderYearlySummary();
+  if(v==='client')renderClientPaymentHistory();
+}
+
+function renderYearlySummary(){
+  const el=document.getElementById('fin-yearly-panel');if(!el)return;
+  const invoices=CACHE.invoices||[];const costs=CACHE.costs||[];
+  const months=['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
+  const monthLabels={'2026-01':'Jan','2026-02':'Feb','2026-03':'Mar','2026-04':'Apr','2026-05':'May','2026-06':'Jun','2026-07':'Jul','2026-08':'Aug','2026-09':'Sep','2026-10':'Oct','2026-11':'Nov','2026-12':'Dec'};
+  let totalRev=0,totalCost=0;
+  const rows=months.map(m=>{
+    const mInv=invoices.filter(i=>i.month===m);
+    const mCosts=costs.filter(c=>c.month===m);
+    const rev=mInv.reduce((s,i)=>s+(i.amount||0),0);
+    const cost=mCosts.reduce((s,c)=>s+(c.amount||0),0);
+    const profit=rev-cost;
+    const margin=rev>0?Math.round(profit/rev*100):0;
+    totalRev+=rev;totalCost+=cost;
+    if(!rev&&!cost)return '';
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 16px;font-size:12px;font-weight:700;color:var(--text)">${monthLabels[m]}</td>
+      <td style="padding:10px 16px;font-size:12px;font-weight:600;color:var(--green)">${rev?'LKR '+rev.toLocaleString():'—'}</td>
+      <td style="padding:10px 16px;font-size:12px;color:var(--red)">${cost?'LKR '+cost.toLocaleString():'—'}</td>
+      <td style="padding:10px 16px;font-size:12px;font-weight:600;color:${profit>=0?'var(--green)':'var(--red)'}">${rev||cost?'LKR '+profit.toLocaleString():'—'}</td>
+      <td style="padding:10px 16px;font-size:11px;color:var(--text3)">${rev?margin+'%':'—'}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+  const totalProfit=totalRev-totalCost;
+  const totalMargin=totalRev>0?Math.round(totalProfit/totalRev*100):0;
+  el.innerHTML=`
+    <div class="g4 stat-row" style="margin-bottom:14px">
+      <div class="stat" style="border-left:3px solid var(--green)"><div class="stat-lbl">Total Revenue 2026</div><div class="stat-val c-green">LKR ${totalRev.toLocaleString()}</div></div>
+      <div class="stat" style="border-left:3px solid var(--red)"><div class="stat-lbl">Total Costs 2026</div><div class="stat-val c-red">LKR ${totalCost.toLocaleString()}</div></div>
+      <div class="stat" style="border-left:3px solid var(--orange)"><div class="stat-lbl">Net Profit 2026</div><div class="stat-val" style="color:${totalProfit>=0?'var(--green)':'var(--red)'}">LKR ${totalProfit.toLocaleString()}</div></div>
+      <div class="stat" style="border-left:3px solid var(--yellow)"><div class="stat-lbl">Avg Margin 2026</div><div class="stat-val c-yellow">${totalMargin}%</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--bg3)">
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)">Month</th>
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)">Revenue</th>
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)">Costs</th>
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)">Profit</th>
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:10px 16px;text-align:left;border-bottom:1px solid var(--border)">Margin</th>
+        </tr></thead>
+        <tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3)">No data for 2026 yet</td></tr>'}</tbody>
+        <tfoot><tr style="background:var(--bg3);border-top:2px solid var(--border)">
+          <td style="padding:10px 16px;font-size:12px;font-weight:800;color:var(--text)">TOTAL</td>
+          <td style="padding:10px 16px;font-size:12px;font-weight:800;color:var(--green)">LKR ${totalRev.toLocaleString()}</td>
+          <td style="padding:10px 16px;font-size:12px;font-weight:800;color:var(--red)">LKR ${totalCost.toLocaleString()}</td>
+          <td style="padding:10px 16px;font-size:12px;font-weight:800;color:${totalProfit>=0?'var(--green)':'var(--red)'}">LKR ${totalProfit.toLocaleString()}</td>
+          <td style="padding:10px 16px;font-size:12px;font-weight:700;color:var(--yellow)">${totalMargin}%</td>
+        </tr></tfoot>
+      </table>
+    </div>`;
+}
+
+function renderClientPaymentHistory(){
+  const el=document.getElementById('fin-client-panel');if(!el)return;
+  const invoices=CACHE.invoices||[];const clients=CACHE.clients||[];
+  // Group all invoices by client
+  const grouped={};
+  invoices.forEach(inv=>{
+    const key=inv.client_id||('_'+inv.client_name);
+    if(!grouped[key]){
+      const client=inv.client_id?clients.find(c=>c.id==inv.client_id):null;
+      grouped[key]={name:inv.client_name||(client?client.name:'Unknown'),invoices:[],clientId:inv.client_id};
+    }
+    grouped[key].invoices.push(inv);
+  });
+  const sorted=Object.values(grouped).sort((a,b)=>{
+    const at=a.invoices.reduce((s,i)=>s+(i.amount||0),0);
+    const bt=b.invoices.reduce((s,i)=>s+(i.amount||0),0);
+    return bt-at;
+  });
+  if(!sorted.length){el.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text3)">No invoice data yet</div>';return;}
+  el.innerHTML=sorted.map(g=>{
+    const total=g.invoices.reduce((s,i)=>s+(i.amount||0),0);
+    const paid=g.invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+(i.amount||0),0);
+    const unpaid=total-paid;
+    const sortedInv=[...g.invoices].sort((a,b)=>(b.month||'').localeCompare(a.month||''));
+    return `<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--bg3);border-bottom:1px solid var(--border)">
+        <div style="font-size:14px;font-weight:800;color:var(--text)">${g.name}</div>
+        <div style="display:flex;gap:16px;align-items:center">
+          <div style="text-align:right"><div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Total</div><div style="font-size:14px;font-weight:800;color:var(--text)">LKR ${total.toLocaleString()}</div></div>
+          <div style="text-align:right"><div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Paid</div><div style="font-size:14px;font-weight:700;color:var(--green)">LKR ${paid.toLocaleString()}</div></div>
+          ${unpaid>0?`<div style="text-align:right"><div style="font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Owed</div><div style="font-size:14px;font-weight:700;color:var(--red)">LKR ${unpaid.toLocaleString()}</div></div>`:''}
+        </div>
+      </div>
+      ${sortedInv.map(inv=>{
+        const statusColor={paid:'var(--green)',unpaid:'var(--yellow)',overdue:'var(--red)'}[inv.status]||'var(--text2)';
+        const statusBg={paid:'var(--g10)',unpaid:'var(--y10)',overdue:'var(--r10)'}[inv.status]||'var(--bg4)';
+        const statusLabel={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||inv.status;
+        const MONTH_NAMES={'2026-01':'Jan 2026','2026-02':'Feb 2026','2026-03':'Mar 2026','2026-04':'Apr 2026','2026-05':'May 2026','2026-06':'Jun 2026','2026-07':'Jul 2026','2026-08':'Aug 2026','2026-09':'Sep 2026','2026-10':'Oct 2026','2026-11':'Nov 2026','2026-12':'Dec 2026','2025-12':'Dec 2025'};
+        return `<div style="display:flex;align-items:center;gap:12px;padding:10px 20px;border-bottom:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--text3);font-weight:600;min-width:70px">${MONTH_NAMES[inv.month]||inv.month||'—'}</div>
+          <div style="flex:1;font-size:12px;color:var(--text2)">${inv.notes||'—'}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">LKR ${(inv.amount||0).toLocaleString()}</div>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${statusBg};color:${statusColor};border:1px solid ${statusColor}33;min-width:58px;text-align:center">${statusLabel}</span>
+          ${inv.status!=='paid'?`<button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px" onclick="markInvoicePaid(${inv.id})">Paid</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
 </script>
@@ -3958,6 +4193,43 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-cplan')">Cancel</button>
       <button class="btn btn-primary" onclick="submitCPlanModal()" id="cplan-submit-btn">Add</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ WEEKLY LOG MODAL ══ -->
+<div class="overlay" id="modal-weekly-log" onclick="if(event.target===this)closeModal('modal-weekly-log')">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="wl-modal-title">Log This Week</div>
+    <input type="hidden" id="wl-edit-id">
+    <div class="fg">
+      <label class="flbl">Week</label>
+      <input class="fi" id="wl-week" placeholder="e.g. Week 18 — April 2026">
+    </div>
+    <div class="fg">
+      <label class="flbl">MRR This Week (LKR)</label>
+      <input class="fi" id="wl-mrr" type="number" placeholder="e.g. 1150000">
+    </div>
+    <div class="fg">
+      <label class="flbl">Biggest Win</label>
+      <textarea class="fta" id="wl-win" placeholder="What went well this week?" style="min-height:60px"></textarea>
+    </div>
+    <div class="fg">
+      <label class="flbl">Biggest Problem</label>
+      <textarea class="fta" id="wl-problem" placeholder="What needs to be fixed?" style="min-height:60px"></textarea>
+    </div>
+    <div class="fg">
+      <label class="flbl">Clients at Risk</label>
+      <input class="fi" id="wl-risk" placeholder="Any clients showing amber or red signals?">
+    </div>
+    <div class="fg">
+      <label class="flbl">Top 3 Focus Next Week</label>
+      <textarea class="fta" id="wl-focus" placeholder="The 3 things that must happen next week." style="min-height:60px"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-weekly-log')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWeeklyLog()">Save Entry</button>
     </div>
   </div>
 </div>
