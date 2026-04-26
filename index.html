@@ -554,7 +554,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="sb-item" onclick="nav('pipeline')"><span>Potential Leads</span></div>
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
-    <div class="sb-item" onclick="nav('weekly-log')"><span>Weekly Log</span></div>
+    <div class="sb-item" onclick="nav('missions')"><span>Missions</span></div>
     <div class="sb-grp">Team Systems</div>
     <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="color:var(--cyan)"><span>SMM Workspace ↗</span></div>
 <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-gd-workspace','_blank')" style="color:var(--pink)"><span>GD Workspace ↗</span></div>    <div class="sb-item" style="opacity:0.45;cursor:not-allowed"><span>Video System — Soon</span></div>
@@ -1202,15 +1202,17 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 </div>
 
 <!-- ══ BB ADVISOR ══ -->
-<div class="page" id="page-weekly-log">
+<div class="page" id="page-missions">
   <div class="ph">
-    <div><div class="ph-title">Weekly Log</div><div class="ph-sub">Your business journal — one entry per week, every week</div></div>
+    <div>
+      <div class="ph-title">Missions</div>
+      <div class="ph-sub">Yours and Shiara's — see each other's progress and learn from it</div>
+    </div>
     <div class="ph-right">
-      <button class="btn btn-primary" onclick="openWeeklyLogModal()">+ Log This Week</button>
+      <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
     </div>
   </div>
-  <!-- Last 2 weeks only -->
-  <div id="weekly-log-list"></div>
+  <div id="missions-list"></div>
 </div>
 
 </div><!-- /main -->
@@ -1768,7 +1770,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,'weekly-log':renderWeeklyLog,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -3933,128 +3935,259 @@ async function deleteCPlanItem(id){
 
 
 
-// ══ WEEKLY LOG ══════════════════════════════════
-async function loadWeeklyLogs(){
-  if(!CACHE.weeklyLogs)CACHE.weeklyLogs=[];
+
+// ══ MISSIONS ═════════════════════════════════════
+async function loadMissions(){
   try{
-    const logs=await SB.getAll('weekly_logs');
-    CACHE.weeklyLogs=(logs||[]).sort((a,b)=>b.created_at?.localeCompare(a.created_at||'')||0);
-  }catch(e){CACHE.weeklyLogs=[];}
+    const [ms,steps]=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    CACHE.missions=(ms||[]).sort((a,b)=>b.id-a.id);
+    CACHE.missionSteps=(steps||[]);
+  }catch(e){CACHE.missions=[];CACHE.missionSteps=[];}
 }
 
-function renderWeeklyLog(){
-  loadWeeklyLogs().then(()=>{
-    const el=document.getElementById('weekly-log-list');
+function renderMissions(){
+  loadMissions().then(()=>{
+    const el=document.getElementById('missions-list');
     if(!el)return;
-    const logs=(CACHE.weeklyLogs||[]).slice(0,2);
-    if(!logs.length){
-      el.innerHTML=`<div class="card" style="text-align:center;padding:48px 24px">
-        <div style="font-size:32px;margin-bottom:12px">📓</div>
-        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">No entries yet</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Start your business journal. One entry per week tracks where BB is at any point in time.</div>
-        <button class="btn btn-primary" onclick="openWeeklyLogModal()">+ Log This Week</button>
+    const allMissions=CACHE.missions||[];
+    if(!allMissions.length){
+      el.innerHTML=`<div class="card" style="text-align:center;padding:56px 24px">
+        <div style="font-size:40px;margin-bottom:14px">🎯</div>
+        <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px">No missions yet</div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:24px;max-width:360px;margin-left:auto;margin-right:auto">Every big thing you're building — products, systems, business goals — lives here with a full roadmap.</div>
+        <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
       </div>`;
       return;
     }
-    el.innerHTML=logs.map(log=>weeklyLogCard(log)).join('');
+    // Group by user — current user first, then others
+    const me=getCurrentUser();
+    const mine=allMissions.filter(m=>!m.created_by||m.created_by===me);
+    const theirs=allMissions.filter(m=>m.created_by&&m.created_by!==me);
+    const otherUsers=[...new Set(theirs.map(m=>m.created_by))];
+    let html='';
+    // My missions
+    html+=`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:var(--orange);margin-bottom:10px;margin-top:2px">${me} — Your Missions</div>`;
+    html+=mine.length?mine.map(m=>missionCard(m)).join(''):`<div class="card" style="text-align:center;padding:24px;margin-bottom:12px"><div style="font-size:12px;color:var(--text3)">No missions yet — add your first one above.</div></div>`;
+    // Other users' missions
+    otherUsers.forEach(user=>{
+      const theirMissions=theirs.filter(m=>m.created_by===user);
+      html+=`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:var(--cyan);margin-bottom:10px;margin-top:20px">${user} — Missions</div>`;
+      html+=theirMissions.map(m=>missionCard(m)).join('');
+    });
+    el.innerHTML=html;
   });
 }
 
-function weeklyLogCard(log){
-  const date=log.created_at?new Date(log.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
-  return `<div class="card" style="margin-bottom:14px;border-left:3px solid var(--orange)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div>
-        <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${log.week||'Untitled Week'}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${date}</div>
+const CAT_COLORS={product:'var(--cyan)',business:'var(--orange)',sales:'var(--green)',team:'var(--yellow)',client:'var(--pink)',strategy:'var(--purple)',personal:'var(--text2)'};
+const CAT_LABELS={product:'Product / Build',business:'Business Ops',sales:'Sales / Growth',team:'Team / Hiring',client:'Client',strategy:'Strategy',personal:'Personal'};
+const STATUS_COLORS={active:'var(--green)',paused:'var(--yellow)',completed:'var(--orange)'};
+
+function missionCard(m){
+  const steps=(CACHE.missionSteps||[]).filter(s=>s.mission_id===m.id).sort((a,b)=>(a.step_order||0)-(b.step_order||0));
+  const total=steps.length;
+  const done=steps.filter(s=>s.status==='done').length;
+  const pct=total>0?Math.round(done/total*100):0;
+  const catColor=CAT_COLORS[m.category]||'var(--text2)';
+  const catLabel=CAT_LABELS[m.category]||m.category;
+  const statusColor=STATUS_COLORS[m.status]||'var(--text2)';
+  const isOpen=document.getElementById('mission-roadmap-'+m.id)?.style.display!=='none';
+
+  return `<div class="card" style="margin-bottom:12px;border-left:3px solid ${catColor};padding:0">
+    <!-- Mission header -->
+    <div style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px" onclick="toggleMissionRoadmap(${m.id})">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+          <div style="font-family:'Poppins',sans-serif;font-size:15px;font-weight:800;color:var(--text)">${m.title}</div>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${catColor}22;color:${catColor};border:1px solid ${catColor}44;text-transform:uppercase;letter-spacing:0.08em">${catLabel}</span>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${statusColor}18;color:${statusColor};border:1px solid ${statusColor}33;text-transform:uppercase;letter-spacing:0.08em">${m.status}</span>
+        </div>
+        ${m.description?`<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px">${m.description}</div>`:''}
+        <!-- Progress bar -->
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${catColor};border-radius:3px;transition:width 0.4s"></div>
+          </div>
+          <div style="font-size:10px;font-weight:700;color:${catColor};white-space:nowrap">${done}/${total} done</div>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        ${log.mrr?`<div style="font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;color:var(--green)">LKR ${parseInt(log.mrr).toLocaleString()}</div>`:''}
-        <button class="btn btn-ghost btn-sm" onclick="editWeeklyLog(${log.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteWeeklyLog(${log.id})">Delete</button>
+      <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openMissionModal(${m.id})" style="padding:3px 9px;font-size:10px">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteMission(${m.id})" style="padding:3px 9px;font-size:10px">Delete</button>
+        <span style="font-size:16px;color:var(--text3);transition:transform 0.2s" id="mission-chevron-${m.id}">▼</span>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      ${log.win?`<div style="background:var(--g10);border:1px solid var(--g20);border-radius:var(--rs);padding:12px 14px">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--green);margin-bottom:6px">Biggest Win</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6">${log.win}</div>
-      </div>`:''}
-      ${log.problem?`<div style="background:var(--r10);border:1px solid var(--r20);border-radius:var(--rs);padding:12px 14px">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);margin-bottom:6px">Biggest Problem</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6">${log.problem}</div>
-      </div>`:''}
-      ${log.clients_at_risk?`<div style="background:var(--y10);border:1px solid var(--y20);border-radius:var(--rs);padding:12px 14px">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);margin-bottom:6px">Clients at Risk</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6">${log.clients_at_risk}</div>
-      </div>`:''}
-      ${log.focus?`<div style="background:var(--o10);border:1px solid var(--o20);border-radius:var(--rs);padding:12px 14px">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:6px">Focus Next Week</div>
-        <div style="font-size:12px;color:var(--text2);line-height:1.6;white-space:pre-wrap">${log.focus}</div>
-      </div>`:''}
+
+    <!-- Roadmap (collapsible) -->
+    <div id="mission-roadmap-${m.id}" style="display:none;border-top:1px solid var(--border);padding:0 20px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 10px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3)">Roadmap</div>
+        <button class="btn btn-ghost btn-sm" onclick="openStepModal(${m.id})" style="padding:2px 10px;font-size:10px;color:${catColor}">+ Add Step</button>
+      </div>
+      ${steps.length?`<div style="position:relative;padding-left:24px">
+        <!-- vertical line -->
+        <div style="position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--bg4);border-radius:2px"></div>
+        ${steps.map((s,i)=>{
+          const sc={done:'var(--green)',inprogress:'var(--orange)',todo:'var(--bg4)'}[s.status]||'var(--bg4)';
+          const stc={done:'var(--green)',inprogress:'var(--orange)',todo:'var(--text3)'}[s.status]||'var(--text3)';
+          const sl={done:'Done',inprogress:'In Progress',todo:'To Do'}[s.status]||s.status;
+          return `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;position:relative">
+            <!-- dot -->
+            <div style="position:absolute;left:-17px;top:4px;width:10px;height:10px;border-radius:50%;background:${sc};border:2px solid ${sc};flex-shrink:0;z-index:1"></div>
+            <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:${s.notes?'5px':'0'}">
+                <div style="font-size:12px;font-weight:700;color:${s.status==='done'?'var(--text3)':'var(--text)'};${s.status==='done'?'text-decoration:line-through':''}">${s.title}</div>
+                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+                  <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;color:${stc};border:1px solid ${sc}33;background:${sc}18">${sl}</span>
+                  <button class="btn btn-ghost btn-sm" onclick="cycleStepStatus(${s.id},${m.id})" style="padding:1px 6px;font-size:9px">${s.status==='done'?'↩':'✓'}</button>
+                  <button class="btn btn-ghost btn-sm" onclick="openStepModal(${m.id},${s.id})" style="padding:1px 6px;font-size:9px">✎</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteStep(${s.id},${m.id})" style="padding:1px 6px;font-size:9px">✕</button>
+                </div>
+              </div>
+              ${s.notes?`<div style="font-size:11px;color:var(--text3);line-height:1.5">${s.notes}</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`:`<div style="font-size:12px;color:var(--text3);padding:8px 0">No steps yet. Add the first step to this roadmap.</div>`}
     </div>
   </div>`;
 }
 
-function openWeeklyLogModal(id=null){
-  document.getElementById('wl-modal-title').textContent=id?'Edit Entry':'Log This Week';
-  document.getElementById('wl-edit-id').value=id||'';
+function toggleMissionRoadmap(id){
+  const panel=document.getElementById('mission-roadmap-'+id);
+  const chev=document.getElementById('mission-chevron-'+id);
+  if(!panel)return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  if(chev)chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+}
+
+function openMissionModal(id=null){
+  document.getElementById('mission-modal-title').textContent=id?'Edit Mission':'New Mission';
+  document.getElementById('mission-edit-id').value=id||'';
   if(id){
-    const log=(CACHE.weeklyLogs||[]).find(l=>l.id===id);
-    if(log){
-      document.getElementById('wl-week').value=log.week||'';
-      document.getElementById('wl-mrr').value=log.mrr||'';
-      document.getElementById('wl-win').value=log.win||'';
-      document.getElementById('wl-problem').value=log.problem||'';
-      document.getElementById('wl-risk').value=log.clients_at_risk||'';
-      document.getElementById('wl-focus').value=log.focus||'';
+    const m=(CACHE.missions||[]).find(x=>x.id===id);
+    if(m){
+      document.getElementById('mission-title').value=m.title||'';
+      document.getElementById('mission-desc').value=m.description||'';
+      document.getElementById('mission-category').value=m.category||'product';
+      document.getElementById('mission-status').value=m.status||'active';
     }
   } else {
-    // Auto-fill week label
-    const now=new Date();
-    const weekNum=Math.ceil((now.getDate()+(new Date(now.getFullYear(),now.getMonth(),1).getDay()))/7);
-    const monthName=now.toLocaleString('en',{month:'long'});
-    document.getElementById('wl-week').value=`Week ${weekNum} — ${monthName} ${now.getFullYear()}`;
-    document.getElementById('wl-mrr').value=(CACHE.clients||[]).reduce((s,c)=>s+getMRR(c),0)||'';
-    ['wl-win','wl-problem','wl-risk','wl-focus'].forEach(x=>document.getElementById(x).value='');
+    document.getElementById('mission-title').value='';
+    document.getElementById('mission-desc').value='';
+    document.getElementById('mission-category').value='product';
+    document.getElementById('mission-status').value='active';
   }
-  openModal('modal-weekly-log');
+  openModal('modal-mission');
 }
 
-function editWeeklyLog(id){openWeeklyLogModal(id);}
-
-async function saveWeeklyLog(){
-  const editId=parseInt(document.getElementById('wl-edit-id').value)||null;
+async function saveMission(){
+  const editId=parseInt(document.getElementById('mission-edit-id').value)||null;
   const data={
-    week:document.getElementById('wl-week').value.trim(),
-    mrr:parseInt(document.getElementById('wl-mrr').value)||null,
-    win:document.getElementById('wl-win').value.trim(),
-    problem:document.getElementById('wl-problem').value.trim(),
-    clients_at_risk:document.getElementById('wl-risk').value.trim(),
-    focus:document.getElementById('wl-focus').value.trim(),
+    title:document.getElementById('mission-title').value.trim(),
+    description:document.getElementById('mission-desc').value.trim(),
+    category:document.getElementById('mission-category').value,
+    status:document.getElementById('mission-status').value,
+    created_by:getCurrentUser(),
   };
-  if(!data.week)return alert('Enter a week label');
+  if(!data.title)return alert('Enter a mission name');
   showLoading(true);
-  if(editId)await SB.update('weekly_logs',editId,data);
-  else await SB.insert('weekly_logs',data);
-  await loadWeeklyLogs();
+  if(editId)await SB.update('missions',editId,data);
+  else await SB.insert('missions',data);
+  await loadMissions();
   showLoading(false);
-  closeModal('modal-weekly-log');
-  renderWeeklyLog();
+  closeModal('modal-mission');
+  renderMissions();
 }
 
-async function deleteWeeklyLog(id){
-  if(!confirm('Permanently delete this entry? This cannot be undone.'))return;
+async function deleteMission(id){
+  if(!confirm('Delete this mission and all its steps? Cannot be undone.'))return;
   showLoading(true);
-  await SB.delete('weekly_logs',id);
-  await loadWeeklyLogs();
+  // delete steps first
+  const steps=(CACHE.missionSteps||[]).filter(s=>s.mission_id===id);
+  for(const s of steps)await SB.delete('mission_steps',s.id);
+  await SB.delete('missions',id);
+  await loadMissions();
   showLoading(false);
-  renderWeeklyLog();
+  renderMissions();
 }
 
+function openStepModal(missionId,stepId=null){
+  document.getElementById('step-modal-title').textContent=stepId?'Edit Step':'Add Step';
+  document.getElementById('step-edit-id').value=stepId||'';
+  document.getElementById('step-mission-id').value=missionId;
+  if(stepId){
+    const s=(CACHE.missionSteps||[]).find(x=>x.id===stepId);
+    if(s){
+      document.getElementById('step-title').value=s.title||'';
+      document.getElementById('step-notes').value=s.notes||'';
+      document.getElementById('step-status').value=s.status||'todo';
+    }
+  } else {
+    document.getElementById('step-title').value='';
+    document.getElementById('step-notes').value='';
+    document.getElementById('step-status').value='todo';
+  }
+  openModal('modal-mission-step');
+}
 
+async function saveMissionStep(){
+  const editId=parseInt(document.getElementById('step-edit-id').value)||null;
+  const mId=parseInt(document.getElementById('step-mission-id').value);
+  const data={
+    mission_id:mId,
+    title:document.getElementById('step-title').value.trim(),
+    notes:document.getElementById('step-notes').value.trim(),
+    status:document.getElementById('step-status').value,
+    step_order:editId?undefined:(CACHE.missionSteps||[]).filter(s=>s.mission_id===mId).length,
+  };
+  if(!data.title)return alert('Enter a step title');
+  if(editId)delete data.step_order;
+  showLoading(true);
+  if(editId)await SB.update('mission_steps',editId,data);
+  else await SB.insert('mission_steps',data);
+  await loadMissions();
+  showLoading(false);
+  closeModal('modal-mission-step');
+  renderMissions();
+  // re-open the roadmap panel
+  setTimeout(()=>{
+    const panel=document.getElementById('mission-roadmap-'+mId);
+    if(panel)panel.style.display='block';
+    const chev=document.getElementById('mission-chevron-'+mId);
+    if(chev)chev.style.transform='rotate(180deg)';
+  },100);
+}
 
-function getCurrentUser(){return window.CC_CURRENT_USER||'UNKNOWN';}
+async function cycleStepStatus(stepId,missionId){
+  const s=(CACHE.missionSteps||[]).find(x=>x.id===stepId);
+  if(!s)return;
+  const next={todo:'inprogress',inprogress:'done',done:'todo'}[s.status]||'todo';
+  showLoading(true);
+  await SB.update('mission_steps',stepId,{status:next});
+  await loadMissions();
+  showLoading(false);
+  renderMissions();
+  setTimeout(()=>{
+    const panel=document.getElementById('mission-roadmap-'+missionId);
+    if(panel)panel.style.display='block';
+    const chev=document.getElementById('mission-chevron-'+missionId);
+    if(chev)chev.style.transform='rotate(180deg)';
+  },100);
+}
 
+async function deleteStep(stepId,missionId){
+  if(!confirm('Delete this step?'))return;
+  showLoading(true);
+  await SB.delete('mission_steps',stepId);
+  await loadMissions();
+  showLoading(false);
+  renderMissions();
+  setTimeout(()=>{
+    const panel=document.getElementById('mission-roadmap-'+missionId);
+    if(panel)panel.style.display='block';
+  },100);
+}
 
 
 // ══ FINANCE VIEW SWITCHING ═══════════════════════
@@ -4217,38 +4350,71 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
 </div>
 
 
-<!-- ══ WEEKLY LOG MODAL ══ -->
-<div class="overlay" id="modal-weekly-log" onclick="if(event.target===this)closeModal('modal-weekly-log')">
+<!-- ══ MISSION MODAL ══ -->
+<div class="overlay" id="modal-mission" onclick="if(event.target===this)closeModal('modal-mission')">
   <div class="modal" style="max-width:560px">
-    <div class="modal-title" id="wl-modal-title">Log This Week</div>
-    <input type="hidden" id="wl-edit-id">
+    <div class="modal-title" id="mission-modal-title">New Mission</div>
+    <input type="hidden" id="mission-edit-id">
     <div class="fg">
-      <label class="flbl">Week</label>
-      <input class="fi" id="wl-week" placeholder="e.g. Week 18 — April 2026">
+      <label class="flbl">Mission Name</label>
+      <input class="fi" id="mission-title" placeholder="e.g. Build Plugin for Salon System">
     </div>
     <div class="fg">
-      <label class="flbl">MRR This Week (LKR)</label>
-      <input class="fi" id="wl-mrr" type="number" placeholder="e.g. 1150000">
+      <label class="flbl">What is this?</label>
+      <textarea class="fta" id="mission-desc" placeholder="Describe the goal and why it matters." style="min-height:80px"></textarea>
     </div>
     <div class="fg">
-      <label class="flbl">Biggest Win</label>
-      <textarea class="fta" id="wl-win" placeholder="What went well this week?" style="min-height:60px"></textarea>
+      <label class="flbl">Category</label>
+      <select class="fi" id="mission-category">
+        <option value="product">Product / Build</option>
+        <option value="business">Business Operations</option>
+        <option value="sales">Sales / Growth</option>
+        <option value="team">Team / Hiring</option>
+        <option value="client">Client Specific</option>
+        <option value="strategy">Strategy</option>
+        <option value="personal">Personal</option>
+      </select>
     </div>
     <div class="fg">
-      <label class="flbl">Biggest Problem</label>
-      <textarea class="fta" id="wl-problem" placeholder="What needs to be fixed?" style="min-height:60px"></textarea>
-    </div>
-    <div class="fg">
-      <label class="flbl">Clients at Risk</label>
-      <input class="fi" id="wl-risk" placeholder="Any clients showing amber or red signals?">
-    </div>
-    <div class="fg">
-      <label class="flbl">Top 3 Focus Next Week</label>
-      <textarea class="fta" id="wl-focus" placeholder="The 3 things that must happen next week." style="min-height:60px"></textarea>
+      <label class="flbl">Status</label>
+      <select class="fi" id="mission-status">
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+        <option value="completed">Completed</option>
+      </select>
     </div>
     <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('modal-weekly-log')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveWeeklyLog()">Save Entry</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-mission')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMission()">Save Mission</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MISSION STEP MODAL ══ -->
+<div class="overlay" id="modal-mission-step" onclick="if(event.target===this)closeModal('modal-mission-step')">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="step-modal-title">Add Step</div>
+    <input type="hidden" id="step-edit-id">
+    <input type="hidden" id="step-mission-id">
+    <div class="fg">
+      <label class="flbl">Step Title</label>
+      <input class="fi" id="step-title" placeholder="e.g. Research competitor salon systems">
+    </div>
+    <div class="fg">
+      <label class="flbl">Notes</label>
+      <textarea class="fta" id="step-notes" placeholder="What needs to happen for this step to be done?" style="min-height:70px"></textarea>
+    </div>
+    <div class="fg">
+      <label class="flbl">Status</label>
+      <select class="fi" id="step-status">
+        <option value="todo">To Do</option>
+        <option value="inprogress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-mission-step')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMissionStep()">Save Step</button>
     </div>
   </div>
 </div>
