@@ -1203,16 +1203,29 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 
 <!-- ══ BB ADVISOR ══ -->
 <div class="page" id="page-missions">
-  <div class="ph">
-    <div>
-      <div class="ph-title">Missions</div>
-      <div class="ph-sub">Yours and Shiara's — see each other's progress and learn from it</div>
+  <!-- Person selector view -->
+  <div id="missions-view-people">
+    <div class="ph">
+      <div><div class="ph-title">Missions</div><div class="ph-sub">Select a person to view their projects and roadmaps</div></div>
     </div>
-    <div class="ph-right">
-      <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
-    </div>
+    <div id="missions-people-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px"></div>
   </div>
-  <div id="missions-list"></div>
+  <!-- Person detail view -->
+  <div id="missions-view-detail" style="display:none">
+    <div class="ph">
+      <div style="display:flex;align-items:center;gap:14px">
+        <button class="btn btn-ghost" onclick="missionsBack()" style="padding:6px 12px;font-size:12px">← Back</button>
+        <div>
+          <div class="ph-title" id="missions-detail-name"></div>
+          <div class="ph-sub" id="missions-detail-role"></div>
+        </div>
+      </div>
+      <div class="ph-right">
+        <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
+      </div>
+    </div>
+    <div id="missions-list"></div>
+  </div>
 </div>
 
 </div><!-- /main -->
@@ -3937,6 +3950,15 @@ async function deleteCPlanItem(id){
 
 
 // ══ MISSIONS ═════════════════════════════════════
+const MISSION_PEOPLE = [
+  {key:'THULAIB', name:'Thulaib', role:'CEO & Founder', color:'var(--orange)', initials:'T'},
+  {key:'SHIARA',  name:'Shiara',  role:'Co-Founder',    color:'var(--cyan)',   initials:'S'},
+  {key:'KENULI',  name:'Kenuli',  role:'Social Media Manager', color:'var(--green)', initials:'K'},
+  {key:'KANEESHA',name:'Kaneesha',role:'Team',           color:'var(--yellow)', initials:'KA'},
+];
+
+let activeMissionPerson = null;
+
 async function loadMissions(){
   try{
     const [ms,steps]=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
@@ -3947,53 +3969,116 @@ async function loadMissions(){
 
 function renderMissions(){
   loadMissions().then(()=>{
-    const el=document.getElementById('missions-list');
-    if(!el)return;
-    const allMissions=CACHE.missions||[];
-    if(!allMissions.length){
-      el.innerHTML=`<div class="card" style="text-align:center;padding:56px 24px">
-        <div style="font-size:40px;margin-bottom:14px">🎯</div>
-        <div style="font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px">No missions yet</div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:24px;max-width:360px;margin-left:auto;margin-right:auto">Every big thing you're building — products, systems, business goals — lives here with a full roadmap.</div>
-        <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
-      </div>`;
-      return;
+    const pv=document.getElementById('missions-view-people');
+    const dv=document.getElementById('missions-view-detail');
+    if(activeMissionPerson){
+      if(pv)pv.style.display='none';
+      if(dv)dv.style.display='block';
+      renderMissionDetail(activeMissionPerson);
+    } else {
+      if(pv)pv.style.display='block';
+      if(dv)dv.style.display='none';
+      renderMissionPeople();
     }
-    // Group by user — current user first, then others
-    const me=getCurrentUser();
-    const mine=allMissions.filter(m=>!m.created_by||m.created_by===me);
-    const theirs=allMissions.filter(m=>m.created_by&&m.created_by!==me);
-    const otherUsers=[...new Set(theirs.map(m=>m.created_by))];
-    let html='';
-    // My missions
-    html+=`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:var(--orange);margin-bottom:10px;margin-top:2px">${me} — Your Missions</div>`;
-    html+=mine.length?mine.map(m=>missionCard(m)).join(''):`<div class="card" style="text-align:center;padding:24px;margin-bottom:12px"><div style="font-size:12px;color:var(--text3)">No missions yet — add your first one above.</div></div>`;
-    // Other users' missions
-    otherUsers.forEach(user=>{
-      const theirMissions=theirs.filter(m=>m.created_by===user);
-      html+=`<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:var(--cyan);margin-bottom:10px;margin-top:20px">${user} — Missions</div>`;
-      html+=theirMissions.map(m=>missionCard(m)).join('');
-    });
-    el.innerHTML=html;
   });
+}
+
+function renderMissionPeople(){
+  const grid=document.getElementById('missions-people-grid');
+  if(!grid)return;
+  const all=CACHE.missions||[];
+  grid.innerHTML=MISSION_PEOPLE.map(p=>{
+    const pm=all.filter(m=>m.created_by===p.key);
+    const total=pm.length;
+    const active=pm.filter(m=>m.status==='active').length;
+    const completed=pm.filter(m=>m.status==='completed').length;
+    const allSteps=(CACHE.missionSteps||[]);
+    const mySteps=allSteps.filter(s=>pm.some(m=>m.id===s.mission_id));
+    const doneSteps=mySteps.filter(s=>s.status==='done').length;
+    const pct=mySteps.length?Math.round(doneSteps/mySteps.length*100):0;
+    return `<div onclick="selectMissionPerson('${p.key}')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden" onmouseover="this.style.borderColor='${p.color}';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)'">
+      <!-- accent bar -->
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:${p.color};border-radius:16px 16px 0 0"></div>
+      <!-- avatar -->
+      <div style="width:56px;height:56px;border-radius:50%;background:${p.color}22;border:2px solid ${p.color}44;display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:${p.color};margin-bottom:16px">${p.initials}</div>
+      <!-- name + role -->
+      <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">${p.name}</div>
+      <div style="font-size:11px;color:var(--text3);font-weight:500;margin-bottom:18px;text-transform:uppercase;letter-spacing:0.08em">${p.role}</div>
+      <!-- stats row -->
+      <div style="display:flex;gap:16px;margin-bottom:16px">
+        <div style="text-align:center">
+          <div style="font-size:20px;font-weight:800;color:${p.color};font-family:'Poppins',sans-serif">${total}</div>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:600">Missions</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--green);font-family:'Poppins',sans-serif">${active}</div>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:600">Active</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:20px;font-weight:800;color:var(--text2);font-family:'Poppins',sans-serif">${completed}</div>
+          <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:600">Done</div>
+        </div>
+      </div>
+      <!-- progress bar -->
+      ${mySteps.length?`<div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <div style="font-size:10px;color:var(--text3);font-weight:500">Overall Progress</div>
+          <div style="font-size:10px;font-weight:700;color:${p.color}">${pct}%</div>
+        </div>
+        <div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${p.color};border-radius:3px"></div>
+        </div>
+      </div>`:`<div style="font-size:11px;color:var(--text3)">No missions yet</div>`}
+    </div>`;
+  }).join('');
+}
+
+function selectMissionPerson(key){
+  activeMissionPerson=key;
+  renderMissions();
+}
+
+function missionsBack(){
+  activeMissionPerson=null;
+  renderMissions();
+}
+
+function renderMissionDetail(personKey){
+  const p=MISSION_PEOPLE.find(x=>x.key===personKey);
+  if(!p)return;
+  const nameEl=document.getElementById('missions-detail-name');
+  const roleEl=document.getElementById('missions-detail-role');
+  if(nameEl)nameEl.textContent=p.name+"'s Missions";
+  if(roleEl)roleEl.textContent=p.role;
+  const el=document.getElementById('missions-list');
+  if(!el)return;
+  const missions=(CACHE.missions||[]).filter(m=>m.created_by===personKey);
+  if(!missions.length){
+    el.innerHTML=`<div class="card" style="text-align:center;padding:48px 24px">
+      <div style="font-size:36px;margin-bottom:12px">🎯</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:8px">No missions yet for ${p.name}</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Add the first mission and start building the roadmap.</div>
+      <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
+    </div>`;
+    return;
+  }
+  el.innerHTML=missions.map(m=>missionCard(m,p.color)).join('');
 }
 
 const CAT_COLORS={product:'var(--cyan)',business:'var(--orange)',sales:'var(--green)',team:'var(--yellow)',client:'var(--pink)',strategy:'var(--purple)',personal:'var(--text2)'};
 const CAT_LABELS={product:'Product / Build',business:'Business Ops',sales:'Sales / Growth',team:'Team / Hiring',client:'Client',strategy:'Strategy',personal:'Personal'};
 const STATUS_COLORS={active:'var(--green)',paused:'var(--yellow)',completed:'var(--orange)'};
 
-function missionCard(m){
+function missionCard(m, personColor){
+  const catColor=personColor||CAT_COLORS[m.category]||'var(--text2)';
+  const catLabel=CAT_LABELS[m.category]||m.category;
+  const statusColor=STATUS_COLORS[m.status]||'var(--text2)';
   const steps=(CACHE.missionSteps||[]).filter(s=>s.mission_id===m.id).sort((a,b)=>(a.step_order||0)-(b.step_order||0));
   const total=steps.length;
   const done=steps.filter(s=>s.status==='done').length;
   const pct=total>0?Math.round(done/total*100):0;
-  const catColor=CAT_COLORS[m.category]||'var(--text2)';
-  const catLabel=CAT_LABELS[m.category]||m.category;
-  const statusColor=STATUS_COLORS[m.status]||'var(--text2)';
-  const isOpen=document.getElementById('mission-roadmap-'+m.id)?.style.display!=='none';
 
   return `<div class="card" style="margin-bottom:12px;border-left:3px solid ${catColor};padding:0">
-    <!-- Mission header -->
     <div style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px" onclick="toggleMissionRoadmap(${m.id})">
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
@@ -4002,43 +4087,38 @@ function missionCard(m){
           <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${statusColor}18;color:${statusColor};border:1px solid ${statusColor}33;text-transform:uppercase;letter-spacing:0.08em">${m.status}</span>
         </div>
         ${m.description?`<div style="font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:10px">${m.description}</div>`:''}
-        <!-- Progress bar -->
         <div style="display:flex;align-items:center;gap:10px">
           <div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">
             <div style="height:100%;width:${pct}%;background:${catColor};border-radius:3px;transition:width 0.4s"></div>
           </div>
-          <div style="font-size:10px;font-weight:700;color:${catColor};white-space:nowrap">${done}/${total} done</div>
+          <div style="font-size:10px;font-weight:700;color:${catColor};white-space:nowrap">${done}/${total} steps done</div>
         </div>
       </div>
       <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
         <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openMissionModal(${m.id})" style="padding:3px 9px;font-size:10px">Edit</button>
         <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteMission(${m.id})" style="padding:3px 9px;font-size:10px">Delete</button>
-        <span style="font-size:16px;color:var(--text3);transition:transform 0.2s" id="mission-chevron-${m.id}">▼</span>
+        <span style="font-size:14px;color:var(--text3)" id="mission-chevron-${m.id}">▼</span>
       </div>
     </div>
-
-    <!-- Roadmap (collapsible) -->
     <div id="mission-roadmap-${m.id}" style="display:none;border-top:1px solid var(--border);padding:0 20px 16px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0 10px">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3)">Roadmap</div>
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3)">Roadmap — ${total} step${total!==1?'s':''}</div>
         <button class="btn btn-ghost btn-sm" onclick="openStepModal(${m.id})" style="padding:2px 10px;font-size:10px;color:${catColor}">+ Add Step</button>
       </div>
       ${steps.length?`<div style="position:relative;padding-left:24px">
-        <!-- vertical line -->
         <div style="position:absolute;left:7px;top:8px;bottom:8px;width:2px;background:var(--bg4);border-radius:2px"></div>
-        ${steps.map((s,i)=>{
+        ${steps.map(s=>{
           const sc={done:'var(--green)',inprogress:'var(--orange)',todo:'var(--bg4)'}[s.status]||'var(--bg4)';
           const stc={done:'var(--green)',inprogress:'var(--orange)',todo:'var(--text3)'}[s.status]||'var(--text3)';
           const sl={done:'Done',inprogress:'In Progress',todo:'To Do'}[s.status]||s.status;
-          return `<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;position:relative">
-            <!-- dot -->
-            <div style="position:absolute;left:-17px;top:4px;width:10px;height:10px;border-radius:50%;background:${sc};border:2px solid ${sc};flex-shrink:0;z-index:1"></div>
+          return `<div style="display:flex;align-items:flex-start;margin-bottom:10px;position:relative">
+            <div style="position:absolute;left:-17px;top:5px;width:10px;height:10px;border-radius:50%;background:${sc};z-index:1"></div>
             <div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--rs);padding:10px 12px">
               <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:${s.notes?'5px':'0'}">
                 <div style="font-size:12px;font-weight:700;color:${s.status==='done'?'var(--text3)':'var(--text)'};${s.status==='done'?'text-decoration:line-through':''}">${s.title}</div>
-                <div style="display:flex;align-items:center;gap:4px;flex-shrink:0">
+                <div style="display:flex;gap:4px;flex-shrink:0">
                   <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;color:${stc};border:1px solid ${sc}33;background:${sc}18">${sl}</span>
-                  <button class="btn btn-ghost btn-sm" onclick="cycleStepStatus(${s.id},${m.id})" style="padding:1px 6px;font-size:9px">${s.status==='done'?'↩':'✓'}</button>
+                  <button class="btn btn-ghost btn-sm" onclick="cycleStepStatus(${s.id},${m.id})" style="padding:1px 6px;font-size:9px" title="Cycle status">${s.status==='done'?'↩':'✓'}</button>
                   <button class="btn btn-ghost btn-sm" onclick="openStepModal(${m.id},${s.id})" style="padding:1px 6px;font-size:9px">✎</button>
                   <button class="btn btn-danger btn-sm" onclick="deleteStep(${s.id},${m.id})" style="padding:1px 6px;font-size:9px">✕</button>
                 </div>
@@ -4047,7 +4127,7 @@ function missionCard(m){
             </div>
           </div>`;
         }).join('')}
-      </div>`:`<div style="font-size:12px;color:var(--text3);padding:8px 0">No steps yet. Add the first step to this roadmap.</div>`}
+      </div>`:`<div style="font-size:12px;color:var(--text3);padding:4px 0">No steps yet.</div>`}
     </div>
   </div>`;
 }
@@ -4058,7 +4138,7 @@ function toggleMissionRoadmap(id){
   if(!panel)return;
   const open=panel.style.display!=='none';
   panel.style.display=open?'none':'block';
-  if(chev)chev.style.transform=open?'rotate(0deg)':'rotate(180deg)';
+  if(chev)chev.style.transform=open?'':'rotate(180deg)';
 }
 
 function openMissionModal(id=null){
@@ -4088,7 +4168,7 @@ async function saveMission(){
     description:document.getElementById('mission-desc').value.trim(),
     category:document.getElementById('mission-category').value,
     status:document.getElementById('mission-status').value,
-    created_by:getCurrentUser(),
+    created_by:activeMissionPerson||getCurrentUser(),
   };
   if(!data.title)return alert('Enter a mission name');
   showLoading(true);
@@ -4101,9 +4181,8 @@ async function saveMission(){
 }
 
 async function deleteMission(id){
-  if(!confirm('Delete this mission and all its steps? Cannot be undone.'))return;
+  if(!confirm('Delete this mission and all its steps?'))return;
   showLoading(true);
-  // delete steps first
   const steps=(CACHE.missionSteps||[]).filter(s=>s.mission_id===id);
   for(const s of steps)await SB.delete('mission_steps',s.id);
   await SB.delete('missions',id);
@@ -4124,8 +4203,7 @@ function openStepModal(missionId,stepId=null){
       document.getElementById('step-status').value=s.status||'todo';
     }
   } else {
-    document.getElementById('step-title').value='';
-    document.getElementById('step-notes').value='';
+    ['step-title','step-notes'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('step-status').value='todo';
   }
   openModal('modal-mission-step');
@@ -4139,7 +4217,7 @@ async function saveMissionStep(){
     title:document.getElementById('step-title').value.trim(),
     notes:document.getElementById('step-notes').value.trim(),
     status:document.getElementById('step-status').value,
-    step_order:editId?undefined:(CACHE.missionSteps||[]).filter(s=>s.mission_id===mId).length,
+    step_order:(CACHE.missionSteps||[]).filter(s=>s.mission_id===mId).length,
   };
   if(!data.title)return alert('Enter a step title');
   if(editId)delete data.step_order;
@@ -4150,13 +4228,12 @@ async function saveMissionStep(){
   showLoading(false);
   closeModal('modal-mission-step');
   renderMissions();
-  // re-open the roadmap panel
   setTimeout(()=>{
     const panel=document.getElementById('mission-roadmap-'+mId);
     if(panel)panel.style.display='block';
     const chev=document.getElementById('mission-chevron-'+mId);
     if(chev)chev.style.transform='rotate(180deg)';
-  },100);
+  },150);
 }
 
 async function cycleStepStatus(stepId,missionId){
@@ -4171,9 +4248,7 @@ async function cycleStepStatus(stepId,missionId){
   setTimeout(()=>{
     const panel=document.getElementById('mission-roadmap-'+missionId);
     if(panel)panel.style.display='block';
-    const chev=document.getElementById('mission-chevron-'+missionId);
-    if(chev)chev.style.transform='rotate(180deg)';
-  },100);
+  },150);
 }
 
 async function deleteStep(stepId,missionId){
@@ -4186,8 +4261,9 @@ async function deleteStep(stepId,missionId){
   setTimeout(()=>{
     const panel=document.getElementById('mission-roadmap-'+missionId);
     if(panel)panel.style.display='block';
-  },100);
+  },150);
 }
+
 
 
 // ══ FINANCE VIEW SWITCHING ═══════════════════════
