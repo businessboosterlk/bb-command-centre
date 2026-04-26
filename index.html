@@ -889,6 +889,12 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
   </div>
   <!-- Weekly Calendar (hidden by default) -->
   <div id="shoots-weekly-wrap" style="display:none">
+    <!-- Month nav -->
+    <div style="display:flex;align-items:center;gap:14px;margin:16px 0 14px">
+      <button class="btn btn-ghost" onclick="shootCalNav(-1)" style="padding:6px 14px;font-size:13px">← Prev</button>
+      <div id="shoots-cal-month-label" style="font-family:'Poppins',sans-serif;font-size:15px;font-weight:800;color:var(--text);min-width:160px;text-align:center"></div>
+      <button class="btn btn-ghost" onclick="shootCalNav(1)" style="padding:6px 14px;font-size:13px">Next →</button>
+    </div>
     <div id="shoots-weekly"></div>
   </div>
 </div>
@@ -1216,7 +1222,33 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="ph">
       <div><div class="ph-title">Missions</div><div class="ph-sub">Select a person to view their projects and roadmaps</div></div>
     </div>
-    <div id="missions-people-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px"></div>
+    <div id="missions-people-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px">
+      <!-- Static fallback cards — JS overwrites these with live data -->
+      <div onclick="selectMissionPerson('THULAIB')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--orange);border-radius:16px 16px 0 0"></div>
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,107,43,0.15);border:2px solid rgba(255,107,43,0.4);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--orange);margin-bottom:16px">T</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Thulaib</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">CEO & Founder</div>
+      </div>
+      <div onclick="selectMissionPerson('SHIARA')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--cyan);border-radius:16px 16px 0 0"></div>
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,229,255,0.12);border:2px solid rgba(0,229,255,0.35);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--cyan);margin-bottom:16px">S</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Shiara</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Co-Founder</div>
+      </div>
+      <div onclick="selectMissionPerson('KENULI')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);border-radius:16px 16px 0 0"></div>
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,255,133,0.1);border:2px solid rgba(0,255,133,0.3);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin-bottom:16px">K</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Kenuli</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Social Media Manager</div>
+      </div>
+      <div onclick="selectMissionPerson('KANEESHA')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--yellow);border-radius:16px 16px 0 0"></div>
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(251,191,36,0.1);border:2px solid rgba(251,191,36,0.3);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--yellow);margin-bottom:16px">KA</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Kaneesha</div>
+        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Team</div>
+      </div>
+    </div>
   </div>
   <!-- Person detail view -->
   <div id="missions-view-detail" style="display:none">
@@ -1780,6 +1812,9 @@ async function nav(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
+  // Always scroll to top when switching pages
+  window.scrollTo(0,0);
+  document.querySelector('.main')&&(document.querySelector('.main').scrollTop=0);
   document.querySelectorAll('.sb-item').forEach(i=>{
     if(i.getAttribute('onclick')&&i.getAttribute('onclick').includes("'"+id+"'"))i.classList.add('active');
   });
@@ -1791,7 +1826,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:function(){renderMissions();},taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:function(){activeMissionPerson=null;renderMissions();},taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -3585,6 +3620,9 @@ function renderShootsBoard(){
 }
 
 // ── Shoots Tab toggle ──
+let shootCalYear=new Date().getFullYear();
+let shootCalMonth=new Date().getMonth();
+
 function setShootsTab(tab){
   const kw=document.getElementById('shoots-kanban-wrap');
   const cw=document.getElementById('shoots-weekly-wrap');
@@ -3604,55 +3642,46 @@ function setShootsTab(tab){
   }
 }
 
-// ── Weekly shoot calendar — 7-day grid ──
+function shootCalNav(dir){
+  shootCalMonth+=dir;
+  if(shootCalMonth>11){shootCalMonth=0;shootCalYear++;}
+  if(shootCalMonth<0){shootCalMonth=11;shootCalYear--;}
+  renderShootsWeekly();
+}
+
+// ── Shoot Pipeline Calendar — full month view with navigation ──
 function renderShootsWeekly(){
   const el=document.getElementById('shoots-weekly');
+  const lbl=document.getElementById('shoots-cal-month-label');
   if(!el)return;
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  if(lbl)lbl.textContent=MONTHS[shootCalMonth]+' '+shootCalYear;
   const clients=CACHE.clients||[];
   const allShoots=(CACHE.shoots||[]).filter(s=>s.shoot_date);
   const todayStr=new Date().toISOString().split('T')[0];
-  const now=new Date();
-  const dow=now.getDay();
-  const mondayOffset=dow===0?-6:1-dow;
-  const weekStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()+mondayOffset);
-  weekStart.setHours(0,0,0,0);
-  const days=[];
-  for(let i=0;i<14;i++){const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);days.push(d);}
-  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const firstDay=new Date(shootCalYear,shootCalMonth,1).getDay();
+  const daysInMonth=new Date(shootCalYear,shootCalMonth+1,0).getDate();
+  const dayNames=['SUN','MON','TUE','WED','THU','FRI','SAT'];
   const stageColors={'Videos Confirmed':'var(--cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
-
-  function buildWeek(weekDays,label){
-    return `<div style="margin-bottom:20px">
-      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:10px">${label}</div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
-        ${weekDays.map(d=>{
-          const ds=d.toISOString().split('T')[0];
-          const isToday=ds===todayStr;
-          const isWeekend=d.getDay()===0||d.getDay()===6;
-          const dayShoots=allShoots.filter(s=>s.shoot_date===ds);
-          return `<div style="min-height:130px;background:${isToday?'var(--o10)':isWeekend?'rgba(255,255,255,0.01)':'var(--bg3)'};border:1px solid ${isToday?'var(--o20)':'var(--border)'};border-radius:10px;padding:10px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-              <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase">${dayNames[d.getDay()]}</div>
-              <div style="${isToday?'background:var(--orange);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;':'color:var(--text2);'}font-family:'Poppins',sans-serif;font-size:12px;font-weight:800">${d.getDate()}</div>
-            </div>
-            ${dayShoots.length?dayShoots.map(s=>{
-              const c=clients.find(x=>x.id===s.client_id);
-              const sc=stageColors[s.stage]||'var(--text2)';
-              return `<div style="background:${sc}18;border:1px solid ${sc}44;border-radius:6px;padding:6px 8px;margin-bottom:5px;cursor:pointer" onclick="openShootModal(${s.id})">
-                <div style="font-size:10px;font-weight:700;color:${sc}">${c?c.name:'Unknown'}</div>
-                <div style="font-size:9px;color:var(--text2);margin-top:2px">${s.title}</div>
-                <div style="font-size:8px;color:var(--text3);margin-top:2px">${s.stage||''}</div>
-              </div>`;
-            }).join(''):`<div style="font-size:10px;color:var(--text3);text-align:center;margin-top:20px;opacity:0.35">—</div>`}
-          </div>`;
-        }).join('')}
-      </div>
-    </div>`;
+  function pad(n){return String(n).padStart(2,'0');}
+  function dateKey(d){return shootCalYear+'-'+pad(shootCalMonth+1)+'-'+pad(d);}
+  let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">'+dayNames.map(d=>'<div style="text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:6px 0">'+d+'</div>').join('')+'</div>';
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">';
+  for(let i=0;i<firstDay;i++)html+='<div style="min-height:100px;background:var(--bg);border:1px solid var(--border);border-radius:8px;opacity:0.2"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=dateKey(d);
+    const isToday=ds===todayStr;
+    const colIdx=(firstDay+d-1)%7;
+    const isWeekend=colIdx===0||colIdx===6;
+    const dayShoots=allShoots.filter(s=>s.shoot_date===ds);
+    const hasShoot=dayShoots.length>0;
+    html+='<div style="min-height:100px;background:'+(isToday?'var(--o10)':hasShoot?'rgba(255,45,120,0.06)':isWeekend?'rgba(255,255,255,0.01)':'var(--bg3)')+'";border:1px solid '+(isToday?'var(--o20)':hasShoot?'rgba(255,45,120,0.3)':'var(--border)')+';border-radius:8px;padding:8px;border:1px solid '+(isToday?'var(--o20)':hasShoot?'rgba(255,45,120,0.3)':'var(--border)')+'"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div style="'+(isToday?'background:var(--orange);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;':'color:'+(hasShoot?'var(--pink)':'var(--text2)')+';font-size:12px;font-weight:700;')+'">'+d+'</div>'+(hasShoot?'<span style="font-size:9px;font-weight:700;background:var(--pink);color:#fff;border-radius:3px;padding:1px 5px">'+dayShoots.length+'</span>':'')+'</div>'+dayShoots.slice(0,3).map(function(s){var c=clients.find(function(x){return x.id===s.client_id;});var sc=stageColors[s.stage]||'var(--text2)';return '<div style="background:'+sc+'18;border-left:2px solid '+sc+';border-radius:0 4px 4px 0;padding:3px 6px;margin-bottom:3px;cursor:pointer" onclick="openShootModal('+s.id+')"><div style="font-size:9px;font-weight:700;color:'+sc+';line-height:1.2">'+(c?c.name:'?')+'</div><div style="font-size:8px;color:var(--text3);line-height:1.2">'+(s.title||'')+'</div></div>';}).join('')+(dayShoots.length>3?'<div style="font-size:8px;color:var(--text3);margin-top:2px">+'+(dayShoots.length-3)+' more</div>':'')+'</div>';
   }
-
-  const w1=days.slice(0,7),w2=days.slice(7,14);
-  const fmt=(d)=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-  el.innerHTML=buildWeek(w1,`This Week · ${fmt(w1[0])} – ${fmt(w1[6])}`)+buildWeek(w2,`Next Week · ${fmt(w2[0])} – ${fmt(w2[6])}`);
+  const rem=(firstDay+daysInMonth)%7;
+  if(rem>0)for(let i=rem;i<7;i++)html+='<div style="min-height:100px;background:var(--bg);border:1px solid var(--border);border-radius:8px;opacity:0.2"></div>';
+  html+='</div>';
+  const monthShoots=allShoots.filter(s=>s.shoot_date&&s.shoot_date.startsWith(shootCalYear+'-'+pad(shootCalMonth+1)));
+  el.innerHTML='<div style="font-size:11px;color:var(--text3);margin-bottom:12px">'+monthShoots.length+' shoot'+(monthShoots.length!==1?'s':'')+' this month</div>'+html;
 }
 
 async function handleShootDrop(event,stage){
@@ -3704,8 +3733,11 @@ async function mobileNav(id){
   pillarStateCache.sh=shState;
   showLoading(false);
   ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,
-    pipeline:renderPipeline,revenue:renderRevenue,advisor:renderAdvisor,
-    taskbook:renderTaskBook,calendar:renderCalendar,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+    pipeline:renderPipeline,revenue:renderRevenue,
+    missions:function(){activeMissionPerson=null;renderMissions();},
+    taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,
+    shoots:renderShootsBoard,
+    'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 // ═══ INIT ════════════════════════════════════════
@@ -4019,22 +4051,27 @@ async function loadMissions(){
 }
 
 function renderMissions(){
-  loadMissions().then(()=>{
-    const pv=document.getElementById('missions-view-people');
-    const dv=document.getElementById('missions-view-detail');
-    if(activeMissionPerson){
-      if(pv)pv.style.display='none';
-      if(dv)dv.style.display='block';
-      renderMissionDetail(activeMissionPerson);
-    } else {
-      if(pv)pv.style.display='block';
-      if(dv)dv.style.display='none';
-      renderMissionPeople();
-    }
-  });
+  const pv=document.getElementById('missions-view-people');
+  const dv=document.getElementById('missions-view-detail');
+  if(activeMissionPerson){
+    if(pv)pv.style.display='none';
+    if(dv)dv.style.display='block';
+    // Load then render detail
+    loadMissions().then(()=>renderMissionDetail(activeMissionPerson));
+  } else {
+    if(pv)pv.style.display='block';
+    if(dv)dv.style.display='none';
+    // Render immediately from cache (shows 0s), then update when data loads
+    renderMissionPeople();
+    loadMissions().then(()=>renderMissionPeople());
+  }
 }
 
 function renderMissionPeople(){
+  // Force scroll to top — cards must be visible immediately
+  window.scrollTo({top:0,behavior:'instant'});
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
   const grid=document.getElementById('missions-people-grid');
   if(!grid)return;
   const all=CACHE.missions||[];
