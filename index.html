@@ -550,7 +550,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
     <div class="sb-grp">Business</div>
     <div class="sb-item" onclick="nav('clients')"><span>Clients</span></div>
     <div class="sb-item" onclick="nav('taskbook')"><span>Task Book</span><span class="sb-badge" id="sb-overdue-badge" style="display:none">!</span></div>
-    <div class="sb-item" onclick="nav('shoots')"><span>Shoots</span></div>
+    <div class="sb-item" onclick="nav('shoots')"><span>Shoot Pipeline</span></div>
     <div class="sb-item" onclick="nav('pipeline')"><span>Potential Leads</span></div>
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
@@ -849,8 +849,8 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 <div class="page" id="page-shoots">
   <div class="ph">
     <div>
-      <div class="ph-title">Shoots Board</div>
-      <div class="ph-sub">Drag cards between columns to update stage</div>
+      <div class="ph-title">Shoot Pipeline</div>
+      <div class="ph-sub">Kanban + weekly shoot calendar</div>
     </div>
     <div class="ph-right">
       <select class="fs" id="gshoots-quarter" style="width:90px" onchange="renderShootsBoard()">
@@ -878,11 +878,19 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
       <button class="btn btn-primary" onclick="openShootModalGlobal()">+ Add Shoot</button>
     </div>
   </div>
-  <!-- Kanban columns -->
-  <div id="shoots-kanban" style="display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:16px;min-height:60vh"></div>
-
-  <!-- Upcoming Shoot Dates by Week -->
-  <div id="shoots-weekly" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)"></div>
+  <!-- View toggle tabs -->
+  <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border);padding-bottom:0">
+    <button id="shoots-tab-kanban" onclick="setShootsTab('kanban')" style="padding:8px 18px;font-size:12px;font-weight:700;background:none;border:none;border-bottom:2px solid var(--orange);color:var(--orange);cursor:pointer;font-family:inherit">Pipeline</button>
+    <button id="shoots-tab-calendar" onclick="setShootsTab('calendar')" style="padding:8px 18px;font-size:12px;font-weight:700;background:none;border:none;border-bottom:2px solid transparent;color:var(--text3);cursor:pointer;font-family:inherit">Weekly Calendar</button>
+  </div>
+  <!-- Kanban -->
+  <div id="shoots-kanban-wrap">
+    <div id="shoots-kanban" style="display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:16px;min-height:60vh"></div>
+  </div>
+  <!-- Weekly Calendar (hidden by default) -->
+  <div id="shoots-weekly-wrap" style="display:none">
+    <div id="shoots-weekly"></div>
+  </div>
 </div>
 
 <!-- ══ PIPELINE ══ -->
@@ -1636,7 +1644,7 @@ const SB={
 };
 
 // In-memory cache (refreshed on each page nav)
-let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[],shoots:[]};
+let CACHE={clients:[],tasks:[],pipeline:[],revenue:[],pillars:[],events:[],invoices:[],costs:[],shoots:[],missions:[],missionSteps:[]};
 
 async function loadAll(){
   const [clients,tasks,pipeline,revenue,pillars,events,invoices,costs,shoots,smm_content,content_plans_data]=await Promise.all([
@@ -1783,7 +1791,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:function(){renderMissions();},taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -3040,8 +3048,79 @@ function openEventModal(){
 }
 
 function openEventModalOnDate(dateStr){
-  openEventModal();
-  document.getElementById('ev-date').value=dateStr;
+  // Show day detail panel instead of jumping straight to modal
+  showDayDetail(dateStr);
+}
+
+function showDayDetail(dateStr){
+  const clients=CACHE.clients||[];
+  const events=(CACHE.events||[]).filter(e=>e.date===dateStr);
+  const tasks=(CACHE.tasks||[]).filter(t=>t.due===dateStr);
+  const shoots=(CACHE.shoots||[]).filter(s=>s.shoot_date===dateStr);
+  const d=new Date(dateStr+'T00:00');
+  const dayLabel=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  const evTypeColor=(t)=>({shoot:'var(--cyan)',call:'var(--green)',deadline:'var(--red)',meeting:'var(--yellow)',other:'var(--text2)'}[t]||'var(--text2)');
+
+  const evHtml=events.length?events.map(e=>`
+    <div style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid ${evTypeColor(e.type)};border-radius:8px;margin-bottom:8px">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text)">${e.title}</div>
+        ${e.time?`<div style="font-size:11px;color:var(--text3);margin-top:2px">🕐 ${e.time}</div>`:''}
+        ${e.notes?`<div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.5">${e.notes}</div>`:''}
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="editEvent(${e.id})" style="padding:2px 8px;font-size:10px">Edit</button>
+    </div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">No events</div>`;
+
+  const taskHtml=tasks.length?tasks.map(t=>{
+    const c=clients.find(x=>x.id===(t.clientId||t.client_id));
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${t.done?'var(--green)':'var(--orange)'}"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:${t.done?'var(--text3)':'var(--text)'}${t.done?';text-decoration:line-through':''}">${t.title}</div>
+        ${c?`<div style="font-size:10px;color:var(--text3);margin-top:1px">${c.name}</div>`:''}
+      </div>
+    </div>`;
+  }).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">No tasks due</div>`;
+
+  const shootHtml=shoots.length?shoots.map(s=>{
+    const c=clients.find(x=>x.id===s.client_id);
+    return `<div style="padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--cyan);border-radius:8px;margin-bottom:6px">
+      <div style="font-size:13px;font-weight:700;color:var(--cyan)">${s.title}</div>
+      ${c?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${c.name}</div>`:''}
+      ${s.stage?`<div style="font-size:10px;margin-top:4px;color:var(--text2)">${s.stage}</div>`:''}
+    </div>`;
+  }).join(''):'';
+
+  const total=events.length+tasks.length+shoots.length;
+
+  // Open a modal to show the day
+  let modal=document.getElementById('modal-day-detail');
+  if(!modal){
+    modal=document.createElement('div');
+    modal.id='modal-day-detail';
+    modal.className='overlay';
+    modal.onclick=function(ev){if(ev.target===this)this.style.display='none';};
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML=`<div class="modal" style="max-width:560px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <div>
+        <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${dayLabel}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${total} item${total!==1?'s':''} this day</div>
+      </div>
+      <button class="btn btn-primary" onclick="document.getElementById('modal-day-detail').style.display='none';openEventModal();document.getElementById('ev-date').value='${dateStr}'">+ Add Event</button>
+    </div>
+    ${shoots.length?`<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--cyan);margin-bottom:8px">SHOOTS</div>${shootHtml}`:''}
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange);margin-bottom:8px">EVENTS</div>
+    ${evHtml}
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--yellow);margin-top:14px;margin-bottom:8px">TASKS DUE</div>
+    ${taskHtml}
+    <div class="modal-foot" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-day-detail').style.display='none'">Close</button>
+    </div>
+  </div>`;
+  modal.style.display='flex';
 }
 
 function editEvent(id){
@@ -3505,105 +3584,77 @@ function renderShootsBoard(){
   renderShootsWeekly();
 }
 
-// ── Upcoming 4 weeks shoot-date list ──
+// ── Shoots Tab toggle ──
+function setShootsTab(tab){
+  const kw=document.getElementById('shoots-kanban-wrap');
+  const cw=document.getElementById('shoots-weekly-wrap');
+  const kt=document.getElementById('shoots-tab-kanban');
+  const ct=document.getElementById('shoots-tab-calendar');
+  if(tab==='kanban'){
+    if(kw)kw.style.display='block';
+    if(cw)cw.style.display='none';
+    if(kt){kt.style.color='var(--orange)';kt.style.borderBottomColor='var(--orange)';}
+    if(ct){ct.style.color='var(--text3)';ct.style.borderBottomColor='transparent';}
+  } else {
+    if(kw)kw.style.display='none';
+    if(cw)cw.style.display='block';
+    if(kt){kt.style.color='var(--text3)';kt.style.borderBottomColor='transparent';}
+    if(ct){ct.style.color='var(--orange)';ct.style.borderBottomColor='var(--orange)';}
+    renderShootsWeekly();
+  }
+}
+
+// ── Weekly shoot calendar — 7-day grid ──
 function renderShootsWeekly(){
   const el=document.getElementById('shoots-weekly');
   if(!el)return;
   const clients=CACHE.clients||[];
-  const shoots=(CACHE.shoots||[]).filter(s=>(s.stage==='Shoot Date Set'||s.stage==='Shot')&&s.shoot_date);
-
-  // Find the Monday of THIS week (local time)
+  const allShoots=(CACHE.shoots||[]).filter(s=>s.shoot_date);
+  const todayStr=new Date().toISOString().split('T')[0];
   const now=new Date();
-  const dow=now.getDay(); // 0=Sun..6=Sat
-  const mondayOffset=dow===0?-6:1-dow; // move back to Monday
+  const dow=now.getDay();
+  const mondayOffset=dow===0?-6:1-dow;
   const weekStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()+mondayOffset);
   weekStart.setHours(0,0,0,0);
+  const days=[];
+  for(let i=0;i<14;i++){const d=new Date(weekStart);d.setDate(weekStart.getDate()+i);days.push(d);}
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const stageColors={'Videos Confirmed':'var(--cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
 
-  // Build 4 week buckets
-  const buckets=[];
-  for(let i=0;i<4;i++){
-    const start=new Date(weekStart);start.setDate(weekStart.getDate()+i*7);
-    const end=new Date(start);end.setDate(start.getDate()+7);
-    const label=i===0?'This Week':i===1?'Next Week':'Week '+(i+1);
-    buckets.push({i,start,end,label,shoots:[]});
+  function buildWeek(weekDays,label){
+    return `<div style="margin-bottom:20px">
+      <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);margin-bottom:10px">${label}</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+        ${weekDays.map(d=>{
+          const ds=d.toISOString().split('T')[0];
+          const isToday=ds===todayStr;
+          const isWeekend=d.getDay()===0||d.getDay()===6;
+          const dayShoots=allShoots.filter(s=>s.shoot_date===ds);
+          return `<div style="min-height:130px;background:${isToday?'var(--o10)':isWeekend?'rgba(255,255,255,0.01)':'var(--bg3)'};border:1px solid ${isToday?'var(--o20)':'var(--border)'};border-radius:10px;padding:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:9px;font-weight:600;color:var(--text3);text-transform:uppercase">${dayNames[d.getDay()]}</div>
+              <div style="${isToday?'background:var(--orange);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;':'color:var(--text2);'}font-family:'Poppins',sans-serif;font-size:12px;font-weight:800">${d.getDate()}</div>
+            </div>
+            ${dayShoots.length?dayShoots.map(s=>{
+              const c=clients.find(x=>x.id===s.client_id);
+              const sc=stageColors[s.stage]||'var(--text2)';
+              return `<div style="background:${sc}18;border:1px solid ${sc}44;border-radius:6px;padding:6px 8px;margin-bottom:5px;cursor:pointer" onclick="openShootModal(${s.id})">
+                <div style="font-size:10px;font-weight:700;color:${sc}">${c?c.name:'Unknown'}</div>
+                <div style="font-size:9px;color:var(--text2);margin-top:2px">${s.title}</div>
+                <div style="font-size:8px;color:var(--text3);margin-top:2px">${s.stage||''}</div>
+              </div>`;
+            }).join(''):`<div style="font-size:10px;color:var(--text3);text-align:center;margin-top:20px;opacity:0.35">—</div>`}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
   }
 
-  // Place each shoot in its bucket
-  shoots.forEach(s=>{
-    const d=new Date(s.shoot_date);d.setHours(0,0,0,0);
-    for(const b of buckets){
-      if(d>=b.start&&d<b.end){b.shoots.push(s);break;}
-    }
-  });
-
-  // Sort shoots inside each bucket by date ascending
-  buckets.forEach(b=>b.shoots.sort((a,b)=>new Date(a.shoot_date)-new Date(b.shoot_date)));
-
-  const fmtRange=(start,end)=>{
-    const e=new Date(end);e.setDate(e.getDate()-1);
-    const opts={day:'numeric',month:'short'};
-    return start.toLocaleDateString('en-GB',opts)+' — '+e.toLocaleDateString('en-GB',opts);
-  };
-
-  const totalShoots=buckets.reduce((s,b)=>s+b.shoots.length,0);
-
-  el.innerHTML=`
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
-      <div style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--text)">Upcoming Shoot Dates</div>
-      <div style="font-size:11px;color:var(--text3)">Next 4 weeks · Shoot Date Set + Shot · ${totalShoots} total</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
-      ${buckets.map(b=>{
-        const today=new Date();today.setHours(0,0,0,0);
-        const isCurrent=b.i===0;
-        return `<div style="background:var(--bg3);border:1px solid ${isCurrent?'var(--o20)':'var(--border)'};border-radius:10px;padding:14px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div>
-              <div style="font-size:12px;font-weight:800;color:${isCurrent?'var(--orange)':'var(--text)'};text-transform:uppercase;letter-spacing:0.06em">${b.label}</div>
-              <div style="font-size:10px;color:var(--text3);margin-top:2px">${fmtRange(b.start,b.end)}</div>
-            </div>
-            <div style="background:${isCurrent?'var(--o10)':'var(--bg4)'};color:${isCurrent?'var(--orange)':'var(--text2)'};font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid ${isCurrent?'var(--o20)':'var(--border)'}">${b.shoots.length}</div>
-          </div>
-          ${b.shoots.length===0?
-            `<div style="font-size:11px;color:var(--text3);text-align:center;padding:14px 6px;font-style:italic">No shoots scheduled</div>`
-            :
-            b.shoots.map(s=>{
-              const client=clients.find(c=>c.id===s.client_id);
-              const d=new Date(s.shoot_date);
-              const dayName=d.toLocaleDateString('en-GB',{weekday:'short'});
-              const dayNum=d.getDate();
-              const monthShort=d.toLocaleDateString('en-GB',{month:'short'});
-              const isShot=s.stage==='Shot';
-              const isToday=d.setHours(0,0,0,0)===today.getTime();
-              return `<div onclick="openShootModal(${s.id})" style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg4);border:1px solid ${isToday?'var(--o20)':'var(--border)'};border-radius:8px;margin-bottom:6px;cursor:pointer">
-                <div style="flex-shrink:0;width:42px;text-align:center;padding:4px 0;background:${isShot?'rgba(0,255,133,0.08)':isToday?'var(--o10)':'var(--bg3)'};border-radius:6px;border:1px solid ${isShot?'rgba(0,255,133,0.2)':isToday?'var(--o20)':'var(--border)'}">
-                  <div style="font-size:9px;font-weight:700;color:${isShot?'var(--green)':isToday?'var(--orange)':'var(--text3)'};text-transform:uppercase">${dayName}</div>
-                  <div style="font-size:15px;font-weight:800;color:${isShot?'var(--green)':isToday?'var(--orange)':'var(--text)'};line-height:1">${dayNum}</div>
-                  <div style="font-size:8px;font-weight:600;color:${isShot?'var(--green)':isToday?'var(--orange)':'var(--text3)'};text-transform:uppercase">${monthShort}</div>
-                </div>
-                <div style="flex:1;min-width:0">
-                  <div style="font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${client?client.name:'Unknown'}</div>
-                  <div style="font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${s.title}</div>
-                  <div style="display:flex;gap:6px;margin-top:3px;align-items:center">
-                    ${s.video_count?`<span style="font-size:9px;color:var(--text3)">${s.video_count} vids</span>`:''}
-                    <span style="font-size:8px;font-weight:700;padding:1px 5px;border-radius:3px;background:${isShot?'rgba(0,255,133,0.12)':'rgba(255,45,120,0.12)'};color:${isShot?'var(--green)':'var(--pink)'};text-transform:uppercase;letter-spacing:0.04em">${isShot?'Shot':'Set'}</span>
-                  </div>
-                </div>
-              </div>`;
-            }).join('')
-          }
-        </div>`;
-      }).join('')}
-    </div>
-  `;
+  const w1=days.slice(0,7),w2=days.slice(7,14);
+  const fmt=(d)=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+  el.innerHTML=buildWeek(w1,`This Week · ${fmt(w1[0])} – ${fmt(w1[6])}`)+buildWeek(w2,`Next Week · ${fmt(w2[0])} – ${fmt(w2[6])}`);
 }
 
-let dragShootId=null;
-function handleShootDragStart(event,id){
-  dragShootId=id;
-  event.target.classList.add('dragging');
-  event.dataTransfer.effectAllowed='move';
-}
 async function handleShootDrop(event,stage){
   event.preventDefault();
   if(!dragShootId)return;
