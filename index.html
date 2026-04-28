@@ -47,7 +47,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── MAIN ── */
-.main{margin-left:var(--sidebar);min-height:100vh}
+.main{margin-left:var(--sidebar);min-height:100vh;overflow-y:auto;height:100vh}
 .page{display:none;padding:28px 32px;animation:fi 0.18s ease}
 .page.active{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -495,10 +495,8 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 .cc-login-btn:hover{opacity:0.9;}
 .cc-login-err{color:var(--red);font-size:11px;margin-top:10px;display:none;font-weight:500;}
 
-</style>
-</head>
-<body>
-<style>
+
+/* Guest mode — read only */
 body.cc-guest .btn-primary,
 body.cc-guest .btn-danger,
 body.cc-guest button[onclick*="openTaskModal"],
@@ -512,6 +510,8 @@ body.cc-guest button[onclick*="delete"],
 body.cc-guest button[onclick*="Delete"],
 body.cc-guest select.fs[onchange*="update"]{display:none !important}
 </style>
+</head>
+<body>
 
 <!-- LOGIN SCREEN -->
 <div id="cc-login">
@@ -1827,9 +1827,12 @@ async function nav(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  // Always scroll to top when switching pages
-  window.scrollTo(0,0);
-  document.querySelector('.main')&&(document.querySelector('.main').scrollTop=0);
+  // Bulletproof scroll to top
+  window.scrollTo({top:0,left:0,behavior:'instant'});
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  const mainEl=document.querySelector('.main');
+  if(mainEl)mainEl.scrollTop=0;
   document.querySelectorAll('.sb-item').forEach(i=>{
     if(i.getAttribute('onclick')&&i.getAttribute('onclick').includes("'"+id+"'"))i.classList.add('active');
   });
@@ -4107,10 +4110,12 @@ function renderMissions(){
 }
 
 function renderMissionPeople(){
-  // Force scroll to top — cards must be visible immediately
-  window.scrollTo({top:0,behavior:'instant'});
+  // Force scroll to top
+  window.scrollTo({top:0,left:0,behavior:'instant'});
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
+  const mEl=document.querySelector('.main');
+  if(mEl)mEl.scrollTop=0;
   const grid=document.getElementById('missions-people-grid');
   if(!grid)return;
   const all=CACHE.missions||[];
