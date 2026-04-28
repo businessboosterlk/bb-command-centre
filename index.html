@@ -2202,6 +2202,9 @@ function openTaskModalForClient(){
   document.getElementById('t-notes').value='';
   const gcfg=document.getElementById('global-client-fg');
   if(gcfg)gcfg.style.display='none';
+  const csw=document.getElementById('task-client-select-wrap');
+  if(csw)csw.style.display='none';
+  document.getElementById('modal-task').querySelector('.modal-title').textContent='Add Task';
   openModal('modal-task');
 }
 
@@ -2624,6 +2627,7 @@ function openPipeTaskModal(pid){
   currentPipeId=pid;
   document.getElementById('task-client-id').value='';
   document.getElementById('task-pipeline-id').value=pid;
+  document.getElementById('task-edit-id').value='';
   document.getElementById('t-title').value='';
   document.getElementById('t-assign').value='th';
   document.getElementById('t-due').value=today();
@@ -2632,6 +2636,9 @@ function openPipeTaskModal(pid){
   document.getElementById('t-notes').value='';
   const gcfg=document.getElementById('global-client-fg');
   if(gcfg)gcfg.style.display='none';
+  const csw=document.getElementById('task-client-select-wrap');
+  if(csw)csw.style.display='none';
+  document.getElementById('modal-task').querySelector('.modal-title').textContent='Add Task — Pipeline';
   openModal('modal-task');
 }
 
