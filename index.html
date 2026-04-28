@@ -2209,6 +2209,7 @@ function openTaskModalForClient(){
 }
 
 async function saveTask(){
+  try{
   let clientId=parseInt(document.getElementById('task-client-id').value)||null;
   const pipelineId=parseInt(document.getElementById('task-pipeline-id').value)||null;
   const editId=parseInt(document.getElementById('task-edit-id').value)||null;
@@ -2232,7 +2233,8 @@ async function saveTask(){
   } else {
     data.done=false;
     data.created_by=getCurrentUser();
-    await SB.insert('tasks',data);
+    const result=await SB.insert('tasks',data);
+    if(!result){showLoading(false);return;}
   }
   await loadAll();showLoading(false);
   closeModal('modal-task');
@@ -2249,6 +2251,7 @@ async function saveTask(){
   if(document.getElementById('page-taskbook')?.classList.contains('active'))renderTaskBook();
   if(document.getElementById('page-pipeline')?.classList.contains('active'))renderPipeline();
   renderDashboard();
+  }catch(err){showLoading(false);alert('Task save error: '+err.message);}
 }
 
 async function toggleTask(id){
