@@ -2487,6 +2487,9 @@ function renderPipeline(){
 function renderPipeList(arr,elId){
   const el=document.getElementById(elId);
   if(!arr.length){el.innerHTML='<div class="empty">No leads here</div>';return;}
+  // Sort: hot → active → converted → cold → closed
+  const statusOrder={hot:0,active:1,converted:2,cold:3,closed:4};
+  arr=[...arr].sort((a,b)=>(statusOrder[a.status]??2)-(statusOrder[b.status]??2));
   el.innerHTML=arr.map(p=>{
     const ptasks=(CACHE.tasks||[]).filter(t=>(t.pipelineId===p.id||t.pipeline_id===p.id));
     const openPT=ptasks.filter(t=>!t.done);
