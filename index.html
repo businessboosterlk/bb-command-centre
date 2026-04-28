@@ -3781,6 +3781,7 @@ function ccLogin(){
     document.getElementById('cc-login').classList.add('gone');
     // Store current user for audit trail
     window.CC_CURRENT_USER=name;
+    window.getCurrentUser=function(){return window.CC_CURRENT_USER||'UNKNOWN';};
     // no session storage — login required every reload
     // update sidebar name
     const dateEl=document.getElementById('sb-date');
