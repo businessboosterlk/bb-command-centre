@@ -1385,6 +1385,7 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
     <div class="modal-title" id="pipe-modal-title">Add Lead</div>
     <input type="hidden" id="pipe-edit-id">
     <div class="fg"><label class="flbl">Business Name</label><input class="fi" id="p-name" placeholder="e.g. Show Car Detailers"></div>
+    <div class="fg"><label class="flbl">Owner / Contact Name</label><input class="fi" id="p-owner" placeholder="e.g. Kasun Perera"></div>
     <div class="fg-row">
       <div class="fg"><label class="flbl">Type</label>
         <select class="fs" id="p-type"><option value="sm">Social Media</option><option value="web">Website / Other</option></select>
@@ -2514,7 +2515,7 @@ function renderPipeList(arr,elId){
     return `
     <div class="pc s-${p.status}" id="pc-${p.id}">
       <div class="pc-top"><span class="pc-name">${p.name}</span><span class="pill ${statusPill(p.status)}">${statusLabel(p.status)}</span></div>
-      <div class="pc-meta">${p.industry||'&nbsp;'}</div>
+      <div class="pc-meta">${p.industry||'&nbsp;'}${p.owner?` &nbsp;·&nbsp; <span style="color:var(--text2);font-weight:600">${p.owner}</span>`:''}</div>
       ${p.next?`<div class="pc-next">&rarr; ${p.next}</div>`:''}
       ${p.notes?`<div class="pc-note">${p.notes}</div>`:''}
       <div class="pc-actions">
@@ -2539,14 +2540,14 @@ function renderPipeList(arr,elId){
 function openPipelineModal(id=null){
   document.getElementById('pipe-modal-title').textContent=id?'Edit Lead':'Add Lead';
   document.getElementById('pipe-edit-id').value=id||'';
-  if(id){const p=(CACHE.pipeline||[]).find(x=>x.id===id);if(p){document.getElementById('p-name').value=p.name;document.getElementById('p-type').value=p.type;document.getElementById('p-status').value=p.status;document.getElementById('p-industry').value=p.industry||'';document.getElementById('p-next').value=p.next||'';document.getElementById('p-notes').value=p.notes||'';}}
-  else{['p-name','p-industry','p-next','p-notes'].forEach(x=>document.getElementById(x).value='');document.getElementById('p-type').value='sm';document.getElementById('p-status').value='active';}
+  if(id){const p=(CACHE.pipeline||[]).find(x=>x.id===id);if(p){document.getElementById('p-name').value=p.name;document.getElementById('p-owner').value=p.owner||'';document.getElementById('p-type').value=p.type;document.getElementById('p-status').value=p.status;document.getElementById('p-industry').value=p.industry||'';document.getElementById('p-next').value=p.next||'';document.getElementById('p-notes').value=p.notes||'';}}
+  else{['p-name','p-owner','p-industry','p-next','p-notes'].forEach(x=>document.getElementById(x).value='');document.getElementById('p-type').value='sm';document.getElementById('p-status').value='active';}
   openModal('modal-pipeline');
 }
 function editPipeline(id){openPipelineModal(id);}
 async function savePipeline(){
   const editId=parseInt(document.getElementById('pipe-edit-id').value)||null;
-  const data={name:document.getElementById('p-name').value.trim(),type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,industry:document.getElementById('p-industry').value.trim(),next_action:document.getElementById('p-next').value.trim(),notes:document.getElementById('p-notes').value.trim()};
+  const data={name:document.getElementById('p-name').value.trim(),owner:document.getElementById('p-owner').value.trim(),type:document.getElementById('p-type').value,status:document.getElementById('p-status').value,industry:document.getElementById('p-industry').value.trim(),next_action:document.getElementById('p-next').value.trim(),notes:document.getElementById('p-notes').value.trim()};
   if(!data.name)return alert('Business name required');
   showLoading(true);
   if(editId){await SB.update('pipeline',editId,data);}
