@@ -498,6 +498,20 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 </style>
 </head>
 <body>
+<style>
+body.cc-guest .btn-primary,
+body.cc-guest .btn-danger,
+body.cc-guest button[onclick*="openTaskModal"],
+body.cc-guest button[onclick*="openPipeline"],
+body.cc-guest button[onclick*="openShoot"],
+body.cc-guest button[onclick*="openEdit"],
+body.cc-guest button[onclick*="openEvent"],
+body.cc-guest .pc-task-add,
+body.cc-guest button[onclick*="edit"],
+body.cc-guest button[onclick*="delete"],
+body.cc-guest button[onclick*="Delete"],
+body.cc-guest select.fs[onchange*="update"]{display:none !important}
+</style>
 
 <!-- LOGIN SCREEN -->
 <div id="cc-login">
@@ -1826,6 +1840,7 @@ async function nav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
+  if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
   ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:function(){activeMissionPerson=null;renderMissions();},taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
@@ -3745,6 +3760,7 @@ async function mobileNav(id){
   pillarStateCache.th=thState;
   pillarStateCache.sh=shState;
   showLoading(false);
+  if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
   ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,
     pipeline:renderPipeline,revenue:renderRevenue,
     missions:function(){activeMissionPerson=null;renderMissions();},
@@ -3768,7 +3784,8 @@ async function init(){
 // init only runs after successful login
 
 // ── LOGIN ──────────────────────────────────────────
-const CC_USERS={THULAIB:'1031',SHIARA:'1006'};
+const CC_USERS={THULAIB:'0000',SHIARA:'1006',GUEST:'2025'};
+const CC_GUEST_USERS=new Set(['GUEST']);
 // Set login date
 (function(){
   const el=document.getElementById('cc-login-date');
@@ -3785,6 +3802,13 @@ function ccLogin(){
     // Store current user for audit trail
     window.CC_CURRENT_USER=name;
     window.getCurrentUser=function(){return window.CC_CURRENT_USER||'UNKNOWN';};
+    window.CC_IS_GUEST=CC_GUEST_USERS.has(name);
+    if(window.CC_IS_GUEST){
+      document.body.classList.add('cc-guest');
+      document.querySelectorAll('.sb-item').forEach(el=>{
+        if(el.textContent.trim()==='Finance')el.style.display='none';
+      });
+    }
     // no session storage — login required every reload
     // update sidebar name
     const dateEl=document.getElementById('sb-date');
