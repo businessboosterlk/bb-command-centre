@@ -568,6 +568,8 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
     <div class="sb-item" onclick="nav('pipeline')"><span>Potential Leads</span></div>
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
+
+    <div class="sb-grp">Tools</div>
     <div class="sb-item" onclick="nav('missions')"><span>Missions</span></div>
     <div class="sb-grp">Team Systems</div>
     <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="color:var(--cyan)"><span>SMM Workspace ↗</span></div>
@@ -1123,6 +1125,10 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
 
 
 <!-- ══ FINANCE ══ -->
+<div class="page" id="page-missions">
+  <div id="missions-root"></div>
+</div>
+
 <div class="page" id="page-finance">
   <div class="ph">
     <div><div class="ph-title">Finance</div><div class="ph-sub">Track by month — revenue received, costs paid, profit auto-calculated</div></div>
@@ -1230,57 +1236,7 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
 </div>
 
 <!-- ══ BB ADVISOR ══ -->
-<div class="page" id="page-missions">
-  <!-- Person selector view -->
-  <div id="missions-view-people">
-    <div class="ph">
-      <div><div class="ph-title">Missions</div><div class="ph-sub">Select a person to view their projects and roadmaps</div></div>
-    </div>
-    <div id="missions-people-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;margin-top:4px">
-      <!-- Static fallback cards — JS overwrites these with live data -->
-      <div onclick="selectMissionPerson('THULAIB')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--orange);border-radius:16px 16px 0 0"></div>
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,107,43,0.15);border:2px solid rgba(255,107,43,0.4);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--orange);margin-bottom:16px">T</div>
-        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Thulaib</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">CEO & Founder</div>
-      </div>
-      <div onclick="selectMissionPerson('SHIARA')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--cyan);border-radius:16px 16px 0 0"></div>
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,229,255,0.12);border:2px solid rgba(0,229,255,0.35);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--cyan);margin-bottom:16px">S</div>
-        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Shiara</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Co-Founder</div>
-      </div>
-      <div onclick="selectMissionPerson('KENULI')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--green);border-radius:16px 16px 0 0"></div>
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(0,255,133,0.1);border:2px solid rgba(0,255,133,0.3);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--green);margin-bottom:16px">K</div>
-        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Kenuli</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Social Media Manager</div>
-      </div>
-      <div onclick="selectMissionPerson('KANEESHA')" style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;cursor:pointer;position:relative;overflow:hidden">
-        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:var(--yellow);border-radius:16px 16px 0 0"></div>
-        <div style="width:56px;height:56px;border-radius:50%;background:rgba(251,191,36,0.1);border:2px solid rgba(251,191,36,0.3);display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--yellow);margin-bottom:16px">KA</div>
-        <div style="font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;color:var(--text);margin-bottom:3px">Kaneesha</div>
-        <div style="font-size:11px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em">Team</div>
-      </div>
-    </div>
-  </div>
-  <!-- Person detail view -->
-  <div id="missions-view-detail" style="display:none">
-    <div class="ph">
-      <div style="display:flex;align-items:center;gap:14px">
-        <button class="btn btn-ghost" onclick="missionsBack()" style="padding:6px 12px;font-size:12px">← Back</button>
-        <div>
-          <div class="ph-title" id="missions-detail-name"></div>
-          <div class="ph-sub" id="missions-detail-role"></div>
-        </div>
-      </div>
-      <div class="ph-right">
-        <button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>
-      </div>
-    </div>
-    <div id="missions-list"></div>
-  </div>
-</div>
+
 
 </div><!-- /main -->
 
@@ -1845,7 +1801,7 @@ async function nav(id){
   pillarStateCache.sh=shState;
   showLoading(false);
   if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:function(){activeMissionPerson=null;renderMissions();},taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -3765,9 +3721,10 @@ async function mobileNav(id){
   pillarStateCache.sh=shState;
   showLoading(false);
   if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
+  if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
   ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,
     pipeline:renderPipeline,revenue:renderRevenue,
-    missions:function(){activeMissionPerson=null;renderMissions();},
+    missions:renderMissions,
     taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,
     shoots:renderShootsBoard,
     'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
@@ -4517,6 +4474,297 @@ function renderClientPaymentHistory(){
 }
 
 
+
+// ══════════════════════════════════════════════════
+// MISSIONS — clean rebuild
+// ══════════════════════════════════════════════════
+const M_PEOPLE=[
+  {key:'THULAIB',name:'Thulaib',role:'CEO & Founder',   color:'var(--orange)'},
+  {key:'SHIARA', name:'Shiara', role:'Co-Founder',       color:'var(--cyan)'},
+  {key:'KENULI', name:'Kenuli', role:'SMM',               color:'var(--green)'},
+  {key:'KANEESHA',name:'Kaneesha',role:'Team',            color:'var(--yellow)'},
+];
+let M_activePerson=null;
+let M_missions=[];
+let M_steps=[];
+
+async function renderMissions(){
+  // Always start from person picker — fresh root
+  const root=document.getElementById('missions-root');
+  if(!root)return;
+
+  // Load data
+  try{
+    const [ms,steps]=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=ms||[];
+    M_steps=steps||[];
+  }catch(e){M_missions=[];M_steps=[];}
+
+  // Always reset to person picker when nav triggers renderMissions
+  M_activePerson=null;
+  m_renderPicker(root);
+}
+
+function m_renderPicker(root){
+  const CAT_C={product:'var(--cyan)',business:'var(--orange)',sales:'var(--green)',team:'var(--yellow)',client:'var(--pink)',strategy:'var(--purple)',personal:'var(--text2)'};
+  const html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">'
+    +'<div><div class="ph-title">Missions</div><div class="ph-sub">Select a person to view their roadmaps</div></div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">'
+    +M_PEOPLE.map(function(p){
+      var pm=M_missions.filter(function(m){return m.created_by===p.key;});
+      var total=pm.length;
+      var active=pm.filter(function(m){return m.status==='active';}).length;
+      var done_m=pm.filter(function(m){return m.status==='completed';}).length;
+      var mySteps=M_steps.filter(function(s){return pm.some(function(m){return m.id===s.mission_id;});});
+      var doneSteps=mySteps.filter(function(s){return s.status==='done';}).length;
+      var pct=mySteps.length?Math.round(doneSteps/mySteps.length*100):0;
+      return '<div onclick="m_selectPerson(\'' + p.key + '\')" style="background:var(--bg2);border:1px solid var(--border);border-top:3px solid '+p.color+';border-radius:12px;padding:24px;cursor:pointer">'
+        +'<div style="width:48px;height:48px;border-radius:50%;background:'+p.color+'22;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:'+p.color+';margin-bottom:14px">'+p.name[0]+'</div>'
+        +'<div style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:2px">'+p.name+'</div>'
+        +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:16px">'+p.role+'</div>'
+        +'<div style="display:flex;gap:20px;margin-bottom:14px">'
+          +'<div><div style="font-size:20px;font-weight:800;color:'+p.color+'">'+total+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Missions</div></div>'
+          +'<div><div style="font-size:20px;font-weight:800;color:var(--green)">'+active+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Active</div></div>'
+          +'<div><div style="font-size:20px;font-weight:800;color:var(--text2)">'+done_m+'</div><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Done</div></div>'
+        +'</div>'
+        +(mySteps.length?'<div style="height:4px;background:var(--bg4);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+p.color+';border-radius:3px"></div></div>':'<div style="font-size:11px;color:var(--text3)">No missions yet</div>')
+        +'</div>';
+    }).join('')
+    +'</div>';
+  root.innerHTML=html;
+}
+
+function m_selectPerson(key){
+  M_activePerson=key;
+  const root=document.getElementById('missions-root');
+  if(!root)return;
+  const p=M_PEOPLE.find(function(x){return x.key===key;});
+  const missions=M_missions.filter(function(m){return m.created_by===key;});
+  const CAT_L={product:'Product',business:'Business',sales:'Sales',team:'Team',client:'Client',strategy:'Strategy',personal:'Personal'};
+  const STC={active:'var(--green)',paused:'var(--yellow)',completed:'var(--orange)'};
+
+  var html='<div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">'
+    +'<button class="btn btn-ghost" onclick="m_back()" style="padding:6px 14px">← Back</button>'
+    +'<div><div class="ph-title">'+p.name+String.fromCharCode(39)+'s Missions</div><div class="ph-sub">'+p.role+'</div></div>'
+    +'<button class="btn btn-primary" onclick="openMissionModal()" style="margin-left:auto">+ New Mission</button>'
+    +'</div>';
+
+  if(!missions.length){
+    html+='<div class="card" style="text-align:center;padding:48px 24px">'
+      +'<div style="font-size:36px;margin-bottom:12px">🎯</div>'
+      +'<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">No missions yet for '+p.name+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-bottom:20px">Add the first mission and start the roadmap.</div>'
+      +'<button class="btn btn-primary" onclick="openMissionModal()">+ New Mission</button>'
+      +'</div>';
+  } else {
+    html+=missions.map(function(m){
+      var steps=M_steps.filter(function(s){return s.mission_id===m.id;}).sort(function(a,b){return (a.step_order||0)-(b.step_order||0);});
+      var doneCount=steps.filter(function(s){return s.status==='done';}).length;
+      var pct=steps.length?Math.round(doneCount/steps.length*100):0;
+      var sc=p.color;
+      var statusC=STC[m.status]||'var(--text2)';
+      var stepRows=steps.map(function(s){
+        var dot={done:'var(--green)',inprogress:'var(--orange)',todo:'var(--bg4)'}[s.status]||'var(--bg4)';
+        var lbl={done:'Done',inprogress:'In Progress',todo:'To Do'}[s.status]||s.status;
+        return '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;position:relative;padding-left:20px">'
+          +'<div style="position:absolute;left:0;top:4px;width:10px;height:10px;border-radius:50%;background:'+dot+';flex-shrink:0"></div>'
+          +'<div style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px">'
+            +'<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'
+              +'<div style="font-size:12px;font-weight:600;color:'+(s.status==='done'?'var(--text3)':'var(--text)')+';">'+(s.status==='done'?'<s>':'')+s.title+(s.status==='done'?'</s>':'')+'</div>'
+              +'<div style="display:flex;gap:3px;flex-shrink:0">'
+                +'<span style="font-size:9px;padding:1px 5px;border-radius:3px;color:'+dot+';border:1px solid '+dot+'44;background:'+dot+'18">'+lbl+'</span>'
+                +'<button class="btn btn-ghost btn-sm" onclick="m_cycleStep('+s.id+','+m.id+')" style="padding:1px 5px;font-size:9px">'+(s.status==='done'?'↩':'✓')+'</button>'
+                +'<button class="btn btn-ghost btn-sm" onclick="openStepModal('+m.id+','+s.id+')" style="padding:1px 5px;font-size:9px">✎</button>'
+                +'<button class="btn btn-danger btn-sm" onclick="m_deleteStep('+s.id+','+m.id+')" style="padding:1px 5px;font-size:9px">✕</button>'
+              +'</div>'
+            +'</div>'
+            +(s.notes?'<div style="font-size:10px;color:var(--text3);margin-top:4px">'+s.notes+'</div>':'')
+          +'</div>'
+        +'</div>';
+      }).join('');
+      return '<div class="card" style="margin-bottom:12px;padding:0;border-left:3px solid '+sc+'">'
+        +'<div style="padding:16px 20px;cursor:pointer" onclick="m_toggleRoadmap('+m.id+')">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'
+            +'<div style="flex:1;min-width:0">'
+              +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">'
+                +'<div style="font-size:14px;font-weight:800;color:var(--text)">'+m.title+'</div>'
+                +'<span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;color:'+statusC+';border:1px solid '+statusC+'33;background:'+statusC+'15;text-transform:uppercase">'+m.status+'</span>'
+              +'</div>'
+              +(m.description?'<div style="font-size:12px;color:var(--text2);margin-bottom:8px">'+m.description+'</div>':'')
+              +'<div style="display:flex;align-items:center;gap:10px">'
+                +'<div style="flex:1;height:4px;background:var(--bg4);border-radius:3px;overflow:hidden"><div style="height:100%;width:'+pct+'%;background:'+sc+';border-radius:3px"></div></div>'
+                +'<div style="font-size:10px;font-weight:700;color:'+sc+'">'+doneCount+'/'+steps.length+'</div>'
+              +'</div>'
+            +'</div>'
+            +'<div style="display:flex;gap:5px;flex-shrink:0">'
+              +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openMissionModal('+m.id+')" style="padding:2px 8px;font-size:10px">Edit</button>'
+              +'<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();m_deleteMission('+m.id+')" style="padding:2px 8px;font-size:10px">✕</button>'
+              +'<span id="m-chev-'+m.id+'" style="color:var(--text3);font-size:13px">▼</span>'
+            +'</div>'
+          +'</div>'
+        +'</div>'
+        +'<div id="m-roadmap-'+m.id+'" style="display:none;border-top:1px solid var(--border);padding:12px 20px 16px">'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">'
+            +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3)">Roadmap · '+steps.length+' step'+(steps.length!==1?'s':'')+'</div>'
+            +'<button class="btn btn-ghost btn-sm" onclick="openStepModal('+m.id+')" style="padding:2px 10px;font-size:10px;color:'+sc+'">+ Add Step</button>'
+          +'</div>'
+          +(steps.length?'<div style="position:relative;padding-left:16px"><div style="position:absolute;left:4px;top:6px;bottom:6px;width:2px;background:var(--bg4);border-radius:2px"></div>'+stepRows+'</div>'
+            :'<div style="font-size:12px;color:var(--text3)">No steps yet. Add the first step above.</div>')
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }
+  root.innerHTML=html;
+}
+
+function m_back(){
+  M_activePerson=null;
+  const root=document.getElementById('missions-root');
+  if(root)m_renderPicker(root);
+}
+
+function m_toggleRoadmap(id){
+  var p=document.getElementById('m-roadmap-'+id);
+  var c=document.getElementById('m-chev-'+id);
+  if(!p)return;
+  var open=p.style.display!=='none';
+  p.style.display=open?'none':'block';
+  if(c)c.style.transform=open?'':'rotate(180deg)';
+}
+
+function openMissionModal(id){
+  id=id||null;
+  document.getElementById('mission-modal-title').textContent=id?'Edit Mission':'New Mission';
+  document.getElementById('mission-edit-id').value=id||'';
+  var m=id?M_missions.find(function(x){return x.id===id;}):null;
+  document.getElementById('mission-title').value=m?m.title:'';
+  document.getElementById('mission-desc').value=m?m.description||'':'';
+  document.getElementById('mission-category').value=m?m.category||'product':'product';
+  document.getElementById('mission-status').value=m?m.status||'active':'active';
+  openModal('modal-mission');
+}
+
+async function saveMission(){
+  var editId=parseInt(document.getElementById('mission-edit-id').value)||null;
+  var data={
+    title:document.getElementById('mission-title').value.trim(),
+    description:document.getElementById('mission-desc').value.trim(),
+    category:document.getElementById('mission-category').value,
+    status:document.getElementById('mission-status').value,
+    created_by:M_activePerson||getCurrentUser(),
+  };
+  if(!data.title)return alert('Enter a mission name');
+  showLoading(true);
+  if(editId)await SB.update('missions',editId,data);
+  else await SB.insert('missions',data);
+  // Reload data
+  try{
+    var r=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=r[0]||[];M_steps=r[1]||[];
+  }catch(e){}
+  showLoading(false);
+  closeModal('modal-mission');
+  var root=document.getElementById('missions-root');
+  if(M_activePerson&&root)m_selectPerson(M_activePerson);
+  else if(root)m_renderPicker(root);
+}
+
+async function m_deleteMission(id){
+  if(!confirm('Delete this mission and all its steps?'))return;
+  showLoading(true);
+  var steps=M_steps.filter(function(s){return s.mission_id===id;});
+  for(var i=0;i<steps.length;i++)await SB.delete('mission_steps',steps[i].id);
+  await SB.delete('missions',id);
+  try{
+    var r=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=r[0]||[];M_steps=r[1]||[];
+  }catch(e){}
+  showLoading(false);
+  var root=document.getElementById('missions-root');
+  if(root)m_selectPerson(M_activePerson);
+}
+
+function openStepModal(missionId,stepId){
+  stepId=stepId||null;
+  document.getElementById('step-modal-title').textContent=stepId?'Edit Step':'Add Step';
+  document.getElementById('step-edit-id').value=stepId||'';
+  document.getElementById('step-mission-id').value=missionId;
+  var s=stepId?M_steps.find(function(x){return x.id===stepId;}):null;
+  document.getElementById('step-title').value=s?s.title:'';
+  document.getElementById('step-notes').value=s?s.notes||'':'';
+  document.getElementById('step-status').value=s?s.status||'todo':'todo';
+  openModal('modal-mission-step');
+}
+
+async function saveMissionStep(){
+  var editId=parseInt(document.getElementById('step-edit-id').value)||null;
+  var mId=parseInt(document.getElementById('step-mission-id').value);
+  var data={
+    mission_id:mId,
+    title:document.getElementById('step-title').value.trim(),
+    notes:document.getElementById('step-notes').value.trim(),
+    status:document.getElementById('step-status').value,
+    step_order:M_steps.filter(function(s){return s.mission_id===mId;}).length,
+  };
+  if(!data.title)return alert('Enter a step title');
+  if(editId)delete data.step_order;
+  showLoading(true);
+  if(editId)await SB.update('mission_steps',editId,data);
+  else await SB.insert('mission_steps',data);
+  try{
+    var r=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=r[0]||[];M_steps=r[1]||[];
+  }catch(e){}
+  showLoading(false);
+  closeModal('modal-mission-step');
+  var root=document.getElementById('missions-root');
+  if(root)m_selectPerson(M_activePerson);
+  setTimeout(function(){
+    var p=document.getElementById('m-roadmap-'+mId);
+    if(p){p.style.display='block';}
+    var c=document.getElementById('m-chev-'+mId);
+    if(c)c.style.transform='rotate(180deg)';
+  },100);
+}
+
+async function m_cycleStep(stepId,missionId){
+  var s=M_steps.find(function(x){return x.id===stepId;});
+  if(!s)return;
+  var next={todo:'inprogress',inprogress:'done',done:'todo'}[s.status]||'todo';
+  showLoading(true);
+  await SB.update('mission_steps',stepId,{status:next});
+  try{
+    var r=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=r[0]||[];M_steps=r[1]||[];
+  }catch(e){}
+  showLoading(false);
+  var root=document.getElementById('missions-root');
+  if(root)m_selectPerson(M_activePerson);
+  setTimeout(function(){
+    var p=document.getElementById('m-roadmap-'+missionId);
+    if(p)p.style.display='block';
+  },100);
+}
+
+async function m_deleteStep(stepId,missionId){
+  if(!confirm('Delete this step?'))return;
+  showLoading(true);
+  await SB.delete('mission_steps',stepId);
+  try{
+    var r=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=r[0]||[];M_steps=r[1]||[];
+  }catch(e){}
+  showLoading(false);
+  var root=document.getElementById('missions-root');
+  if(root)m_selectPerson(M_activePerson);
+  setTimeout(function(){
+    var p=document.getElementById('m-roadmap-'+missionId);
+    if(p)p.style.display='block';
+  },100);
+}
+// ══════════════════════════════════════════════════
+
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
 </script>
@@ -4557,45 +4805,7 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
 </div>
 
 
-<!-- ══ MISSION MODAL ══ -->
-<div class="overlay" id="modal-mission" onclick="if(event.target===this)closeModal('modal-mission')">
-  <div class="modal" style="max-width:560px">
-    <div class="modal-title" id="mission-modal-title">New Mission</div>
-    <input type="hidden" id="mission-edit-id">
-    <div class="fg">
-      <label class="flbl">Mission Name</label>
-      <input class="fi" id="mission-title" placeholder="e.g. Build Plugin for Salon System">
-    </div>
-    <div class="fg">
-      <label class="flbl">What is this?</label>
-      <textarea class="fta" id="mission-desc" placeholder="Describe the goal and why it matters." style="min-height:80px"></textarea>
-    </div>
-    <div class="fg">
-      <label class="flbl">Category</label>
-      <select class="fi" id="mission-category">
-        <option value="product">Product / Build</option>
-        <option value="business">Business Operations</option>
-        <option value="sales">Sales / Growth</option>
-        <option value="team">Team / Hiring</option>
-        <option value="client">Client Specific</option>
-        <option value="strategy">Strategy</option>
-        <option value="personal">Personal</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label class="flbl">Status</label>
-      <select class="fi" id="mission-status">
-        <option value="active">Active</option>
-        <option value="paused">Paused</option>
-        <option value="completed">Completed</option>
-      </select>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('modal-mission')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMission()">Save Mission</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- ══ MISSION STEP MODAL ══ -->
 <div class="overlay" id="modal-mission-step" onclick="if(event.target===this)closeModal('modal-mission-step')">
@@ -4613,6 +4823,61 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
     </div>
     <div class="fg">
       <label class="flbl">Status</label>
+      <select class="fi" id="step-status">
+        <option value="todo">To Do</option>
+        <option value="inprogress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-mission-step')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMissionStep()">Save Step</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ MISSION MODAL ══ -->
+<div class="overlay" id="modal-mission">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-title" id="mission-modal-title">New Mission</div>
+    <input type="hidden" id="mission-edit-id">
+    <div class="fg"><label class="flbl">Mission Name</label><input class="fi" id="mission-title" placeholder="e.g. Build Plugin for Salon System"></div>
+    <div class="fg"><label class="flbl">Description</label><textarea class="fta" id="mission-desc" placeholder="What is this and why does it matter?" style="min-height:70px"></textarea></div>
+    <div class="fg"><label class="flbl">Category</label>
+      <select class="fi" id="mission-category">
+        <option value="product">Product / Build</option>
+        <option value="business">Business Ops</option>
+        <option value="sales">Sales / Growth</option>
+        <option value="team">Team / Hiring</option>
+        <option value="client">Client</option>
+        <option value="strategy">Strategy</option>
+        <option value="personal">Personal</option>
+      </select>
+    </div>
+    <div class="fg"><label class="flbl">Status</label>
+      <select class="fi" id="mission-status">
+        <option value="active">Active</option>
+        <option value="paused">Paused</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-mission')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMission()">Save Mission</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MISSION STEP MODAL ══ -->
+<div class="overlay" id="modal-mission-step">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title" id="step-modal-title">Add Step</div>
+    <input type="hidden" id="step-edit-id">
+    <input type="hidden" id="step-mission-id">
+    <div class="fg"><label class="flbl">Step Title</label><input class="fi" id="step-title" placeholder="What needs to happen?"></div>
+    <div class="fg"><label class="flbl">Notes</label><textarea class="fta" id="step-notes" placeholder="Any details..." style="min-height:60px"></textarea></div>
+    <div class="fg"><label class="flbl">Status</label>
       <select class="fi" id="step-status">
         <option value="todo">To Do</option>
         <option value="inprogress">In Progress</option>
