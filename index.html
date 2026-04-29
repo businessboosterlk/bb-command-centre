@@ -47,7 +47,7 @@ body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;fon
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 /* ── MAIN ── */
-.main{margin-left:var(--sidebar);min-height:100vh;overflow-y:auto;height:100vh}
+.main{margin-left:var(--sidebar);min-height:100vh}
 .page{display:none;padding:28px 32px;animation:fi 0.18s ease}
 .page.active{display:block}
 @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
@@ -4095,27 +4095,26 @@ async function loadMissions(){
 function renderMissions(){
   const pv=document.getElementById('missions-view-people');
   const dv=document.getElementById('missions-view-detail');
+  // Always reset detail to hidden first
+  if(dv){dv.style.display='none';dv.style.visibility='hidden';}
   if(activeMissionPerson){
     if(pv)pv.style.display='none';
-    if(dv)dv.style.display='block';
-    // Load then render detail
+    if(dv){dv.style.display='block';dv.style.visibility='visible';}
     loadMissions().then(()=>renderMissionDetail(activeMissionPerson));
   } else {
-    if(pv)pv.style.display='block';
-    if(dv)dv.style.display='none';
-    // Render immediately from cache (shows 0s), then update when data loads
+    if(pv){pv.style.display='block';pv.style.visibility='visible';}
     renderMissionPeople();
     loadMissions().then(()=>renderMissionPeople());
   }
 }
 
 function renderMissionPeople(){
-  // Force scroll to top
   window.scrollTo({top:0,left:0,behavior:'instant'});
   document.documentElement.scrollTop=0;
   document.body.scrollTop=0;
-  const mEl=document.querySelector('.main');
-  if(mEl)mEl.scrollTop=0;
+  // Clear detail list to prevent ghost height
+  const dl=document.getElementById('missions-list');
+  if(dl)dl.innerHTML='';
   const grid=document.getElementById('missions-people-grid');
   if(!grid)return;
   const all=CACHE.missions||[];
