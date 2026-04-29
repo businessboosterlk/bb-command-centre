@@ -568,8 +568,6 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
     <div class="sb-item" onclick="nav('pipeline')"><span>Potential Leads</span></div>
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
-
-    <div class="sb-grp">Tools</div>
     <div class="sb-item" onclick="nav('missions')"><span>Missions</span></div>
     <div class="sb-grp">Team Systems</div>
     <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="color:var(--cyan)"><span>SMM Workspace ↗</span></div>
@@ -4576,6 +4574,7 @@ function m_selectPerson(key){
                 +'<span style="font-size:9px;padding:1px 5px;border-radius:3px;color:'+dot+';border:1px solid '+dot+'44;background:'+dot+'18">'+lbl+'</span>'
                 +(s.youtube_url?'<a href="'+s.youtube_url+'" target="_blank" style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(255,0,0,0.15);color:#ff4444;border:1px solid rgba(255,0,0,0.3);text-decoration:none;font-weight:700">▶ Watch</a>':'')
                 +(s.doc_link?'<a href="'+s.doc_link+'" target="_blank" style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(0,229,255,0.12);color:var(--cyan);border:1px solid rgba(0,229,255,0.3);text-decoration:none;font-weight:700">📄 Doc</a>':'')
+                +'<button class="btn btn-ghost btn-sm" onclick="m_attachDoc('+s.id+','+m.id+')" style="padding:1px 5px;font-size:10px" title="Attach doc link">📎</button>'
                 +'<button class="btn btn-ghost btn-sm" onclick="m_cycleStep('+s.id+','+m.id+')" style="padding:1px 5px;font-size:9px">'+(s.status==='done'?'↩':'✓')+'</button>'
                 +'<button class="btn btn-ghost btn-sm" onclick="openStepModal('+m.id+','+s.id+')" style="padding:1px 5px;font-size:9px">✎</button>'
                 +'<button class="btn btn-danger btn-sm" onclick="m_deleteStep('+s.id+','+m.id+')" style="padding:1px 5px;font-size:9px">✕</button>'
@@ -4770,6 +4769,26 @@ async function m_deleteStep(stepId,missionId){
   },100);
 }
 // ══════════════════════════════════════════════════
+
+
+async function m_attachDoc(stepId, missionId){
+  var current=(M_steps.find(function(s){return s.id===stepId;})||{}).doc_link||'';
+  var link=prompt('Paste your Google Drive or document link:',current);
+  if(link===null)return; // cancelled
+  showLoading(true);
+  await SB.update('mission_steps',stepId,{doc_link:link.trim()||null});
+  try{
+    var r=await Promise.all([SB.getAll('missions'),SB.getAll('mission_steps')]);
+    M_missions=r[0]||[];M_steps=r[1]||[];
+  }catch(e){}
+  showLoading(false);
+  var root=document.getElementById('missions-root');
+  if(root)m_selectPerson(M_activePerson);
+  setTimeout(function(){
+    var p=document.getElementById('m-roadmap-'+missionId);
+    if(p)p.style.display='block';
+  },100);
+}
 
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
