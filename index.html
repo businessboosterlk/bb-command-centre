@@ -4574,6 +4574,8 @@ function m_selectPerson(key){
               +'<div style="font-size:12px;font-weight:600;color:'+(s.status==='done'?'var(--text3)':'var(--text)')+';">'+(s.status==='done'?'<s>':'')+s.title+(s.status==='done'?'</s>':'')+'</div>'
               +'<div style="display:flex;gap:3px;flex-shrink:0">'
                 +'<span style="font-size:9px;padding:1px 5px;border-radius:3px;color:'+dot+';border:1px solid '+dot+'44;background:'+dot+'18">'+lbl+'</span>'
+                +(s.youtube_url?'<a href="'+s.youtube_url+'" target="_blank" style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(255,0,0,0.15);color:#ff4444;border:1px solid rgba(255,0,0,0.3);text-decoration:none;font-weight:700">▶ Watch</a>':'')
+                +(s.doc_link?'<a href="'+s.doc_link+'" target="_blank" style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(0,229,255,0.12);color:var(--cyan);border:1px solid rgba(0,229,255,0.3);text-decoration:none;font-weight:700">📄 Doc</a>':'')
                 +'<button class="btn btn-ghost btn-sm" onclick="m_cycleStep('+s.id+','+m.id+')" style="padding:1px 5px;font-size:9px">'+(s.status==='done'?'↩':'✓')+'</button>'
                 +'<button class="btn btn-ghost btn-sm" onclick="openStepModal('+m.id+','+s.id+')" style="padding:1px 5px;font-size:9px">✎</button>'
                 +'<button class="btn btn-danger btn-sm" onclick="m_deleteStep('+s.id+','+m.id+')" style="padding:1px 5px;font-size:9px">✕</button>'
@@ -4694,6 +4696,8 @@ function openStepModal(missionId,stepId){
   document.getElementById('step-title').value=s?s.title:'';
   document.getElementById('step-notes').value=s?s.notes||'':'';
   document.getElementById('step-status').value=s?s.status||'todo':'todo';
+  document.getElementById('step-youtube').value=s?s.youtube_url||'':'';
+  document.getElementById('step-doclink').value=s?s.doc_link||'':'';
   openModal('modal-mission-step');
 }
 
@@ -4705,6 +4709,8 @@ async function saveMissionStep(){
     title:document.getElementById('step-title').value.trim(),
     notes:document.getElementById('step-notes').value.trim(),
     status:document.getElementById('step-status').value,
+    youtube_url:document.getElementById('step-youtube').value.trim()||null,
+    doc_link:document.getElementById('step-doclink').value.trim()||null,
     step_order:M_steps.filter(function(s){return s.mission_id===mId;}).length,
   };
   if(!data.title)return alert('Enter a step title');
@@ -4884,6 +4890,8 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
         <option value="done">Done</option>
       </select>
     </div>
+    <div class="fg"><label class="flbl">YouTube Link (optional)</label><input class="fi" id="step-youtube" placeholder="https://youtube.com/..."></div>
+    <div class="fg"><label class="flbl">Doc / PPT Link (optional)</label><input class="fi" id="step-doclink" placeholder="Paste Google Drive link when done"></div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-mission-step')">Cancel</button>
       <button class="btn btn-primary" onclick="saveMissionStep()">Save Step</button>
