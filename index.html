@@ -1497,7 +1497,8 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
         <option value="Script Made">Script Made</option>
         <option value="Script Changes">Script Changes</option>
         <option value="Final Script">Final Script</option>
-        <option value="Shoot Date Set">Shoot Date Set</option>
+        <option value="Get Shoot Date">Get Shoot Date</option>
+        <option value="Shoot Date Confirmed">Shoot Date Confirmed</option>
         <option value="Shot">Shot ✓</option>
       </select>
     </div>
@@ -1672,7 +1673,7 @@ async function loadAll(){
     let stage=sh.stage||sh.status||'Videos Confirmed';
     // translate legacy status values to current stage names
     if(stage==='requested')stage='Videos Confirmed';
-    if(stage==='scheduled')stage='Shoot Date Set';
+    if(stage==='scheduled')stage='Shoot Date Confirmed';
     if(stage==='delivered')stage='Shot';
     return {...sh,stage};
   });
@@ -3467,8 +3468,8 @@ function updateTaskSuggestions(){
 }
 
 // ═══ SHOOTS ══════════════════════════════════════
-const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Shoot Date Set','Shot'];
-const STAGE_COLORS={'Videos Confirmed':'var(--neon-cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--neon-purple)','Shoot Date Set':'var(--neon-pink)','Shot':'var(--neon-green)'};
+const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Get Shoot Date','Shoot Date Confirmed','Shot'];
+const STAGE_COLORS={'Videos Confirmed':'var(--neon-cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--neon-purple)','Get Shoot Date':'var(--neon-orange)','Shoot Date Confirmed':'var(--neon-pink)','Shot':'var(--neon-green)'};
 
 function shootStageBar(currentStage){
   return `<div style="display:flex;gap:3px;margin-top:8px;flex-wrap:wrap">${SHOOT_STAGES.map((s,i)=>{const idx=SHOOT_STAGES.indexOf(currentStage);const done=i<=idx;const isCurrent=s===currentStage;return `<div style="flex:1;min-width:55px;padding:3px 5px;border-radius:4px;font-size:8px;font-weight:${isCurrent?700:500};text-align:center;background:${done?(isCurrent?STAGE_COLORS[s]:'rgba(255,255,255,0.06)'):'var(--bg4)'};color:${done?(isCurrent?'#000':'var(--text2)'):'var(--text3)'};border:1px solid ${isCurrent?STAGE_COLORS[s]:'var(--border)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s}</div>`;}).join('')}</div>`;
@@ -3575,7 +3576,7 @@ function renderShootsBoard(){
     'Script Made':'#FBBF24',
     'Script Changes':'#FF6B2B',
     'Final Script':'#A855F7',
-    'Shoot Date Set':'#FF2D78',
+    'Get Shoot Date':'#FF6B2B','Shoot Date Confirmed':'#FF2D78',
     'Shot':'#00FF85'
   };
 
@@ -3660,7 +3661,7 @@ function renderShootsWeekly(){
   const firstDay=new Date(shootCalYear,shootCalMonth,1).getDay();
   const daysInMonth=new Date(shootCalYear,shootCalMonth+1,0).getDate();
   const dayNames=['SUN','MON','TUE','WED','THU','FRI','SAT'];
-  const stageColors={'Videos Confirmed':'var(--cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Shoot Date Set':'var(--pink)','Shot':'var(--green)'};
+  const stageColors={'Videos Confirmed':'var(--cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--purple)','Get Shoot Date':'var(--orange)','Shoot Date Confirmed':'var(--pink)','Shot':'var(--green)'};
   function pad(n){return String(n).padStart(2,'0');}
   function dateKey(d){return shootCalYear+'-'+pad(shootCalMonth+1)+'-'+pad(d);}
   let html='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">'+dayNames.map(d=>'<div style="text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);padding:6px 0">'+d+'</div>').join('')+'</div>';
@@ -3680,6 +3681,16 @@ function renderShootsWeekly(){
   html+='</div>';
   const monthShoots=allShoots.filter(s=>s.shoot_date&&s.shoot_date.startsWith(shootCalYear+'-'+pad(shootCalMonth+1)));
   el.innerHTML='<div style="font-size:11px;color:var(--text3);margin-bottom:12px">'+monthShoots.length+' shoot'+(monthShoots.length!==1?'s':'')+' this month</div>'+html;
+}
+
+let dragShootId=null;
+
+function handleShootDragStart(event,id){
+  dragShootId=id;
+  event.dataTransfer.effectAllowed='move';
+  event.dataTransfer.setData('text/plain',id);
+  event.currentTarget.style.opacity='0.4';
+  setTimeout(()=>{if(event.currentTarget)event.currentTarget.style.opacity='1';},0);
 }
 
 async function handleShootDrop(event,stage){
