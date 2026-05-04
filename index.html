@@ -4813,6 +4813,30 @@ async function m_attachDoc(stepId, missionId){
   },100);
 }
 
+
+// ══ AUTO REFRESH — sync data every 60 seconds ══
+function startAutoRefresh(){
+  setInterval(async function(){
+    await loadAll();
+    // Re-render whichever page is currently active
+    const active=document.querySelector('.page.active');
+    if(!active)return;
+    const id=active.id.replace('page-','');
+    const renders={
+      dashboard:renderDashboard,
+      taskbook:renderTaskBook,
+      clients:renderClients,
+      pipeline:renderPipeline,
+      shoots:renderShootsBoard,
+      calendar:renderCalendar,
+    };
+    // Re-render client profile if open
+    if(id==='client-profile'&&currentClientId)renderClientProfile(currentClientId);
+    else if(renders[id])renders[id]();
+  }, 60000); // every 60 seconds
+}
+
+
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
 </script>
