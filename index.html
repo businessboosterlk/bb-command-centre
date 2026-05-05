@@ -563,6 +563,7 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
     <div class="sb-item" onclick="nav('calendar')"><span>Calendar</span></div>
     <div class="sb-grp">Business</div>
     <div class="sb-item" onclick="nav('clients')"><span>Clients</span></div>
+    <div class="sb-item" onclick="nav('content-overview')"><span>Content Overview</span></div>
     <div class="sb-item" onclick="nav('taskbook')"><span>Task Book</span><span class="sb-badge" id="sb-overdue-badge" style="display:none">!</span></div>
     <div class="sb-item" onclick="nav('shoots')"><span>Shoot Pipeline</span></div>
     <div class="sb-item" onclick="nav('pipeline')"><span>Potential Leads</span></div>
@@ -1131,6 +1132,10 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
 
 <div class="page" id="page-team">
   <div id="team-root"></div>
+</div>
+
+<div class="page" id="page-content-overview">
+  <div id="co-root"></div>
 </div>
 
 <div class="page" id="page-finance">
@@ -1808,7 +1813,7 @@ async function nav(id){
   pillarStateCache.sh=shState;
   showLoading(false);
   if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,team:renderTeam,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,team:renderTeam,'content-overview':renderContentOverview,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -3751,7 +3756,7 @@ async function mobileNav(id){
   if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
   ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,
     pipeline:renderPipeline,revenue:renderRevenue,
-    missions:renderMissions,team:renderTeam,
+    missions:renderMissions,team:renderTeam,'content-overview':renderContentOverview,
     taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,
     shoots:renderShootsBoard,
     'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
@@ -4867,13 +4872,14 @@ async function renderTeam(){
   if(!root)return;
   root.innerHTML='<div style="color:var(--text3);font-size:13px;padding:24px">Loading...</div>';
   try{
-    const [mem,tra,chk]=await Promise.all([
+    const [mem,tra,chk,inc]=await Promise.all([
       SB.getAll('team_members'),
       SB.getAll('trainees'),
-      SB.getAll('trainee_checks')
+      SB.getAll('trainee_checks'),
+      SB.getAll('team_incidents')
     ]);
-    T_members=mem||[];T_trainees=tra||[];T_checks=chk||[];
-  }catch(e){T_members=[];T_trainees=[];T_checks=[];}
+    T_members=mem||[];T_trainees=tra||[];T_checks=chk||[];T_incidents=inc||[];
+  }catch(e){T_members=[];T_trainees=[];T_checks=[];T_incidents=[];}
   t_render(root);
 }
 
@@ -4922,6 +4928,7 @@ function t_render(root){
             +'<div style="font-size:10px;color:var(--cyan);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">'+m.role+'</div>'
           +'</div>'
           +'<div style="display:flex;gap:4px">'
+            +'<button class="btn btn-ghost btn-sm" onclick="openIncidentModal('+m.id+',String.fromCharCode(39)+m.name+String.fromCharCode(39))" style="padding:2px 8px;font-size:10px;color:var(--red)">🚩 Flag</button>'
             +'<button class="btn btn-ghost btn-sm" onclick="openTeamMemberModal('+m.id+')" style="padding:2px 7px;font-size:10px">Edit</button>'
             +'<button class="btn btn-danger btn-sm" onclick="deleteTeamMember('+m.id+')" style="padding:2px 7px;font-size:10px">✕</button>'
           +'</div>'
@@ -4931,6 +4938,15 @@ function t_render(root){
           +'<div style="color:var(--text3)">Contract</div><div style="color:'+(expiryWarning?'var(--red)':'var(--text2)')+';font-weight:600">'+expiry+(expiryWarning?' ⚠️':'')+'</div>'
         +'</div>'
         +(m.notes?'<div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5">'+m.notes+'</div>':'')
+        +(function(){
+          var inc=T_incidents.filter(function(i){return i.member_id===m.id;});
+          var serious=inc.filter(function(i){return i.severity==='serious';}).length;
+          if(!inc.length)return '';
+          var incColor=serious>0?'var(--red)':'var(--yellow)';
+          return '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;align-items:center;gap:6px">'
+            +'<span style="font-size:10px;color:'+incColor+'">'+inc.length+' incident'+(inc.length>1?'s':'')+(serious>0?' ('+serious+' serious)':'')+'</span>'
+          +'</div>';
+        })()
       +'</div>';
     });
     html+='</div>';
@@ -5155,6 +5171,195 @@ async function saveWeeklyCheck(){
   renderTeam();
 }
 // ══════════════════════════════════════════════════
+
+
+// ══════════════════════════════════════════════════
+// CONTENT OVERVIEW — all clients content plan status
+// ══════════════════════════════════════════════════
+function renderContentOverview(){
+  const root=document.getElementById('co-root');
+  if(!root)return;
+  const now=new Date();
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  // Build month/year selector state
+  if(!window.CO_MONTH)window.CO_MONTH=now.getMonth()+1;
+  if(!window.CO_YEAR)window.CO_YEAR=now.getFullYear();
+
+  const clients=(CACHE.clients||[]).filter(c=>c.status==='active'||c.status==='Active').sort((a,b)=>a.name.localeCompare(b.name));
+  const plans=CACHE.contentPlans||[];
+
+  const monthLabel=MONTHS[window.CO_MONTH-1]+' '+window.CO_YEAR;
+  const pad=n=>String(n).padStart(2,'0');
+  const monthStr=window.CO_YEAR+'-'+pad(window.CO_MONTH);
+
+  // Filter by selected client if any
+  if(!window.CO_CLIENT)window.CO_CLIENT='all';
+  const filteredClients=window.CO_CLIENT==='all'?clients:clients.filter(function(c){return c.id==window.CO_CLIENT;});
+
+  // For each client count posts and videos for this month
+  const rows=filteredClients.map(function(c){
+    const cp=plans.filter(function(p){
+      return p.client_id==c.id && p.month===window.CO_MONTH && p.year===window.CO_YEAR;
+    });
+    const posts=cp.filter(function(p){return p.type==='post';});
+    const videos=cp.filter(function(p){return p.type==='video';});
+    const postsUp=posts.filter(function(p){return p.posted;}).length;
+    const videosUp=videos.filter(function(p){return p.posted;}).length;
+    const total=cp.length;
+    const totalUp=cp.filter(function(p){return p.posted;}).length;
+
+    // Status
+    var status,statusColor,statusBg;
+    if(total===0){status='Not Started';statusColor='var(--text3)';statusBg='var(--bg3)';}
+    else if(totalUp===total){status='Done';statusColor='var(--green)';statusBg='rgba(0,255,133,0.08)';}
+    else if(totalUp>0){status='In Progress';statusColor='var(--orange)';statusBg='rgba(255,107,43,0.08)';}
+    else{status='Plan Added';statusColor='var(--yellow)';statusBg='rgba(255,220,0,0.08)';}
+
+    return {c,posts,videos,postsUp,videosUp,total,totalUp,status,statusColor,statusBg};
+  });
+
+  const done=rows.filter(r=>r.status==='Done').length;
+  const inProgress=rows.filter(r=>r.status==='In Progress').length;
+  const notStarted=rows.filter(r=>r.status==='Not Started').length;
+
+  let html='';
+  // Header
+  var monthOpts=MONTHS.map(function(m,i){
+    return '<option value="'+(i+1)+'" '+(window.CO_MONTH===(i+1)?'selected':'')+'>'+m+'</option>';
+  }).join('');
+  var yearOpts=[2025,2026,2027].map(function(y){
+    return '<option value="'+y+'" '+(window.CO_YEAR===y?'selected':'')+'>'+y+'</option>';
+  }).join('');
+  var clientOpts='<option value="all">All Clients</option>'+clients.map(function(c){
+    return '<option value="'+c.id+'" '+(window.CO_CLIENT==c.id?'selected':'')+'>'+c.name+'</option>';
+  }).join('');
+
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">'
+    +'<div><div class="ph-title">Content Overview</div><div class="ph-sub">Content plan status for '+monthLabel+'</div></div>'
+    +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+      +'<select class="fs" onchange="window.CO_CLIENT=this.value;renderContentOverview()" style="min-width:160px">'+clientOpts+'</select>'
+      +'<select class="fs" onchange="window.CO_MONTH=parseInt(this.value);renderContentOverview()" style="min-width:120px">'+monthOpts+'</select>'
+      +'<select class="fs" onchange="window.CO_YEAR=parseInt(this.value);renderContentOverview()" style="width:80px">'+yearOpts+'</select>'
+    +'</div>'
+  +'</div>';
+
+  // Summary pills
+  html+='<div style="display:flex;gap:10px;margin-bottom:20px">'
+    +'<div style="background:rgba(0,255,133,0.1);border:1px solid rgba(0,255,133,0.25);border-radius:8px;padding:10px 18px;text-align:center">'
+      +'<div style="font-size:20px;font-weight:800;color:var(--green)">'+done+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Done</div>'
+    +'</div>'
+    +'<div style="background:rgba(255,107,43,0.1);border:1px solid rgba(255,107,43,0.25);border-radius:8px;padding:10px 18px;text-align:center">'
+      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">'+inProgress+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">In Progress</div>'
+    +'</div>'
+    +'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 18px;text-align:center">'
+      +'<div style="font-size:20px;font-weight:800;color:var(--text3)">'+notStarted+'</div>'
+      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Not Started</div>'
+    +'</div>'
+  +'</div>';
+
+  // Client table
+  html+='<div class="card" style="padding:0;overflow:hidden">';
+  html+='<table style="width:100%;border-collapse:collapse">';
+  html+='<thead><tr style="background:var(--bg3)">'
+    +'<th style="padding:10px 16px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Client</th>'
+    +'<th style="padding:10px 16px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Status</th>'
+    +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Posts</th>'
+    +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Videos</th>'
+    +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Progress</th>'
+    +'<th style="padding:10px 16px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)"></th>'
+  +'</tr></thead><tbody>';
+
+  rows.forEach(function(r,i){
+    var pct=r.total>0?Math.round(r.totalUp/r.total*100):0;
+    var border=i<rows.length-1?'border-bottom:1px solid var(--border);':'';
+    html+='<tr style="background:'+r.statusBg+';'+border+';cursor:pointer" onclick="navToClient('+r.c.id+')">'
+      +'<td style="padding:12px 16px">'
+        +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+r.c.name+'</div>'
+        +(r.c.package?'<div style="font-size:10px;color:var(--text3);margin-top:1px">'+r.c.package+'</div>':'')
+      +'</td>'
+      +'<td style="padding:12px 16px">'
+        +'<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;color:'+r.statusColor+';border:1px solid '+r.statusColor+'33;background:'+r.statusColor+'15">'+r.status+'</span>'
+      +'</td>'
+      +'<td style="padding:12px 16px;text-align:center">'
+        +'<span style="font-size:12px;font-weight:700;color:'+(r.postsUp===r.posts.length&&r.posts.length>0?'var(--green)':'var(--text2)')+'">'+r.postsUp+'/'+r.posts.length+'</span>'
+      +'</td>'
+      +'<td style="padding:12px 16px;text-align:center">'
+        +'<span style="font-size:12px;font-weight:700;color:'+(r.videosUp===r.videos.length&&r.videos.length>0?'var(--green)':'var(--text2)')+'">'+r.videosUp+'/'+r.videos.length+'</span>'
+      +'</td>'
+      +'<td style="padding:12px 16px;min-width:100px">'
+        +(r.total>0?'<div style="display:flex;align-items:center;gap:8px">'
+          +'<div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+            +'<div style="height:100%;width:'+pct+'%;background:'+r.statusColor+';border-radius:3px"></div>'
+          +'</div>'
+          +'<div style="font-size:10px;font-weight:700;color:'+r.statusColor+';white-space:nowrap">'+pct+'%</div>'
+        +'</div>'
+        :'<div style="font-size:10px;color:var(--text3)">No plan</div>')
+      +'</td>'
+      +'<td style="padding:12px 16px;text-align:right">'
+        +'<span style="font-size:11px;color:var(--text3)">→</span>'
+      +'</td>'
+    +'</tr>';
+  });
+
+  html+='</tbody></table></div>';
+  root.innerHTML=html;
+}
+
+function coNav(dir){
+  window.CO_MONTH+=dir;
+  if(window.CO_MONTH>12){window.CO_MONTH=1;window.CO_YEAR++;}
+  if(window.CO_MONTH<0){window.CO_MONTH=12;window.CO_YEAR--;}
+  renderContentOverview();
+}
+// ══════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════
+// INCIDENT TRACKER
+// ══════════════════════════════════════════════════
+let T_incidents=[];
+
+async function loadIncidents(){
+  try{T_incidents=await SB.getAll('team_incidents')||[];}catch(e){T_incidents=[];}
+}
+
+function openIncidentModal(memberId,memberName){
+  document.getElementById('inc-member-id').value=memberId;
+  document.getElementById('inc-member-name').textContent=memberName;
+  document.getElementById('inc-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('inc-what').value='';
+  document.getElementById('inc-impact').value='';
+  document.getElementById('inc-resolution').value='';
+  document.getElementById('inc-severity').value='minor';
+  document.getElementById('inc-repeated').value='no';
+  openModal('modal-incident');
+}
+
+async function saveIncident(){
+  var mId=parseInt(document.getElementById('inc-member-id').value);
+  var data={
+    member_id:mId,
+    date:document.getElementById('inc-date').value,
+    description:document.getElementById('inc-what').value.trim(),
+    client_impact:document.getElementById('inc-impact').value.trim(),
+    resolution:document.getElementById('inc-resolution').value.trim(),
+    severity:document.getElementById('inc-severity').value,
+    repeated:document.getElementById('inc-repeated').value==='yes',
+    logged_by:getCurrentUser(),
+  };
+  if(!data.description)return alert('Describe what happened');
+  showLoading(true);
+  await SB.insert('team_incidents',data);
+  await loadIncidents();
+  showLoading(false);
+  closeModal('modal-incident');
+  renderTeam();
+}
+// ══════════════════════════════════════════════════
+
+function navToClient(id){nav('client-profile');renderClientProfile(id);}
 
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
@@ -5384,6 +5589,39 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-weekly-check')">Cancel</button>
       <button class="btn btn-primary" onclick="saveWeeklyCheck()">Save Check-In</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ INCIDENT MODAL ══ -->
+<div class="overlay" id="modal-incident">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">Log Incident</div>
+    <input type="hidden" id="inc-member-id">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:16px">Team member: <span id="inc-member-name" style="color:var(--text);font-weight:700"></span></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label class="flbl">Date</label><input class="fi" id="inc-date" type="date"></div>
+      <div class="fg"><label class="flbl">Severity</label>
+        <select class="fi" id="inc-severity">
+          <option value="minor">Minor</option>
+          <option value="moderate">Moderate</option>
+          <option value="serious">Serious</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">What happened?</label><textarea class="fta" id="inc-what" placeholder="Clear description of the incident..." style="min-height:70px"></textarea></div>
+    <div class="fg"><label class="flbl">Client affected (if any)</label><input class="fi" id="inc-impact" placeholder="e.g. LGL — wrong caption posted"></div>
+    <div class="fg"><label class="flbl">How was it resolved?</label><textarea class="fta" id="inc-resolution" placeholder="Action taken..." style="min-height:60px"></textarea></div>
+    <div class="fg"><label class="flbl">Repeated behaviour?</label>
+      <select class="fi" id="inc-repeated">
+        <option value="no">No — first time</option>
+        <option value="yes">Yes — happened before</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-incident')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveIncident()">Log Incident</button>
     </div>
   </div>
 </div>
