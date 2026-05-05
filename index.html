@@ -2663,98 +2663,6 @@ async function deletePipeTask(id){
 }
 
 // ═══ TASK BOOK ════════════════════════════════════
-function renderTaskBook(){
-  const allTasks=CACHE.tasks||[];
-  const clients=CACHE.clients||[];
-  const filterAssign=document.getElementById('tb-filter-assign')?.value||'';
-  const filterStatus=document.getElementById('tb-filter-status')?.value||'open';
-  const todayStr=today();
-  const weekStr=new Date(Date.now()+7*864e5).toISOString().split('T')[0];
-
-  // Stats
-  const openTasks=allTasks.filter(t=>!t.done);
-  document.getElementById('tb-s-overdue').textContent=openTasks.filter(t=>isOverdue(t)).length;
-  document.getElementById('tb-s-high').textContent=openTasks.filter(t=>t.priority==='high').length;
-  document.getElementById('tb-s-week').textContent=openTasks.filter(t=>t.due&&t.due>=todayStr&&t.due<=weekStr).length;
-  document.getElementById('tb-s-done').textContent=allTasks.filter(t=>t.done).length;
-
-  // Update overdue badge on sidebar
-  const odCount=openTasks.filter(t=>isOverdue(t)).length;
-  const odBadge=document.getElementById('sb-overdue-badge');
-  if(odBadge)odBadge.style.display=odCount>0?'':'none';
-
-  // Filter tasks
-  let tasks=[...allTasks];
-  if(filterAssign)tasks=tasks.filter(t=>t.assign===filterAssign||t.assign==='both');
-  if(filterStatus==='open')tasks=tasks.filter(t=>!t.done);
-  else if(filterStatus==='overdue')tasks=tasks.filter(t=>isOverdue(t));
-  else if(filterStatus==='done')tasks=tasks.filter(t=>t.done);
-
-  // Sort: overdue first, then by due date asc, then no-date, done at bottom
-  tasks.sort((a,b)=>{
-    if(a.done&&!b.done)return 1;
-    if(!a.done&&b.done)return -1;
-    const ao=isOverdue(a),bo=isOverdue(b);
-    if(ao&&!bo)return -1;
-    if(!ao&&bo)return 1;
-    if(a.due&&b.due)return a.due.localeCompare(b.due);
-    if(a.due&&!b.due)return -1;
-    if(!a.due&&b.due)return 1;
-    // priority tiebreak
-    const po={high:0,medium:1,low:2};
-    return (po[a.priority]||1)-(po[b.priority]||1);
-  });
-
-  const tbody=document.getElementById('tb-tbody');
-  if(!tasks.length){
-    tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text3);font-size:13px">No tasks found</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML=tasks.map(t=>{
-    const client=clients.find(c=>c.id===(t.clientId||t.client_id));
-    const clientName=client?client.name:(t.pipeline_id?'Pipeline':'—');
-    const od=isOverdue(t);
-    const dueInWeek=!t.done&&t.due&&t.due>=todayStr&&t.due<=weekStr&&!od;
-    const priColor={high:'var(--orange)',medium:'var(--yellow)',low:'var(--text3)'}[t.priority]||'var(--text3)';
-    const assignMap={th:'TH',sh:'SH',both:'T+S'};
-    const assignClass={th:'av-t',sh:'av-s',both:'av-t'};
-    let dueTxt='—';
-    let dueStyle='color:var(--text3)';
-    if(t.due){
-      dueTxt=fmtDate(t.due);
-      if(od)dueStyle='color:var(--red);font-weight:700';
-      else if(dueInWeek)dueStyle='color:var(--yellow);font-weight:600';
-    }
-    return `<tr style="cursor:default;${t.done?'opacity:0.45':''}">
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div class="task-check ${t.done?'done':''}" onclick="toggleTaskFromBook(${t.id})" style="width:16px;height:16px;font-size:9px">${t.done?'✓':''}</div>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div style="font-size:12px;font-weight:${t.done?'400':'600'};text-transform:uppercase;letter-spacing:0.02em;${t.done?'text-decoration:line-through;color:var(--text3)':''}">${t.title}</div>
-        ${t.notes?`<div style="font-size:10px;color:var(--text3);margin-top:2px;font-weight:300">${t.notes.substring(0,50)}</div>`:''}
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        ${client?`<span style="font-size:11px;font-weight:600;color:var(--text2);cursor:pointer" onclick="openClientProfile(${client.id})">${clientName}</span>`:`<span style="font-size:11px;color:var(--text3)">${clientName}</span>`}
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.05em">${t.category||'—'}</span>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <div class="av ${assignClass[t.assign]||'av-t'}" style="width:24px;height:24px;font-size:9px">${assignMap[t.assign]||'TH'}</div>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-size:12px;font-weight:500;${dueStyle}">${od?'OVERDUE':dueTxt}</span>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:${priColor}">${t.priority||'—'}</span>
-      </td>
-      <td style="padding:10px 16px;border-bottom:1px solid var(--border)">
-        <button class="btn btn-danger btn-sm" style="padding:3px 8px;font-size:10px" onclick="deleteTaskFromBook(${t.id})">×</button>
-      </td>
-    </tr>`;
-  }).join('');
-}
 
 async function toggleTaskFromBook(id){
   const t=CACHE.tasks.find(x=>x.id===id);
@@ -2775,24 +2683,6 @@ async function deleteTaskFromBook(id){
   renderDashboard();
 }
 
-function openGlobalTaskModal(){
-  document.getElementById('task-client-id').value='';
-  document.getElementById('task-pipeline-id').value='';
-  document.getElementById('t-title').value='';
-  document.getElementById('t-assign').value='th';
-  document.getElementById('t-due').value=today();
-  document.getElementById('t-priority').value='high';
-  document.getElementById('t-category').value='Content Creation';
-  document.getElementById('t-notes').value='';
-  // Populate client dropdown
-  const sel=document.getElementById('task-client-select');
-  if(sel){
-    sel.innerHTML='<option value="">No client</option>'+(CACHE.clients||[]).map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-    sel.value='';
-  }
-  document.getElementById('task-client-select-wrap').style.display='block';
-  openModal('modal-task');
-}
 
 // ═══ TASK BOOK ═══════════════════════════════════
 function renderTaskBook(){
@@ -4086,21 +3976,6 @@ async function loadMissions(){
   }catch(e){CACHE.missions=[];CACHE.missionSteps=[];}
 }
 
-function renderMissions(){
-  const pv=document.getElementById('missions-view-people');
-  const dv=document.getElementById('missions-view-detail');
-  // Always reset detail to hidden first
-  if(dv){dv.style.display='none';dv.style.visibility='hidden';}
-  if(activeMissionPerson){
-    if(pv)pv.style.display='none';
-    if(dv){dv.style.display='block';dv.style.visibility='visible';}
-    loadMissions().then(()=>renderMissionDetail(activeMissionPerson));
-  } else {
-    if(pv){pv.style.display='block';pv.style.visibility='visible';}
-    renderMissionPeople();
-    loadMissions().then(()=>renderMissionPeople());
-  }
-}
 
 function renderMissionPeople(){
   window.scrollTo({top:0,left:0,behavior:'instant'});
@@ -4266,44 +4141,7 @@ function toggleMissionRoadmap(id){
   if(chev)chev.style.transform=open?'':'rotate(180deg)';
 }
 
-function openMissionModal(id=null){
-  document.getElementById('mission-modal-title').textContent=id?'Edit Mission':'New Mission';
-  document.getElementById('mission-edit-id').value=id||'';
-  if(id){
-    const m=(CACHE.missions||[]).find(x=>x.id===id);
-    if(m){
-      document.getElementById('mission-title').value=m.title||'';
-      document.getElementById('mission-desc').value=m.description||'';
-      document.getElementById('mission-category').value=m.category||'product';
-      document.getElementById('mission-status').value=m.status||'active';
-    }
-  } else {
-    document.getElementById('mission-title').value='';
-    document.getElementById('mission-desc').value='';
-    document.getElementById('mission-category').value='product';
-    document.getElementById('mission-status').value='active';
-  }
-  openModal('modal-mission');
-}
 
-async function saveMission(){
-  const editId=parseInt(document.getElementById('mission-edit-id').value)||null;
-  const data={
-    title:document.getElementById('mission-title').value.trim(),
-    description:document.getElementById('mission-desc').value.trim(),
-    category:document.getElementById('mission-category').value,
-    status:document.getElementById('mission-status').value,
-    created_by:activeMissionPerson||getCurrentUser(),
-  };
-  if(!data.title)return alert('Enter a mission name');
-  showLoading(true);
-  if(editId)await SB.update('missions',editId,data);
-  else await SB.insert('missions',data);
-  await loadMissions();
-  showLoading(false);
-  closeModal('modal-mission');
-  renderMissions();
-}
 
 async function deleteMission(id){
   if(!confirm('Delete this mission and all its steps?'))return;
@@ -4316,50 +4154,7 @@ async function deleteMission(id){
   renderMissions();
 }
 
-function openStepModal(missionId,stepId=null){
-  document.getElementById('step-modal-title').textContent=stepId?'Edit Step':'Add Step';
-  document.getElementById('step-edit-id').value=stepId||'';
-  document.getElementById('step-mission-id').value=missionId;
-  if(stepId){
-    const s=(CACHE.missionSteps||[]).find(x=>x.id===stepId);
-    if(s){
-      document.getElementById('step-title').value=s.title||'';
-      document.getElementById('step-notes').value=s.notes||'';
-      document.getElementById('step-status').value=s.status||'todo';
-    }
-  } else {
-    ['step-title','step-notes'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('step-status').value='todo';
-  }
-  openModal('modal-mission-step');
-}
 
-async function saveMissionStep(){
-  const editId=parseInt(document.getElementById('step-edit-id').value)||null;
-  const mId=parseInt(document.getElementById('step-mission-id').value);
-  const data={
-    mission_id:mId,
-    title:document.getElementById('step-title').value.trim(),
-    notes:document.getElementById('step-notes').value.trim(),
-    status:document.getElementById('step-status').value,
-    step_order:(CACHE.missionSteps||[]).filter(s=>s.mission_id===mId).length,
-  };
-  if(!data.title)return alert('Enter a step title');
-  if(editId)delete data.step_order;
-  showLoading(true);
-  if(editId)await SB.update('mission_steps',editId,data);
-  else await SB.insert('mission_steps',data);
-  await loadMissions();
-  showLoading(false);
-  closeModal('modal-mission-step');
-  renderMissions();
-  setTimeout(()=>{
-    const panel=document.getElementById('mission-roadmap-'+mId);
-    if(panel)panel.style.display='block';
-    const chev=document.getElementById('mission-chevron-'+mId);
-    if(chev)chev.style.transform='rotate(180deg)';
-  },150);
-}
 
 async function cycleStepStatus(stepId,missionId){
   const s=(CACHE.missionSteps||[]).find(x=>x.id===stepId);
@@ -5254,30 +5049,43 @@ async function renderContentOverview(){
   +'</div>';
 
   // Summary pills
-  html+='<div style="display:flex;gap:10px;margin-bottom:20px">'
-    +'<div style="background:rgba(0,255,133,0.1);border:1px solid rgba(0,255,133,0.25);border-radius:8px;padding:10px 18px;text-align:center">'
-      +'<div style="font-size:20px;font-weight:800;color:var(--green)">'+done+'</div>'
-      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Done</div>'
+  html+='<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">'
+    +'<div style="background:rgba(0,255,133,0.1);border:1px solid rgba(0,255,133,0.3);border-radius:10px;padding:14px 22px;text-align:center;min-width:100px">'
+      +'<div style="font-size:28px;font-weight:800;color:var(--green)">'+allPostedCount+'</div>'
+      +'<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">All Posted ✅</div>'
     +'</div>'
-    +'<div style="background:rgba(255,107,43,0.1);border:1px solid rgba(255,107,43,0.25);border-radius:8px;padding:10px 18px;text-align:center">'
-      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">'+inProgress+'</div>'
-      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">In Progress</div>'
+    +'<div style="background:rgba(0,229,255,0.1);border:1px solid rgba(0,229,255,0.3);border-radius:10px;padding:14px 22px;text-align:center;min-width:100px">'
+      +'<div style="font-size:28px;font-weight:800;color:var(--cyan)">'+planCreated+'</div>'
+      +'<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">Plan Created 📋</div>'
     +'</div>'
-    +'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 18px;text-align:center">'
-      +'<div style="font-size:20px;font-weight:800;color:var(--text3)">'+notStarted+'</div>'
-      +'<div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em">Not Started</div>'
+    +'<div style="background:rgba(255,60,60,0.1);border:1px solid rgba(255,60,60,0.3);border-radius:10px;padding:14px 22px;text-align:center;min-width:100px">'
+      +'<div style="font-size:28px;font-weight:800;color:var(--red)">'+noPlan+'</div>'
+      +'<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">No Plan Yet ❌</div>'
+    +'</div>'
+    +'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px 22px;text-align:center;min-width:100px">'
+      +'<div style="font-size:28px;font-weight:800;color:var(--text2)">'+filteredClients.length+'</div>'
+      +'<div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px">Total Clients</div>'
     +'</div>'
   +'</div>';
 
   // Client table
   html+='<div class="card" style="padding:0;overflow:hidden">';
   html+='<table style="width:100%;border-collapse:collapse">';
+  // Sort: no plan first, then in progress, then all posted
+  rows.sort(function(a,b){
+    if(!a.hasPlan&&b.hasPlan)return -1;
+    if(a.hasPlan&&!b.hasPlan)return 1;
+    if(a.allPosted&&!b.allPosted)return 1;
+    if(!a.allPosted&&b.allPosted)return -1;
+    return a.c.name.localeCompare(b.c.name);
+  });
+
   html+='<thead><tr style="background:var(--bg3)">'
     +'<th style="padding:10px 16px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Client</th>'
-    +'<th style="padding:10px 16px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Status</th>'
+    +'<th style="padding:10px 16px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Plan</th>'
     +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Posts</th>'
     +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Videos</th>'
-    +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Progress</th>'
+    +'<th style="padding:10px 16px;text-align:center;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Posted</th>'
     +'<th style="padding:10px 16px;text-align:right;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text3);border-bottom:1px solid var(--border)">Ready</th>'
   +'</tr></thead><tbody>';
 
@@ -5486,34 +5294,6 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
 
 
 
-<!-- ══ MISSION STEP MODAL ══ -->
-<div class="overlay" id="modal-mission-step" onclick="if(event.target===this)closeModal('modal-mission-step')">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-title" id="step-modal-title">Add Step</div>
-    <input type="hidden" id="step-edit-id">
-    <input type="hidden" id="step-mission-id">
-    <div class="fg">
-      <label class="flbl">Step Title</label>
-      <input class="fi" id="step-title" placeholder="e.g. Research competitor salon systems">
-    </div>
-    <div class="fg">
-      <label class="flbl">Notes</label>
-      <textarea class="fta" id="step-notes" placeholder="What needs to happen for this step to be done?" style="min-height:70px"></textarea>
-    </div>
-    <div class="fg">
-      <label class="flbl">Status</label>
-      <select class="fi" id="step-status">
-        <option value="todo">To Do</option>
-        <option value="inprogress">In Progress</option>
-        <option value="done">Done</option>
-      </select>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('modal-mission-step')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveMissionStep()">Save Step</button>
-    </div>
-  </div>
-</div>
 
 
 <!-- ══ MISSION MODAL ══ -->
