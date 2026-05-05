@@ -770,7 +770,6 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('tasks')">Tasks</button>
     <button class="tab-btn" onclick="switchTab('shoots')">Shoots</button>
-    <button class="tab-btn" onclick="switchTab('phases')">Phases</button>
     <button class="tab-btn" onclick="switchTab('notes')">Notes</button>
     <button class="tab-btn" onclick="switchTab('content-plan')">Content Plan</button>
   </div>
@@ -821,9 +820,7 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
     <div id="cp-shoots-list"></div>
   </div>
 
-  <div class="tab-panel" id="tab-phases">
-    <div id="cp-phases-list"></div>
-  </div>
+  
 
   <div class="tab-panel" id="tab-notes">
     <div class="card">
@@ -4005,7 +4002,7 @@ function renderCPlanRow(p,num,type){
       ${p.posted?`<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`:''}
     </div>
     <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:800;color:${p.posted?'var(--text3)':color};min-width:22px;letter-spacing:0.04em">${String(num).padStart(2,'0')}</div>
-    <div style="flex:1;font-size:12px;font-weight:${p.posted?400:600};color:${p.posted?'var(--text3)':'var(--text)'};${p.posted?'text-decoration:line-through':''};cursor:pointer" onclick="openCPlanModal('${type}',${p.id})">${p.title||'Untitled'}</div>
+    <div style="flex:1;font-size:12px;font-weight:${p.posted?400:600};color:${p.posted?'var(--text3)':'var(--text)'};${p.posted?'text-decoration:line-through':''}" onclick="startCPlanInlineEdit(${p.id},this)" title="Click to edit" style="cursor:text">${p.title||'Untitled'}</div>
     <div style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:${p.posted?'var(--bg4)':bg};color:${p.posted?'var(--text3)':color};white-space:nowrap;flex-shrink:0">${dateStr}</div>
     <button onclick="duplicateCPlanItem(${p.id})" title="Duplicate" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:0 4px;flex-shrink:0" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text3)'">⧉</button>
     <button onclick="deleteCPlanItem(${p.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
@@ -5213,7 +5210,10 @@ async function renderContentOverview(){
   // For each client count posts and videos for this month
   const rows=filteredClients.map(function(c){
     const cp=plans.filter(function(p){
-      return p.client_id==c.id && p.month==window.CO_MONTH && p.year==window.CO_YEAR;
+      // Handle month stored as string or integer
+      return String(p.client_id)===String(c.id) &&
+             parseInt(p.month)===parseInt(window.CO_MONTH) &&
+             parseInt(p.year)===parseInt(window.CO_YEAR);
     });
     const posts=cp.filter(function(p){return p.type==='post';});
     const videos=cp.filter(function(p){return p.type==='video';});
@@ -5286,36 +5286,41 @@ async function renderContentOverview(){
   +'</tr></thead><tbody>';
 
   rows.forEach(function(r,i){
-    var pct=r.total>0?Math.round(r.totalUp/r.total*100):0;
     var border=i<rows.length-1?'border-bottom:1px solid var(--border);':'';
-    html+='<tr style="background:'+r.statusBg+';'+border+';cursor:pointer" onclick="navToClient('+r.c.id+')">'
+    var totalPlanned=r.posts.length+r.videos.length;
+    var totalPosted=r.postsUp+r.videosUp;
+    var pct=totalPlanned>0?Math.round(totalPosted/totalPlanned*100):0;
+    html+='<tr style="background:'+r.rowBg+';'+border+';cursor:pointer" onclick="navToClient('+r.c.id+')">'
       +'<td style="padding:12px 16px">'
         +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+r.c.name+'</div>'
         +(r.c.package?'<div style="font-size:10px;color:var(--text3);margin-top:1px">'+r.c.package+'</div>':'')
       +'</td>'
       +'<td style="padding:12px 16px">'
-        +'<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;color:'+r.statusColor+';border:1px solid '+r.statusColor+'33;background:'+r.statusColor+'15">'+r.status+'</span>'
-      +'</td>'
-      +'<td style="padding:12px 16px;text-align:center">'
-        +'<span style="font-size:12px;font-weight:700;color:'+(r.postsUp===r.posts.length&&r.posts.length>0?'var(--green)':'var(--text2)')+'">'+r.postsUp+'/'+r.posts.length+'</span>'
-      +'</td>'
-      +'<td style="padding:12px 16px;text-align:center">'
-        +'<span style="font-size:12px;font-weight:700;color:'+(r.videosUp===r.videos.length&&r.videos.length>0?'var(--green)':'var(--text2)')+'">'+r.videosUp+'/'+r.videos.length+'</span>'
-      +'</td>'
-      +'<td style="padding:12px 16px;min-width:100px">'
-        +(r.total>0?'<div style="display:flex;align-items:center;gap:8px">'
-          +'<div style="flex:1;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">'
-            +'<div style="height:100%;width:'+pct+'%;background:'+r.statusColor+';border-radius:3px"></div>'
-          +'</div>'
-          +'<div style="font-size:10px;font-weight:700;color:'+r.statusColor+';white-space:nowrap">'+pct+'%</div>'
+        +'<div style="display:flex;align-items:center;gap:7px">'
+          +'<span style="font-size:15px">'+r.planIcon+'</span>'
+          +'<span style="font-size:11px;font-weight:700;color:'+r.planColor+'">'+r.planStatus+'</span>'
         +'</div>'
-        :'<div style="font-size:10px;color:var(--text3)">No plan</div>')
+      +'</td>'
+      +'<td style="padding:12px 16px;text-align:center">'
+        +(r.posts.length?'<span style="font-size:12px;font-weight:700;color:var(--text2)">'+r.posts.length+'</span>':'<span style="color:var(--text3);font-size:11px">—</span>')
+      +'</td>'
+      +'<td style="padding:12px 16px;text-align:center">'
+        +(r.videos.length?'<span style="font-size:12px;font-weight:700;color:var(--text2)">'+r.videos.length+'</span>':'<span style="color:var(--text3);font-size:11px">—</span>')
+      +'</td>'
+      +'<td style="padding:12px 16px;text-align:center">'
+        +(totalPlanned>0?'<div style="display:flex;align-items:center;gap:8px;justify-content:center">'
+          +'<div style="width:60px;height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+            +'<div style="height:100%;width:'+pct+'%;background:'+r.planColor+';border-radius:3px"></div>'
+          +'</div>'
+          +'<span style="font-size:10px;font-weight:700;color:'+r.planColor+'">'+totalPosted+'/'+totalPlanned+'</span>'
+        +'</div>':'<span style="color:var(--text3);font-size:10px">—</span>')
       +'</td>'
       +'<td style="padding:12px 16px;text-align:right">'
-        +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navToClient('+r.c.id+',\'content-plan\')" style="font-size:10px;padding:3px 10px">Open Plan →</button>'
+        +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navToClient('+r.c.id+')" style="font-size:10px;padding:3px 10px">Open →</button>'
       +'</td>'
     +'</tr>';
   });
+
 
   html+='</tbody></table></div>';
   root.innerHTML=html;
@@ -5397,6 +5402,38 @@ async function duplicateCPlanItem(id){
   if(newItem&&newItem[0])CACHE.contentPlans.push(newItem[0]);
   showLoading(false);
   renderContentPlan();
+}
+
+
+// ── Content Plan Inline Edit ──────────────────────
+function startCPlanInlineEdit(id, el){
+  const item=(CACHE.contentPlans||[]).find(p=>p.id===id);
+  if(!item)return;
+  const currentTitle=item.title||'';
+  const input=document.createElement('input');
+  input.value=currentTitle;
+  input.style.cssText='width:100%;background:var(--bg3);border:1px solid var(--orange);border-radius:4px;color:var(--text);font-size:12px;font-weight:600;padding:2px 6px;outline:none';
+  el.replaceWith(input);
+  input.focus();
+  input.select();
+  async function save(){
+    const newTitle=input.value.trim()||currentTitle;
+    item.title=newTitle;
+    const div=document.createElement('div');
+    div.style.cssText='flex:1;font-size:12px;font-weight:'+(item.posted?400:600)+';color:'+(item.posted?'var(--text3)':'var(--text)')+(item.posted?';text-decoration:line-through':'');
+    div.textContent=newTitle;
+    div.onclick=function(){startCPlanInlineEdit(id,this);};
+    div.title='Click to edit';
+    input.replaceWith(div);
+    if(newTitle!==currentTitle){
+      await SB.update('content_plans',id,{title:newTitle});
+    }
+  }
+  input.onblur=save;
+  input.onkeydown=function(e){
+    if(e.key==='Enter'){e.preventDefault();input.blur();}
+    if(e.key==='Escape'){input.value=currentTitle;input.blur();}
+  };
 }
 
 // ══ BB CC v6 — end marker ══
