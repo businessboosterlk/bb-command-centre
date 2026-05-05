@@ -5017,10 +5017,10 @@ async function renderContentOverview(){
     const hasPlan=cp.length>0;
     const allPosted=hasPlan&&cp.every(function(p){return p.posted;});
     var planStatus,planColor,planIcon,rowBg;
-    if(!hasPlan){planStatus='No Plan Yet';planColor='var(--red)';planIcon='❌';rowBg='rgba(255,60,60,0.04)';}
-    else if(allPosted){planStatus='All Posted';planColor='var(--green)';planIcon='✅';rowBg='rgba(0,255,133,0.04)';}
-    else{planStatus='Plan Created';planColor='var(--cyan)';planIcon='📋';rowBg='rgba(0,229,255,0.04)';}
-    return {c,posts,videos,postsUp,videosUp,hasPlan,allPosted,planStatus,planColor,planIcon,rowBg};
+    if(!hasPlan){planStatus='No Plan Yet';planColor='var(--red)';planIcon='none';rowBg='rgba(255,60,60,0.04)';planDot='#FF3C3C';}
+    else if(allPosted){planStatus='All Posted';planColor='var(--green)';planIcon='none';rowBg='rgba(0,255,133,0.04)';planDot='#00FF85';}
+    else{planStatus='Plan Created';planColor='var(--cyan)';planIcon='none';rowBg='rgba(0,229,255,0.04)';planDot='#00E5FF';}
+    return {c,posts,videos,postsUp,videosUp,hasPlan,allPosted,planStatus,planColor,planDot:planDot||planColor,rowBg};
   });
 
   const allPostedCount=rows.filter(r=>r.allPosted).length;
@@ -5100,8 +5100,8 @@ async function renderContentOverview(){
         +(r.c.package?'<div style="font-size:10px;color:var(--text3);margin-top:1px">'+r.c.package+'</div>':'')
       +'</td>'
       +'<td style="padding:12px 16px">'
-        +'<div style="display:flex;align-items:center;gap:7px">'
-          +'<span style="font-size:15px">'+r.planIcon+'</span>'
+        +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<div style="width:8px;height:8px;border-radius:50%;background:'+r.planDot+';flex-shrink:0;box-shadow:0 0 6px '+r.planDot+'88"></div>'
           +'<span style="font-size:11px;font-weight:700;color:'+r.planColor+'">'+r.planStatus+'</span>'
         +'</div>'
       +'</td>'
@@ -5120,7 +5120,7 @@ async function renderContentOverview(){
         +'</div>':'<span style="color:var(--text3);font-size:10px">—</span>')
       +'</td>'
       +'<td style="padding:12px 16px;text-align:right;white-space:nowrap">'
-        +'<button onclick="event.stopPropagation();togglePlanReady('+r.c.id+','+!!r.c.plan_ready+')" style="background:'+(r.c.plan_ready?'var(--green)':'var(--bg3)')+';border:1px solid '+(r.c.plan_ready?'var(--green)':'var(--border)')+';color:'+(r.c.plan_ready?'#000':'var(--text3)')+';border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s">'+( r.c.plan_ready?'✓ Ready':'Mark Ready')+'</button>'
+        +'<button onclick="event.stopPropagation();togglePlanReady('+r.c.id+','+!!r.c.plan_ready+')" style="background:'+(r.c.plan_ready?'var(--green)':'var(--bg3)')+';border:1px solid '+(r.c.plan_ready?'var(--green)':'var(--border)')+';color:'+(r.c.plan_ready?'#000':'var(--text3)')+';border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.2s">'+( r.c.plan_ready?'Ready':'Mark Ready')+'</button>'
       +'</td>'
     +'</tr>';
   });
