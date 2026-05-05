@@ -2171,6 +2171,13 @@ function setTaskFilter(f){
 }
 
 function switchTab(t){
+  if(t==='content-plan'){
+    var now=new Date();
+    var mSel=document.getElementById('cplan-month');
+    var ySel=document.getElementById('cplan-year');
+    if(mSel&&!mSel.dataset.userSet)mSel.value=now.getMonth()+1;
+    if(ySel&&!ySel.dataset.userSet)ySel.value=now.getFullYear();
+  }
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
@@ -4000,6 +4007,7 @@ function renderCPlanRow(p,num,type){
     <div style="font-family:'Poppins',sans-serif;font-size:11px;font-weight:800;color:${p.posted?'var(--text3)':color};min-width:22px;letter-spacing:0.04em">${String(num).padStart(2,'0')}</div>
     <div style="flex:1;font-size:12px;font-weight:${p.posted?400:600};color:${p.posted?'var(--text3)':'var(--text)'};${p.posted?'text-decoration:line-through':''};cursor:pointer" onclick="openCPlanModal('${type}',${p.id})">${p.title||'Untitled'}</div>
     <div style="font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;background:${p.posted?'var(--bg4)':bg};color:${p.posted?'var(--text3)':color};white-space:nowrap;flex-shrink:0">${dateStr}</div>
+    <button onclick="duplicateCPlanItem(${p.id})" title="Duplicate" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;line-height:1;padding:0 4px;flex-shrink:0" onmouseover="this.style.color='var(--cyan)'" onmouseout="this.style.color='var(--text3)'">⧉</button>
     <button onclick="deleteCPlanItem(${p.id})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;padding:0 2px;flex-shrink:0" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text3)'">×</button>
   </div>`;
 }
@@ -5176,9 +5184,14 @@ async function saveWeeklyCheck(){
 // ══════════════════════════════════════════════════
 // CONTENT OVERVIEW — all clients content plan status
 // ══════════════════════════════════════════════════
-function renderContentOverview(){
+async function renderContentOverview(){
   const root=document.getElementById('co-root');
   if(!root)return;
+  // Reload content plans fresh
+  try{
+    const fresh=await SB.getAll('content_plans');
+    CACHE.contentPlans=fresh||[];
+  }catch(e){}
   const now=new Date();
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -5186,7 +5199,7 @@ function renderContentOverview(){
   if(!window.CO_MONTH)window.CO_MONTH=now.getMonth()+1;
   if(!window.CO_YEAR)window.CO_YEAR=now.getFullYear();
 
-  const clients=(CACHE.clients||[]).filter(c=>c.status==='active'||c.status==='Active').sort((a,b)=>a.name.localeCompare(b.name));
+  const clients=(CACHE.clients||[]).sort((a,b)=>a.name.localeCompare(b.name));
   const plans=CACHE.contentPlans||[];
 
   const monthLabel=MONTHS[window.CO_MONTH-1]+' '+window.CO_YEAR;
@@ -5200,7 +5213,7 @@ function renderContentOverview(){
   // For each client count posts and videos for this month
   const rows=filteredClients.map(function(c){
     const cp=plans.filter(function(p){
-      return p.client_id==c.id && p.month===window.CO_MONTH && p.year===window.CO_YEAR;
+      return p.client_id==c.id && p.month==window.CO_MONTH && p.year==window.CO_YEAR;
     });
     const posts=cp.filter(function(p){return p.type==='post';});
     const videos=cp.filter(function(p){return p.type==='video';});
@@ -5299,7 +5312,7 @@ function renderContentOverview(){
         :'<div style="font-size:10px;color:var(--text3)">No plan</div>')
       +'</td>'
       +'<td style="padding:12px 16px;text-align:right">'
-        +'<span style="font-size:11px;color:var(--text3)">→</span>'
+        +'<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();navToClient('+r.c.id+',\'content-plan\')" style="font-size:10px;padding:3px 10px">Open Plan →</button>'
       +'</td>'
     +'</tr>';
   });
@@ -5359,7 +5372,32 @@ async function saveIncident(){
 }
 // ══════════════════════════════════════════════════
 
-function navToClient(id){nav('client-profile');renderClientProfile(id);}
+function navToClient(id,tab){
+  nav('client-profile');
+  renderClientProfile(id);
+  if(tab)setTimeout(function(){switchTab(tab);},300);
+}
+
+
+async function duplicateCPlanItem(id){
+  const item=(CACHE.contentPlans||[]).find(p=>p.id===id);
+  if(!item)return;
+  const month=parseInt(document.getElementById('cplan-month')?.value||new Date().getMonth()+1);
+  const year=parseInt(document.getElementById('cplan-year')?.value||new Date().getFullYear());
+  const payload={
+    client_id:item.client_id,
+    month,year,
+    type:item.type,
+    title:item.title,
+    scheduled_date:null,
+    posted:false
+  };
+  showLoading(true);
+  const newItem=await SB.insert('content_plans',payload);
+  if(newItem&&newItem[0])CACHE.contentPlans.push(newItem[0]);
+  showLoading(false);
+  renderContentPlan();
+}
 
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
