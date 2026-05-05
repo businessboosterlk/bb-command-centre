@@ -569,6 +569,8 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
     <div class="sb-item" onclick="nav('finance')"><span>Finance</span></div>
     <div class="sb-grp">Tools</div>
     <div class="sb-item" onclick="nav('missions')"><span>Missions</span></div>
+    <div class="sb-grp">People</div>
+    <div class="sb-item" onclick="nav('team')"><span>Team</span></div>
     <div class="sb-grp">Team Systems</div>
     <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-smm-workspace','_blank')" style="color:var(--cyan)"><span>SMM Workspace ↗</span></div>
 <div class="sb-item" onclick="window.open('https://businessboosterlk.github.io/bb-gd-workspace','_blank')" style="color:var(--pink)"><span>GD Workspace ↗</span></div>    <div class="sb-item" style="opacity:0.45;cursor:not-allowed"><span>Video System — Soon</span></div>
@@ -1125,6 +1127,10 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
 <!-- ══ FINANCE ══ -->
 <div class="page" id="page-missions">
   <div id="missions-root"></div>
+</div>
+
+<div class="page" id="page-team">
+  <div id="team-root"></div>
 </div>
 
 <div class="page" id="page-finance">
@@ -1802,7 +1808,7 @@ async function nav(id){
   pillarStateCache.sh=shState;
   showLoading(false);
   if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
-  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
+  ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,pipeline:renderPipeline,revenue:renderRevenue,missions:renderMissions,team:renderTeam,taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,shoots:renderShootsBoard,'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
 function showLoading(v){
@@ -3745,7 +3751,7 @@ async function mobileNav(id){
   if(window.CC_IS_GUEST&&id==='finance'){alert('Finance is restricted.');return;}
   ({dashboard:renderDashboard,myday:renderMyDay,clients:renderClients,
     pipeline:renderPipeline,revenue:renderRevenue,
-    missions:renderMissions,
+    missions:renderMissions,team:renderTeam,
     taskbook:renderTaskBook,calendar:renderCalendar,finance:renderFinance,
     shoots:renderShootsBoard,
     'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
@@ -4837,6 +4843,319 @@ function startAutoRefresh(){
 }
 
 
+
+// ══════════════════════════════════════════════════
+// TEAM PAGE
+// ══════════════════════════════════════════════════
+let T_members=[];
+let T_trainees=[];
+let T_checks=[];
+
+const T_ROLES=['Social Media Manager','Graphic Designer','Videographer','Video Editor'];
+const T_STAGE_COLORS={
+  'Applied':'var(--text3)',
+  'Screening':'var(--yellow)',
+  'Training':'var(--cyan)',
+  'Final Review':'var(--orange)',
+  'Offer Made':'var(--purple)',
+  'Contracted':'var(--green)',
+  'Cut':'var(--red)'
+};
+
+async function renderTeam(){
+  const root=document.getElementById('team-root');
+  if(!root)return;
+  root.innerHTML='<div style="color:var(--text3);font-size:13px;padding:24px">Loading...</div>';
+  try{
+    const [mem,tra,chk]=await Promise.all([
+      SB.getAll('team_members'),
+      SB.getAll('trainees'),
+      SB.getAll('trainee_checks')
+    ]);
+    T_members=mem||[];T_trainees=tra||[];T_checks=chk||[];
+  }catch(e){T_members=[];T_trainees=[];T_checks=[];}
+  t_render(root);
+}
+
+function t_render(root){
+  const today=new Date();
+  function daysLeft(start,dur){
+    if(!start||!dur)return null;
+    const end=new Date(start);end.setDate(end.getDate()+parseInt(dur));
+    return Math.ceil((end-today)/(1000*60*60*24));
+  }
+  function checkpointStatus(start,dur,day){
+    if(!start)return null;
+    const cp=new Date(start);cp.setDate(cp.getDate()+day);
+    return cp<=today?'reached':'upcoming';
+  }
+
+  let html='';
+
+  // ── CURRENT TEAM ──
+  html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
+    +'<div><div class="ph-title">Team</div><div class="ph-sub">Current team and talent pipeline</div></div>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn btn-ghost" onclick="openTeamMemberModal()">+ Add Member</button>'
+    +'<button class="btn btn-primary" onclick="openTraineeModal()">+ Add Trainee</button>'
+    +'</div></div>';
+
+  // Current team section
+  html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--orange);margin-bottom:12px">Current Team — '+T_members.length+' members</div>';
+
+  if(!T_members.length){
+    html+='<div class="card" style="text-align:center;padding:24px;margin-bottom:20px"><div style="color:var(--text3);font-size:12px">No team members added yet. Add your first member above.</div></div>';
+  } else {
+    // Group by role
+    var byRole={};
+    T_members.forEach(function(m){var r=m.role||'Other';if(!byRole[r])byRole[r]=[];byRole[r].push(m);});
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:24px">';
+    T_members.forEach(function(m){
+      var start=m.start_date?new Date(m.start_date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+      var expiry=m.contract_expiry?new Date(m.contract_expiry).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'—';
+      var daysToExpiry=m.contract_expiry?Math.ceil((new Date(m.contract_expiry)-today)/(1000*60*60*24)):null;
+      var expiryWarning=daysToExpiry!==null&&daysToExpiry<30;
+      html+='<div class="card" style="padding:16px 18px;border-left:3px solid var(--green)">'
+        +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+          +'<div>'
+            +'<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:2px">'+m.name+'</div>'
+            +'<div style="font-size:10px;color:var(--cyan);font-weight:600;text-transform:uppercase;letter-spacing:0.06em">'+m.role+'</div>'
+          +'</div>'
+          +'<div style="display:flex;gap:4px">'
+            +'<button class="btn btn-ghost btn-sm" onclick="openTeamMemberModal('+m.id+')" style="padding:2px 7px;font-size:10px">Edit</button>'
+            +'<button class="btn btn-danger btn-sm" onclick="deleteTeamMember('+m.id+')" style="padding:2px 7px;font-size:10px">✕</button>'
+          +'</div>'
+        +'</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:11px">'
+          +'<div style="color:var(--text3)">Started</div><div style="color:var(--text2);font-weight:600">'+start+'</div>'
+          +'<div style="color:var(--text3)">Contract</div><div style="color:'+(expiryWarning?'var(--red)':'var(--text2)')+';font-weight:600">'+expiry+(expiryWarning?' ⚠️':'')+'</div>'
+        +'</div>'
+        +(m.notes?'<div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5">'+m.notes+'</div>':'')
+      +'</div>';
+    });
+    html+='</div>';
+  }
+
+  // ── TALENT PIPELINE ──
+  html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--cyan);margin-bottom:14px">Talent Pipeline — '+T_trainees.filter(function(t){return t.stage!=='Cut';}).length+' active</div>';
+
+  if(!T_trainees.length){
+    html+='<div class="card" style="text-align:center;padding:32px 24px"><div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px">No trainees yet</div><div style="font-size:12px;color:var(--text3);margin-bottom:16px">Add people you are training and track their 30/60/90 day progress.</div><button class="btn btn-primary" onclick="openTraineeModal()">+ Add Trainee</button></div>';
+  } else {
+    T_ROLES.concat(['Other']).forEach(function(role){
+      var roleTrainees=T_trainees.filter(function(t){return t.role===role;});
+      if(!roleTrainees.length)return;
+      html+='<div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;margin-top:16px">'+role+'</div>';
+      html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-bottom:8px">';
+      roleTrainees.forEach(function(tr){
+        var dl=daysLeft(tr.start_date,tr.duration_days);
+        var pct=tr.start_date&&tr.duration_days?Math.min(100,Math.max(0,Math.round((1-(dl/tr.duration_days))*100))):0;
+        var stageColor=T_STAGE_COLORS[tr.stage]||'var(--text2)';
+        var isCut=tr.stage==='Cut';
+        var checks=T_checks.filter(function(c){return c.trainee_id===tr.id;}).sort(function(a,b){return (b.id||0)-(a.id||0);});
+        var latestCheck=checks[0]||null;
+        var stars=latestCheck?'⭐'.repeat(parseInt(latestCheck.rating)):'—';
+        var decisionColor={continue:'var(--green)',watch:'var(--yellow)',cut:'var(--red)'}[latestCheck?.decision]||'var(--text3)';
+
+        // Checkpoints
+        var dur=parseInt(tr.duration_days)||90;
+        var checkpoints=[];
+        if(dur>=30)checkpoints.push(30);
+        if(dur>=60)checkpoints.push(60);
+        if(dur>=90)checkpoints.push(90);
+
+        html+='<div class="card" style="padding:16px 18px;border-left:3px solid '+stageColor+';'+(isCut?'opacity:0.5':'')+'">'
+          +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">'
+            +'<div>'
+              +'<div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:4px">'+tr.name+'</div>'
+              +'<span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;color:'+stageColor+';border:1px solid '+stageColor+'33;background:'+stageColor+'15;text-transform:uppercase">'+tr.stage+'</span>'
+            +'</div>'
+            +'<div style="display:flex;gap:4px;flex-shrink:0">'
+              +(!isCut?'<button class="btn btn-ghost btn-sm" onclick="openWeeklyCheck('+tr.id+')" style="padding:2px 8px;font-size:10px;color:var(--cyan)">+ Check</button>':'')
+              +'<button class="btn btn-ghost btn-sm" onclick="openTraineeModal('+tr.id+')" style="padding:2px 7px;font-size:10px">Edit</button>'
+              +'<button class="btn btn-danger btn-sm" onclick="deleteTrainee('+tr.id+')" style="padding:2px 7px;font-size:10px">✕</button>'
+            +'</div>'
+          +'</div>'
+
+          // Progress bar
+          +(tr.start_date?'<div style="margin-bottom:10px">'
+            +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+              +'<div style="font-size:10px;color:var(--text3)">Day progress</div>'
+              +'<div style="font-size:10px;font-weight:700;color:'+(dl!==null&&dl<7?'var(--red)':'var(--text2)')+'">'+((dl!==null&&!isCut)?(dl>0?dl+' days left':'ENDED'):'—')+'</div>'
+            +'</div>'
+            +'<div style="height:5px;background:var(--bg4);border-radius:3px;overflow:hidden">'
+              +'<div style="height:100%;width:'+pct+'%;background:'+stageColor+';border-radius:3px;transition:width 0.4s"></div>'
+            +'</div>'
+
+            // Checkpoints
+            +'<div style="display:flex;gap:6px;margin-top:8px">'
+            +checkpoints.map(function(cp){
+              var st=checkpointStatus(tr.start_date,dur,cp);
+              var reached=st==='reached';
+              return '<div style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;background:'+(reached?'var(--green)22':'var(--bg4)')+';color:'+(reached?'var(--green)':'var(--text3)')+';border:1px solid '+(reached?'var(--green)44':'var(--border)')+'">Day '+cp+' '+(reached?'✓':'')+'</div>';
+            }).join('')
+            +'</div>'
+          +'</div>':'')
+
+          // Latest check
+          +(latestCheck?'<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 10px;margin-bottom:8px">'
+            +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">'
+              +'<div style="font-size:10px;font-weight:700;color:var(--text2)">'+latestCheck.week+'</div>'
+              +'<div style="display:flex;align-items:center;gap:6px">'
+                +'<span style="font-size:10px">'+stars+'</span>'
+                +'<span style="font-size:9px;font-weight:700;color:'+decisionColor+';text-transform:uppercase">'+latestCheck.decision+'</span>'
+              +'</div>'
+            +'</div>'
+            +(latestCheck.good?'<div style="font-size:10px;color:var(--green);margin-bottom:2px">+ '+latestCheck.good+'</div>':'')
+            +(latestCheck.improve?'<div style="font-size:10px;color:var(--red)">↑ '+latestCheck.improve+'</div>':'')
+          +'</div>':'')
+
+          // Show all checks toggle
+          +(checks.length>1?'<div style="font-size:10px;color:var(--text3);cursor:pointer" onclick="toggleChecks('+tr.id+')">▼ '+checks.length+' check-ins total</div>'
+            +'<div id="all-checks-'+tr.id+'" style="display:none;margin-top:8px">'
+            +checks.slice(1).map(function(c){
+              return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:6px;font-size:10px">'
+                +'<div style="font-weight:600;color:var(--text2);margin-bottom:3px">'+c.week+' · '+'⭐'.repeat(parseInt(c.rating))+'</div>'
+                +(c.good?'<div style="color:var(--green)">+ '+c.good+'</div>':'')
+                +(c.improve?'<div style="color:var(--red)">↑ '+c.improve+'</div>':'')
+              +'</div>';
+            }).join('')
+          +'</div>':'')
+
+          +(tr.notes?'<div style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5">'+tr.notes+'</div>':'')
+        +'</div>';
+      });
+      html+='</div>';
+    });
+  }
+
+  root.innerHTML=html;
+}
+
+function toggleChecks(id){
+  var el=document.getElementById('all-checks-'+id);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+// ── Team Member CRUD ──
+function openTeamMemberModal(id){
+  id=id||null;
+  document.getElementById('team-member-modal-title').textContent=id?'Edit Member':'Add Team Member';
+  document.getElementById('tm-edit-id').value=id||'';
+  var m=id?T_members.find(function(x){return x.id===id;}):null;
+  document.getElementById('tm-name').value=m?m.name:'';
+  document.getElementById('tm-role').value=m?m.role:'Social Media Manager';
+  document.getElementById('tm-start').value=m?m.start_date||'':'';
+  document.getElementById('tm-contract').value=m?m.contract_expiry||'':'';
+  document.getElementById('tm-notes').value=m?m.notes||'':'';
+  openModal('modal-team-member');
+}
+
+async function saveTeamMember(){
+  var editId=parseInt(document.getElementById('tm-edit-id').value)||null;
+  var data={
+    name:document.getElementById('tm-name').value.trim(),
+    role:document.getElementById('tm-role').value,
+    start_date:document.getElementById('tm-start').value||null,
+    contract_expiry:document.getElementById('tm-contract').value||null,
+    notes:document.getElementById('tm-notes').value.trim(),
+  };
+  if(!data.name)return alert('Enter a name');
+  showLoading(true);
+  if(editId)await SB.update('team_members',editId,data);
+  else await SB.insert('team_members',data);
+  showLoading(false);
+  closeModal('modal-team-member');
+  renderTeam();
+}
+
+async function deleteTeamMember(id){
+  if(!confirm('Remove this team member?'))return;
+  showLoading(true);
+  await SB.delete('team_members',id);
+  showLoading(false);
+  renderTeam();
+}
+
+// ── Trainee CRUD ──
+function openTraineeModal(id){
+  id=id||null;
+  document.getElementById('trainee-modal-title').textContent=id?'Edit Trainee':'Add Trainee';
+  document.getElementById('tr-edit-id').value=id||'';
+  var tr=id?T_trainees.find(function(x){return x.id===id;}):null;
+  document.getElementById('tr-name').value=tr?tr.name:'';
+  document.getElementById('tr-role').value=tr?tr.role:'Social Media Manager';
+  document.getElementById('tr-start').value=tr?tr.start_date||'':'';
+  document.getElementById('tr-duration').value=tr?tr.duration_days||90:90;
+  document.getElementById('tr-stage').value=tr?tr.stage||'Training':'Training';
+  document.getElementById('tr-notes').value=tr?tr.notes||'':'';
+  openModal('modal-trainee');
+}
+
+async function saveTrainee(){
+  var editId=parseInt(document.getElementById('tr-edit-id').value)||null;
+  var data={
+    name:document.getElementById('tr-name').value.trim(),
+    role:document.getElementById('tr-role').value,
+    start_date:document.getElementById('tr-start').value||null,
+    duration_days:parseInt(document.getElementById('tr-duration').value)||90,
+    stage:document.getElementById('tr-stage').value,
+    notes:document.getElementById('tr-notes').value.trim(),
+  };
+  if(!data.name)return alert('Enter a name');
+  showLoading(true);
+  if(editId)await SB.update('trainees',editId,data);
+  else await SB.insert('trainees',data);
+  showLoading(false);
+  closeModal('modal-trainee');
+  renderTeam();
+}
+
+async function deleteTrainee(id){
+  if(!confirm('Delete this trainee?'))return;
+  showLoading(true);
+  await SB.delete('trainees',id);
+  showLoading(false);
+  renderTeam();
+}
+
+// ── Weekly Check CRUD ──
+function openWeeklyCheck(traineeId){
+  document.getElementById('wc-trainee-id').value=traineeId;
+  var tr=T_trainees.find(function(x){return x.id===traineeId;});
+  var weekNum=(T_checks.filter(function(c){return c.trainee_id===traineeId;}).length)+1;
+  document.getElementById('wc-week').value='Week '+weekNum;
+  document.getElementById('wc-rating').value='3';
+  document.getElementById('wc-good').value='';
+  document.getElementById('wc-improve').value='';
+  document.getElementById('wc-decision').value='continue';
+  openModal('modal-weekly-check');
+}
+
+async function saveWeeklyCheck(){
+  var trId=parseInt(document.getElementById('wc-trainee-id').value);
+  var decision=document.getElementById('wc-decision').value;
+  var data={
+    trainee_id:trId,
+    week:document.getElementById('wc-week').value.trim(),
+    rating:parseInt(document.getElementById('wc-rating').value),
+    good:document.getElementById('wc-good').value.trim(),
+    improve:document.getElementById('wc-improve').value.trim(),
+    decision:decision,
+    checked_by:getCurrentUser(),
+  };
+  showLoading(true);
+  await SB.insert('trainee_checks',data);
+  // If cut, update stage
+  if(decision==='cut'){
+    await SB.update('trainees',trId,{stage:'Cut'});
+  }
+  showLoading(false);
+  closeModal('modal-weekly-check');
+  renderTeam();
+}
+// ══════════════════════════════════════════════════
+
 // ══ BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
 </script>
@@ -4961,6 +5280,110 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('modal-mission-step')">Cancel</button>
       <button class="btn btn-primary" onclick="saveMissionStep()">Save Step</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══ TEAM MEMBER MODAL ══ -->
+<div class="overlay" id="modal-team-member">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title" id="team-member-modal-title">Add Team Member</div>
+    <input type="hidden" id="tm-edit-id">
+    <input type="hidden" id="tm-type">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label class="flbl">Full Name</label><input class="fi" id="tm-name" placeholder="e.g. Kenuli Silva"></div>
+      <div class="fg"><label class="flbl">Role</label>
+        <select class="fi" id="tm-role">
+          <option value="Social Media Manager">Social Media Manager</option>
+          <option value="Graphic Designer">Graphic Designer</option>
+          <option value="Videographer">Videographer</option>
+          <option value="Video Editor">Video Editor</option>
+          <option value="Project Manager">Project Manager</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl">Start Date</label><input class="fi" id="tm-start" type="date"></div>
+      <div class="fg"><label class="flbl">Contract Expiry</label><input class="fi" id="tm-contract" type="date" placeholder="Optional"></div>
+    </div>
+    <div class="fg"><label class="flbl">Notes</label><textarea class="fta" id="tm-notes" placeholder="Any notes about this person..." style="min-height:60px"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-team-member')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTeamMember()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TRAINEE MODAL ══ -->
+<div class="overlay" id="modal-trainee">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-title" id="trainee-modal-title">Add Trainee</div>
+    <input type="hidden" id="tr-edit-id">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="fg"><label class="flbl">Full Name</label><input class="fi" id="tr-name" placeholder="e.g. Kasun Perera"></div>
+      <div class="fg"><label class="flbl">Training For</label>
+        <select class="fi" id="tr-role">
+          <option value="Social Media Manager">Social Media Manager</option>
+          <option value="Graphic Designer">Graphic Designer</option>
+          <option value="Videographer">Videographer</option>
+          <option value="Video Editor">Video Editor</option>
+        </select>
+      </div>
+      <div class="fg"><label class="flbl">Training Start</label><input class="fi" id="tr-start" type="date"></div>
+      <div class="fg"><label class="flbl">Program Length</label>
+        <select class="fi" id="tr-duration">
+          <option value="30">30 Days</option>
+          <option value="60">60 Days</option>
+          <option value="90" selected>90 Days</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="flbl">Stage</label>
+      <select class="fi" id="tr-stage">
+        <option value="Applied">Applied</option>
+        <option value="Screening">Screening</option>
+        <option value="Training">Training</option>
+        <option value="Final Review">Final Review</option>
+        <option value="Offer Made">Offer Made</option>
+        <option value="Contracted">Contracted</option>
+        <option value="Cut">Cut</option>
+      </select>
+    </div>
+    <div class="fg"><label class="flbl">Notes</label><textarea class="fta" id="tr-notes" placeholder="Background, first impressions, contact info..." style="min-height:60px"></textarea></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-trainee')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTrainee()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WEEKLY CHECK MODAL ══ -->
+<div class="overlay" id="modal-weekly-check">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-title">Weekly Check-In</div>
+    <input type="hidden" id="wc-trainee-id">
+    <div class="fg"><label class="flbl">Week</label><input class="fi" id="wc-week" placeholder="e.g. Week 1"></div>
+    <div class="fg"><label class="flbl">Rating</label>
+      <select class="fi" id="wc-rating">
+        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+        <option value="4">⭐⭐⭐⭐ Good</option>
+        <option value="3" selected>⭐⭐⭐ Average</option>
+        <option value="2">⭐⭐ Below Average</option>
+        <option value="1">⭐ Poor</option>
+      </select>
+    </div>
+    <div class="fg"><label class="flbl">What went well?</label><textarea class="fta" id="wc-good" placeholder="Skills shown, tasks completed, attitude..." style="min-height:60px"></textarea></div>
+    <div class="fg"><label class="flbl">What needs work?</label><textarea class="fta" id="wc-improve" placeholder="Gaps, mistakes, areas to push..." style="min-height:60px"></textarea></div>
+    <div class="fg"><label class="flbl">Decision</label>
+      <select class="fi" id="wc-decision">
+        <option value="continue">Continue</option>
+        <option value="watch">Watch Closely</option>
+        <option value="cut">Cut</option>
+      </select>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-weekly-check')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveWeeklyCheck()">Save Check-In</button>
     </div>
   </div>
 </div>
