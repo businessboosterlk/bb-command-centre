@@ -4979,10 +4979,12 @@ async function saveWeeklyCheck(){
 async function renderContentOverview(){
   const root=document.getElementById('co-root');
   if(!root)return;
-  // Reload content plans fresh
+  // Always reload content plans fresh — no stale cache
   try{
     const fresh=await SB.getAll('content_plans');
-    CACHE.contentPlans=fresh||[];
+    CACHE.contentPlans=(fresh||[]).map(function(p){
+      return Object.assign({},p,{month:Number(p.month),year:Number(p.year),client_id:Number(p.client_id)});
+    });
   }catch(e){}
   const now=new Date();
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -5005,10 +5007,9 @@ async function renderContentOverview(){
   // For each client count posts and videos for this month
   const rows=filteredClients.map(function(c){
     const cp=plans.filter(function(p){
-      // Handle month stored as string or integer
-      return String(p.client_id)===String(c.id) &&
-             parseInt(p.month)===parseInt(window.CO_MONTH) &&
-             parseInt(p.year)===parseInt(window.CO_YEAR);
+      return Number(p.client_id)===Number(c.id) &&
+             Number(p.month)===Number(window.CO_MONTH) &&
+             Number(p.year)===Number(window.CO_YEAR);
     });
     const posts=cp.filter(function(p){return p.type==='post';});
     const videos=cp.filter(function(p){return p.type==='video';});
