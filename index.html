@@ -1686,7 +1686,9 @@ async function loadAll(){
     return {...sh,stage};
   });
   CACHE.content=Array.isArray(smm_content)?smm_content:[];
-  CACHE.contentPlans=Array.isArray(content_plans_data)?content_plans_data:[];
+  CACHE.contentPlans=Array.isArray(content_plans_data)?content_plans_data.map(function(p){
+    return Object.assign({},p,{month:Number(p.month),year:Number(p.year),client_id:Number(p.client_id)});
+  }):[];
   if(CACHE.clients.length===0) await seedClients();
 }
 
@@ -3866,7 +3868,7 @@ function renderContentPlan(){
   const month=parseInt(document.getElementById('cplan-month')?.value||new Date().getMonth()+1);
   const year=parseInt(document.getElementById('cplan-year')?.value||new Date().getFullYear());
   const cid=currentClientId;
-  const plans=(CACHE.contentPlans||[]).filter(p=>p.client_id==cid&&p.month===month&&p.year===year);
+  const plans=(CACHE.contentPlans||[]).filter(p=>Number(p.client_id)===Number(cid)&&Number(p.month)===month&&Number(p.year)===year);
   const posts=plans.filter(p=>p.type==='post');
   const videos=plans.filter(p=>p.type==='video');
   const postedPosts=posts.filter(p=>p.posted).length;
