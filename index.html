@@ -2170,17 +2170,29 @@ function setTaskFilter(f){
 }
 
 function switchTab(t){
-  if(t==='content-plan'){
-    var now=new Date();
-    var mSel=document.getElementById('cplan-month');
-    var ySel=document.getElementById('cplan-year');
-    if(mSel&&!mSel.dataset.userSet)mSel.value=now.getMonth()+1;
-    if(ySel&&!ySel.dataset.userSet)ySel.value=now.getFullYear();
-  }
+  const now=new Date();
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
   document.getElementById('tab-'+t).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+t+"'"))b.classList.add('active')});
+  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+t+"'"))b.classList.add('active');});
+  if(t==='content-plan'){
+    const mSel=document.getElementById('cplan-month');
+    const ySel=document.getElementById('cplan-year');
+    if(mSel&&!mSel.dataset.userSet){mSel.value=now.getMonth()+1;}
+    if(ySel&&!ySel.dataset.userSet){ySel.value=now.getFullYear();}
+    SB.getAll('content_plans').then(function(fresh){
+      if(fresh){
+        CACHE.contentPlans=fresh.map(function(p){
+          return Object.assign({},p,{
+            month:Number(p.month),
+            year:Number(p.year),
+            client_id:Number(p.client_id)
+          });
+        });
+      }
+      renderContentPlan();
+    }).catch(function(){renderContentPlan();});
+  }
 }
 
 function openTaskModalForClient(){
@@ -5100,7 +5112,7 @@ async function renderContentOverview(){
     var totalPlanned=r.posts.length+r.videos.length;
     var totalPosted=r.postsUp+r.videosUp;
     var pct=totalPlanned>0?Math.round(totalPosted/totalPlanned*100):0;
-    html+='<tr style="background:'+r.rowBg+';'+border+';cursor:pointer" onclick="navToClient('+r.c.id+')">'
+    html+='<tr style="background:'+r.rowBg+';'+border+';cursor:pointer" onclick="navToClient('+r.c.id+',\'content-plan\')">'
       +'<td style="padding:12px 16px">'
         +'<div style="font-size:13px;font-weight:700;color:var(--text)">'+r.c.name+'</div>'
         +(r.c.package?'<div style="font-size:10px;color:var(--text3);margin-top:1px">'+r.c.package+'</div>':'')
@@ -5190,7 +5202,9 @@ async function saveIncident(){
 function navToClient(id,tab){
   nav('client-profile');
   renderClientProfile(id);
-  if(tab)setTimeout(function(){switchTab(tab);},300);
+  if(tab){
+    setTimeout(function(){switchTab(tab);},400);
+  }
 }
 
 
