@@ -1975,8 +1975,8 @@ function renderClients(){
   const tbody=document.getElementById('clients-tbody');
   if(!clients.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:24px">No clients in this category.</td></tr>`;return;}
   tbody.innerHTML=clients.map(c=>{
-    const open=tasks.filter(t=>(t.clientId===c.id||t.client_id===c.id)&&!t.done).length;
-    const od=tasks.filter(t=>(t.clientId===c.id||t.client_id===c.id)&&isOverdue(t)).length;
+    const open=tasks.filter(t=>Number(t.clientId||t.client_id)===Number(c.id)&&!t.done).length;
+    const od=tasks.filter(t=>Number(t.clientId||t.client_id)===Number(c.id)&&isOverdue(t)).length;
     return `<tr style="cursor:pointer" onclick="openClientProfile(${c.id})">
       <td><span class="clink">${c.name}</span>${c.notes?`<div style="font-size:11px;color:var(--text3)">${c.notes.substring(0,55)}${c.notes.length>55?'...':''}</div>`:''}</td>
       <td>${clientTypePill(c.client_type)}</td>
@@ -3178,8 +3178,8 @@ function getSelectedMonth(){
 
 function renderFinance(){
   const selectedMonth=getSelectedMonth();
-  const invoices=(CACHE.invoices||[]).filter(i=>i.month===selectedMonth);
-  const costs=(CACHE.costs||[]).filter(c=>c.month===selectedMonth);
+  const invoices=(CACHE.invoices||[]).filter(i=>Number(i.month)===Number(selectedMonth));
+  const costs=(CACHE.costs||[]).filter(c=>Number(c.month)===Number(selectedMonth));
   const clients=CACHE.clients||[];
 
   const paid=invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+(i.amount||0),0);
@@ -3444,9 +3444,9 @@ function renderClientShoots(){
   if(!el)return;
   const qFilter=document.getElementById('shoot-quarter-filter')?.value||'';
   const mFilter=document.getElementById('shoot-month-filter')?.value||'';
-  let shoots=(CACHE.shoots||[]).filter(s=>s.client_id===currentClientId);
+  let shoots=(CACHE.shoots||[]).filter(s=>Number(s.client_id)===Number(currentClientId));
   if(qFilter)shoots=shoots.filter(s=>s.quarter===qFilter);
-  if(mFilter)shoots=shoots.filter(s=>s.month===mFilter);
+  if(mFilter)shoots=shoots.filter(s=>String(s.month)===String(mFilter));
   if(!shoots.length){el.innerHTML='<div class="empty">No shoots yet. Add one to track your video production pipeline.</div>';return;}
   el.innerHTML=shoots.map(s=>{
     const sc=STAGE_COLORS[s.stage]||'var(--text2)';
@@ -3476,7 +3476,7 @@ function renderShootsBoard(){
   const clients=CACHE.clients||[];
   let shoots=CACHE.shoots||[];
   if(qFilter)shoots=shoots.filter(s=>s.quarter===qFilter);
-  if(mFilter)shoots=shoots.filter(s=>s.month===mFilter);
+  if(mFilter)shoots=shoots.filter(s=>String(s.month)===String(mFilter));
 
   const stageColors={
     'Videos Confirmed':'#00E5FF',
@@ -4214,8 +4214,8 @@ function renderYearlySummary(){
   const monthLabels={'2026-01':'Jan','2026-02':'Feb','2026-03':'Mar','2026-04':'Apr','2026-05':'May','2026-06':'Jun','2026-07':'Jul','2026-08':'Aug','2026-09':'Sep','2026-10':'Oct','2026-11':'Nov','2026-12':'Dec'};
   let totalRev=0,totalCost=0;
   const rows=months.map(m=>{
-    const mInv=invoices.filter(i=>i.month===m);
-    const mCosts=costs.filter(c=>c.month===m);
+    const mInv=invoices.filter(i=>Number(i.month)===m);
+    const mCosts=costs.filter(c=>Number(c.month)===m);
     const rev=mInv.reduce((s,i)=>s+(i.amount||0),0);
     const cost=mCosts.reduce((s,c)=>s+(c.amount||0),0);
     const profit=rev-cost;
