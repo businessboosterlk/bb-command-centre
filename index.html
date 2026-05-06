@@ -1670,7 +1670,7 @@ async function loadAll(){
     SB.getAll('content_plans').catch(()=>[])
   ]);
   CACHE.clients=clients||[];
-  CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:t.client_id,pipelineId:t.pipeline_id,done:t.done||false}));
+  CACHE.tasks=(tasks||[]).map(t=>({...t,clientId:Number(t.client_id),client_id:Number(t.client_id),pipelineId:t.pipeline_id,done:t.done||false}));
   CACHE.pipeline=(pipeline||[]).map(p=>({...p,next:p.next_action}));
   CACHE.revenue=revenue||[];
   CACHE.pillars=pillars||[];
@@ -1997,7 +1997,7 @@ function renderClients(){
 function renderClientProfile(id){
   const c=(CACHE.clients||[]).find(x=>x.id===id);
   if(!c)return;
-  const tasks=(CACHE.tasks||[]).filter(t=>t.clientId===id||t.client_id===id);
+  const tasks=(CACHE.tasks||[]).filter(t=>Number(t.clientId||t.client_id)===Number(id));
   const openT=tasks.filter(t=>!t.done);
   const doneT=tasks.filter(t=>t.done);
   const odT=tasks.filter(t=>isOverdue(t));
@@ -2064,7 +2064,7 @@ async function saveFieldChange(){saveFieldAsync();}async function saveFieldAsync
 
 // TASKS ═══════════════════════════════════════
 function renderClientTasks(id){
-  let tasks=(CACHE.tasks||[]).filter(t=>t.clientId===id||t.client_id===id);
+  let tasks=(CACHE.tasks||[]).filter(t=>Number(t.clientId||t.client_id)===Number(id));
   if(cpTaskFilter==='open')tasks=tasks.filter(t=>!t.done);
   else if(cpTaskFilter==='done')tasks=tasks.filter(t=>t.done);
   else if(cpTaskFilter==='overdue')tasks=tasks.filter(t=>isOverdue(t));
