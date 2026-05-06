@@ -1608,10 +1608,10 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
 </div>
 
 <script>
-// ══ BB CC v6 — diagnostic markers ══
+// BB CC v6 — diagnostic markers ══
 console.log('%c[BB_CC] script parsing started','color:#FF6B2B;font-weight:700');
 window.addEventListener('error',function(e){console.error('[BB_CC] Runtime error:',e.message,'at',e.filename+':'+e.lineno);});
-// ═══ SUPABASE CONFIG ══════════════════════════════
+// SUPABASE CONFIG ══════════════════════════════
 const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 
@@ -1769,12 +1769,12 @@ const PHASES=[
   {m:6,label:'Review',desc:'Full results review, renewal or upgrade conversation'},
 ];
 
-// ═══ STATE ═══════════════════════════════════════
+// STATE ═══════════════════════════════════════
 let currentClientId=null;
 let cpTaskFilter='all';
 let pillarStateCache={th:{done_ids:[],top3:['Check potential leads','Review all active clients','One sales move']},sh:{done_ids:[],top3:['Review content approvals','Check team updates','Follow up pipeline']}};
 
-// ═══ HELPERS ═════════════════════════════════════
+// HELPERS ═════════════════════════════════════
 const pkgMRR={Spark:90000,Ignite:150000,Blaze:230000,'SEO Essential':40000,'SEO+Maintenance':50000};
 function getMRR(c){return c.mrr||pkgMRR[c.package]||0}
 function pkgPill(p){return {Spark:'pill-o',Ignite:'pill-b',Blaze:'pill-p'}[p]||'pill-grey'}
@@ -1787,7 +1787,7 @@ function initials(name){return name.split(' ').map(w=>w[0]).join('').toUpperCase
 function priColor(p){return {high:'var(--orange)',medium:'var(--yellow)',low:'var(--text3)'}[p]||'var(--text3)'}
 function fmtDate(d){if(!d)return '';try{const dt=new Date(d+'T00:00');return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}catch{return d}}
 
-// ═══ NAV ═════════════════════════════════════════
+// NAV ═════════════════════════════════════════
 async function nav(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
@@ -1832,7 +1832,7 @@ async function openClientProfile(id){
   renderClientProfile(id);
 }
 
-// ═══ DASHBOARD ═══════════════════════════════════
+// DASHBOARD ═══════════════════════════════════
 function renderDashboard(){
   document.getElementById('dash-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const clients=CACHE.clients||[];
@@ -1947,7 +1947,7 @@ function renderDashTaskAlerts(who, elId){
   }).join('');
 }
 
-// ═══ CLIENTS LIST ════════════════════════════════
+// CLIENTS LIST ════════════════════════════════
 let clientTabFilter='sm';
 function switchClientTab(tab){
   clientTabFilter=tab;
@@ -1991,7 +1991,7 @@ function renderClients(){
   if(el)el.textContent='LKR '+allClients.reduce((s,c)=>s+getMRR(c),0).toLocaleString();
 }
 
-// ═══ CLIENT PROFILE ══════════════════════════════
+// CLIENT PROFILE ══════════════════════════════
 function renderClientProfile(id){
   const c=(CACHE.clients||[]).find(x=>x.id===id);
   if(!c)return;
@@ -2060,7 +2060,7 @@ async function saveFieldChange(){saveFieldAsync();}async function saveFieldAsync
   renderClientProfile(currentClientId);
 }
 
-// ═══ TASKS ═══════════════════════════════════════
+// TASKS ═══════════════════════════════════════
 function renderClientTasks(id){
   let tasks=(CACHE.tasks||[]).filter(t=>t.clientId===id||t.client_id===id);
   if(cpTaskFilter==='open')tasks=tasks.filter(t=>!t.done);
@@ -2265,7 +2265,7 @@ async function deleteTask(id){
   renderDashboard();
 }
 
-// ═══ CLIENT CRUD ═════════════════════════════════
+// CLIENT CRUD ═════════════════════════════════
 function openClientModal(id=null){
   document.getElementById('client-modal-title').textContent=id?'Edit Client':'Add Client';
   document.getElementById('client-edit-id').value=id||'';
@@ -2322,7 +2322,7 @@ async function deleteClient(id){
   renderClients();renderDashboard();
 }
 
-// ═══ PILLARS ═════════════════════════════════════
+// PILLARS ═════════════════════════════════════
 function renderPillarList(who,containerId,mini=false){
   const pillars=(who==='th'?TH_PILLARS:SH_PILLARS);
   const done=pillarStateCache[who]?.done_ids||[];
@@ -2377,7 +2377,7 @@ function updatePillarProgress(who){
 }
 async function resetPillars(who){if(!confirm('Reset pillars for tomorrow?'))return;pillarStateCache[who].done_ids=[];await setPillarState(who,pillarStateCache[who]);renderMyDay();renderDashboard();}
 
-// ═══ TOP 3 ═══════════════════════════════════════
+// TOP 3 ═══════════════════════════════════════
 function openTop3Modal(who){
   const t=pillarStateCache[who]?.top3||['','',''];
   document.getElementById('top3-who').value=who;
@@ -2399,7 +2399,7 @@ function renderTop3(who,elId){
 }
 function renderMyDay(){renderPillarList('th','th-pillars');renderPillarList('sh','sh-pillars');renderTop3('th','top3-th-view');renderTop3('sh','top3-sh-view');}
 
-// ═══ PIPELINE ════════════════════════════════════
+// PIPELINE ════════════════════════════════════
 let pipeFilter='';
 function filterPipeline(v){pipeFilter=v;renderPipeline();}
 function statusLabel(s){return {hot:'Hot',active:'Active',converted:'Converted',cold:'Likely Out',closed:'Closed Won'}[s]||s}
@@ -2662,7 +2662,7 @@ async function deletePipeTask(id){
   renderPipeline();renderDashboard();
 }
 
-// ═══ TASK BOOK ════════════════════════════════════
+// TASK BOOK ════════════════════════════════════
 
 async function toggleTaskFromBook(id){
   const t=CACHE.tasks.find(x=>x.id===id);
@@ -2684,7 +2684,7 @@ async function deleteTaskFromBook(id){
 }
 
 
-// ═══ TASK BOOK ═══════════════════════════════════
+// TASK BOOK ═══════════════════════════════════
 function renderTaskBook(){
   const assignFilter=document.getElementById('tb-filter-assign')?.value||'';
   const statusFilter=document.getElementById('tb-filter-status')?.value||'open';
@@ -2844,7 +2844,7 @@ function openGlobalTaskModal(){
   openModal('modal-task');
 }
 
-// ═══ CALENDAR ════════════════════════════════════
+// CALENDAR ════════════════════════════════════
 let calYear=new Date().getFullYear();
 let calMonth=new Date().getMonth();
 
@@ -3104,7 +3104,7 @@ async function deleteEvent(id){
   renderCalendar();renderDashboard();
 }
 
-// ═══ REVENUE ═════════════════════════════════════
+// REVENUE ═════════════════════════════════════
 const REV_TARGET=1500000;
 function renderRevenue(){
   const weeks=CACHE.revenue||[];
@@ -3121,7 +3121,7 @@ function openRevModal(){['r-week','r-amount','r-notes'].forEach(x=>document.getE
 async function saveRevenue(){const data={week:document.getElementById('r-week').value.trim()||'Week',amount:parseInt(document.getElementById('r-amount').value)||0,notes:document.getElementById('r-notes').value.trim()};showLoading(true);await SB.insert('revenue',data);await loadAll();showLoading(false);closeModal('modal-rev');renderRevenue();}
 async function deleteRevWeek(id){if(!confirm('Delete this entry?'))return;showLoading(true);await SB.delete('revenue',id);await loadAll();showLoading(false);renderRevenue();}
 
-// ═══ AI ADVISOR ══════════════════════════════════
+// AI ADVISOR ══════════════════════════════════
 function renderAdvisor(){
   const clients=CACHE.clients||[];const tasks=CACHE.tasks||[];const pipe=CACHE.pipeline||[];
   const mrr=clients.reduce((s,c)=>s+getMRR(c),0);
@@ -3153,12 +3153,12 @@ async function sendAI(){
 function quickQ(q){document.getElementById('ai-input').value=q;sendAI();}
 function appendMsg(text,cls){const el=document.createElement('div');el.className='ai-msg '+cls;el.textContent=text;const msgs=document.getElementById('ai-msgs');msgs.appendChild(el);msgs.scrollTop=9999;return el;}
 
-// ═══ MODALS ═══════════════════════════════════════
+// MODALS ═══════════════════════════════════════
 function openModal(id){document.getElementById(id).classList.add('open')}
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')}));
 
-// ═══ FINANCE ═════════════════════════════════════
+// FINANCE ═════════════════════════════════════
 let invoiceFilter='';
 function filterInvoices(v){invoiceFilter=v;renderFinance();}
 
@@ -3325,7 +3325,7 @@ async function saveCost(){
 }
 async function deleteCost(id){if(!confirm('Delete this cost?'))return;showLoading(true);await SB.delete('costs',id);await loadAll();showLoading(false);renderFinance();}
 
-// ═══ SIDEBAR DATE & LOGO ═════════════════════════
+// SIDEBAR DATE & LOGO ═════════════════════════
 function initSidebar(){
   const dateEl=document.getElementById('sb-date');
   if(dateEl){
@@ -3359,7 +3359,7 @@ function uploadLogo(){
   input.click();
 }
 
-// ═══ TASK AUTOCOMPLETE ═══════════════════════════
+// TASK AUTOCOMPLETE ═══════════════════════════
 function updateTaskSuggestions(){
   const input=document.getElementById('t-title');
   const dl=document.getElementById('task-suggestions');
@@ -3372,7 +3372,7 @@ function updateTaskSuggestions(){
   dl.innerHTML=unique.map(t=>`<option value="${t}">`).join('');
 }
 
-// ═══ SHOOTS ══════════════════════════════════════
+// SHOOTS ══════════════════════════════════════
 const SHOOT_STAGES=['Videos Confirmed','Script Made','Script Changes','Final Script','Get Shoot Date','Date Confirmed','Shot'];
 const STAGE_COLORS={'Videos Confirmed':'var(--neon-cyan)','Script Made':'var(--yellow)','Script Changes':'var(--orange)','Final Script':'var(--neon-purple)','Get Shoot Date':'var(--neon-orange)','Date Confirmed':'var(--neon-pink)','Shot':'var(--neon-green)'};
 
@@ -3523,7 +3523,7 @@ function renderShootsBoard(){
   renderShootsWeekly();
 }
 
-// ── Shoots Tab toggle ──
+// Shoots Tab toggle ──
 let shootCalYear=new Date().getFullYear();
 let shootCalMonth=new Date().getMonth();
 
@@ -3553,7 +3553,7 @@ function shootCalNav(dir){
   renderShootsWeekly();
 }
 
-// ── Shoot Pipeline Calendar — full month view with navigation ──
+// Shoot Pipeline Calendar — full month view with navigation ──
 function renderShootsWeekly(){
   const el=document.getElementById('shoots-weekly');
   const lbl=document.getElementById('shoots-cal-month-label');
@@ -3656,7 +3656,7 @@ async function mobileNav(id){
     'content-pipeline':function(){renderContentPipeline();populateCPClientFilter();}})[id]?.();
 }
 
-// ═══ INIT ════════════════════════════════════════
+// INIT ════════════════════════════════════════
 async function init(){
   initSidebar();
   showLoading(true);
@@ -3670,7 +3670,7 @@ async function init(){
 }
 // init only runs after successful login
 
-// ── LOGIN ──────────────────────────────────────────
+// LOGIN ──────────────────────────────────────────
 const CC_USERS={THULAIB:'0000',SHIARA:'1006',GUEST:'2025'};
 const CC_GUEST_USERS=new Set(['GUEST']);
 // Set login date
@@ -3719,7 +3719,7 @@ function ccLogin(){
 
 
 
-// ══ CAL CLIENT FILTER ════════════════════════════
+// CAL CLIENT FILTER ════════════════════════════
 let calFilterState={client:'all',type:'all'};
 function saveCalFilters(){
   const c=document.getElementById('cal-client-filter');
@@ -3740,7 +3740,7 @@ function populateCalClientFilter(){
   if(tsel)tsel.value=calFilterState.type||'all';
 }
 
-// ══ CONTENT PIPELINE ══════════════════════════════════
+// CONTENT PIPELINE ══════════════════════════════════
 let cpTypeFilter='all';
 let cpClientFilter='all';
 
@@ -3861,7 +3861,7 @@ async function submitContentAdd(){
 
 
 
-// ══ CONTENT PLAN ══════════════════════════════════════
+// CONTENT PLAN ══════════════════════════════════════
 function renderContentPlan(){
   const month=parseInt(document.getElementById('cplan-month')?.value||new Date().getMonth()+1);
   const year=parseInt(document.getElementById('cplan-year')?.value||new Date().getFullYear());
@@ -3958,7 +3958,7 @@ async function deleteCPlanItem(id){
 
 
 
-// ══ MISSIONS ═════════════════════════════════════
+// MISSIONS ═════════════════════════════════════
 const MISSION_PEOPLE = [
   {key:'THULAIB', name:'Thulaib', role:'CEO & Founder', color:'var(--orange)', initials:'T'},
   {key:'SHIARA',  name:'Shiara',  role:'Co-Founder',    color:'var(--cyan)',   initials:'S'},
@@ -4186,7 +4186,7 @@ async function deleteStep(stepId,missionId){
 
 
 
-// ══ FINANCE VIEW SWITCHING ═══════════════════════
+// FINANCE VIEW SWITCHING ═══════════════════════
 let finView='month';
 function setFinView(v){
   finView=v;
@@ -4307,9 +4307,9 @@ function renderClientPaymentHistory(){
 
 
 
-// ══════════════════════════════════════════════════
+//
 // MISSIONS — clean rebuild
-// ══════════════════════════════════════════════════
+//
 const M_PEOPLE=[
   {key:'THULAIB',name:'Thulaib',role:'CEO & Founder',   color:'var(--orange)'},
   {key:'SHIARA', name:'Shiara', role:'Co-Founder',       color:'var(--cyan)'},
@@ -4602,7 +4602,7 @@ async function m_deleteStep(stepId,missionId){
     if(p)p.style.display='block';
   },100);
 }
-// ══════════════════════════════════════════════════
+//
 
 
 async function m_attachDoc(stepId, missionId){
@@ -4625,7 +4625,7 @@ async function m_attachDoc(stepId, missionId){
 }
 
 
-// ══ AUTO REFRESH — sync data every 60 seconds ══
+// AUTO REFRESH — sync data every 60 seconds ══
 function startAutoRefresh(){
   setInterval(async function(){
     await loadAll();
@@ -4649,9 +4649,9 @@ function startAutoRefresh(){
 
 
 
-// ══════════════════════════════════════════════════
+//
 // TEAM PAGE
-// ══════════════════════════════════════════════════
+//
 let T_members=[];
 let T_trainees=[];
 let T_checks=[];
@@ -4698,7 +4698,7 @@ function t_render(root){
 
   let html='';
 
-  // ── CURRENT TEAM ──
+  // CURRENT TEAM ──
   html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">'
     +'<div><div class="ph-title">Team</div><div class="ph-sub">Current team and talent pipeline</div></div>'
     +'<div style="display:flex;gap:8px">'
@@ -4752,7 +4752,7 @@ function t_render(root){
     html+='</div>';
   }
 
-  // ── TALENT PIPELINE ──
+  // TALENT PIPELINE ──
   html+='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--cyan);margin-bottom:14px">Talent Pipeline — '+T_trainees.filter(function(t){return t.stage!=='Cut';}).length+' active</div>';
 
   if(!T_trainees.length){
@@ -4831,7 +4831,7 @@ function t_render(root){
             +'<div id="all-checks-'+tr.id+'" style="display:none;margin-top:8px">'
             +checks.slice(1).map(function(c){
               return '<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;margin-bottom:6px;font-size:10px">'
-                +'<div style="font-weight:600;color:var(--text2);margin-bottom:3px">'+c.week+' · '+'⭐'.repeat(parseInt(c.rating))+'</div>'
+                +'<div style="font-weight:600;color:var(--text2);margin-bottom:3px">'+c.week+' · '+c.rating+'/5'+'</div>'
                 +(c.good?'<div style="color:var(--green)">+ '+c.good+'</div>':'')
                 +(c.improve?'<div style="color:var(--red)">↑ '+c.improve+'</div>':'')
               +'</div>';
@@ -4853,7 +4853,7 @@ function toggleChecks(id){
   if(el)el.style.display=el.style.display==='none'?'block':'none';
 }
 
-// ── Team Member CRUD ──
+// Team Member CRUD ──
 function openTeamMemberModal(id){
   id=id||null;
   document.getElementById('team-member-modal-title').textContent=id?'Edit Member':'Add Team Member';
@@ -4893,7 +4893,7 @@ async function deleteTeamMember(id){
   renderTeam();
 }
 
-// ── Trainee CRUD ──
+// Trainee CRUD ──
 function openTraineeModal(id){
   id=id||null;
   document.getElementById('trainee-modal-title').textContent=id?'Edit Trainee':'Add Trainee';
@@ -4935,7 +4935,7 @@ async function deleteTrainee(id){
   renderTeam();
 }
 
-// ── Weekly Check CRUD ──
+// Weekly Check CRUD ──
 function openWeeklyCheck(traineeId){
   document.getElementById('wc-trainee-id').value=traineeId;
   var tr=T_trainees.find(function(x){return x.id===traineeId;});
@@ -4970,12 +4970,12 @@ async function saveWeeklyCheck(){
   closeModal('modal-weekly-check');
   renderTeam();
 }
-// ══════════════════════════════════════════════════
+//
 
 
-// ══════════════════════════════════════════════════
+//
 // CONTENT OVERVIEW — all clients content plan status
-// ══════════════════════════════════════════════════
+//
 async function renderContentOverview(){
   const root=document.getElementById('co-root');
   if(!root)return;
@@ -5137,11 +5137,11 @@ function coNav(dir){
   if(window.CO_MONTH<0){window.CO_MONTH=12;window.CO_YEAR--;}
   renderContentOverview();
 }
-// ══════════════════════════════════════════════════
+//
 
-// ══════════════════════════════════════════════════
+//
 // INCIDENT TRACKER
-// ══════════════════════════════════════════════════
+//
 let T_incidents=[];
 
 async function loadIncidents(){
@@ -5180,7 +5180,7 @@ async function saveIncident(){
   closeModal('modal-incident');
   renderTeam();
 }
-// ══════════════════════════════════════════════════
+//
 
 function navToClient(id,tab){
   nav('client-profile');
@@ -5210,7 +5210,7 @@ async function duplicateCPlanItem(id){
 }
 
 
-// ── Content Plan Inline Edit ──────────────────────
+// Content Plan Inline Edit ──────────────────────
 function startCPlanInlineEdit(id, el){
   const item=(CACHE.contentPlans||[]).find(p=>p.id===id);
   if(!item)return;
@@ -5253,7 +5253,7 @@ async function togglePlanReady(clientId, currentReady){
   renderContentOverview();
 }
 
-// ══ BB CC v6 — end marker ══
+// BB CC v6 — end marker ══
 console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'color:#00FF85;font-weight:700');
 </script>
 
@@ -5434,11 +5434,11 @@ console.log('%c[BB_CC] script parsed fully — ccLogin is '+(typeof ccLogin),'co
     <div class="fg"><label class="flbl">Week</label><input class="fi" id="wc-week" placeholder="e.g. Week 1"></div>
     <div class="fg"><label class="flbl">Rating</label>
       <select class="fi" id="wc-rating">
-        <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
-        <option value="4">⭐⭐⭐⭐ Good</option>
-        <option value="3" selected>⭐⭐⭐ Average</option>
-        <option value="2">⭐⭐ Below Average</option>
-        <option value="1">⭐ Poor</option>
+        <option value="5">5 — Excellent</option>
+        <option value="4">4 — Good</option>
+        <option value="3" selected>3 — Average</option>
+        <option value="2">2 — Below Average</option>
+        <option value="1">1 — Poor</option>
       </select>
     </div>
     <div class="fg"><label class="flbl">What went well?</label><textarea class="fta" id="wc-good" placeholder="Skills shown, tasks completed, attitude..." style="min-height:60px"></textarea></div>
