@@ -3942,6 +3942,8 @@ async function submitCPlanModal(){
       if(res&&res[0]){CACHE.contentPlans=CACHE.contentPlans||[];CACHE.contentPlans.push(res[0]);}
       renderContentPlan();closeModal('modal-cplan');
       showToast(type==='post'?'Post added':'Video added','success');
+      // Refresh full content plans cache for Overview sync
+      SB.getAll('content_plans').then(function(fresh){if(fresh)CACHE.contentPlans=fresh.map(function(p){return Object.assign({},p,{month:Number(p.month),year:Number(p.year),client_id:Number(p.client_id)});});});
     }catch(e){showToast('Failed: '+(e.message||''),'error');}
   }
 }
@@ -3952,6 +3954,7 @@ async function deleteCPlanItem(id){
     await SB.delete('content_plans',id);
     CACHE.contentPlans=(CACHE.contentPlans||[]).filter(p=>p.id!==id);
     renderContentPlan();showToast('Removed','success');
+    SB.getAll('content_plans').then(function(fresh){if(fresh)CACHE.contentPlans=fresh.map(function(p){return Object.assign({},p,{month:Number(p.month),year:Number(p.year),client_id:Number(p.client_id)});});});
   }catch(e){showToast('Failed','error');}
 }
 
