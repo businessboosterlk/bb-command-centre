@@ -1822,7 +1822,7 @@ function showLoading(v){
 }
 
 async function openClientProfile(id){
-  currentClientId=id;cpTaskFilter='all';
+  currentClientId=Number(id);cpTaskFilter='all';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-client-profile').classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
@@ -1995,7 +1995,8 @@ function renderClients(){
 
 // CLIENT PROFILE ══════════════════════════════
 function renderClientProfile(id){
-  const c=(CACHE.clients||[]).find(x=>x.id===id);
+  id=Number(id);
+  const c=(CACHE.clients||[]).find(x=>Number(x.id)===id);
   if(!c)return;
   const tasks=(CACHE.tasks||[]).filter(t=>Number(t.clientId||t.client_id)===Number(id));
   const openT=tasks.filter(t=>!t.done);
@@ -2031,7 +2032,7 @@ function renderClientProfile(id){
 
   // phases
   const phasesEl=document.getElementById('cp-phases-list');
-  phasesEl.innerHTML=PHASES.map(p=>{
+  if(phasesEl)phasesEl.innerHTML=PHASES.map(p=>{
     const active=p.m===c.month,done=p.m<c.month;
     return `<div class="phase-row">
       <div class="phase-num" style="background:${active?'var(--orange)':done?'var(--g10)':'var(--bg4)'};color:${active?'#fff':done?'var(--green)':'var(--text3)'};border:1px solid ${active?'var(--orange)':done?'var(--g20)':'var(--border2)'}">
@@ -2062,9 +2063,25 @@ async function saveFieldChange(){saveFieldAsync();}async function saveFieldAsync
   renderClientProfile(currentClientId);
 }
 
-// TASKS ═══════════════════════════════════════
-function renderClientTasks(id){
-  let tasks=(CACHE.tasks||[]).filter(t=>Number(t.clientId||t.client_id)===Number(id));
+// TASKS
+async function renderClientTasks(id){
+  id=Number(id);
+  const openEl=document.getElementById('cp-tasks-open');
+  const doneEl=document.getElementById('cp-tasks-done');
+  if(!openEl||!doneEl)return;
+
+  // Fetch directly from Supabase — no cache dependency
+  let allTasks=[];
+  try{
+    const res=await sb('tasks','GET',null,'?client_id=eq.'+id+'&order=id.asc');
+    allTasks=Array.isArray(res)?res:[];
+  }catch(e){
+    // Fallback to cache
+    allTasks=(CACHE.tasks||[]).filter(t=>Number(t.clientId||t.client_id)===id);
+  }
+
+  // Apply filter
+  let tasks=[...allTasks];
   if(cpTaskFilter==='open')tasks=tasks.filter(t=>!t.done);
   else if(cpTaskFilter==='done')tasks=tasks.filter(t=>t.done);
   else if(cpTaskFilter==='overdue')tasks=tasks.filter(t=>isOverdue(t));
@@ -2072,10 +2089,9 @@ function renderClientTasks(id){
   const open=tasks.filter(t=>!t.done);
   const done=tasks.filter(t=>t.done);
 
-  // Sort: overdue first → high priority → medium → low → by due date
   const priOrder={high:0,medium:1,low:2};
   function sortTasks(arr){
-    return arr.sort((a,b)=>{
+    return [...arr].sort((a,b)=>{
       const ao=isOverdue(a),bo=isOverdue(b);
       if(ao&&!bo)return -1;if(!ao&&bo)return 1;
       const pa=priOrder[a.priority]??3,pb=priOrder[b.priority]??3;
@@ -2086,11 +2102,7 @@ function renderClientTasks(id){
     });
   }
 
-  const openEl=document.getElementById('cp-tasks-open');
-  const doneEl=document.getElementById('cp-tasks-done');
-
   if(cpTaskFilter!=='done'&&open.length){
-    // Group open tasks by category
     const sortedOpen=sortTasks(open);
     const categories={};
     sortedOpen.forEach(t=>{
@@ -2098,22 +2110,9 @@ function renderClientTasks(id){
       if(!categories[cat])categories[cat]=[];
       categories[cat].push(t);
     });
-
-    // Category color map
-    const catColor={
-      'Content Creation':'var(--blue)',
-      'Payment':'var(--green)',
-      'Strategy & Planning':'var(--purple)',
-      'Reporting':'var(--yellow)',
-      'Follow-Up':'var(--orange)',
-      'Shoot':'var(--pink)',
-      'Other':'var(--text3)',
-      'General':'var(--text3)'
-    };
-
+    const catColor={'Content Creation':'var(--orange)','Payment':'var(--green)','Strategy & Planning':'var(--purple)','Reporting':'var(--yellow)','Follow-Up':'var(--orange)','Shoot':'var(--pink)','Other':'var(--text3)','General':'var(--text3)'};
     let html='';
     Object.entries(categories).forEach(([cat,catTasks])=>{
-      const color=catColor[cat]||'var(--text2)';
       const odCount=catTasks.filter(t=>isOverdue(t)).length;
       html+=`<div style="margin-bottom:16px">
         <div style="display:flex;align-items:center;gap:8px;padding:6px 0;margin-bottom:4px;border-bottom:1px solid var(--border)">
@@ -2125,39 +2124,15 @@ function renderClientTasks(id){
       </div>`;
     });
     openEl.innerHTML=html;
-  } else openEl.innerHTML='';
+  } else {
+    openEl.innerHTML=open.length===0&&cpTaskFilter==='all'?'<div style="padding:20px 0;text-align:center;color:var(--text3);font-size:12px">No open tasks</div>':'';
+  }
 
   if(cpTaskFilter!=='open'&&done.length){
     doneEl.innerHTML=`<div class="task-section-hdr"><div class="task-section-dot" style="background:var(--green)"></div><span class="task-section-lbl">Completed</span><span class="task-section-cnt">${done.length}</span></div>`+sortTasks(done).map(t=>taskHTML(t)).join('');
-  } else doneEl.innerHTML='';
-
-  if(!open.length&&!done.length){
-    openEl.innerHTML='<div class="empty">No tasks yet. Add one to get started.</div>';
+  } else {
     doneEl.innerHTML='';
   }
-}
-
-function taskHTML(t){
-  const od=isOverdue(t);
-  const avClass={th:'av-t',sh:'av-s',both:'av-t',smm:'av-smm',gd:'av-gd',video:'av-vid'}[t.assign]||'av-t';
-  const avTxt={th:'TH',sh:'SH',both:'T+S',smm:'SM',gd:'GD',video:'VE'}[t.assign]||'TH';
-  return `<div class="task-row">
-    <div class="task-check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
-    <div class="task-body">
-      <div class="task-title ${t.done?'done':''}">${t.title}</div>
-      <div class="task-tags">
-        ${t.due?`<span class="tag ${od?'tag-overdue':'tag-date'}">${od?'OVERDUE — ':''}${fmtDate(t.due)}</span>`:''}
-        <span class="tag tag-${t.priority}">${(t.priority||'').toUpperCase()}</span>
-        ${t.category?`<span class="tag tag-cat">${t.category}</span>`:''}
-        ${t.notes?`<span class="tag tag-cat" style="color:var(--text3)">${t.notes.substring(0,30)}</span>`:''}
-      </div>
-      ${t.created_at?`<div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;font-weight:300">· Added ${new Date(t.created_at).toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}${t.created_by?' by '+t.created_by:''}</div>`:''}
-    </div>
-    <div class="av ${avClass}" title="${{th:'Thulaib',sh:'Shiara',both:'Both',smm:'SMM',gd:'GD',video:'Video'}[t.assign]||''}">${avTxt}</div>
-    <button class="btn btn-ghost btn-sm" style="margin-left:4px;padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
-    <button class="btn btn-ghost btn-sm" style="margin-left:2px;padding:2px 7px;font-size:10px;color:var(--text2)" onclick="openCopyTaskModal(${t.id})">Copy</button>
-    <button class="btn btn-danger btn-sm" style="margin-left:2px" onclick="deleteTask(${t.id})">×</button>
-  </div>`;
 }
 
 function setTaskFilter(f){
