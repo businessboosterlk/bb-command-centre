@@ -2063,6 +2063,28 @@ async function saveFieldChange(){saveFieldAsync();}async function saveFieldAsync
   renderClientProfile(currentClientId);
 }
 
+function taskHTML(t){
+  const od=isOverdue(t);
+  const avClass={th:'av-t',sh:'av-s',both:'av-t',smm:'av-smm',gd:'av-gd',video:'av-vid'}[t.assign]||'av-t';
+  const avTxt={th:'TH',sh:'SH',both:'T+S',smm:'SM',gd:'GD',video:'VE'}[t.assign]||'TH';
+  return `<div class="task-row">
+    <div class="task-check ${t.done?'done':''}" onclick="toggleTask(${t.id})">${t.done?'✓':''}</div>
+    <div class="task-body">
+      <div class="task-title ${t.done?'done':''}">${t.title||'Untitled'}</div>
+      <div class="task-tags">
+        ${t.due?`<span class="tag ${od?'tag-overdue':'tag-date'}">${od?'OVERDUE — ':''}${fmtDate(t.due)}</span>`:''}
+        <span class="tag tag-${t.priority||'medium'}">${(t.priority||'medium').toUpperCase()}</span>
+        ${t.category?`<span class="tag tag-cat">${t.category}</span>`:''}
+        ${t.notes?`<span class="tag tag-cat" style="color:var(--text3)">${t.notes.substring(0,30)}</span>`:''}
+      </div>
+    </div>
+    <div class="av ${avClass}">${avTxt}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-left:4px;padding:2px 7px;font-size:10px" onclick="openEditTaskModal(${t.id})">Edit</button>
+    <button class="btn btn-ghost btn-sm" style="margin-left:2px;padding:2px 7px;font-size:10px" onclick="openCopyTaskModal(${t.id})">Copy</button>
+    <button class="btn btn-danger btn-sm" style="margin-left:2px" onclick="deleteTask(${t.id})">×</button>
+  </div>`;
+}
+
 // TASKS
 async function renderClientTasks(id){
   id=Number(id);
@@ -2076,7 +2098,6 @@ async function renderClientTasks(id){
     const res=await sb('tasks','GET',null,'?client_id=eq.'+id+'&order=id.asc');
     allTasks=Array.isArray(res)?res:[];
   }catch(e){
-    // Fallback to cache
     allTasks=(CACHE.tasks||[]).filter(t=>Number(t.clientId||t.client_id)===id);
   }
 
@@ -2120,7 +2141,7 @@ async function renderClientTasks(id){
           <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--orange)">${cat}</span>
           <span style="font-size:10px;color:var(--text3);font-weight:300">${catTasks.length} task${catTasks.length>1?'s':''}${odCount?' · '+odCount+' overdue':''}</span>
         </div>
-        ${catTasks.map(t=>taskHTML(t)).join('')}
+        ${catTasks.map(t=>{try{return taskHTML(t);}catch(e){console.error('[TASK HTML ERROR]',e,t);return '<div style="color:red">Task render error: '+e.message+'</div>';}}).join('')}
       </div>`;
     });
     openEl.innerHTML=html;
