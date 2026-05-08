@@ -713,6 +713,8 @@ body.cc-guest select.fs[onchange*="update"]{display:none !important}
           <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Month</th>
           <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">MRR</th>
           <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Health</th>
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:center;border-bottom:1px solid var(--border)">Posts/mo</th>
+          <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:center;border-bottom:1px solid var(--border)">Videos/mo</th>
           <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)">Open Tasks</th>
           <th style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--text2);padding:8px 12px;text-align:left;border-bottom:1px solid var(--border)"></th>
         </tr></thead>
@@ -1984,6 +1986,8 @@ function renderClients(){
       <td style="font-size:13px;font-weight:700;color:var(--orange)">M${c.month}</td>
       <td style="font-weight:600">${getMRR(c)?'LKR '+getMRR(c).toLocaleString():'—'}</td>
       <td><span class="pill ${healthPill(c.health)}">${healthLabel(c.health)}</span></td>
+      <td style="text-align:center"><span style="font-size:13px;font-weight:700;color:var(--cyan)">${c.monthly_posts||'—'}</span></td>
+      <td style="text-align:center"><span style="font-size:13px;font-weight:700;color:var(--pink)">${c.monthly_videos||'—'}</span></td>
       <td>${open?`<span style="font-weight:600;color:${od?'var(--red)':'var(--text)'}">${open} open${od?' · '+od+' overdue':''}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
       <td onclick="event.stopPropagation()"><button class="btn btn-danger btn-sm" onclick="deleteClient(${c.id})">×</button></td>
     </tr>`;
