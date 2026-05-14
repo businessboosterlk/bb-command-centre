@@ -1691,40 +1691,9 @@ async function loadAll(){
   CACHE.contentPlans=Array.isArray(content_plans_data)?content_plans_data.map(function(p){
     return Object.assign({},p,{month:Number(p.month),year:Number(p.year),client_id:Number(p.client_id)});
   }):[];
-  if(CACHE.clients.length===0) await seedClients();
 }
 
-async function seedClients(){
-  const defaults=[
-    {name:'AutoMuseum',package:'Custom',mrr:0,month:2,health:'green',industry:'Automotive',contact:'',start_date:'',renewal:'',notes:'6-month progressive contract. Strong relationship.'},
-    {name:'ModStreet Garage',package:'Ignite',mrr:150000,month:3,health:'green',industry:'Automotive',contact:'',start_date:'',renewal:'',notes:'Spark M1-3 transitioning to Ignite M4-6. Contract signed LKR 720,000.'},
-    {name:'LGL',package:'Spark',mrr:90000,month:4,health:'green',industry:'',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Cherry Fish',package:'Spark',mrr:90000,month:3,health:'green',industry:'F&B',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Excellent Mobile',package:'Spark',mrr:90000,month:2,health:'green',industry:'Retail',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Home Depot Sri Lanka',package:'Spark',mrr:90000,month:3,health:'green',industry:'Retail',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Fusion',package:'Spark',mrr:90000,month:2,health:'green',industry:'',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Glamorgisk International',package:'Spark',mrr:90000,month:1,health:'green',industry:'',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Encoding Ceylon',package:'Spark',mrr:90000,month:2,health:'green',industry:'Tech',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Next Gen Mats',package:'Spark',mrr:90000,month:1,health:'green',industry:'',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Pantherhue',package:'Spark',mrr:90000,month:2,health:'green',industry:'',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Ceylon Family Travels',package:'Spark',mrr:90000,month:1,health:'green',industry:'Travel',contact:'',start_date:'',renewal:'',notes:''},
-    {name:'Shaw Goldsmiths',package:'Spark',mrr:90000,month:3,health:'green',industry:'Jewellery',contact:'',start_date:'',renewal:'',notes:''},
-  ];
-  for(const c of defaults){
-    const res=await SB.insert('clients',c);
-    if(res&&res[0])CACHE.clients.push(res[0]);
-  }
-  const pipeDef=[
-    {name:'Show Car Detailers',type:'sm',status:'hot',industry:'Automotive',next_action:'Pitch Monday',notes:'Strategy deck ready. Strong lead.'},
-    {name:'BB with LReal',type:'web',status:'active',industry:'Real Estate',next_action:'Speak about meeting',notes:''},
-  ];
-  for(const p of pipeDef){
-    const res=await SB.insert('pipeline',p);
-    if(res&&res[0])CACHE.pipeline.push({...res[0],next:res[0].next_action});
-  }
-}
 
-// Pillar state lives in Supabase pillars table (one row per who)
 async function getPillarState(who){
   const row=CACHE.pillars.find(p=>p.who===who);
   if(!row)return {done_ids:[],top3:['','','']};
