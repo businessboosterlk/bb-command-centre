@@ -1672,6 +1672,10 @@ function activateRole(role,animate){
     document.getElementById('topbar-title').textContent='Dashboard';
   }
 
+  // Always hide the login screen when a role is active
+  const ls=document.getElementById('login-screen');
+  if(ls){ls.style.opacity='0';ls.style.display='none';}
+
   const app=document.getElementById('app');
   app.style.display='flex';
   if(animate){
