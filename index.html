@@ -401,9 +401,11 @@ body{
 }
 .pipe-row:last-child{border-bottom:none}
 .pipe-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.pipe-dot.hot{background:var(--accent)}
-.pipe-dot.active{background:var(--blue)}
-.pipe-dot.cold{background:var(--text-3)}
+.pipe-dot.potential{background:var(--amber)}
+.pipe-dot.fifty{background:var(--accent)}
+.pipe-dot.confirmed{background:var(--green)}
+.pipe-dot.likely_leave{background:var(--red)}
+.pipe-dot.closed{background:var(--text-3)}
 .pipe-name{font-size:12.5px;font-weight:700;color:var(--text);min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pipe-ind{font-size:10.5px;color:var(--text-3);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pipe-contact{
@@ -598,11 +600,11 @@ body{
 /* ── PIPELINE ── */
 .pipe-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 15px;margin-bottom:10px;border-left:3px solid var(--text-3);transition:border-color .15s}
 .pipe-card:hover{border-color:var(--border-strong)}
-.pipe-card.s-hot{border-left-color:var(--accent)}
-.pipe-card.s-active{border-left-color:var(--blue)}
-.pipe-card.s-converted{border-left-color:var(--green)}
-.pipe-card.s-cold{border-left-color:var(--pink)}
-.pipe-card.s-closed{border-left-color:var(--text-3)}
+.pipe-card.s-potential{border-left-color:var(--amber)}
+.pipe-card.s-fifty{border-left-color:var(--accent)}
+.pipe-card.s-confirmed{border-left-color:var(--green)}
+.pipe-card.s-likely_leave{border-left-color:var(--red)}
+.pipe-card.s-closed{border-left-color:var(--text-3);opacity:.72}
 .pipe-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
 .pipe-name{font-size:13.5px;font-weight:700;color:var(--text)}
 .pipe-meta{font-size:11px;color:var(--text-2);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -1211,7 +1213,7 @@ td:last-child{padding-right:18px;text-align:right}
             Pipeline — Leads to Action
           </div>
           <div style="display:flex;gap:8px;align-items:center">
-            <span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase">Hot</span>
+            <span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase">Potential</span>
             <span id="pipe-hot-count" style="font-family:'Poppins',sans-serif;font-size:14px;font-weight:800;color:var(--accent)">—</span>
             <div style="width:1px;height:16px;background:var(--border);margin:0 4px"></div>
             <span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase">Total</span>
@@ -1597,10 +1599,10 @@ td:last-child{padding-right:18px;text-align:right}
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <select id="pipe-filter" class="form-input" style="width:auto;padding:8px 12px;font-size:12.5px" onchange="filterPipeline(this.value)">
           <option value="">All</option>
-          <option value="hot">Hot</option>
-          <option value="active">Active</option>
-          <option value="converted">Converted</option>
-          <option value="cold">Likely Out</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="fifty">50 / 50</option>
+          <option value="potential">Potential</option>
+          <option value="likely_leave">Likely to Leave</option>
           <option value="closed">Closed Won</option>
         </select>
         <button class="btn-primary btn-sm" onclick="openPipelineModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Lead</button>
@@ -1609,10 +1611,10 @@ td:last-child{padding-right:18px;text-align:right}
 
     <!-- Pipeline Stats -->
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" class="pipe-stat-grid">
-      <div class="stat-card" style="border-left:3px solid var(--accent)"><div class="stat-lbl">Hot Leads</div><div class="stat-val accent" id="pp-hot">0</div><div class="stat-note">Needs action now</div></div>
-      <div class="stat-card" style="border-left:3px solid var(--blue)"><div class="stat-lbl">Active</div><div class="stat-val" id="pp-active" style="color:var(--blue)">0</div><div class="stat-note">In conversation</div></div>
-      <div class="stat-card" style="border-left:3px solid var(--green)"><div class="stat-lbl">Converted</div><div class="stat-val green" id="pp-converted">0</div><div class="stat-note">Became clients</div></div>
-      <div class="stat-card" style="border-left:3px solid var(--red)"><div class="stat-lbl">Overdue Tasks</div><div class="stat-val" id="pp-overdue" style="color:var(--red)">0</div><div class="stat-note">Across pipeline</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--green)"><div class="stat-lbl">Confirmed</div><div class="stat-val green" id="pp-confirmed">0</div><div class="stat-note">Became clients</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--accent)"><div class="stat-lbl">50 / 50</div><div class="stat-val accent" id="pp-fifty">0</div><div class="stat-note">Could go either way</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--amber)"><div class="stat-lbl">Potential</div><div class="stat-val" id="pp-potential" style="color:var(--amber)">0</div><div class="stat-note">Early conversations</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--red)"><div class="stat-lbl">Likely to Leave</div><div class="stat-val" id="pp-likely" style="color:var(--red)">0</div><div class="stat-note">At risk</div></div>
     </div>
 
     <!-- Pending 48hr -->
@@ -1634,6 +1636,12 @@ td:last-child{padding-right:18px;text-align:right}
         <div id="pipe-web-list"></div>
       </div>
     </div>
+
+    <!-- Closed Won -->
+    <div id="pipe-closed-wrap" style="margin-top:18px;display:none">
+      <div class="card-ttl" style="margin-bottom:10px;color:var(--text-2)"><span class="card-ttl-ico" style="background:var(--green-soft);color:var(--green)"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>Closed Won <span class="card-cnt" id="pipe-closed-cnt">0</span></div>
+      <div id="pipe-closed-list" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"></div>
+    </div>
   </div>
 </div>
 
@@ -1646,7 +1654,7 @@ td:last-child{padding-right:18px;text-align:right}
     <div class="field-row"><div class="form-field"><label class="form-label">Business Name *</label><input class="form-input" id="p-name" placeholder="e.g. Show Car Detailers"></div></div>
     <div class="field-row">
       <div class="form-field"><label class="form-label">Type</label><select class="form-select" id="p-type"><option value="sm">Social Media</option><option value="web">Website / Other</option></select></div>
-      <div class="form-field"><label class="form-label">Status</label><select class="form-select" id="p-status"><option value="active">Active</option><option value="hot">Hot</option><option value="converted">Converted</option><option value="cold">Likely Out</option><option value="closed">Closed Won</option></select></div>
+      <div class="form-field"><label class="form-label">Status</label><select class="form-select" id="p-status"><option value="potential">Potential</option><option value="fifty">50 / 50</option><option value="confirmed">Confirmed</option><option value="likely_leave">Likely to Leave</option><option value="closed">Closed Won</option></select></div>
     </div>
     <div class="field-row">
       <div class="form-field"><label class="form-label">Industry</label><input class="form-input" id="p-industry" placeholder="e.g. Automotive"></div>
@@ -2011,10 +2019,10 @@ function renderStats(){
   if(ROLE==='th'){
     const p=D.pipeline;
     document.getElementById('s-pipe').textContent=p.length;
-    const hot=p.filter(x=>x.status==='hot').length;
+    const pot=p.filter(x=>x.status==='potential').length;
     const hn=document.getElementById('s-pipe-hot');
-    hn.textContent=hot?hot+' hot lead'+(hot===1?'':'s'):'no hot leads';
-    hn.style.color=hot?'var(--amber)':'';
+    hn.textContent=pot?pot+' potential lead'+(pot===1?'':'s'):'no potential leads';
+    hn.style.color=pot?'var(--amber)':'';
   } else {
     // COO stat: team check progress
     const checked=getChecked();
@@ -2166,10 +2174,10 @@ function renderVideoStrip(){
 /* ── PIPELINE (CEO) ── */
 function renderPipelinePanel(){
   const pipe=D.pipeline;
-  const hot=pipe.filter(p=>p.status==='hot');
+  const hot=pipe.filter(p=>p.status==='potential');
   document.getElementById('pipe-hot-count').textContent=hot.length;
-  document.getElementById('pipe-total-count').textContent=pipe.filter(p=>!['closed','cold'].includes(p.status)).length;
-  const show=[...hot,...pipe.filter(p=>p.status==='active')].slice(0,8);
+  document.getElementById('pipe-total-count').textContent=pipe.filter(p=>!['closed','likely_leave'].includes(p.status)).length;
+  const show=[...pipe.filter(p=>p.status==='confirmed'),...pipe.filter(p=>p.status==='fifty'),...hot].slice(0,8);
   const el=document.getElementById('pipeline-rows');
   if(!show.length){el.innerHTML='<div class="empty">No active leads in the pipeline</div>';return;}
   const today=todayStr();
@@ -2182,7 +2190,7 @@ function renderPipelinePanel(){
     else if(dt.length){ac='today';al='Due today'}
     else if(pt.length){ac='ok';al='On track'}
     return `<div class="pipe-row">
-      <div class="pipe-dot ${p.status||'cold'}"></div>
+      <div class="pipe-dot ${p.status||'potential'}"></div>
       <div class="pipe-name">${esc(p.name)}</div>
       <div class="pipe-ind">${esc(p.industry||'—')}</div>
       <div class="pipe-contact">${esc(p.owner||'—')}</div>
@@ -2666,58 +2674,86 @@ async function loadPipelinePage(){
 }
 
 function filterPipeline(v){pipeFilter=v;renderPipelinePage();}
-function pipeStatusLabel(s){return {hot:'Hot',active:'Active',converted:'Converted',cold:'Likely Out',closed:'Closed Won'}[s]||s;}
-function pipeStatusPill(s){return {hot:'pill-orange',active:'pill-blue',converted:'pill-green',cold:'pill-pink',closed:'pill-neutral'}[s]||'pill-neutral';}
+const PIPE_STATUSES=['potential','fifty','confirmed','likely_leave','closed'];
+function pipeStatusLabel(s){return {potential:'Potential',fifty:'50 / 50',confirmed:'Confirmed',likely_leave:'Likely to Leave',closed:'Closed Won'}[s]||s;}
+function pipeStatusPill(s){return {potential:'pill-amber',fifty:'pill-orange',confirmed:'pill-green',likely_leave:'pill-red',closed:'pill-neutral'}[s]||'pill-neutral';}
+
+const PIPE_ORDER={confirmed:0,fifty:1,potential:2,likely_leave:3,closed:4};
 
 function renderPipelinePage(){
   const pipe=D.pipeline||[];
   const tasks=D.tasks||[];
   const filtered=pipe.filter(p=>!pipeFilter||p.status===pipeFilter);
-  const sm=filtered.filter(p=>p.type==='sm');
-  const web=filtered.filter(p=>p.type!=='sm');
+
+  // sort by status priority, then name
+  const sortFn=(a,b)=>{
+    const oa=PIPE_ORDER[a.status]??9, ob=PIPE_ORDER[b.status]??9;
+    if(oa!==ob)return oa-ob;
+    return (a.name||'').localeCompare(b.name||'');
+  };
+
+  const active=filtered.filter(p=>p.status!=='closed').sort(sortFn);
+  const closed=filtered.filter(p=>p.status==='closed').sort(sortFn);
+  const sm=active.filter(p=>p.type==='sm');
+  const web=active.filter(p=>p.type!=='sm');
 
   // Counts
-  const smc=document.getElementById('pipe-sm-cnt'); if(smc)smc.textContent=sm.length;
-  const wc=document.getElementById('pipe-web-cnt'); if(wc)wc.textContent=web.length;
-
-  // Stats
   const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
-  setTxt('pp-hot',pipe.filter(p=>p.status==='hot').length);
-  setTxt('pp-active',pipe.filter(p=>p.status==='active').length);
-  setTxt('pp-converted',pipe.filter(p=>p.status==='converted').length);
-  const pipeTasks=tasks.filter(t=>t.pipeline_id||t.pipelineId);
-  setTxt('pp-overdue',pipeTasks.filter(t=>isOverdue(t)).length);
+  setTxt('pipe-sm-cnt',sm.length);
+  setTxt('pipe-web-cnt',web.length);
+
+  // Stats (count from full pipe, not filtered)
+  setTxt('pp-confirmed',pipe.filter(p=>p.status==='confirmed').length);
+  setTxt('pp-fifty',pipe.filter(p=>p.status==='fifty').length);
+  setTxt('pp-potential',pipe.filter(p=>p.status==='potential').length);
+  setTxt('pp-likely',pipe.filter(p=>p.status==='likely_leave').length);
 
   renderPipeLeadList(sm,'pipe-sm-list');
   renderPipeLeadList(web,'pipe-web-list');
+
+  // Closed Won section
+  const cw=document.getElementById('pipe-closed-wrap');
+  const cl=document.getElementById('pipe-closed-list');
+  setTxt('pipe-closed-cnt',closed.length);
+  if(cw&&cl){
+    if(closed.length){
+      cw.style.display='';
+      cl.innerHTML=closed.map(p=>pipeCardHTML(p)).join('');
+    } else {
+      cw.style.display='none';
+    }
+  }
+
   renderPipePending();
+}
+
+function pipeCardHTML(p){
+  return `<div class="pipe-card s-${p.status}">
+    <div class="pipe-top">
+      <span class="pipe-name">${esc(p.name)}</span>
+      <span class="pill ${pipeStatusPill(p.status)}">${pipeStatusLabel(p.status)}</span>
+    </div>
+    <div class="pipe-meta">
+      ${p.industry?`<span>${esc(p.industry)}</span>`:''}
+      ${p.owner?`<span class="pipe-owner"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>${esc(p.owner)}</span>`:''}
+    </div>
+    ${p.next_action?`<div class="pipe-next">→ ${esc(p.next_action)}</div>`:''}
+    ${p.notes?`<div class="pipe-note">${esc(p.notes)}</div>`:''}
+    <div class="pipe-actions">
+      <button class="btn-ghost btn-sm" onclick="openPipelineModal(${p.id})">Edit</button>
+      <select onchange="updatePipeStatus(${p.id},this.value)">
+        ${PIPE_STATUSES.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${pipeStatusLabel(s)}</option>`).join('')}
+      </select>
+      <button class="btn-del-sm" onclick="deletePipeline(${p.id})" title="Remove">×</button>
+    </div>
+  </div>`;
 }
 
 function renderPipeLeadList(arr,elId){
   const el=document.getElementById(elId);
   if(!el)return;
   if(!arr.length){el.innerHTML='<div class="empty" style="padding:16px;color:var(--text-3);font-size:12.5px">No leads here</div>';return;}
-  el.innerHTML=arr.map(p=>{
-    return `<div class="pipe-card s-${p.status}">
-      <div class="pipe-top">
-        <span class="pipe-name">${esc(p.name)}</span>
-        <span class="pill ${pipeStatusPill(p.status)}">${pipeStatusLabel(p.status)}</span>
-      </div>
-      <div class="pipe-meta">
-        ${p.industry?`<span>${esc(p.industry)}</span>`:''}
-        ${p.owner?`<span class="pipe-owner"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>${esc(p.owner)}</span>`:''}
-      </div>
-      ${p.next_action?`<div class="pipe-next">→ ${esc(p.next_action)}</div>`:''}
-      ${p.notes?`<div class="pipe-note">${esc(p.notes)}</div>`:''}
-      <div class="pipe-actions">
-        <button class="btn-ghost btn-sm" onclick="openPipelineModal(${p.id})">Edit</button>
-        <select onchange="updatePipeStatus(${p.id},this.value)">
-          ${['active','hot','converted','cold','closed'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${pipeStatusLabel(s)}</option>`).join('')}
-        </select>
-        <button class="btn-del-sm" onclick="deletePipeline(${p.id})" title="Remove">×</button>
-      </div>
-    </div>`;
-  }).join('');
+  el.innerHTML=arr.map(p=>pipeCardHTML(p)).join('');
 }
 
 function renderPipePending(){
@@ -2734,7 +2770,7 @@ function renderPipePending(){
     return (a.due||'').localeCompare(b.due||'');
   });
   // hot leads with a next action (and no pending task) shown as action items
-  const hotLeads=pipe.filter(p=>p.status==='hot'&&p.next_action&&!pipeTasks.find(t=>String(t.pipeline_id||t.pipelineId)===String(p.id)));
+  const hotLeads=pipe.filter(p=>p.status==='potential'&&p.next_action&&!pipeTasks.find(t=>String(t.pipeline_id||t.pipelineId)===String(p.id)));
 
   if(!pipeTasks.length&&!hotLeads.length){
     el.innerHTML='<div style="font-size:12.5px;color:var(--text-3);padding:4px 0">Nothing pending in the next 48 hours</div>';
@@ -2790,7 +2826,7 @@ function openPipelineModal(id){
   } else {
     ['p-name','p-industry','p-owner','p-next','p-notes'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
     document.getElementById('p-type').value='sm';
-    document.getElementById('p-status').value='active';
+    document.getElementById('p-status').value='potential';
   }
   document.getElementById('modal-pipeline').classList.remove('hidden');
   setTimeout(()=>document.getElementById('p-name').focus(),50);
