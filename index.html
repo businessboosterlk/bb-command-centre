@@ -2281,12 +2281,8 @@ const PHASES=['Foundation','Testing','Optimisation','Authority','Scaling','Revie
 const STAGE_CLS={'Videos Confirmed':'st-confirmed','Script Made':'st-script','Script Changes':'st-script','Final Script':'st-script','Get Shoot Date':'st-default','Date Confirmed':'st-date','Shot':'st-shot'};
 
 /* ── UTILS ── */
-const getMRR=c=>c.mrr||PKG_MRR[c.package]||0;
-const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const initials=n=>(n||'').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
 const isOD=t=>!t.done&&t.due&&t.due<todayStr();
-const fmtK=n=>{if(!n&&n!==0)return '—';if(n>=1000000)return 'LKR '+(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return 'LKR '+(n/1000).toFixed(0)+'K';return 'LKR '+n;};
-const fmtDate=s=>s?new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase():'';
 const nowYM=()=>{const d=new Date();return{y:d.getFullYear(),m:d.getMonth()+1};};
 const nowMonthStr=()=>{const{y,m}=nowYM();return`${y}-${String(m).padStart(2,'0')}`;};
 
@@ -2323,7 +2319,7 @@ async function loadClientsPage(){
   CLIENTS=clients||[];
   TASKS=(tasks||[]).map(t=>({...t,clientId:Number(t.client_id||0),done:t.done||false}));
   PLANS=plans||[];SHOOTS=shoots||[];INVOICES=invoices||[];JOURNALS=journals||[];
-  renderStats();renderTable();
+  renderClientStats();renderTable();
 }
 
 async function refreshData(){
@@ -2334,7 +2330,7 @@ async function refreshData(){
 }
 
 /* ── LIST ── */
-function renderStats(){
+function renderClientStats(){
   const c=CLIENTS;
   document.getElementById('st-total').textContent=c.length;
   document.getElementById('st-mrr').textContent=fmtK(c.reduce((s,x)=>s+getMRR(x),0));
@@ -2795,11 +2791,11 @@ async function saveClientEdit(){
   closeModal('modal-edit-client');openProfile(currentId);
 }
 function confirmDeleteClient(id,name){if(!confirm(`Delete "${name}"? Cannot be undone.`))return;deleteClient(id);}
-async function deleteClient(id){await SBdel('clients',id);CLIENTS=CLIENTS.filter(c=>Number(c.id)!==Number(id));if(currentId===Number(id))backToClients();else{renderTable();renderStats();}}
+async function deleteClient(id){await SBdel('clients',id);CLIENTS=CLIENTS.filter(c=>Number(c.id)!==Number(id));if(currentId===Number(id))backToClients();else{renderTable();renderClientStats();}}
 async function deleteCurrentClient(){const c=CLIENTS.find(x=>Number(x.id)===currentId);if(!c||!confirm(`Delete "${c.name}"?`))return;closeModal('modal-edit-client');await deleteClient(currentId);}
 
 /* ── NAV ── */
-function backToClients(){currentId=null;document.getElementById('profile-page').classList.remove('active');document.getElementById('clients-page').classList.remove('hidden');document.getElementById('topbar-title').textContent='Clients';renderTable();renderStats();}
+function backToClients(){currentId=null;document.getElementById('profile-page').classList.remove('active');document.getElementById('clients-page').classList.remove('hidden');document.getElementById('topbar-title').textContent='Clients';renderTable();renderClientStats();}
 
 /* ── TABS ── */
 function switchTab(tab){
@@ -2817,21 +2813,6 @@ document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('cli
 /* ── EXPORT ── */
 function exportCSV(){const rows=[['Name','Type','Package','Month','MRR','Health','Posts/mo','Videos/mo','Open Tasks']];CLIENTS.forEach(c=>{const open=TASKS.filter(t=>t.clientId===Number(c.id)&&!t.done).length;rows.push([c.name,c.client_type||'sm',c.package,c.month||1,getMRR(c),c.health||'green',c.monthly_posts||0,c.monthly_videos||0,open]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bb-clients-'+todayStr()+'.csv';a.click();}
 
-/* ── NAV ── */
-;
-  const id=pageMap[page]||page;
-  // If running inside cc_index.html as an iframe
-  if(window.parent&&window.parent!==window&&typeof window.parent.nav==='function'){
-    window.parent.nav(id);return;
-  }
-  // If opened by cc_index.html
-  if(window.opener&&!window.opener.closed&&typeof window.opener.nav==='function'){
-    window.opener.nav(id);window.opener.focus();return;
-  }
-  // Standalone: navigate to index.html (the main CC on GitHub Pages)
-  const base=window.location.href.split('/').slice(0,-1).join('/');
-  window.location.href=base+'/index.html';
-}
 /* ── INIT ── */
 function uploadLogo(){
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
