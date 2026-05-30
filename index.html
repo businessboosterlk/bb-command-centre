@@ -531,19 +531,6 @@ body{
 .badge.neutral{background:var(--surface-2);color:var(--text-2)}
 
 
-/* ── TOP 3 (COO — Shiara) ── */
-function renderTop3SH(){
-  const row=D.pillars.find(p=>p.who==='sh');
-  let top3=[];try{top3=row?JSON.parse(row.top3||'[]'):[]}catch{top3=[]}
-  const el=document.getElementById('top3-sh-list');
-  if(!el)return;
-  if(!top3.length){
-    el.innerHTML='<div class="empty">No top 3 set — open My Day to set them</div>';
-    return;
-  }
-  el.innerHTML=top3.map((t,i)=>`<div class="top3-row"><span class="top3-num" style="color:var(--pink)">${i+1}.</span><span class="top3-text">${esc(t)}</span></div>`).join('');
-}
-
 /* ── HEALTH ── */
 .health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
 .health-box{
@@ -567,6 +554,47 @@ function renderTop3SH(){
 .top3-row:last-child{margin-bottom:0}
 .top3-num{font-family:'Poppins',sans-serif;font-size:13px;font-weight:800;color:var(--accent);width:16px;flex-shrink:0}
 .top3-text{flex:1;font-size:12.5px;color:var(--text);line-height:1.4}
+/* ── EDITABLE TOP 3/5 ── */
+.t3-reset{background:transparent;border:1px solid var(--border-strong);color:var(--text-2);font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:4px 10px;border-radius:7px;cursor:pointer;transition:all .15s}
+.t3-reset:hover{border-color:var(--accent);color:var(--accent)}
+.t3-item{display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:9px;margin-bottom:6px;background:var(--surface-2);border:1px solid var(--border);transition:all .15s}
+.t3-item:hover{border-color:var(--border-strong)}
+.t3-item .top3-num{font-size:13px}
+.t3-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:12.5px;font-family:inherit;line-height:1.4;padding:2px 0}
+.t3-input::placeholder{color:var(--text-3)}
+.t3-del{background:transparent;border:none;color:var(--text-3);cursor:pointer;font-size:15px;line-height:1;padding:0 2px;flex-shrink:0;transition:color .15s;opacity:0}
+.t3-item:hover .t3-del{opacity:1}
+.t3-del:hover{color:var(--red)}
+.t3-add{display:flex;align-items:center;gap:7px;width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--text-2);font-size:11.5px;font-weight:500;padding:8px 10px;border-radius:9px;cursor:pointer;transition:all .15s;margin-top:2px}
+.t3-add:hover{border-color:var(--accent);color:var(--accent)}
+.t3-add svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.5}
+.t3-sugg{margin-top:11px;display:flex;flex-wrap:wrap;gap:6px}
+.t3-sugg-lbl{width:100%;font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3);margin-bottom:1px}
+.t3-chip{display:inline-flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2);font-size:11px;font-weight:500;padding:5px 10px;border-radius:20px;cursor:pointer;transition:all .15s;max-width:100%}
+.t3-chip:hover{border-color:var(--accent);color:var(--text);background:var(--accent-soft)}
+.t3-chip .t3-chip-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.t3-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px}
+.t3-full{font-size:11px;color:var(--text-3);padding:4px 2px}
+/* ── MY DAY ── */
+.md-stat{flex:1;min-width:120px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px}
+.md-stat-val{font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;line-height:1}
+.md-stat-lbl{font-size:10px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text-2);margin-top:4px}
+.md-task{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--border);margin-bottom:8px;transition:all .15s}
+.md-task:last-child{margin-bottom:0}
+.md-task:hover{border-color:var(--border-strong)}
+.md-task.od{border-color:rgba(239,68,68,.25)}
+.md-chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--text-3);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.md-chk:hover{border-color:var(--accent)}
+.md-chk svg{width:12px;height:12px;stroke:#fff;fill:none;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.md-chk.done{background:var(--green);border-color:var(--green)}
+.md-chk.done svg{opacity:1}
+.md-task-body{flex:1;min-width:0}
+.md-task-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.3}
+.md-task-title.done{text-decoration:line-through;color:var(--text-3)}
+.md-task-meta{display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap}
+.md-client{font-size:11px;color:var(--text-2);font-weight:500}
+.md-due{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent)}
+.md-due.od{background:rgba(239,68,68,.12);color:var(--red)}
 
 /* ── NON-NEGOTIABLE ── */
 .stop-block{
@@ -1029,7 +1057,7 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
     <div class="nav">
       <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</div>
-      <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>My Day</div>
+      <div class="nav-item" id="nav-myday" onclick="showPage('myday')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>My Day</div>
       <div class="nav-item" id="nav-clients" onclick="showPage('clients')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Clients</div>
       <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Pipeline</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendar</div>
@@ -1087,11 +1115,12 @@ td:last-child{padding-right:18px;text-align:right}
           <div class="card-hd" style="margin-bottom:10px">
             <div class="card-ttl">
               <span class="card-ttl-ico"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-              Today's Top 3
+              Today's Top Priorities
             </div>
-            <div style="font-size:10px;color:var(--text-3);font-weight:500">Set in My Day</div>
+            <button class="t3-reset" onclick="resetTop3('th')" title="Clear all for a fresh start">Reset</button>
           </div>
           <div id="top3-list"><div class="skel" style="width:80%"></div><div class="skel" style="width:65%"></div><div class="skel" style="width:55%"></div></div>
+          <div id="top3-sugg" class="t3-sugg"></div>
         </div>
       </div>
 
@@ -1278,11 +1307,12 @@ td:last-child{padding-right:18px;text-align:right}
           <div class="card-hd" style="margin-bottom:10px">
             <div class="card-ttl">
               <span class="card-ttl-ico sh"><svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
-              Shiara's Top 3 Today
+              Shiara's Top Priorities
             </div>
-            <div style="font-size:10px;color:var(--text-3);font-weight:500">Set in My Day</div>
+            <button class="t3-reset" onclick="resetTop3('sh')" title="Clear all for a fresh start">Reset</button>
           </div>
           <div id="top3-sh-list"><div class="skel" style="width:80%"></div><div class="skel" style="width:60%"></div></div>
+          <div id="top3-sh-sugg" class="t3-sugg"></div>
         </div>
         <div class="g2" style="margin-top:0">
           <div class="card" style="margin-bottom:0">
@@ -1491,6 +1521,38 @@ td:last-child{padding-right:18px;text-align:right}
         <div class="card"><div class="card-hd"><div class="card-ttl"><span class="card-ttl-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Internal Notes</div><button class="btn-ghost btn-sm" onclick="saveNotes()">Save Notes</button></div><textarea class="notes-area" id="profile-notes" placeholder="Internal notes, key decisions, signals, renewal prep, anything important…"></textarea></div>
       </div>
     </div><!-- /profile-page -->
+
+<!-- ══════════════════════════════════════
+   MY DAY PAGE
+══════════════════════════════════════ -->
+<div id="page-myday" class="page-section" style="display:none">
+  <div style="margin-bottom:16px">
+    <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">My Day</h1>
+    <div id="myday-sub" style="font-size:12.5px;color:var(--text-2)">Everything due today, in one place.</div>
+  </div>
+
+  <!-- Summary chips -->
+  <div id="myday-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
+
+  <!-- Overdue -->
+  <div class="card" id="myday-overdue-card" style="margin-bottom:14px;display:none">
+    <div class="card-hd" style="margin-bottom:10px">
+      <div class="card-ttl"><span class="card-ttl-ico" style="background:rgba(239,68,68,.12);color:var(--red)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Overdue</div>
+      <span id="myday-overdue-count" style="font-size:11px;font-weight:700;color:var(--red)"></span>
+    </div>
+    <div id="myday-overdue-list"></div>
+  </div>
+
+  <!-- Due today -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd" style="margin-bottom:10px">
+      <div class="card-ttl"><span class="card-ttl-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Due Today</div>
+      <span id="myday-today-count" style="font-size:11px;font-weight:700;color:var(--accent)"></span>
+    </div>
+    <div id="myday-today-list"><div class="skel" style="width:70%"></div><div class="skel" style="width:55%"></div></div>
+  </div>
+</div>
+
   </div><!-- /content -->
 
 <!-- ══ MODALS ══ -->
@@ -2150,27 +2212,167 @@ function renderTaskAlerts(who,elId){
 }
 
 /* ── TOP 3 (CEO) ── */
-function renderTop3(){
-  const row=D.pillars.find(p=>p.who==='th');
-  let top3=[];try{top3=row?JSON.parse(row.top3||'[]'):[]}catch{top3=[]}
-  const el=document.getElementById('top3-list');
-  if(!top3.length){el.innerHTML='<div class="empty">No top 3 set — open My Day to set them</div>';return;}
-  el.innerHTML=top3.map((t,i)=>`<div class="top3-row"><span class="top3-num">${i+1}.</span><span class="top3-text">${esc(t)}</span></div>`).join('');
+/* ══════════════════════════════════════
+   EDITABLE TOP PRIORITIES (3–5)
+══════════════════════════════════════ */
+const T3_MAX=5;
+const T3_CFG={
+  th:{listId:'top3-list',suggId:'top3-sugg',color:'var(--accent)',dot:'var(--accent)'},
+  sh:{listId:'top3-sh-list',suggId:'top3-sh-sugg',color:'var(--pink)',dot:'var(--pink)'}
+};
+
+function getTop3(who){
+  const row=D.pillars.find(p=>p.who===who);
+  let t=[];try{t=row?JSON.parse(row.top3||'[]'):[]}catch{t=[]}
+  return Array.isArray(t)?t:[];
 }
 
+function renderTop3(){ renderTopPriorities('th'); }
+function renderTop3SH(){ renderTopPriorities('sh'); }
 
-/* ── TOP 3 (COO — Shiara) ── */
-function renderTop3SH(){
-  const row=D.pillars.find(p=>p.who==='sh');
-  let top3=[];try{top3=row?JSON.parse(row.top3||'[]'):[]}catch{top3=[]}
-  const el=document.getElementById('top3-sh-list');
+function renderTopPriorities(who){
+  const cfg=T3_CFG[who];
+  const el=document.getElementById(cfg.listId);
   if(!el)return;
-  if(!top3.length){
-    el.innerHTML='<div class="empty">No top 3 set — open My Day to set them</div>';
-    return;
+  const items=getTop3(who);
+  let html='';
+  items.forEach((t,i)=>{
+    html+=`<div class="t3-item">
+      <span class="top3-num" style="color:${cfg.color}">${i+1}.</span>
+      <input class="t3-input" value="${esc(t)}" placeholder="Type a priority…"
+        onblur="editTop3('${who}',${i},this.value)"
+        onkeydown="if(event.key==='Enter'){this.blur();}">
+      <button class="t3-del" onclick="removeTop3('${who}',${i})" title="Remove">×</button>
+    </div>`;
+  });
+  if(items.length<T3_MAX){
+    html+=`<button class="t3-add" onclick="addTop3('${who}')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add a priority${items.length>=3?' (optional)':''}</button>`;
+  } else {
+    html+=`<div class="t3-full">Max ${T3_MAX} priorities — keep it focused.</div>`;
   }
-  el.innerHTML=top3.map((t,i)=>`<div class="top3-row"><span class="top3-num" style="color:var(--pink)">${i+1}.</span><span class="top3-text">${esc(t)}</span></div>`).join('');
+  el.innerHTML=html;
+  renderTop3Suggestions(who);
 }
+
+function renderTop3Suggestions(who){
+  const cfg=T3_CFG[who];
+  const sEl=document.getElementById(cfg.suggId);
+  if(!sEl)return;
+  const current=getTop3(who).map(x=>x.toLowerCase().trim());
+  if(current.length>=T3_MAX){sEl.innerHTML='';return;}
+  const sugg=buildTop3Suggestions().filter(s=>!current.includes(s.text.toLowerCase().trim()));
+  if(!sugg.length){sEl.innerHTML='';return;}
+  sEl.innerHTML='<div class="t3-sugg-lbl">Tap to add</div>'+
+    sugg.slice(0,6).map(s=>`<button class="t3-chip" onclick="addSuggestion('${who}',this)" data-text="${esc(s.text)}">
+      <span class="t3-chip-dot" style="background:${s.color}"></span><span>${esc(s.text)}</span></button>`).join('');
+}
+
+// Smart suggestions pulled from real data
+function buildTop3Suggestions(){
+  const out=[];
+  const today=todayStr();
+  // Overdue tasks
+  const overdue=D.tasks.filter(t=>!t.done&&t.due&&t.due<today);
+  overdue.slice(0,3).forEach(t=>{
+    const c=D.clients.find(x=>String(x.id)===String(t.client_id||t.clientId));
+    out.push({text:`${t.title||t.name||'Overdue task'}${c?' — '+c.name:''}`,color:'var(--red)'});
+  });
+  // Tasks due today
+  const dueToday=D.tasks.filter(t=>!t.done&&t.due===today);
+  dueToday.slice(0,2).forEach(t=>{
+    const c=D.clients.find(x=>String(x.id)===String(t.client_id||t.clientId));
+    out.push({text:`${t.title||t.name||'Task due today'}${c?' — '+c.name:''}`,color:'var(--accent)'});
+  });
+  // Red-health clients
+  D.clients.filter(c=>c.health==='red').slice(0,2).forEach(c=>{
+    out.push({text:`Fix red account — ${c.name}`,color:'var(--red)'});
+  });
+  // Upcoming shoots (next 3 days)
+  const in3=addDays(3);
+  (D.shoots||[]).filter(s=>s.shoot_date&&s.shoot_date>=today&&s.shoot_date<=in3).slice(0,2).forEach(s=>{
+    const nm=s.clients?.name||'';
+    out.push({text:`Prep shoot${nm?' — '+nm:''} (${fmtDate(s.shoot_date)})`,color:'var(--blue)'});
+  });
+  // Amber clients if room
+  D.clients.filter(c=>c.health==='amber').slice(0,1).forEach(c=>{
+    out.push({text:`Check in — ${c.name}`,color:'var(--amber)'});
+  });
+  return out;
+}
+
+async function editTop3(who,idx,val){
+  const items=getTop3(who);
+  val=(val||'').trim();
+  if(idx>=items.length){ if(val) items.push(val); }
+  else { if(val) items[idx]=val; else items.splice(idx,1); }
+  await saveTop3(who,items);
+}
+
+async function addTop3(who){
+  const items=getTop3(who);
+  if(items.length>=T3_MAX)return;
+  items.push('');
+  // optimistic local update so the new input shows immediately
+  setLocalTop3(who,items);
+  renderTopPriorities(who);
+  const inputs=document.querySelectorAll('#'+T3_CFG[who].listId+' .t3-input');
+  if(inputs.length)inputs[inputs.length-1].focus();
+}
+
+async function removeTop3(who,idx){
+  const items=getTop3(who);
+  items.splice(idx,1);
+  await saveTop3(who,items);
+}
+
+async function addSuggestion(who,btn){
+  const text=btn.getAttribute('data-text');
+  const items=getTop3(who);
+  if(items.length>=T3_MAX)return;
+  // fill first empty slot, else append
+  const empty=items.findIndex(x=>!x||!x.trim());
+  if(empty>=0)items[empty]=text; else items.push(text);
+  await saveTop3(who,items);
+}
+
+async function resetTop3(who){
+  if(!confirm('Clear all priorities for a fresh start?'))return;
+  await saveTop3(who,[]);
+}
+
+function setLocalTop3(who,items){
+  let row=D.pillars.find(p=>p.who===who);
+  if(!row){row={who:who,top3:'[]',done_ids:'[]'};D.pillars.push(row);}
+  row.top3=JSON.stringify(items.filter(x=>x&&x.trim()).length?items:items);
+}
+
+// Save to Supabase — PATCH if row exists, POST (create) if not
+async function saveTop3(who,items){
+  const clean=items.filter(x=>x&&x.trim());
+  setLocalTop3(who,clean);
+  renderTopPriorities(who);
+  const payload={top3:JSON.stringify(clean)};
+  try{
+    const row=D.pillars.find(p=>p.who===who);
+    if(row&&row.id){
+      await sbC('pillars','PATCH',payload,`?id=eq.${row.id}`);
+    } else if(row&&!row.id){
+      // row exists in memory but no id — try matching by who
+      const res=await sbC('pillars','PATCH',payload,`?who=eq.${who}`);
+      // if nothing patched, create
+      if(!res||(Array.isArray(res)&&!res.length)){
+        const created=await sbC('pillars','POST',{who:who,top3:JSON.stringify(clean),done_ids:'[]'},'');
+        if(Array.isArray(created)&&created[0]&&created[0].id){row.id=created[0].id;}
+      }
+    } else {
+      const created=await sbC('pillars','POST',{who:who,top3:JSON.stringify(clean),done_ids:'[]'},'');
+      if(Array.isArray(created)&&created[0]){D.pillars.push(created[0]);}
+    }
+  }catch(e){console.error('saveTop3',e);}
+}
+
 
 /* ── HEALTH ── */
 function renderHealth(){
@@ -2245,7 +2447,90 @@ function showPage(page) {
   } else if (page === 'clients') {
     document.getElementById('topbar-title').textContent = 'Clients';
     loadClientsPage();
+  } else if (page === 'myday') {
+    document.getElementById('topbar-title').textContent = 'My Day';
+    loadMyDay();
   }
+}
+
+/* ══════════════════════════════════════
+   MY DAY
+══════════════════════════════════════ */
+async function loadMyDay(){
+  // Ensure data is loaded (My Day can be opened before dashboard data lands)
+  if(!D.tasks||!D.tasks.length){ try{ await loadAll(); }catch(e){} }
+  renderMyDay();
+}
+
+function myDayTaskClient(t){
+  const id=t.client_id||t.clientId;
+  const c=D.clients.find(x=>String(x.id)===String(id));
+  return c?c.name:'';
+}
+
+function renderMyDay(){
+  const today=todayStr();
+  const open=D.tasks.filter(t=>!t.done&&t.due);
+  const overdue=open.filter(t=>t.due<today).sort((a,b)=>a.due.localeCompare(b.due));
+  const dueToday=open.filter(t=>t.due===today);
+
+  // Stats
+  const statsEl=document.getElementById('myday-stats');
+  if(statsEl){
+    statsEl.innerHTML=`
+      <div class="md-stat"><div class="md-stat-val" style="color:var(--accent)">${dueToday.length}</div><div class="md-stat-lbl">Due Today</div></div>
+      <div class="md-stat"><div class="md-stat-val" style="color:var(--red)">${overdue.length}</div><div class="md-stat-lbl">Overdue</div></div>
+      <div class="md-stat"><div class="md-stat-val" style="color:var(--text)">${dueToday.length+overdue.length}</div><div class="md-stat-lbl">Total To Clear</div></div>`;
+  }
+
+  // Overdue
+  const odCard=document.getElementById('myday-overdue-card');
+  const odList=document.getElementById('myday-overdue-list');
+  const odCount=document.getElementById('myday-overdue-count');
+  if(odCard&&odList){
+    if(overdue.length){
+      odCard.style.display='';
+      odCount.textContent=overdue.length;
+      odList.innerHTML=overdue.map(t=>myDayRow(t,true)).join('');
+    } else {
+      odCard.style.display='none';
+    }
+  }
+
+  // Due today
+  const tList=document.getElementById('myday-today-list');
+  const tCount=document.getElementById('myday-today-count');
+  if(tList){
+    tCount.textContent=dueToday.length;
+    if(dueToday.length){
+      tList.innerHTML=dueToday.map(t=>myDayRow(t,false)).join('');
+    } else {
+      tList.innerHTML='<div class="empty" style="padding:20px;text-align:center;color:var(--text-3);font-size:13px">Nothing due today. Clear skies. ☀️</div>';
+    }
+  }
+}
+
+function myDayRow(t,isOverdue){
+  const client=myDayTaskClient(t);
+  const title=esc(t.title||t.name||'Untitled task');
+  return `<div class="md-task ${isOverdue?'od':''}">
+    <div class="md-chk" onclick="completeMyDayTask(${t.id})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <div class="md-task-body">
+      <div class="md-task-title">${title}</div>
+      <div class="md-task-meta">
+        ${client?`<span class="md-client">${esc(client)}</span>`:''}
+        <span class="md-due ${isOverdue?'od':''}">${isOverdue?'Was due '+fmtDate(t.due):'Today'}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function completeMyDayTask(id){
+  const t=D.tasks.find(x=>String(x.id)===String(id));
+  if(!t)return;
+  t.done=true;
+  renderMyDay();
+  try{ await sbC('tasks','PATCH',{done:true},`?id=eq.${id}`); }catch(e){console.error('completeMyDayTask',e);}
 }
 
 /* ══════════════════════════════════════
