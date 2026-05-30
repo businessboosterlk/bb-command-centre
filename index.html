@@ -1732,7 +1732,6 @@ const TEAM=[
   {id:'nirvana',name:'Nirvana',role:'SMM'}
 ];
 
-const PKG_MRR={Spark:60000,Growth:120000,Scale:180000,Enterprise:300000};
 
 /* ══════════════════════════════════════
    STATE
@@ -2285,7 +2284,6 @@ const STAGE_CLS={'Videos Confirmed':'st-confirmed','Script Made':'st-script','Sc
 const getMRR=c=>c.mrr||PKG_MRR[c.package]||0;
 const esc=s=>String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const initials=n=>(n||'').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
-const todayStr=()=>new Date().toISOString().split('T')[0];
 const isOD=t=>!t.done&&t.due&&t.due<todayStr();
 const fmtK=n=>{if(!n&&n!==0)return '—';if(n>=1000000)return 'LKR '+(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';if(n>=1000)return 'LKR '+(n/1000).toFixed(0)+'K';return 'LKR '+n;};
 const fmtDate=s=>s?new Date(s+'T00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase():'';
