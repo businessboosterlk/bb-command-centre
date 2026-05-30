@@ -595,6 +595,28 @@ body{
 .md-client{font-size:11px;color:var(--text-2);font-weight:500}
 .md-due{font-size:10px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--accent-soft);color:var(--accent)}
 .md-due.od{background:rgba(239,68,68,.12);color:var(--red)}
+/* ── PIPELINE ── */
+.pipe-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px 15px;margin-bottom:10px;border-left:3px solid var(--text-3);transition:border-color .15s}
+.pipe-card:hover{border-color:var(--border-strong)}
+.pipe-card.s-hot{border-left-color:var(--accent)}
+.pipe-card.s-active{border-left-color:var(--blue)}
+.pipe-card.s-converted{border-left-color:var(--green)}
+.pipe-card.s-cold{border-left-color:var(--pink)}
+.pipe-card.s-closed{border-left-color:var(--text-3)}
+.pipe-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+.pipe-name{font-size:13.5px;font-weight:700;color:var(--text)}
+.pipe-meta{font-size:11px;color:var(--text-2);margin-bottom:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pipe-owner{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--text-2);background:var(--surface-3);padding:2px 8px;border-radius:20px}
+.pipe-next{font-size:11.5px;color:var(--accent);font-weight:600;margin-bottom:5px}
+.pipe-note{font-size:11.5px;color:var(--text-2);line-height:1.45;margin-bottom:8px;white-space:pre-wrap}
+.pipe-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.pipe-actions select{padding:4px 8px;font-size:11px;border-radius:6px;border:1px solid var(--border-strong);background:var(--surface-3);color:var(--text);outline:none;cursor:pointer}
+.btn-del-sm{background:transparent;border:1px solid var(--border-strong);color:var(--text-3);width:26px;height:26px;border-radius:6px;cursor:pointer;font-size:15px;line-height:1;transition:all .15s;flex-shrink:0}
+.btn-del-sm:hover{border-color:var(--red);color:var(--red)}
+.pipe-pending-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)}
+.pipe-pending-row:last-child{border-bottom:none}
+.pipe-urg{font-size:9px;font-weight:700;padding:2px 8px;border-radius:5px;flex-shrink:0;letter-spacing:.04em}
+@media(max-width:760px){.pipe-stat-grid{grid-template-columns:repeat(2,1fr)!important}.pipe-lead-grid{grid-template-columns:1fr!important}}
 
 /* ── NON-NEGOTIABLE ── */
 .stop-block{
@@ -1059,7 +1081,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</div>
       <div class="nav-item" id="nav-myday" onclick="showPage('myday')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>My Day</div>
       <div class="nav-item" id="nav-clients" onclick="showPage('clients')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Clients</div>
-      <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Pipeline</div>
+      <div class="nav-item ceo-only" id="nav-pipeline" onclick="showPage('pipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Pipeline</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendar</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tasks</div>
       <div class="nav-sec">Content</div>
@@ -1558,7 +1580,83 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+   PIPELINE PAGE
+══════════════════════════════════════ -->
+<div id="page-pipeline" class="page-section" style="display:none">
+  <header class="topbar">
+    <div class="topbar-title">Pipeline</div>
+    <div class="topbar-right"><span class="live-dot"></span></div>
+  </header>
+  <div class="content">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">Pipeline</h1>
+        <div style="font-size:12.5px;color:var(--text-2)">Prospect tracking. Orange = hot · Blue = active · Green = converted · Pink = likely out.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select id="pipe-filter" class="form-input" style="width:auto;padding:8px 12px;font-size:12.5px" onchange="filterPipeline(this.value)">
+          <option value="">All</option>
+          <option value="hot">Hot</option>
+          <option value="active">Active</option>
+          <option value="converted">Converted</option>
+          <option value="cold">Likely Out</option>
+          <option value="closed">Closed Won</option>
+        </select>
+        <button class="btn-primary btn-sm" onclick="openPipelineModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Lead</button>
+      </div>
+    </div>
+
+    <!-- Pipeline Stats -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" class="pipe-stat-grid">
+      <div class="stat-card" style="border-left:3px solid var(--accent)"><div class="stat-lbl">Hot Leads</div><div class="stat-val accent" id="pp-hot">0</div><div class="stat-note">Needs action now</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--blue)"><div class="stat-lbl">Active</div><div class="stat-val" id="pp-active" style="color:var(--blue)">0</div><div class="stat-note">In conversation</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--green)"><div class="stat-lbl">Converted</div><div class="stat-val green" id="pp-converted">0</div><div class="stat-note">Became clients</div></div>
+      <div class="stat-card" style="border-left:3px solid var(--red)"><div class="stat-lbl">Overdue Tasks</div><div class="stat-val" id="pp-overdue" style="color:var(--red)">0</div><div class="stat-note">Across pipeline</div></div>
+    </div>
+
+    <!-- Pending 48hr -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-hd" style="margin-bottom:10px">
+        <div class="card-ttl"><span class="card-ttl-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>Pending — Next 48 Hours</div>
+      </div>
+      <div id="pipe-pending-list"></div>
+    </div>
+
+    <!-- Leads split SM / Web -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="pipe-lead-grid">
+      <div>
+        <div class="card-ttl" style="margin-bottom:10px">Social Media <span class="card-cnt" id="pipe-sm-cnt">0</span></div>
+        <div id="pipe-sm-list"></div>
+      </div>
+      <div>
+        <div class="card-ttl" style="margin-bottom:10px">Website / Other <span class="card-cnt" id="pipe-web-cnt">0</span></div>
+        <div id="pipe-web-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODALS ══ -->
+<!-- Pipeline Lead -->
+<div class="modal-overlay hidden" id="modal-pipeline">
+  <div class="modal"><div class="modal-head"><div class="modal-title" id="pipe-modal-title">Add Lead</div><button class="modal-close" onclick="closeModal('modal-pipeline')">×</button></div>
+  <div class="modal-body">
+    <input type="hidden" id="pipe-edit-id">
+    <div class="field-row"><div class="form-field"><label class="form-label">Business Name *</label><input class="form-input" id="p-name" placeholder="e.g. Show Car Detailers"></div></div>
+    <div class="field-row">
+      <div class="form-field"><label class="form-label">Type</label><select class="form-select" id="p-type"><option value="sm">Social Media</option><option value="web">Website / Other</option></select></div>
+      <div class="form-field"><label class="form-label">Status</label><select class="form-select" id="p-status"><option value="active">Active</option><option value="hot">Hot</option><option value="converted">Converted</option><option value="cold">Likely Out</option><option value="closed">Closed Won</option></select></div>
+    </div>
+    <div class="field-row">
+      <div class="form-field"><label class="form-label">Industry</label><input class="form-input" id="p-industry" placeholder="e.g. Automotive"></div>
+      <div class="form-field"><label class="form-label">Owner</label><input class="form-input" id="p-owner" placeholder="Who owns this lead"></div>
+    </div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Next Action + Date</label><input class="form-input" id="p-next" placeholder="e.g. Call Wednesday 16th"></div></div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Notes / Running Log</label><textarea class="form-textarea" id="p-notes" rows="3" placeholder="What happened, what was said, what's next…"></textarea></div></div>
+  </div>
+  <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-pipeline')">Cancel</button><button class="btn-primary" onclick="savePipeline()">Save Lead</button></div></div>
+</div>
 <!-- Add Client -->
 <div class="modal-overlay hidden" id="modal-add-client">
   <div class="modal"><div class="modal-head"><div class="modal-title">Add New Client</div><button class="modal-close" onclick="closeModal('modal-add-client')">×</button></div>
@@ -2453,6 +2551,9 @@ function showPage(page) {
   } else if (page === 'myday') {
     document.getElementById('topbar-title').textContent = 'My Day';
     loadMyDay();
+  } else if (page === 'pipeline') {
+    document.getElementById('topbar-title').textContent = 'Pipeline';
+    loadPipelinePage();
   }
 }
 
@@ -2543,6 +2644,196 @@ async function completeMyDayTask(id){
   t.done=true;
   renderMyDay();
   try{ await sbC('tasks','PATCH',{done:true},`?id=eq.${id}`); }catch(e){console.error('completeMyDayTask',e);}
+}
+
+/* ══════════════════════════════════════
+   PIPELINE PAGE
+══════════════════════════════════════ */
+let pipeFilter='';
+
+async function loadPipelinePage(){
+  if(!D.pipeline||!D.pipeline.length||!D.tasks||!D.tasks.length){
+    try{
+      const [pipeline,tasks]=await Promise.all([
+        sb('pipeline','?select=*&order=id'),
+        sb('tasks','?select=*')
+      ]);
+      D.pipeline=pipeline||D.pipeline||[];
+      if(!D.tasks||!D.tasks.length) D.tasks=tasks||[];
+    }catch(e){console.error('loadPipelinePage',e);}
+  }
+  renderPipelinePage();
+}
+
+function filterPipeline(v){pipeFilter=v;renderPipelinePage();}
+function pipeStatusLabel(s){return {hot:'Hot',active:'Active',converted:'Converted',cold:'Likely Out',closed:'Closed Won'}[s]||s;}
+function pipeStatusPill(s){return {hot:'pill-orange',active:'pill-blue',converted:'pill-green',cold:'pill-pink',closed:'pill-neutral'}[s]||'pill-neutral';}
+
+function renderPipelinePage(){
+  const pipe=D.pipeline||[];
+  const tasks=D.tasks||[];
+  const filtered=pipe.filter(p=>!pipeFilter||p.status===pipeFilter);
+  const sm=filtered.filter(p=>p.type==='sm');
+  const web=filtered.filter(p=>p.type!=='sm');
+
+  // Counts
+  const smc=document.getElementById('pipe-sm-cnt'); if(smc)smc.textContent=sm.length;
+  const wc=document.getElementById('pipe-web-cnt'); if(wc)wc.textContent=web.length;
+
+  // Stats
+  const setTxt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setTxt('pp-hot',pipe.filter(p=>p.status==='hot').length);
+  setTxt('pp-active',pipe.filter(p=>p.status==='active').length);
+  setTxt('pp-converted',pipe.filter(p=>p.status==='converted').length);
+  const pipeTasks=tasks.filter(t=>t.pipeline_id||t.pipelineId);
+  setTxt('pp-overdue',pipeTasks.filter(t=>isOverdue(t)).length);
+
+  renderPipeLeadList(sm,'pipe-sm-list');
+  renderPipeLeadList(web,'pipe-web-list');
+  renderPipePending();
+}
+
+function renderPipeLeadList(arr,elId){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  if(!arr.length){el.innerHTML='<div class="empty" style="padding:16px;color:var(--text-3);font-size:12.5px">No leads here</div>';return;}
+  el.innerHTML=arr.map(p=>{
+    return `<div class="pipe-card s-${p.status}">
+      <div class="pipe-top">
+        <span class="pipe-name">${esc(p.name)}</span>
+        <span class="pill ${pipeStatusPill(p.status)}">${pipeStatusLabel(p.status)}</span>
+      </div>
+      <div class="pipe-meta">
+        ${p.industry?`<span>${esc(p.industry)}</span>`:''}
+        ${p.owner?`<span class="pipe-owner"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>${esc(p.owner)}</span>`:''}
+      </div>
+      ${p.next_action?`<div class="pipe-next">→ ${esc(p.next_action)}</div>`:''}
+      ${p.notes?`<div class="pipe-note">${esc(p.notes)}</div>`:''}
+      <div class="pipe-actions">
+        <button class="btn-ghost btn-sm" onclick="openPipelineModal(${p.id})">Edit</button>
+        <select onchange="updatePipeStatus(${p.id},this.value)">
+          ${['active','hot','converted','cold','closed'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${pipeStatusLabel(s)}</option>`).join('')}
+        </select>
+        <button class="btn-del-sm" onclick="deletePipeline(${p.id})" title="Remove">×</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPipePending(){
+  const el=document.getElementById('pipe-pending-list');
+  if(!el)return;
+  const pipe=D.pipeline||[];
+  const tasks=D.tasks||[];
+  const today=todayStr();
+  const in48=addDays(2);
+  const pipeTasks=tasks.filter(t=>(t.pipeline_id||t.pipelineId)&&!t.done&&t.due&&t.due<=in48);
+  pipeTasks.sort((a,b)=>{
+    const ao=isOverdue(a),bo=isOverdue(b);
+    if(ao&&!bo)return -1; if(!ao&&bo)return 1;
+    return (a.due||'').localeCompare(b.due||'');
+  });
+  // hot leads with a next action (and no pending task) shown as action items
+  const hotLeads=pipe.filter(p=>p.status==='hot'&&p.next_action&&!pipeTasks.find(t=>String(t.pipeline_id||t.pipelineId)===String(p.id)));
+
+  if(!pipeTasks.length&&!hotLeads.length){
+    el.innerHTML='<div style="font-size:12.5px;color:var(--text-3);padding:4px 0">Nothing pending in the next 48 hours</div>';
+    return;
+  }
+  const taskRows=pipeTasks.map(t=>{
+    const lead=pipe.find(p=>String(p.id)===String(t.pipeline_id||t.pipelineId));
+    const od=isOverdue(t),isToday=t.due===today;
+    const color=od?'var(--red)':isToday?'var(--accent)':'var(--amber)';
+    const label=od?'OVERDUE':isToday?'TODAY':'SOON';
+    return `<div class="pipe-pending-row">
+      <div class="md-chk" onclick="completePipeTask(${t.id})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:600;color:var(--text)">${esc(t.title||'Task')}</div>
+        <div style="font-size:10.5px;color:var(--text-3);margin-top:1px">${lead?esc(lead.name):''}</div>
+      </div>
+      <span class="pipe-urg" style="background:${color}1f;color:${color}">${label}</span>
+    </div>`;
+  });
+  const hotRows=hotLeads.map(p=>`<div class="pipe-pending-row">
+      <div class="md-chk" style="border-color:var(--accent);pointer-events:none"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:600;color:var(--text)">${esc(p.next_action)}</div>
+        <div style="font-size:10.5px;color:var(--text-3);margin-top:1px">${esc(p.name)}</div>
+      </div>
+      <span class="pipe-urg" style="background:var(--accent-soft);color:var(--accent)">HOT</span>
+    </div>`);
+  el.innerHTML=[...taskRows,...hotRows].join('');
+}
+
+async function completePipeTask(id){
+  const t=D.tasks.find(x=>String(x.id)===String(id));
+  if(!t)return;
+  t.done=true;
+  renderPipelinePage();
+  try{ await SBpatch('tasks',id,{done:true}); }catch(e){console.error('completePipeTask',e);}
+}
+
+function openPipelineModal(id){
+  document.getElementById('pipe-modal-title').textContent=id?'Edit Lead':'Add Lead';
+  document.getElementById('pipe-edit-id').value=id||'';
+  if(id){
+    const p=(D.pipeline||[]).find(x=>String(x.id)===String(id));
+    if(p){
+      document.getElementById('p-name').value=p.name||'';
+      document.getElementById('p-type').value=p.type||'sm';
+      document.getElementById('p-status').value=p.status||'active';
+      document.getElementById('p-industry').value=p.industry||'';
+      document.getElementById('p-owner').value=p.owner||'';
+      document.getElementById('p-next').value=p.next_action||'';
+      document.getElementById('p-notes').value=p.notes||'';
+    }
+  } else {
+    ['p-name','p-industry','p-owner','p-next','p-notes'].forEach(x=>{const e=document.getElementById(x);if(e)e.value='';});
+    document.getElementById('p-type').value='sm';
+    document.getElementById('p-status').value='active';
+  }
+  document.getElementById('modal-pipeline').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('p-name').focus(),50);
+}
+
+async function savePipeline(){
+  const editId=document.getElementById('pipe-edit-id').value;
+  const data={
+    name:document.getElementById('p-name').value.trim(),
+    type:document.getElementById('p-type').value,
+    status:document.getElementById('p-status').value,
+    industry:document.getElementById('p-industry').value.trim(),
+    owner:document.getElementById('p-owner').value.trim(),
+    next_action:document.getElementById('p-next').value.trim(),
+    notes:document.getElementById('p-notes').value.trim()
+  };
+  if(!data.name){alert('Business name required');return;}
+  try{
+    if(editId){
+      await SBpatch('pipeline',editId,data);
+      const p=D.pipeline.find(x=>String(x.id)===String(editId));
+      if(p)Object.assign(p,data);
+    } else {
+      const created=await SBpost('pipeline',data);
+      if(Array.isArray(created)&&created[0])D.pipeline.push(created[0]);
+    }
+  }catch(e){console.error('savePipeline',e);}
+  closeModal('modal-pipeline');
+  renderPipelinePage();
+}
+
+async function updatePipeStatus(id,status){
+  const p=D.pipeline.find(x=>String(x.id)===String(id));
+  if(p)p.status=status;
+  renderPipelinePage();
+  try{ await SBpatch('pipeline',id,{status}); }catch(e){console.error('updatePipeStatus',e);}
+}
+
+async function deletePipeline(id){
+  if(!confirm('Remove this lead?'))return;
+  D.pipeline=D.pipeline.filter(p=>String(p.id)!==String(id));
+  renderPipelinePage();
+  try{ await SBdel('pipeline',id); }catch(e){console.error('deletePipeline',e);}
 }
 
 /* ══════════════════════════════════════
