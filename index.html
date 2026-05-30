@@ -1522,38 +1522,41 @@ td:last-child{padding-right:18px;text-align:right}
       </div>
     </div><!-- /profile-page -->
 
+
+  </div><!-- /content -->
+
+</div><!-- /page-clients -->
+
 <!-- ══════════════════════════════════════
    MY DAY PAGE
 ══════════════════════════════════════ -->
 <div id="page-myday" class="page-section" style="display:none">
-  <div style="margin-bottom:16px">
-    <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">My Day</h1>
-    <div id="myday-sub" style="font-size:12.5px;color:var(--text-2)">Everything due today, in one place.</div>
-  </div>
-
-  <!-- Summary chips -->
-  <div id="myday-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
-
-  <!-- Overdue -->
-  <div class="card" id="myday-overdue-card" style="margin-bottom:14px;display:none">
-    <div class="card-hd" style="margin-bottom:10px">
-      <div class="card-ttl"><span class="card-ttl-ico" style="background:rgba(239,68,68,.12);color:var(--red)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Overdue</div>
-      <span id="myday-overdue-count" style="font-size:11px;font-weight:700;color:var(--red)"></span>
+  <header class="topbar">
+    <div class="topbar-title">My Day</div>
+    <div class="topbar-right"><span class="live-dot"></span></div>
+  </header>
+  <div class="content">
+    <div style="margin-bottom:16px">
+      <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">My Day</h1>
+      <div id="myday-sub" style="font-size:12.5px;color:var(--text-2)">Everything due today and overdue, in one place.</div>
     </div>
-    <div id="myday-overdue-list"></div>
-  </div>
-
-  <!-- Due today -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="card-hd" style="margin-bottom:10px">
-      <div class="card-ttl"><span class="card-ttl-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Due Today</div>
-      <span id="myday-today-count" style="font-size:11px;font-weight:700;color:var(--accent)"></span>
+    <div id="myday-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
+    <div class="card" id="myday-overdue-card" style="margin-bottom:14px;display:none">
+      <div class="card-hd" style="margin-bottom:10px">
+        <div class="card-ttl"><span class="card-ttl-ico" style="background:rgba(239,68,68,.12);color:var(--red)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>Overdue</div>
+        <span id="myday-overdue-count" style="font-size:11px;font-weight:700;color:var(--red)"></span>
+      </div>
+      <div id="myday-overdue-list"></div>
     </div>
-    <div id="myday-today-list"><div class="skel" style="width:70%"></div><div class="skel" style="width:55%"></div></div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-hd" style="margin-bottom:10px">
+        <div class="card-ttl"><span class="card-ttl-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Due Today</div>
+        <span id="myday-today-count" style="font-size:11px;font-weight:700;color:var(--accent)"></span>
+      </div>
+      <div id="myday-today-list"><div class="skel" style="width:70%"></div><div class="skel" style="width:55%"></div></div>
+    </div>
   </div>
 </div>
-
-  </div><!-- /content -->
 
 <!-- ══ MODALS ══ -->
 <!-- Add Client -->
@@ -1632,7 +1635,7 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
   <div class="modal-foot" id="jnl-modal-foot"><button class="btn-ghost" onclick="closeModal('modal-journal')">Cancel</button><button class="btn-primary" onclick="saveJournal()">Save Entry</button></div></div>
 </div>
-</div></div>
+</div>
   </main>
 </div><!-- /app -->
 
@@ -2457,8 +2460,17 @@ function showPage(page) {
    MY DAY
 ══════════════════════════════════════ */
 async function loadMyDay(){
-  // Ensure data is loaded (My Day can be opened before dashboard data lands)
-  if(!D.tasks||!D.tasks.length){ try{ await loadAll(); }catch(e){} }
+  // If task data isn't loaded yet, fetch just what we need
+  if(!D.tasks||!D.tasks.length){
+    try{
+      const [tasks,clients]=await Promise.all([
+        sb('tasks','?select=*'),
+        sb('clients','?select=id,name')
+      ]);
+      D.tasks=tasks||D.tasks||[];
+      if(!D.clients||!D.clients.length) D.clients=clients||[];
+    }catch(e){console.error('loadMyDay fetch',e);}
+  }
   renderMyDay();
 }
 
