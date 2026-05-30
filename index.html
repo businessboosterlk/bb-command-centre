@@ -430,8 +430,8 @@ td:last-child{padding-right:18px;text-align:right}
           <div class="field-cell"><div class="field-cell-lbl">Contact Person</div><input class="field-cell-input" id="cpf-contact" placeholder="Name &amp; number" onchange="saveField('contact',this.value)"></div>
           <div class="field-cell"><div class="field-cell-lbl">Start Date</div><input class="field-cell-input" id="cpf-start" type="date" onchange="saveField('start_date',this.value)"></div>
           <div class="field-cell"><div class="field-cell-lbl">Renewal Date</div><input class="field-cell-input" id="cpf-renewal" type="date" onchange="saveField('renewal',this.value)"></div>
-          <div class="field-cell"><div class="field-cell-lbl">Posts/Month</div><input class="field-cell-input" id="cpf-posts" type="number" placeholder="—" onchange="saveField('monthly_posts',this.value)"></div>
-          <div class="field-cell" style="border-right:none"><div class="field-cell-lbl">Videos/Month</div><input class="field-cell-input" id="cpf-videos" type="number" placeholder="—" onchange="saveField('monthly_videos',this.value)"></div>
+          <div class="field-cell"><div class="field-cell-lbl">Posts/Month <span style="color:var(--accent);font-size:7.5px;font-weight:700;letter-spacing:.04em">EDIT</span></div><input class="field-cell-input" id="cpf-posts" type="number" placeholder="e.g. 12" onchange="saveField('monthly_posts',this.value)" title="Edit posts per month target"></div>
+          <div class="field-cell" style="border-right:none"><div class="field-cell-lbl">Videos/Month <span style="color:var(--accent);font-size:7.5px;font-weight:700;letter-spacing:.04em">EDIT</span></div><input class="field-cell-input" id="cpf-videos" type="number" placeholder="e.g. 6" onchange="saveField('monthly_videos',this.value)" title="Edit videos per month target"></div>
         </div>
       </div>
       <div id="alert-banner" style="display:none"></div>
@@ -447,7 +447,22 @@ td:last-child{padding-right:18px;text-align:right}
       </div>
       <!-- TAB: OVERVIEW -->
       <div id="tab-overview">
-        <div class="card"><div class="card-hd"><div class="card-ttl"><span class="card-ttl-ico blue"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>Content Progress — 3 Months</div><div style="font-size:10px;color:var(--text-3)">Posts <span style="color:var(--blue);font-weight:700">●</span>&nbsp;Videos <span style="color:var(--pink);font-weight:700">●</span></div></div><div class="month-grid" id="content-months"></div></div>
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-ttl"><span class="card-ttl-ico blue"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span>Content Progress <span id="ov-period-label" style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-3);font-size:10px"></span></div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="font-size:10px;color:var(--text-3)">Posts <span style="color:var(--blue);font-weight:700">&#9679;</span>&nbsp;Videos <span style="color:var(--pink);font-weight:700">&#9679;</span></div>
+              <div class="tab-group" style="padding:2px;gap:2px">
+                <button class="tab-btn active" style="padding:3px 10px;font-size:10px" onclick="setOvView('rolling',this)">Rolling 3</button>
+                <button class="tab-btn" style="padding:3px 10px;font-size:10px" onclick="setOvView('Q1',this)">Q1 Jan-Mar</button>
+                <button class="tab-btn" style="padding:3px 10px;font-size:10px" onclick="setOvView('Q2',this)">Q2 Apr-Jun</button>
+                <button class="tab-btn" style="padding:3px 10px;font-size:10px" onclick="setOvView('Q3',this)">Q3 Jul-Sep</button>
+                <button class="tab-btn" style="padding:3px 10px;font-size:10px" onclick="setOvView('Q4',this)">Q4 Oct-Dec</button>
+              </div>
+            </div>
+          </div>
+          <div class="month-grid" id="content-months"></div>
+        </div>
         <div class="two-col">
           <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-ttl"><span class="card-ttl-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Open Tasks <span class="card-cnt" id="ov-open-cnt">0</span></div><button class="btn-ghost btn-sm" onclick="switchTab('tasks')">All</button></div><div id="ov-tasks-list"></div></div>
           <div class="card" style="margin-bottom:0"><div class="card-hd"><div class="card-ttl"><span class="card-ttl-ico pink"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Upcoming Shoots</div><button class="btn-ghost btn-sm" onclick="switchTab('shoots')">All</button></div><div id="ov-shoots-list"></div></div>
@@ -507,6 +522,7 @@ td:last-child{padding-right:18px;text-align:right}
   <div class="modal"><div class="modal-head"><div class="modal-title">Edit Client</div><button class="modal-close" onclick="closeModal('modal-edit-client')">×</button></div>
   <div class="modal-body">
     <div class="field-row"><div class="form-field"><label class="form-label">Client Name *</label><input class="form-input" id="ec-name"></div><div class="form-field" style="max-width:130px"><label class="form-label">Type</label><select class="form-select" id="ec-type"><option value="sm">Social Media</option><option value="web">Website/SEO</option><option value="both">SM + Web</option></select></div></div>
+    <p style="font-size:11px;color:var(--text-3);margin:0;padding:4px 0">All other fields (health, package, retainer, posts/videos target, owner, dates) are editable directly in the fields bar on the profile. This modal handles name and type changes only.</p>
   </div>
   <div class="modal-foot"><button class="btn-danger-sm" onclick="deleteCurrentClient()">Delete Client</button><button class="btn-ghost" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn-primary" onclick="saveClientEdit()">Save</button></div></div>
 </div>
@@ -756,10 +772,20 @@ function renderKPIs(c){
   const posts=mp.filter(p=>p.type==='post'),vids=mp.filter(p=>p.type==='video');
   document.getElementById('kpi-posts').textContent=`${posts.filter(p=>p.posted).length}/${posts.length||c.monthly_posts||'?'}`;
   document.getElementById('kpi-videos').textContent=`${vids.filter(p=>p.posted).length}/${vids.length||c.monthly_videos||'?'}`;
-  const inv=INVOICES.find(i=>Number(i.client_id)===id&&String(i.month)===nowMonthStr());
   const ki=document.getElementById('kpi-invoice'),kin=document.getElementById('kpi-invoice-note');
-  if(inv){ki.textContent=inv.status.toUpperCase();ki.className='kpi-val '+(inv.status==='paid'?'green':inv.status==='overdue'?'red':'amber');kin.textContent=fmtK(inv.amount);}
-  else{ki.textContent='—';ki.className='kpi-val';kin.textContent='no invoice yet';}
+  const allInv=INVOICES.filter(i=>Number(i.client_id)===id);
+  const overdueInv=allInv.filter(i=>i.status==='overdue');
+  const unpaidInv=allInv.filter(i=>i.status==='unpaid');
+  const fmtInvMonth=s=>{const p=String(s||'').split('-');return p.length===2?MS[parseInt(p[1])-1]+(p[0]!==String(nowYM().y)?'\''+String(p[0]).slice(2):''):s;};
+  if(overdueInv.length){
+    ki.textContent=overdueInv.length>1?overdueInv.length+' OVERDUE':'OVERDUE';ki.className='kpi-val red';
+    kin.textContent=overdueInv.map(i=>fmtInvMonth(i.month)).join(', ')+' unpaid';
+  }else if(unpaidInv.length){
+    ki.textContent=unpaidInv.length>1?unpaidInv.length+' PENDING':'PENDING';ki.className='kpi-val amber';
+    kin.textContent=unpaidInv.map(i=>fmtInvMonth(i.month)).join(', ')+' unpaid';
+  }else if(allInv.length){
+    ki.textContent='ALL PAID';ki.className='kpi-val green';kin.textContent=fmtK(allInv.reduce((s,i)=>s+(i.amount||0),0))+' collected';
+  }else{ki.textContent='—';ki.className='kpi-val';kin.textContent='no invoices yet';}
   document.getElementById('kpi-phase').textContent=`M${c.month||1}/7`;
   document.getElementById('kpi-phase-note').textContent=PHASES[(c.month||1)-1]||'Foundation';
 }
@@ -771,9 +797,12 @@ function renderAlertBanner(c){
   if(c.health==='red')a.push({t:'red',m:'Health is RED — this client needs immediate attention'});
   else if(c.health==='amber')a.push({t:'amber',m:'Health is AMBER — monitor closely'});
   if(od>0)a.push({t:'red',m:`${od} overdue task${od===1?'':'s'} — action required`});
-  const inv=INVOICES.find(i=>Number(i.client_id)===Number(c.id)&&String(i.month)===nowMonthStr());
-  if(inv&&inv.status==='overdue')a.push({t:'red',m:`Invoice overdue — ${fmtK(inv.amount)}`});
-  if(inv&&inv.status==='unpaid')a.push({t:'amber',m:`Invoice pending — ${fmtK(inv.amount)}`});
+  const allCInv=INVOICES.filter(i=>Number(i.client_id)===Number(c.id));
+  const overdueA=allCInv.filter(i=>i.status==='overdue');
+  const unpaidA=allCInv.filter(i=>i.status==='unpaid');
+  const fmtIM=s=>{const p=String(s||'').split('-');return p.length===2?MS[parseInt(p[1])-1]:s;};
+  if(overdueA.length)a.push({t:'red',m:`Invoice overdue — ${overdueA.map(i=>fmtIM(i.month)).join(', ')} (${fmtK(overdueA.reduce((s,i)=>s+(i.amount||0),0))})`});
+  else if(unpaidA.length)a.push({t:'amber',m:`Invoice pending — ${unpaidA.map(i=>fmtIM(i.month)).join(', ')} (${fmtK(unpaidA.reduce((s,i)=>s+(i.amount||0),0))})`});
   if(!c.plan_ready&&new Date().getDate()>=15)a.push({t:'amber',m:'Content plan not approved — approve before 25th'});
   if(!a.length){el.style.display='none';return;}
   el.style.display='flex';el.className=`alert-banner ${a[0].t}`;
@@ -781,10 +810,31 @@ function renderAlertBanner(c){
 }
 
 /* ── OVERVIEW ── */
+let ovView='rolling';
+function setOvView(v,btn){
+  ovView=v;
+  document.querySelectorAll('#tab-overview .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  const c=CLIENTS.find(x=>Number(x.id)===currentId);if(c)renderOverviewTab(c);
+}
 function renderOverviewTab(c){
   const id=Number(c.id);const{y,m}=nowYM();
-  const months=[-1,0,1].map(o=>{const d=new Date(y,m-1+o,1);return{y:d.getFullYear(),m:d.getMonth()+1,name:MS[d.getMonth()]+' '+d.getFullYear()};});
-  document.getElementById('content-months').innerHTML=months.map(mo=>{
+  // Build month list based on view
+  let months,label;
+  if(ovView==='rolling'){
+    months=[-1,0,1].map(o=>{const d=new Date(y,m-1+o,1);return{y:d.getFullYear(),m:d.getMonth()+1,name:MS[d.getMonth()]+' '+d.getFullYear()};});
+    label='— Rolling 3 Months';
+  }else{
+    const qMap={Q1:[1,2,3],Q2:[4,5,6],Q3:[7,8,9],Q4:[10,11,12]};
+    const qLabels={Q1:'Jan – Mar',Q2:'Apr – Jun',Q3:'Jul – Sep',Q4:'Oct – Dec'};
+    months=qMap[ovView].map(mo=>({y,m:mo,name:MS[mo-1]+' '+y}));
+    label=`— ${ovView} ${qLabels[ovView]} ${y}`;
+  }
+  const lbl=document.getElementById('ov-period-label');if(lbl)lbl.textContent=label;
+  // Adjust grid to always show 3 columns
+  const grid=document.getElementById('content-months');
+  grid.style.gridTemplateColumns='1fr 1fr 1fr';
+  grid.innerHTML=months.map(mo=>{
     const ps=PLANS.filter(p=>Number(p.client_id)===id&&Number(p.month)===mo.m&&Number(p.year)===mo.y);
     const posts=ps.filter(p=>p.type==='post'),vids=ps.filter(p=>p.type==='video');
     const pp=posts.filter(p=>p.posted).length,vp=vids.filter(p=>p.posted).length;
