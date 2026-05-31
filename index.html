@@ -1083,7 +1083,19 @@ td:last-child{padding-right:18px;text-align:right}
 .vp-img-drop:hover,.vp-img-drop.drag-over{border-color:var(--accent);color:var(--accent)}
 .vp-img-preview{max-width:100%;max-height:120px;border-radius:var(--r-sm);margin-top:6px}
 .vp-detail-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
-.vp-detail-sec-hd{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:8px}
+.vp-detail-sec-hd{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.vp-ov-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
+.vp-ov-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px}
+.vp-ov-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:4px}
+.vp-ov-val{font-size:14px;font-weight:600;color:var(--text)}
+.vp-tt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.vp-tt-card{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px}
+.vp-tt-card.active{border-color:var(--accent);background:rgba(var(--accent-rgb,255,149,0),.08)}
+.vp-tt-lbl{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px}
+.vp-tt-val{font-size:13px;font-weight:700;color:var(--text)}
+.vp-tt-val.active{color:var(--accent)}
+.vp-add-link-btn{font-size:10px;color:var(--accent);cursor:pointer;font-weight:600;background:none;border:none;padding:0}
+.vp-add-link-btn:hover{text-decoration:underline}
 .vp-link-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:5px}.vp-link-row:hover{border-color:var(--accent)}
 .vp-link-badge{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:white;flex-shrink:0}
 .vp-link-url{flex:1;min-width:0;font-size:11px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vp-link-url:hover{text-decoration:underline}
@@ -4480,6 +4492,7 @@ function openVideoDetail(id){
   const v=VP_videos.find(x=>x.id===id);if(!v)return;
   VP_detailId=id;vpCommentImage=null;
   const cn=v.clients?.name||'Unknown';const en=v.team_members?.name||'Unassigned';
+  const smm=v.clients?.assigned_smm||'—';
   const links=VP_links.filter(l=>l.video_project_id===id);
   const rawLinks=links.filter(l=>l.tag==='raw_footage');
   const finalLinks=links.filter(l=>l.tag==='final_cut');
@@ -4487,58 +4500,79 @@ function openVideoDetail(id){
   const history=VP_history.filter(h=>h.video_project_id===id);
   const stageOpts=VP_STAGES.map(st=>`<option value="${st}" ${v.current_stage===st?'selected':''}>${VP_LABEL[st]}</option>`).join('');
   const priOpts=['low','medium','high','urgent'].map(p=>`<option value="${p}" ${v.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('');
-  document.getElementById('vd-title').textContent=v.title||'Video Details';
-
-  function linkBadge(url){if(!url)return{bg:'var(--text-3)',txt:'??'};if(url.includes('dropbox'))return{bg:'#0061ff',txt:'DB'};if(url.includes('drive.google'))return{bg:'#34a853',txt:'GD'};if(url.includes('youtube')||url.includes('youtu.be'))return{bg:'#ff0000',txt:'YT'};return{bg:'var(--accent)',txt:'LN'};}
-  function linkRow(l){const b=linkBadge(l.url);const dt=l.created_at?new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';return `<div class="vp-link-row"><div class="vp-link-badge" style="background:${b.bg}">${b.txt}</div><a class="vp-link-url" href="${esc(l.url)}" target="_blank">${esc(l.label||l.url)}</a><span style="font-size:9px;color:var(--text-3)">${esc(l.added_by||'')}${dt?' · '+dt:''}</span></div>`;}
   function fmtDur(s){if(!s&&s!==0)return'—';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);if(h>0)return h+'h '+m+'m';return m+'m';}
+  function relTime(d){if(!d)return'';const ms=Date.now()-new Date(d).getTime();const days=Math.floor(ms/86400000);if(days<1)return'today';if(days===1)return'1d ago';return days+'d ago';}
+  const priDot={low:'var(--green)',medium:'var(--accent)',high:'var(--orange)',urgent:'var(--red)'}[v.priority]||'var(--text-3)';
+  const monthNames=['','January','February','March','April','May','June','July','August','September','October','November','December'];
 
-  let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-    <span style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase">${esc(cn)}</span><span style="font-size:10px;color:var(--text-3)">·</span><span style="font-size:10px;color:var(--text-2)">${esc(en)}</span>
-    ${v.deadline?`<span style="font-size:10px;color:${v.deadline<todayStr()?'var(--red)':'var(--text-3)'}">${fmtDate(v.deadline)}</span>`:''}</div>
-  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-    <div style="flex:1;min-width:140px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Stage</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="moveVideoStage(${id},this.value)">${stageOpts}</select></div>
-    <div style="width:120px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Priority</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="changeVideoPriority(${id},this.value)">${priOpts}</select></div></div>
-  ${v.description?`<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;padding:8px 10px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border)">${esc(v.description)}</div>`:''}`;
+  // Header subtitle
+  document.getElementById('vd-title').innerHTML=`${esc(v.title||'Untitled')}<div style="font-size:11px;font-weight:400;color:var(--text-3);margin-top:3px">${esc(cn)} · ${esc(VP_LABEL[v.current_stage]||v.current_stage).toUpperCase()}</div>`;
 
-  // Time tracking grid
-  if(history.length){
-    html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Time Tracking</div><div class="vp-time-grid">`;
-    // Aggregate time per stage
-    const stageTime={};
-    history.forEach(h=>{
-      const dur=h.exited_at?h.duration_seconds:Math.floor((Date.now()-new Date(h.entered_at))/1000);
-      stageTime[h.stage]=(stageTime[h.stage]||0)+(dur||0);
-    });
-    const activeSt=history.find(h=>!h.exited_at);
-    VP_STAGES.forEach(st=>{
-      if(!stageTime[st])return;
+  let html='';
+
+  // OVERVIEW section
+  html+=`<div class="vp-detail-sec-hd" style="margin-top:0;padding-top:0;border:none">Overview</div>
+  <div class="vp-ov-grid">
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Added</div><div class="vp-ov-val">${v.created_at?fmtDate(v.created_at.split('T')[0]):'—'}<span style="font-size:10px;color:var(--text-3);margin-left:6px;font-weight:400">${relTime(v.created_at)}</span></div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Due</div><div class="vp-ov-val" style="${v.deadline&&v.deadline<todayStr()?'color:var(--red)':''}">${v.deadline?fmtDate(v.deadline):'—'}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Priority</div><div class="vp-ov-val"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${priDot};margin-right:6px"></span>${(v.priority||'medium').charAt(0).toUpperCase()+(v.priority||'medium').slice(1)}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Type</div><div class="vp-ov-val">${(v.type||'—').charAt(0).toUpperCase()+(v.type||'').slice(1)}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Editor</div><div class="vp-ov-val">${esc(en)}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">SMM (Handles Client)</div><div class="vp-ov-val">${esc(smm)}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Month</div><div class="vp-ov-val">${v.target_month?monthNames[v.target_month]+' '+(v.target_year||''):'—'}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Current Stage</div><div class="vp-ov-val">${esc(VP_LABEL[v.current_stage]||v.current_stage)}</div></div>
+  </div>`;
+
+  // Stage + Priority controls
+  html+=`<div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+    <div style="flex:1;min-width:140px"><select class="form-select" style="font-size:11px;padding:6px 10px;width:100%" onchange="moveVideoStage(${id},this.value)">${stageOpts}</select></div>
+    <div style="width:130px"><select class="form-select" style="font-size:11px;padding:6px 10px;width:100%" onchange="changeVideoPriority(${id},this.value)">${priOpts}</select></div></div>`;
+
+  // TIME TRACKING section
+  const stageTime={};const activeSt=history.find(h=>!h.exited_at);
+  history.forEach(h=>{const dur=h.exited_at?(h.duration_seconds||0):Math.floor((Date.now()-new Date(h.entered_at))/1000);stageTime[h.stage]=(stageTime[h.stage]||0)+dur;});
+  const ttStages=VP_STAGES.filter(st=>stageTime[st]!==undefined);
+  if(ttStages.length){
+    html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Time Tracking</div><div class="vp-tt-grid">`;
+    ttStages.forEach(st=>{
       const isActive=activeSt&&activeSt.stage===st;
-      html+=`<div class="vp-time-row"><div class="vp-time-cell ${isActive?'vp-time-active':''}">${VP_LABEL[st]||st}${isActive?' ●':''}</div><div class="vp-time-cell ${isActive?'vp-time-active':''}">${fmtDur(stageTime[st])}</div></div>`;
+      html+=`<div class="vp-tt-card ${isActive?'active':''}"><div class="vp-tt-lbl">${VP_LABEL[st]||st}</div><div class="vp-tt-val ${isActive?'active':''}">${fmtDur(stageTime[st])}</div></div>`;
     });
     html+=`</div></div>`;
   }
 
-  // Links
-  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:var(--green)">Final Video (${finalLinks.length})</div>${finalLinks.length?finalLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No final video linked yet</div>'}</div>`;
-  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:#3b82f6">Raw Footage (${rawLinks.length})</div>${rawLinks.length?rawLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No raw footage linked yet</div>'}</div>`;
+  // RAW FOOTAGE
+  function linkBadge(url){if(!url)return{bg:'var(--text-3)',txt:'??'};if(url.includes('dropbox'))return{bg:'#0061ff',txt:'DB'};if(url.includes('drive.google'))return{bg:'#34a853',txt:'GD'};if(url.includes('youtube')||url.includes('youtu.be'))return{bg:'#ff0000',txt:'YT'};return{bg:'var(--accent)',txt:'LN'};}
+  function linkRowDel(l){
+    const b=linkBadge(l.url);const dt=l.created_at?new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+', '+new Date(l.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+    return `<div class="vp-link-row"><div class="vp-link-badge" style="background:${b.bg}">${b.txt}</div><div style="flex:1;min-width:0"><a class="vp-link-url" href="${esc(l.url)}" target="_blank" onclick="event.stopPropagation()">${esc(l.label||'Link')}</a><div style="font-size:9px;color:var(--text-3);margin-top:1px">${esc(l.added_by||'')}${dt?' · '+dt:''}</div></div><button onclick="event.stopPropagation();vpDeleteLink(${l.id})" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:0 4px;font-weight:700">×</button></div>`;
+  }
 
-  // Comments with image support
-  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Discussion (${comments.length})</div>`;
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd"><span style="color:#3b82f6">Raw Footage</span><button class="vp-add-link-btn" onclick="vpShowAddLink(${id},'raw_footage')">+ Add raw link</button></div>
+    ${rawLinks.length?rawLinks.map(l=>linkRowDel(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:10px;text-align:center;background:var(--surface-2);border-radius:var(--r-sm)">No raw footage links yet</div>'}
+    <div id="vp-add-raw-form" style="display:none;margin-top:8px"><div class="field-row"><div class="form-field"><input class="form-input" id="vp-raw-label" placeholder="Label (e.g. B-ROLL)" style="font-size:11px"></div><div class="form-field"><input class="form-input" id="vp-raw-url" placeholder="Paste Dropbox/Drive URL" style="font-size:11px"></div><button class="btn-primary btn-sm" onclick="vpSaveLink(${id},'raw_footage')">Add</button></div></div></div>`;
+
+  // FINAL VIDEO
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd"><span style="color:var(--green)">Final Video</span><button class="vp-add-link-btn" onclick="vpShowAddLink(${id},'final_cut')">+ Add final link</button></div>
+    ${finalLinks.length?finalLinks.map(l=>linkRowDel(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:10px;text-align:center;background:var(--surface-2);border-radius:var(--r-sm)">No final video links yet</div>'}
+    <div id="vp-add-final-form" style="display:none;margin-top:8px"><div class="field-row"><div class="form-field"><input class="form-input" id="vp-final-label" placeholder="Label (e.g. V2 Final)" style="font-size:11px"></div><div class="form-field"><input class="form-input" id="vp-final-url" placeholder="Paste Dropbox/Drive URL" style="font-size:11px"></div><button class="btn-primary btn-sm" onclick="vpSaveLink(${id},'final_cut')">Add</button></div></div></div>`;
+
+  // TEAM DISCUSSION
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Team Discussion</div>`;
   if(comments.length){
     html+=comments.map(c=>{
-      const dt=c.created_at?new Date(c.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+new Date(c.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
-      return `<div class="vp-comment"><span class="vp-comment-author">${esc(c.author||'?')}</span><span class="vp-comment-time">${dt}</span><div class="vp-comment-body">${esc(c.body||'')}</div>${c.image_url?`<img class="vp-comment-img" src="${c.image_url}" onclick="window.open(this.src)">`:''}</div>`;
+      const dt=c.created_at?relTime(c.created_at):'';
+      return `<div class="vp-comment"><div style="display:flex;justify-content:space-between;align-items:center"><span class="vp-comment-author">${esc(c.author||'?')}</span><span class="vp-comment-time">${dt}</span></div>${c.body?`<div class="vp-comment-body">${esc(c.body)}</div>`:''}${c.image_url?`<img class="vp-comment-img" src="${c.image_url}" onclick="window.open(this.src)">`:''}</div>`;
     }).join('');
-  } else { html+='<div style="font-size:11px;color:var(--text-3);padding:6px 0">No comments yet</div>'; }
-  html+=`<div style="margin-top:8px">
-    <textarea class="form-input" id="vp-comment-input" rows="2" placeholder="Add a comment..." style="font-size:12px;resize:vertical" onpaste="vpHandlePaste(event)"></textarea>
+  } else { html+='<div style="font-size:11px;color:var(--text-3);padding:10px;text-align:center;font-style:italic">No comments yet</div>'; }
+  html+=`<div style="margin-top:10px">
+    <textarea class="form-input" id="vp-comment-input" rows="3" placeholder="Add a comment... (you can paste an image with Cmd+V)" style="font-size:12px;resize:vertical" onpaste="vpHandlePaste(event)"></textarea>
     <div class="vp-img-drop" id="vp-img-drop" onclick="document.getElementById('vp-img-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="vpHandleImgDrop(event)">
-      📎 Attach image — paste, drag, or click to browse
+      📎 Attach image <span style="color:var(--text-3);margin-left:8px">paste (Cmd/Ctrl+V) or drag & drop an image here</span>
       <input type="file" id="vp-img-file" accept="image/*" style="display:none" onchange="vpHandleFileSelect(event)">
     </div>
     <div id="vp-img-preview-wrap" style="display:none"><img id="vp-img-preview" class="vp-img-preview"><button class="btn-ghost btn-sm" onclick="vpClearImage()" style="font-size:10px;color:var(--red);margin-top:4px">Remove image</button></div>
-    <div style="margin-top:6px;text-align:right"><button class="btn-primary btn-sm" onclick="postVideoComment(${id})">Post Comment</button></div>
+    <div style="margin-top:8px;text-align:right"><button class="btn-primary" onclick="postVideoComment(${id})" style="padding:8px 20px">Post Comment</button></div>
   </div></div>`;
 
   document.getElementById('vd-body').innerHTML=html;
@@ -4549,6 +4583,31 @@ async function changeVideoPriority(id,pri){
   const v=VP_videos.find(x=>x.id===id);if(!v)return;
   v.priority=pri;renderVideoPipeline();
   try{await sbC('video_projects','PATCH',{priority:pri,updated_at:new Date().toISOString()},`?id=eq.${id}`);}catch(e){console.error(e);}
+}
+
+// Link management
+function vpShowAddLink(id,tag){
+  const formId=tag==='raw_footage'?'vp-add-raw-form':'vp-add-final-form';
+  const el=document.getElementById(formId);if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+async function vpSaveLink(id,tag){
+  const prefix=tag==='raw_footage'?'vp-raw':'vp-final';
+  const label=(document.getElementById(prefix+'-label').value||'').trim();
+  const url=(document.getElementById(prefix+'-url').value||'').trim();
+  if(!url){alert('URL is required');return;}
+  try{
+    const r=await sbC('video_project_links','POST',{video_project_id:id,url,label:label||url,tag,added_by:vpUser()},'');
+    if(r&&r[0])VP_links.unshift(r[0]);
+    openVideoDetail(id);
+  }catch(e){console.error('vpSaveLink',e);alert('Error adding link');}
+}
+async function vpDeleteLink(linkId){
+  if(!confirm('Delete this link?'))return;
+  try{
+    await sbC('video_project_links','DELETE',null,`?id=eq.${linkId}`);
+    VP_links=VP_links.filter(l=>l.id!==linkId);
+    if(VP_detailId)openVideoDetail(VP_detailId);
+  }catch(e){console.error('vpDeleteLink',e);}
 }
 
 async function postVideoComment(id){
