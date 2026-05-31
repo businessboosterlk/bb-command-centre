@@ -1055,6 +1055,33 @@ td:last-child{padding-right:18px;text-align:right}
 
 /* ── CLIENTS PAGE STYLES ── */
 .page-section{display:none}
+/* Video Pipeline */
+.vp-board{display:flex;gap:8px;overflow-x:auto;padding-bottom:16px;min-height:55vh;align-items:flex-start}
+.vp-col{min-width:155px;flex:1;background:var(--surface-2);border-radius:var(--r-sm);padding:8px;border-top:3px solid var(--text-3)}
+.vp-col-hd{font-size:8.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.vp-cnt{font-size:8px;padding:1px 6px;border-radius:10px;font-weight:700;color:white}
+.vp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 10px;margin-bottom:6px;cursor:grab;transition:all .15s;border-left:3px solid var(--text-3)}
+.vp-card:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.vp-card.dragging{opacity:.4;transform:scale(.95)}
+.vp-card-client{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:2px}
+.vp-card-title{font-size:10.5px;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vp-card-foot{display:flex;justify-content:space-between;align-items:center}
+.vp-card-editor{font-size:8px;font-weight:700;text-transform:uppercase;color:var(--accent);letter-spacing:.04em}
+.vp-card-deadline{font-size:8px;font-weight:600;color:var(--text-3)}
+.vp-card-deadline.overdue{color:var(--red);font-weight:700}
+.vp-col.drag-over{background:var(--surface-3);outline:2px dashed var(--accent);outline-offset:-2px}
+.vp-pri-urgent{border-left-color:var(--red)!important}.vp-pri-high{border-left-color:var(--orange)!important}.vp-pri-medium{border-left-color:var(--amber,#f59e0b)!important}.vp-pri-low{border-left-color:var(--green)!important}
+.vp-col.s-video_shot{border-top-color:#3b82f6}.vp-col.s-cutting_color_grading{border-top-color:#8b5cf6}.vp-col.s-rendering{border-top-color:#6366f1}.vp-col.s-editing{border-top-color:var(--orange)}.vp-col.s-video_head_review{border-top-color:#ec4899}.vp-col.s-team_review{border-top-color:var(--accent)}.vp-col.s-changes{border-top-color:var(--red)}.vp-col.s-client_review{border-top-color:#f59e0b}.vp-col.s-client_changes{border-top-color:#f43f5e}.vp-col.s-sent_to_client{border-top-color:#06b6d4}.vp-col.s-add_to_drive{border-top-color:#14b8a6}.vp-col.s-posted{border-top-color:var(--green)}
+.vp-detail-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
+.vp-detail-sec-hd{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:8px}
+.vp-link-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:5px}.vp-link-row:hover{border-color:var(--accent)}
+.vp-link-badge{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:white;flex-shrink:0}
+.vp-link-url{flex:1;min-width:0;font-size:11px;color:var(--accent);text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vp-link-url:hover{text-decoration:underline}
+.vp-comment{padding:10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px}
+.vp-comment-author{font-size:9px;font-weight:700;color:var(--accent);text-transform:uppercase}
+.vp-comment-time{font-size:9px;color:var(--text-3);margin-left:8px}
+.vp-comment-body{font-size:12px;color:var(--text);margin-top:4px;line-height:1.5;white-space:pre-wrap}
+.vp-comment-img{max-width:100%;max-height:300px;border-radius:var(--r-sm);margin-top:6px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1129,7 +1156,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-taskbook" onclick="showPage('taskbook')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Task Book</div>
       <div class="nav-sec">Content</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Content Plans</div>
-      <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>Shoots &amp; Video</div>
+      <div class="nav-item" id="nav-videopipeline" onclick="showPage('videopipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>Video Pipeline</div>
       <div class="nav-sec">Operations</div>
       <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
@@ -1865,6 +1892,81 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
+
+<!-- ══════════════════════════════════════
+   VIDEO PIPELINE PAGE
+══════════════════════════════════════ -->
+<div id="page-videopipeline" class="page-section" style="display:none">
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Video Pipeline</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px" id="vp-sub">All video projects across all clients</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select class="form-select" style="width:150px;font-size:11px;padding:5px 8px" id="vp-filter-client" onchange="renderVideoPipeline()"><option value="">All clients</option></select>
+        <select class="form-select" style="width:120px;font-size:11px;padding:5px 8px" id="vp-filter-editor" onchange="renderVideoPipeline()"><option value="">All editors</option></select>
+        <button class="btn-primary btn-sm" onclick="openNewVideoModal()">+ New Project</button>
+      </div>
+    </div>
+    <!-- Stat row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;align-items:stretch">
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--accent);height:100%;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Active</div>
+        <div id="vp-s-active" style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;color:var(--accent);line-height:1.1;margin-top:4px">0</div>
+      </div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--orange);height:100%;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">In Production</div>
+        <div id="vp-s-prod" style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;color:var(--orange);line-height:1.1;margin-top:4px">0</div>
+      </div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--red);height:100%;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Needs Review</div>
+        <div id="vp-s-review" style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;color:var(--red);line-height:1.1;margin-top:4px">0</div>
+      </div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--green);height:100%;box-sizing:border-box">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Published</div>
+        <div id="vp-s-pub" style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;color:var(--green);line-height:1.1;margin-top:4px">0</div>
+      </div>
+    </div>
+    <div class="vp-board" id="vp-board"></div>
+  </div>
+</div>
+
+<!-- Video Detail Modal -->
+<div class="modal-overlay hidden" id="modal-video-detail">
+  <div class="modal" style="max-width:660px">
+    <div class="modal-head"><div class="modal-title" id="vd-title">Video Details</div><button class="modal-close" onclick="closeModal('modal-video-detail')">×</button></div>
+    <div class="modal-body" id="vd-body" style="max-height:70vh;overflow-y:auto"></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" style="color:var(--red);font-size:11px" onclick="archiveVideo()">Archive</button>
+      <button class="btn-ghost" onclick="closeModal('modal-video-detail')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- New Video Project Modal -->
+<div class="modal-overlay hidden" id="modal-new-video">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head"><div class="modal-title">New Video Project</div><button class="modal-close" onclick="closeModal('modal-new-video')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-label">Title *</label><input class="form-input" id="nv-title" placeholder="e.g. MAY VID 1 | Brand Story"></div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field"><label class="form-label">Client *</label><select class="form-select" id="nv-client"></select></div>
+        <div class="form-field"><label class="form-label">Editor</label><select class="form-select" id="nv-editor"><option value="">Unassigned</option></select></div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field"><label class="form-label">Target Month *</label><select class="form-select" id="nv-month" required><option value="">Select month</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+        <div class="form-field"><label class="form-label">Year</label><input class="form-input" id="nv-year" type="number" value="2026"></div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field"><label class="form-label">Priority</label><select class="form-select" id="nv-priority"><option value="medium">Medium</option><option value="low">Low</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+        <div class="form-field"><label class="form-label">Deadline</label><input class="form-input" id="nv-deadline" type="date"></div>
+      </div>
+      <div class="form-field" style="margin-top:10px"><label class="form-label">Description</label><textarea class="form-input" id="nv-desc" rows="2" placeholder="Optional notes" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-new-video')">Cancel</button><button class="btn-primary" onclick="saveNewVideo()">Create Project</button></div>
+  </div>
+</div>
 
 <!-- Pipeline Lead -->
 <div class="modal-overlay hidden" id="modal-pipeline">
@@ -2788,6 +2890,9 @@ function showPage(page) {
   } else if (page === 'taskbook') {
     document.getElementById('topbar-title').textContent = 'Task Book';
     loadTaskBook();
+  } else if (page === 'videopipeline') {
+    document.getElementById('topbar-title').textContent = 'Video Pipeline';
+    loadVideoPipeline();
   }
 }
 
@@ -4201,6 +4306,254 @@ async function saveGlobalTask(){
 }
 
 
+
+
+
+/* ══════════════════════════════════════
+   VIDEO PIPELINE
+══════════════════════════════════════ */
+let VP_videos=[],VP_links=[],VP_comments=[],VP_history=[];
+let VP_detailId=null;
+const VP_STAGES=['video_shot','cutting_color_grading','rendering','editing','video_head_review','team_review','changes','client_review','client_changes','sent_to_client','add_to_drive','posted'];
+const VP_LABEL={video_shot:'Shot',cutting_color_grading:'Cut/Grade',rendering:'Render',editing:'Editing',video_head_review:'VH Review',team_review:'Team Review',changes:'Changes',client_review:'Client Review',client_changes:'Client Changes',sent_to_client:'Sent',add_to_drive:'Drive',posted:'Posted'};
+const VP_COLOR={video_shot:'#3b82f6',cutting_color_grading:'#8b5cf6',rendering:'#6366f1',editing:'var(--orange)',video_head_review:'#ec4899',team_review:'var(--accent)',changes:'var(--red)',client_review:'#f59e0b',client_changes:'#f43f5e',sent_to_client:'#06b6d4',add_to_drive:'#14b8a6',posted:'var(--green)'};
+const VP_PUB=['posted','add_to_drive','sent_to_client'];
+const VP_PROD=['cutting_color_grading','rendering','editing'];
+const VP_REV=['video_head_review','team_review','client_review'];
+function vpUser(){return ROLE==='th'?'THULAIB':'SHIARA';}
+
+async function loadVideoPipeline(){
+  try{
+    const [videos,links,comments,history]=await Promise.all([
+      sb('video_projects','?select=*,clients(name),team_members(name)&is_archived=eq.false&order=id.desc'),
+      sb('video_project_links','?select=*&order=created_at.desc'),
+      sb('video_project_comments','?select=*&order=created_at.desc'),
+      sb('video_stage_history','?select=*&order=entered_at.desc')
+    ]);
+    VP_videos=videos||[];VP_links=links||[];VP_comments=comments||[];VP_history=history||[];
+  }catch(e){console.error('loadVideoPipeline',e);}
+  renderVideoPipeline();
+}
+
+function renderVideoPipeline(){
+  const cf=document.getElementById('vp-filter-client')?.value||'';
+  const ef=document.getElementById('vp-filter-editor')?.value||'';
+  let vids=[...VP_videos];
+  if(cf)vids=vids.filter(v=>String(v.client_id)===cf);
+  if(ef)vids=vids.filter(v=>String(v.assigned_editor_id)===ef);
+
+  const all=VP_videos;const s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  s('vp-s-active',all.length);
+  s('vp-s-prod',all.filter(v=>VP_PROD.includes(v.current_stage)).length);
+  s('vp-s-review',all.filter(v=>VP_REV.includes(v.current_stage)).length);
+  s('vp-s-pub',all.filter(v=>VP_PUB.includes(v.current_stage)).length);
+  s('vp-sub',`${all.length} active videos across all clients`);
+
+  // Populate filters (preserve selection)
+  const cSel=document.getElementById('vp-filter-client');
+  if(cSel){const prev=cSel.value;const cs=[...new Map(VP_videos.map(v=>[v.client_id,v.clients?.name||'?'])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));cSel.innerHTML='<option value="">All clients</option>'+cs.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join('');cSel.value=prev;}
+  const eSel=document.getElementById('vp-filter-editor');
+  if(eSel){const prev=eSel.value;const es=[...new Map(VP_videos.filter(v=>v.assigned_editor_id).map(v=>[v.assigned_editor_id,v.team_members?.name||'?'])).entries()];eSel.innerHTML='<option value="">All editors</option>'+es.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join('');eSel.value=prev;}
+
+  const board=document.getElementById('vp-board');if(!board)return;
+  board.innerHTML=VP_STAGES.map(stage=>{
+    const sv=vids.filter(v=>v.current_stage===stage);
+    const col=VP_COLOR[stage]||'var(--text-3)';
+    return `<div class="vp-col s-${stage}" ondragover="vpDragOver(event)" ondragleave="vpDragLeave(event)" ondrop="vpDrop(event,'${stage}')">
+      <div class="vp-col-hd">${VP_LABEL[stage]} <span class="vp-cnt" style="background:${col}">${sv.length}</span></div>
+      ${sv.length?sv.map(v=>vpCard(v)).join(''):'<div style="font-size:10px;color:var(--text-3);text-align:center;padding:24px 4px">—</div>'}
+    </div>`;
+  }).join('');
+}
+
+function vpCard(v){
+  const cn=v.clients?.name||'';
+  const en=v.team_members?.name||'';
+  const dl=v.deadline;
+  const od=dl&&dl<todayStr();
+  const pri=v.priority||'medium';
+  return `<div class="vp-card vp-pri-${pri}" draggable="true" ondragstart="vpDragStart(event,${v.id})" data-vp-id="${v.id}" onclick="openVideoDetail(${v.id})">
+    <div class="vp-card-client">${esc(cn)}</div>
+    <div class="vp-card-title">${esc(v.title||'Untitled')}</div>
+    <div class="vp-card-foot">
+      <div class="vp-card-editor">${esc(en)}</div>
+      ${dl?`<div class="vp-card-deadline ${od?'overdue':''}">${fmtDate(dl)}</div>`:''}
+    </div>
+  </div>`;
+}
+
+// Drag and drop
+let vpDragId=null;
+function vpDragStart(e,id){vpDragId=id;e.dataTransfer.effectAllowed='move';const el=e.target.closest('.vp-card');if(el)el.classList.add('dragging');setTimeout(()=>{if(el)el.style.opacity='0.4';},0);}
+function vpDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function vpDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+function vpDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('drag-over');if(vpDragId)moveVideoStage(vpDragId,stage);vpDragId=null;}
+
+// 3-step atomic stage transition
+async function moveVideoStage(id,newStage){
+  const v=VP_videos.find(x=>x.id===id);
+  if(!v||v.current_stage===newStage)return;
+  const now=new Date().toISOString();const user=vpUser();
+
+  // Optimistic update
+  v.current_stage=newStage;v.updated_at=now;
+  renderVideoPipeline();
+
+  try{
+    // 1. Close previous open history row
+    const openRow=VP_history.find(h=>h.video_project_id===id&&!h.exited_at);
+    if(openRow){
+      const dur=Math.floor((new Date(now)-new Date(openRow.entered_at))/1000);
+      await sbC('video_stage_history','PATCH',{exited_at:now,duration_seconds:dur},`?video_project_id=eq.${id}&exited_at=is.null`);
+      openRow.exited_at=now;openRow.duration_seconds=dur;
+    }
+    // 2. Update project stage
+    await sbC('video_projects','PATCH',{current_stage:newStage,updated_at:now},`?id=eq.${id}`);
+    // 3. Insert new history row
+    const newRow=await sbC('video_stage_history','POST',{video_project_id:id,stage:newStage,moved_by:user},'');
+    if(newRow&&newRow[0])VP_history.unshift(newRow[0]);
+  }catch(e){console.error('moveVideoStage',e);}
+
+  // Refresh detail modal if open
+  if(VP_detailId===id)openVideoDetail(id);
+}
+
+function openVideoDetail(id){
+  const v=VP_videos.find(x=>x.id===id);if(!v)return;
+  VP_detailId=id;
+  const cn=v.clients?.name||'Unknown';const en=v.team_members?.name||'Unassigned';
+  const links=VP_links.filter(l=>l.video_project_id===id);
+  const rawLinks=links.filter(l=>l.tag==='raw_footage');
+  const finalLinks=links.filter(l=>l.tag==='final_cut');
+  const comments=VP_comments.filter(c=>c.video_project_id===id).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  const stageOpts=VP_STAGES.map(st=>`<option value="${st}" ${v.current_stage===st?'selected':''}>${VP_LABEL[st]}</option>`).join('');
+  const priOpts=['low','medium','high','urgent'].map(p=>`<option value="${p}" ${v.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('');
+
+  document.getElementById('vd-title').textContent=v.title||'Video Details';
+
+  function linkBadge(url){
+    if(!url)return{bg:'var(--text-3)',txt:'??'};
+    if(url.includes('dropbox'))return{bg:'#0061ff',txt:'DB'};
+    if(url.includes('drive.google'))return{bg:'#34a853',txt:'GD'};
+    if(url.includes('youtube')||url.includes('youtu.be'))return{bg:'#ff0000',txt:'YT'};
+    return{bg:'var(--accent)',txt:'LN'};
+  }
+  function linkRow(l){
+    const b=linkBadge(l.url);
+    const dt=l.created_at?new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';
+    return `<div class="vp-link-row"><div class="vp-link-badge" style="background:${b.bg}">${b.txt}</div><a class="vp-link-url" href="${esc(l.url)}" target="_blank">${esc(l.label||l.url)}</a><span style="font-size:9px;color:var(--text-3)">${esc(l.added_by||'')}${dt?' · '+dt:''}</span></div>`;
+  }
+
+  let html=`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <span style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase">${esc(cn)}</span>
+      <span style="font-size:10px;color:var(--text-3)">·</span>
+      <span style="font-size:10px;color:var(--text-2)">${esc(en)}</span>
+      ${v.deadline?`<span style="font-size:10px;color:${v.deadline<todayStr()?'var(--red)':'var(--text-3)'}">${fmtDate(v.deadline)}</span>`:''}
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Stage</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="moveVideoStage(${id},this.value)">${stageOpts}</select></div>
+      <div style="width:120px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Priority</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="changeVideoPriority(${id},this.value)">${priOpts}</select></div>
+    </div>
+    ${v.description?`<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;padding:8px 10px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border)">${esc(v.description)}</div>`:''}`;
+
+  // Final cuts
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:var(--green)">Final Video (${finalLinks.length})</div>
+    ${finalLinks.length?finalLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No final video linked yet</div>'}</div>`;
+
+  // Raw footage
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:#3b82f6">Raw Footage (${rawLinks.length})</div>
+    ${rawLinks.length?rawLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No raw footage linked yet</div>'}</div>`;
+
+  // Comments
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Discussion (${comments.length})</div>`;
+  if(comments.length){
+    html+=comments.map(c=>{
+      const dt=c.created_at?new Date(c.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+new Date(c.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+      return `<div class="vp-comment"><span class="vp-comment-author">${esc(c.author||'?')}</span><span class="vp-comment-time">${dt}</span><div class="vp-comment-body">${esc(c.body||'')}</div>${c.image_url?`<img class="vp-comment-img" src="${c.image_url}" onclick="window.open(this.src)">`:''}</div>`;
+    }).join('');
+  } else {
+    html+='<div style="font-size:11px;color:var(--text-3);padding:6px 0">No comments yet</div>';
+  }
+  html+=`<div style="margin-top:8px"><textarea class="form-input" id="vp-comment-input" rows="2" placeholder="Add a comment..." style="font-size:12px;resize:vertical"></textarea>
+    <div style="margin-top:6px;text-align:right"><button class="btn-primary btn-sm" onclick="postVideoComment(${id})">Post Comment</button></div></div></div>`;
+
+  document.getElementById('vd-body').innerHTML=html;
+  document.getElementById('modal-video-detail').classList.remove('hidden');
+}
+
+async function changeVideoPriority(id,pri){
+  const v=VP_videos.find(x=>x.id===id);if(!v)return;
+  v.priority=pri;renderVideoPipeline();
+  try{await sbC('video_projects','PATCH',{priority:pri,updated_at:new Date().toISOString()},`?id=eq.${id}`);}catch(e){console.error(e);}
+}
+
+async function postVideoComment(id){
+  const input=document.getElementById('vp-comment-input');if(!input)return;
+  const body=input.value.trim();if(!body)return input.focus();
+  const data={video_project_id:id,body,author:vpUser()};
+  try{
+    const r=await sbC('video_project_comments','POST',data,'');
+    if(r&&r[0])VP_comments.unshift(r[0]);
+    openVideoDetail(id);
+  }catch(e){console.error('postVideoComment',e);alert('Error posting comment');}
+}
+
+async function archiveVideo(){
+  if(!VP_detailId)return;
+  if(!confirm('Archive this video project?'))return;
+  const v=VP_videos.find(x=>x.id===VP_detailId);if(!v)return;
+  try{
+    await sbC('video_projects','PATCH',{is_archived:true,updated_at:new Date().toISOString()},`?id=eq.${VP_detailId}`);
+    VP_videos=VP_videos.filter(x=>x.id!==VP_detailId);
+    closeModal('modal-video-detail');VP_detailId=null;
+    renderVideoPipeline();
+  }catch(e){console.error('archiveVideo',e);}
+}
+
+function openNewVideoModal(){
+  const clients=(D.clients||[]).filter(c=>c.id);
+  document.getElementById('nv-client').innerHTML=clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  const editors=(D.editors||[]).filter(e=>e.name);
+  document.getElementById('nv-editor').innerHTML='<option value="">Unassigned</option>'+editors.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('');
+  document.getElementById('nv-title').value='';
+  document.getElementById('nv-month').value='';
+  document.getElementById('nv-year').value=new Date().getFullYear();
+  document.getElementById('nv-priority').value='medium';
+  document.getElementById('nv-deadline').value='';
+  document.getElementById('nv-desc').value='';
+  document.getElementById('modal-new-video').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('nv-title').focus(),50);
+}
+
+async function saveNewVideo(){
+  const title=(document.getElementById('nv-title').value||'').trim();
+  const month=document.getElementById('nv-month').value;
+  if(!title){alert('Title is required');return document.getElementById('nv-title').focus();}
+  if(!month){alert('Target month is required');return document.getElementById('nv-month').focus();}
+  const data={
+    title,
+    client_id:parseInt(document.getElementById('nv-client').value)||null,
+    assigned_editor_id:parseInt(document.getElementById('nv-editor').value)||null,
+    target_month:parseInt(month),
+    target_year:parseInt(document.getElementById('nv-year').value)||2026,
+    priority:document.getElementById('nv-priority').value||'medium',
+    deadline:document.getElementById('nv-deadline').value||null,
+    description:document.getElementById('nv-desc').value||null,
+    current_stage:'video_shot',
+    is_archived:false,
+    created_by:vpUser()
+  };
+  try{
+    const r=await sbC('video_projects','POST',data,'');
+    if(r&&r[0]){
+      // Insert initial stage history row
+      await sbC('video_stage_history','POST',{video_project_id:r[0].id,stage:'video_shot',moved_by:vpUser()},'');
+      closeModal('modal-new-video');
+      await loadVideoPipeline();
+    }
+  }catch(e){console.error('saveNewVideo',e);alert('Error creating project');}
+}
 
 </script>
 </body>
