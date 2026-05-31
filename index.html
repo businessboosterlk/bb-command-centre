@@ -403,7 +403,6 @@ body{
 .pipe-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 .pipe-dot.potential{background:var(--amber)}
 .pipe-dot.fifty{background:var(--accent)}
-.pipe-dot.confirmed{background:var(--green)}
 .pipe-dot.likely_leave{background:var(--red)}
 .pipe-dot.closed{background:var(--text-3)}
 .pipe-name{font-size:12.5px;font-weight:700;color:var(--text);min-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -602,7 +601,6 @@ body{
 .pipe-card:hover{border-color:var(--border-strong)}
 .pipe-card.s-potential{border-left-color:var(--amber)}
 .pipe-card.s-fifty{border-left-color:var(--accent)}
-.pipe-card.s-confirmed{border-left-color:var(--green)}
 .pipe-card.s-likely_leave{border-left-color:var(--red)}
 .pipe-card.s-closed{border-left-color:var(--text-3);opacity:.72}
 .pipe-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
@@ -619,6 +617,49 @@ body{
 .pipe-pending-row:last-child{border-bottom:none}
 .pipe-urg{font-size:9px;font-weight:700;padding:2px 8px;border-radius:5px;flex-shrink:0;letter-spacing:.04em}
 @media(max-width:760px){.pipe-stat-grid{grid-template-columns:repeat(2,1fr)!important}.pipe-lead-grid{grid-template-columns:1fr!important}}
+/* ── LEAD TASKS ── */
+.pipe-tasks{margin:8px 0 6px;padding:8px 10px;background:var(--bg);border-radius:7px;border:1px solid var(--border)}
+.pipe-tasks-hd{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-2);margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.pipe-task-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-top:1px solid var(--border)}
+.pipe-task-row:first-of-type{border-top:none}
+.pipe-task-title{flex:1;font-size:11.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pipe-task-due{font-size:9.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text-2);flex-shrink:0}
+.pipe-task-due.od{color:var(--red)}
+/* ── DRAG & DROP ZONES ── */
+.pipe-drop-strip{display:flex;gap:8px;margin-bottom:14px;opacity:0;max-height:0;overflow:hidden;transition:all .2s ease}
+.pipe-drop-strip.show{opacity:1;max-height:60px;margin-bottom:14px}
+.pipe-drop-zone{flex:1;padding:12px 10px;border:2px dashed var(--border-strong);border-radius:var(--r-sm);text-align:center;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text-3);transition:all .15s;cursor:default}
+.pipe-drop-zone.active{border-style:dashed;opacity:1}
+.pipe-drop-zone.drag-over{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.pipe-drop-zone.z-potential{border-color:var(--amber)}.pipe-drop-zone.z-potential.drag-over{border-color:var(--amber);background:rgba(245,158,11,.08);color:var(--amber)}
+.pipe-drop-zone.z-fifty{border-color:var(--accent)}.pipe-drop-zone.z-fifty.drag-over{background:var(--accent-soft)}
+.pipe-drop-zone.z-likely_leave{border-color:var(--red)}.pipe-drop-zone.z-likely_leave.drag-over{border-color:var(--red);background:rgba(239,68,68,.08);color:var(--red)}
+.pipe-drop-zone.z-closed{border-color:var(--text-3)}.pipe-drop-zone.z-closed.drag-over{border-color:var(--text-2);background:var(--surface-3);color:var(--text-2)}
+/* ── CALENDAR ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--border)}
+.cal-hdr{background:var(--surface-2);padding:10px 4px;text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-2)}
+#cal-cells{display:contents}
+.cal-cell{background:var(--surface);min-height:90px;padding:6px 8px;cursor:pointer;border:1px solid var(--border);transition:background .12s;position:relative}
+.cal-cell:hover{background:var(--surface-2)}
+.cal-cell.today{background:var(--accent-soft);border-color:var(--accent)}
+.cal-cell.other-month{opacity:.35}
+.cal-cell.selected{outline:2px solid var(--accent);outline-offset:-2px;background:var(--surface-2)}
+.cal-day{font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px}
+.cal-cell.today .cal-day{color:var(--accent)}
+.cal-dots{display:flex;flex-wrap:wrap;gap:3px}
+.cal-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.cal-item-row{display:flex;align-items:flex-start;gap:3px;margin-bottom:2px}
+.cal-item-lbl{font-size:9.5px;color:var(--text-2);line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.cal-legend{display:flex;align-items:center;gap:4px;font-size:10.5px;color:var(--text-2);font-weight:500}
+.cal-detail-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r-sm);background:var(--surface-2);border:1px solid var(--border);margin-bottom:8px;transition:border-color .12s}
+.cal-detail-item:hover{border-color:var(--border-strong)}
+.cal-detail-item:last-child{margin-bottom:0}
+.cal-type-badge{font-size:8.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;flex-shrink:0}
+.cal-type-badge.task{background:var(--accent-soft);color:var(--accent)}
+.cal-type-badge.overdue{background:rgba(239,68,68,.12);color:var(--red)}
+.cal-type-badge.shoot{background:rgba(59,130,246,.12);color:var(--blue)}
+.cal-type-badge.event{background:rgba(34,197,94,.12);color:var(--green)}
+@media(max-width:760px){.cal-cell{min-height:60px;padding:4px}.cal-day{font-size:11px}.cal-item-lbl{display:none}}
 
 /* ── NON-NEGOTIABLE ── */
 .stop-block{
@@ -1083,8 +1124,8 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</div>
       <div class="nav-item" id="nav-myday" onclick="showPage('myday')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>My Day</div>
       <div class="nav-item" id="nav-clients" onclick="showPage('clients')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Clients</div>
-      <div class="nav-item ceo-only" id="nav-pipeline" onclick="showPage('pipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Pipeline</div>
-      <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendar</div>
+      <div class="nav-item ceo-only" id="nav-pipeline" onclick="showPage('pipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Leads</div>
+      <div class="nav-item" id="nav-calendar" onclick="showPage('calendar')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendar</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tasks</div>
       <div class="nav-sec">Content</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Content Plans</div>
@@ -1210,7 +1251,7 @@ td:last-child{padding-right:18px;text-align:right}
         <div class="card-hd">
           <div class="card-ttl">
             <span class="card-ttl-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>
-            Pipeline — Leads to Action
+            Leads — Action Required
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <span style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase">Potential</span>
@@ -1386,14 +1427,7 @@ td:last-child{padding-right:18px;text-align:right}
 ══════════════════════════════════════ -->
 <div id="page-clients" class="page-section" style="display:none">
 
-  <header class="topbar">
-    <div class="topbar-title" id="topbar-title">Clients</div>
-    <div class="topbar-right">
-      <button class="ico-btn" id="refresh-btn" onclick="refreshData()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
-      <button class="ico-btn" onclick="toggleTheme()"><svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-      <span class="live-dot"></span>
-    </div>
-  </header>
+
   <div class="content">
     <!-- CLIENTS LIST -->
     <div class="clients-page" id="clients-page">
@@ -1555,10 +1589,6 @@ td:last-child{padding-right:18px;text-align:right}
    MY DAY PAGE
 ══════════════════════════════════════ -->
 <div id="page-myday" class="page-section" style="display:none">
-  <header class="topbar">
-    <div class="topbar-title">My Day</div>
-    <div class="topbar-right"><span class="live-dot"></span></div>
-  </header>
   <div class="content">
     <div style="margin-bottom:16px">
       <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">My Day</h1>
@@ -1586,20 +1616,15 @@ td:last-child{padding-right:18px;text-align:right}
    PIPELINE PAGE
 ══════════════════════════════════════ -->
 <div id="page-pipeline" class="page-section" style="display:none">
-  <header class="topbar">
-    <div class="topbar-title">Pipeline</div>
-    <div class="topbar-right"><span class="live-dot"></span></div>
-  </header>
   <div class="content">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px">
       <div>
-        <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">Pipeline</h1>
-        <div style="font-size:12.5px;color:var(--text-2)">Prospect tracking. Orange = hot · Blue = active · Green = converted · Pink = likely out.</div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">Leads</h1>
+        <div style="font-size:12.5px;color:var(--text-2)">Lead tracking. Yellow = potential · Orange = 50/50 · Red = likely to leave · Grey = closed won.</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <select id="pipe-filter" class="form-input" style="width:auto;padding:8px 12px;font-size:12.5px" onchange="filterPipeline(this.value)">
           <option value="">All</option>
-          <option value="confirmed">Confirmed</option>
           <option value="fifty">50 / 50</option>
           <option value="potential">Potential</option>
           <option value="likely_leave">Likely to Leave</option>
@@ -1610,11 +1635,18 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
 
     <!-- Pipeline Stats -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" class="pipe-stat-grid">
-      <div class="stat-card" style="border-left:3px solid var(--green)"><div class="stat-lbl">Confirmed</div><div class="stat-val green" id="pp-confirmed">0</div><div class="stat-note">Became clients</div></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px" class="pipe-stat-grid">
       <div class="stat-card" style="border-left:3px solid var(--accent)"><div class="stat-lbl">50 / 50</div><div class="stat-val accent" id="pp-fifty">0</div><div class="stat-note">Could go either way</div></div>
       <div class="stat-card" style="border-left:3px solid var(--amber)"><div class="stat-lbl">Potential</div><div class="stat-val" id="pp-potential" style="color:var(--amber)">0</div><div class="stat-note">Early conversations</div></div>
       <div class="stat-card" style="border-left:3px solid var(--red)"><div class="stat-lbl">Likely to Leave</div><div class="stat-val" id="pp-likely" style="color:var(--red)">0</div><div class="stat-note">At risk</div></div>
+    </div>
+
+    <!-- Drop zones (visible when dragging) -->
+    <div class="pipe-drop-strip" id="pipe-drop-strip">
+      <div class="pipe-drop-zone z-potential" ondragover="pipeDragOver(event)" ondragleave="pipeDragLeave(event)" ondrop="pipeDrop(event,'potential')">Potential</div>
+      <div class="pipe-drop-zone z-fifty" ondragover="pipeDragOver(event)" ondragleave="pipeDragLeave(event)" ondrop="pipeDrop(event,'fifty')">50 / 50</div>
+      <div class="pipe-drop-zone z-likely_leave" ondragover="pipeDragOver(event)" ondragleave="pipeDragLeave(event)" ondrop="pipeDrop(event,'likely_leave')">Likely to Leave</div>
+      <div class="pipe-drop-zone z-closed" ondragover="pipeDragOver(event)" ondragleave="pipeDragLeave(event)" ondrop="pipeDrop(event,'closed')">Closed Won</div>
     </div>
 
     <!-- Pending 48hr -->
@@ -1645,6 +1677,47 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+   CALENDAR PAGE
+══════════════════════════════════════ -->
+<div id="page-calendar" class="page-section" style="display:none">
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn-ghost btn-sm" onclick="calPrev()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <h1 id="cal-title" style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text);min-width:180px;text-align:center">May 2026</h1>
+        <button class="btn-ghost btn-sm" onclick="calNext()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <button class="btn-ghost btn-sm" onclick="calToday()">Today</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="cal-legend"><span class="cal-dot" style="background:var(--accent)"></span>Task</div>
+        <div class="cal-legend"><span class="cal-dot" style="background:var(--red)"></span>Overdue</div>
+        <div class="cal-legend"><span class="cal-dot" style="background:var(--blue)"></span>Shoot</div>
+        <div class="cal-legend"><span class="cal-dot" style="background:var(--green)"></span>Event</div>
+        <button class="btn-primary btn-sm" onclick="openCalEventModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Event</button>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div id="cal-summary" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px"></div>
+
+    <!-- Calendar Grid -->
+    <div class="cal-grid">
+      <div class="cal-hdr">Mon</div><div class="cal-hdr">Tue</div><div class="cal-hdr">Wed</div><div class="cal-hdr">Thu</div><div class="cal-hdr">Fri</div><div class="cal-hdr">Sat</div><div class="cal-hdr">Sun</div>
+      <div id="cal-cells"></div>
+    </div>
+
+    <!-- Day Detail Panel -->
+    <div id="cal-detail" class="card" style="margin-top:14px;display:none">
+      <div class="card-hd" style="margin-bottom:10px">
+        <div class="card-ttl" id="cal-detail-title">—</div>
+        <button class="btn-ghost btn-sm" onclick="document.getElementById('cal-detail').style.display='none'">Close</button>
+      </div>
+      <div id="cal-detail-list"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ MODALS ══ -->
 <!-- Pipeline Lead -->
 <div class="modal-overlay hidden" id="modal-pipeline">
@@ -1654,7 +1727,7 @@ td:last-child{padding-right:18px;text-align:right}
     <div class="field-row"><div class="form-field"><label class="form-label">Business Name *</label><input class="form-input" id="p-name" placeholder="e.g. Show Car Detailers"></div></div>
     <div class="field-row">
       <div class="form-field"><label class="form-label">Type</label><select class="form-select" id="p-type"><option value="sm">Social Media</option><option value="web">Website / Other</option></select></div>
-      <div class="form-field"><label class="form-label">Status</label><select class="form-select" id="p-status"><option value="potential">Potential</option><option value="fifty">50 / 50</option><option value="confirmed">Confirmed</option><option value="likely_leave">Likely to Leave</option><option value="closed">Closed Won</option></select></div>
+      <div class="form-field"><label class="form-label">Status</label><select class="form-select" id="p-status"><option value="potential">Potential</option><option value="fifty">50 / 50</option><option value="likely_leave">Likely to Leave</option><option value="closed">Closed Won</option></select></div>
     </div>
     <div class="field-row">
       <div class="form-field"><label class="form-label">Industry</label><input class="form-input" id="p-industry" placeholder="e.g. Automotive"></div>
@@ -2177,7 +2250,7 @@ function renderPipelinePanel(){
   const hot=pipe.filter(p=>p.status==='potential');
   document.getElementById('pipe-hot-count').textContent=hot.length;
   document.getElementById('pipe-total-count').textContent=pipe.filter(p=>!['closed','likely_leave'].includes(p.status)).length;
-  const show=[...pipe.filter(p=>p.status==='confirmed'),...pipe.filter(p=>p.status==='fifty'),...hot].slice(0,8);
+  const show=[...pipe.filter(p=>p.status==='fifty'),...hot].slice(0,8);
   const el=document.getElementById('pipeline-rows');
   if(!show.length){el.innerHTML='<div class="empty">No active leads in the pipeline</div>';return;}
   const today=todayStr();
@@ -2560,8 +2633,11 @@ function showPage(page) {
     document.getElementById('topbar-title').textContent = 'My Day';
     loadMyDay();
   } else if (page === 'pipeline') {
-    document.getElementById('topbar-title').textContent = 'Pipeline';
+    document.getElementById('topbar-title').textContent = 'Leads';
     loadPipelinePage();
+  } else if (page === 'calendar') {
+    document.getElementById('topbar-title').textContent = 'Calendar';
+    loadCalendarPage();
   }
 }
 
@@ -2674,11 +2750,11 @@ async function loadPipelinePage(){
 }
 
 function filterPipeline(v){pipeFilter=v;renderPipelinePage();}
-const PIPE_STATUSES=['potential','fifty','confirmed','likely_leave','closed'];
-function pipeStatusLabel(s){return {potential:'Potential',fifty:'50 / 50',confirmed:'Confirmed',likely_leave:'Likely to Leave',closed:'Closed Won'}[s]||s;}
-function pipeStatusPill(s){return {potential:'pill-amber',fifty:'pill-orange',confirmed:'pill-green',likely_leave:'pill-red',closed:'pill-neutral'}[s]||'pill-neutral';}
+const PIPE_STATUSES=['potential','fifty','likely_leave','closed'];
+function pipeStatusLabel(s){return {potential:'Potential',fifty:'50 / 50',likely_leave:'Likely to Leave',closed:'Closed Won'}[s]||s;}
+function pipeStatusPill(s){return {potential:'pill-amber',fifty:'pill-orange',likely_leave:'pill-red',closed:'pill-neutral'}[s]||'pill-neutral';}
 
-const PIPE_ORDER={confirmed:0,fifty:1,potential:2,likely_leave:3,closed:4};
+const PIPE_ORDER={fifty:0,potential:1,likely_leave:2,closed:3};
 
 function renderPipelinePage(){
   const pipe=D.pipeline||[];
@@ -2703,7 +2779,6 @@ function renderPipelinePage(){
   setTxt('pipe-web-cnt',web.length);
 
   // Stats (count from full pipe, not filtered)
-  setTxt('pp-confirmed',pipe.filter(p=>p.status==='confirmed').length);
   setTxt('pp-fifty',pipe.filter(p=>p.status==='fifty').length);
   setTxt('pp-potential',pipe.filter(p=>p.status==='potential').length);
   setTxt('pp-likely',pipe.filter(p=>p.status==='likely_leave').length);
@@ -2727,24 +2802,46 @@ function renderPipelinePage(){
   renderPipePending();
 }
 
+function getLeadTasks(pipeId){
+  return (D.tasks||[]).filter(t=>String(t.pipeline_id||t.pipelineId)===String(pipeId));
+}
+
 function pipeCardHTML(p){
-  return `<div class="pipe-card s-${p.status}">
+  const tasks=getLeadTasks(p.id);
+  const open=tasks.filter(t=>!t.done).sort((a,b)=>(a.due||'z').localeCompare(b.due||'z'));
+  const done=tasks.filter(t=>t.done);
+  const typeBadge=p.type==='sm'?'SM':'Web';
+  return `<div class="pipe-card s-${p.status}" draggable="true" ondragstart="pipeDragStart(event,${p.id})" data-pipe-id="${p.id}">
     <div class="pipe-top">
       <span class="pipe-name">${esc(p.name)}</span>
-      <span class="pill ${pipeStatusPill(p.status)}">${pipeStatusLabel(p.status)}</span>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="pill pill-neutral" style="font-size:8.5px;padding:2px 7px">${typeBadge}</span>
+        <span class="pill ${pipeStatusPill(p.status)}">${pipeStatusLabel(p.status)}</span>
+      </div>
     </div>
     <div class="pipe-meta">
       ${p.industry?`<span>${esc(p.industry)}</span>`:''}
       ${p.owner?`<span class="pipe-owner"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 12 0v1"/></svg>${esc(p.owner)}</span>`:''}
     </div>
-    ${p.next_action?`<div class="pipe-next">→ ${esc(p.next_action)}</div>`:''}
-    ${p.notes?`<div class="pipe-note">${esc(p.notes)}</div>`:''}
+    ${p.next_action?`<div class="pipe-next">\u2192 ${esc(p.next_action)}</div>`:''}
+    ${open.length?`<div class="pipe-tasks">
+      <div class="pipe-tasks-hd"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>${open.length} open task${open.length===1?'':'s'}${done.length?` · ${done.length} done`:''}</div>
+      ${open.map(t=>{
+        const od=!t.done&&t.due&&t.due<todayStr();
+        return `<div class="pipe-task-row">
+          <div class="md-chk" onclick="completePipeTask(${t.id})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <span class="pipe-task-title">${esc(t.title)}</span>
+          ${t.due?`<span class="pipe-task-due ${od?'od':''}">${fmtDate(t.due)}</span>`:''}
+        </div>`;
+      }).join('')}
+    </div>`:`${done.length?`<div class="pipe-tasks"><div class="pipe-tasks-hd" style="color:var(--green)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>All ${done.length} task${done.length===1?'':'s'} done</div></div>`:''}`}
     <div class="pipe-actions">
       <button class="btn-ghost btn-sm" onclick="openPipelineModal(${p.id})">Edit</button>
+      <button class="btn-ghost btn-sm" onclick="openLeadTaskModal(${p.id})">+ Task</button>
       <select onchange="updatePipeStatus(${p.id},this.value)">
         ${PIPE_STATUSES.map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${pipeStatusLabel(s)}</option>`).join('')}
       </select>
-      <button class="btn-del-sm" onclick="deletePipeline(${p.id})" title="Remove">×</button>
+      <button class="btn-del-sm" onclick="deletePipeline(${p.id})" title="Remove">\u00d7</button>
     </div>
   </div>`;
 }
@@ -2754,6 +2851,72 @@ function renderPipeLeadList(arr,elId){
   if(!el)return;
   if(!arr.length){el.innerHTML='<div class="empty" style="padding:16px;color:var(--text-3);font-size:12.5px">No leads here</div>';return;}
   el.innerHTML=arr.map(p=>pipeCardHTML(p)).join('');
+}
+
+/* ── LEAD TASK MANAGEMENT ── */
+function openLeadTaskModal(pipeId){
+  const lead=(D.pipeline||[]).find(p=>String(p.id)===String(pipeId));
+  const html=`<div class="modal-head"><div class="modal-title">Add Task — ${esc(lead?lead.name:'Lead')}</div><button class="modal-close" onclick="closeModal('modal-lead-task')">\u00d7</button></div>
+  <div class="modal-body">
+    <div class="form-field"><label class="form-label">Task</label><input class="form-input" id="lt-title" placeholder="e.g. Call for update"></div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Due Date</label><input class="form-input" id="lt-due" type="date" value="${todayStr()}"></div>
+  </div>
+  <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-lead-task')">Cancel</button><button class="btn-primary" onclick="saveLeadTask(${pipeId})">Add Task</button></div>`;
+  let modal=document.getElementById('modal-lead-task');
+  if(!modal){
+    modal=document.createElement('div');modal.id='modal-lead-task';modal.className='modal-overlay';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML='<div class="modal">'+html+'</div>';
+  modal.classList.remove('hidden');
+  setTimeout(()=>document.getElementById('lt-title').focus(),50);
+}
+
+async function saveLeadTask(pipeId){
+  const title=document.getElementById('lt-title').value.trim();
+  const due=document.getElementById('lt-due').value;
+  if(!title){alert('Task title required');return;}
+  const data={title,due:due||null,done:false,pipeline_id:pipeId};
+  try{
+    const created=await SBpost('tasks',data);
+    if(Array.isArray(created)&&created[0])D.tasks.push(created[0]);
+  }catch(e){console.error('saveLeadTask',e);}
+  closeModal('modal-lead-task');
+  renderPipelinePage();
+}
+
+/* ── DRAG AND DROP ── */
+let _dragPipeId=null;
+
+function pipeDragStart(e,id){
+  _dragPipeId=id;
+  e.dataTransfer.effectAllowed='move';
+  e.dataTransfer.setData('text/plain',id);
+  e.target.style.opacity='0.5';
+  setTimeout(()=>{e.target.style.opacity='';},300);
+  const strip=document.getElementById('pipe-drop-strip');
+  if(strip)strip.classList.add('show');
+}
+
+function pipeDragEnd(){
+  const strip=document.getElementById('pipe-drop-strip');
+  if(strip)strip.classList.remove('show');
+  document.querySelectorAll('.pipe-drop-zone').forEach(z=>z.classList.remove('drag-over'));
+  _dragPipeId=null;
+}
+
+document.addEventListener('dragend',pipeDragEnd);
+
+function pipeDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drag-over');}
+function pipeDragLeave(e){e.currentTarget.classList.remove('drag-over');}
+
+function pipeDrop(e,status){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  const strip=document.getElementById('pipe-drop-strip');
+  if(strip)strip.classList.remove('show');
+  if(_dragPipeId) updatePipeStatus(_dragPipeId,status);
+  _dragPipeId=null;
 }
 
 function renderPipePending(){
@@ -2870,6 +3033,236 @@ async function deletePipeline(id){
   D.pipeline=D.pipeline.filter(p=>String(p.id)!==String(id));
   renderPipelinePage();
   try{ await SBdel('pipeline',id); }catch(e){console.error('deletePipeline',e);}
+}
+
+/* ══════════════════════════════════════
+   CALENDAR PAGE
+══════════════════════════════════════ */
+let calMonth=new Date().getMonth(), calYear=new Date().getFullYear(), calSelectedDate=null;
+
+async function loadCalendarPage(){
+  if(!D.tasks||!D.tasks.length||!D.events){
+    try{
+      const [tasks,events,shoots,clients]=await Promise.all([
+        sb('tasks','?select=*'),
+        sb('events','?select=*'),
+        sb('smm_shoots','?select=*'),
+        sb('clients','?select=id,name')
+      ]);
+      D.tasks=tasks||D.tasks||[];
+      D.events=events||D.events||[];
+      D.shoots=shoots||D.shoots||[];
+      if(!D.clients||!D.clients.length)D.clients=clients||[];
+    }catch(e){console.error('loadCalendar',e);}
+  }
+  renderCalendar();
+}
+
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}calSelectedDate=null;renderCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}calSelectedDate=null;renderCalendar();}
+function calToday(){calMonth=new Date().getMonth();calYear=new Date().getFullYear();calSelectedDate=todayStr();renderCalendar();}
+
+function calClientName(id){
+  const c=(D.clients||[]).find(x=>String(x.id)===String(id));
+  return c?c.name:'';
+}
+
+function getCalItems(dateStr){
+  const items=[];
+  const today=todayStr();
+  // Tasks due on this date
+  (D.tasks||[]).filter(t=>t.due===dateStr&&!t.done).forEach(t=>{
+    items.push({type:t.due<today?'overdue':'task',title:t.title||'Task',sub:calClientName(t.client_id||t.clientId),time:'',id:t.id,src:'task'});
+  });
+  // Overdue tasks shown on today
+  if(dateStr===today){
+    (D.tasks||[]).filter(t=>!t.done&&t.due&&t.due<today).forEach(t=>{
+      if(!items.find(x=>x.id===t.id))
+        items.push({type:'overdue',title:t.title||'Overdue task',sub:calClientName(t.client_id||t.clientId),time:'',id:t.id,src:'task'});
+    });
+  }
+  // Shoots
+  (D.shoots||[]).filter(s=>{
+    const sd=typeof s.shoot_date==='string'?s.shoot_date:s.shoot_date?.toISOString?.()?.split('T')[0];
+    return sd===dateStr;
+  }).forEach(s=>{
+    items.push({type:'shoot',title:s.title||'Shoot',sub:calClientName(s.client_id),time:'',id:s.id,src:'shoot'});
+  });
+  // Events
+  (D.events||[]).filter(e=>e.date===dateStr).forEach(e=>{
+    items.push({type:'event',title:e.title||'Event',sub:calClientName(e.client_id),time:e.time||'',id:e.id,src:'event'});
+  });
+  return items;
+}
+
+function renderCalendar(){
+  const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-title').textContent=MN[calMonth]+' '+calYear;
+  const today=todayStr();
+  const firstDay=new Date(calYear,calMonth,1);
+  const lastDay=new Date(calYear,calMonth+1,0);
+  let startDow=firstDay.getDay();startDow=startDow===0?6:startDow-1; // Mon=0
+  const totalDays=lastDay.getDate();
+
+  // Cells: pad before + month days + pad after
+  const cells=[];
+  // Previous month padding
+  const prevLast=new Date(calYear,calMonth,0).getDate();
+  for(let i=startDow-1;i>=0;i--){
+    const d=prevLast-i;
+    const m=calMonth===0?12:calMonth;
+    const y=calMonth===0?calYear-1:calYear;
+    const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    cells.push({day:d,dateStr:ds,other:true});
+  }
+  // Current month
+  for(let d=1;d<=totalDays;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    cells.push({day:d,dateStr:ds,other:false});
+  }
+  // Next month padding
+  const rem=7-(cells.length%7); if(rem<7) for(let d=1;d<=rem;d++){
+    const m=calMonth===11?1:calMonth+2;
+    const y=calMonth===11?calYear+1:calYear;
+    const ds=`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    cells.push({day:d,dateStr:ds,other:true});
+  }
+
+  const el=document.getElementById('cal-cells');
+  el.innerHTML=cells.map(c=>{
+    const items=getCalItems(c.dateStr);
+    const isToday=c.dateStr===today;
+    const isSel=c.dateStr===calSelectedDate;
+    const cls=['cal-cell'];
+    if(c.other)cls.push('other-month');
+    if(isToday)cls.push('today');
+    if(isSel)cls.push('selected');
+    let dots='';
+    if(items.length){
+      const maxShow=3;
+      dots='<div class="cal-dots">'+items.slice(0,maxShow).map(it=>{
+        const col={task:'var(--accent)',overdue:'var(--red)',shoot:'var(--blue)',event:'var(--green)'}[it.type]||'var(--text-3)';
+        return `<div class="cal-dot" style="background:${col}" title="${esc(it.title)}"></div>`;
+      }).join('')+(items.length>maxShow?`<span style="font-size:8px;color:var(--text-3);margin-left:2px">+${items.length-maxShow}</span>`:'')+
+      '</div>';
+      // Show first 2 item labels on larger screens
+      dots+='<div style="margin-top:3px">'+items.slice(0,2).map(it=>{
+        const col={task:'var(--accent)',overdue:'var(--red)',shoot:'var(--blue)',event:'var(--green)'}[it.type]||'var(--text-3)';
+        return `<div class="cal-item-row"><div class="cal-dot" style="background:${col};margin-top:3px"></div><div class="cal-item-lbl">${esc(it.title)}</div></div>`;
+      }).join('')+'</div>';
+    }
+    return `<div class="${cls.join(' ')}" onclick="calClickDay('${c.dateStr}')">
+      <div class="cal-day">${c.day}</div>
+      ${dots}
+    </div>`;
+  }).join('');
+
+  // Summary
+  renderCalSummary();
+
+  // If a date is selected, show detail
+  if(calSelectedDate) calShowDetail(calSelectedDate);
+  else document.getElementById('cal-detail').style.display='none';
+}
+
+function renderCalSummary(){
+  const today=todayStr();
+  const tasks=D.tasks||[];
+  const shoots=D.shoots||[];
+  const events=D.events||[];
+  // This week
+  const weekEnd=addDays(7);
+  const thisWeek=tasks.filter(t=>!t.done&&t.due&&t.due>=today&&t.due<=weekEnd).length;
+  const overdue=tasks.filter(t=>!t.done&&t.due&&t.due<today).length;
+  const shootsMonth=shoots.filter(s=>{
+    const sd=typeof s.shoot_date==='string'?s.shoot_date:s.shoot_date?.toISOString?.()?.split('T')[0]||'';
+    return sd.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`);
+  }).length;
+  const el=document.getElementById('cal-summary');
+  if(el)el.innerHTML=`
+    <div class="md-stat"><div class="md-stat-val" style="color:var(--accent)">${thisWeek}</div><div class="md-stat-lbl">Due This Week</div></div>
+    <div class="md-stat"><div class="md-stat-val" style="color:var(--red)">${overdue}</div><div class="md-stat-lbl">Overdue</div></div>
+    <div class="md-stat"><div class="md-stat-val" style="color:var(--blue)">${shootsMonth}</div><div class="md-stat-lbl">Shoots This Month</div></div>`;
+}
+
+function calClickDay(dateStr){
+  calSelectedDate=dateStr;
+  renderCalendar();
+}
+
+function calShowDetail(dateStr){
+  const items=getCalItems(dateStr);
+  const panel=document.getElementById('cal-detail');
+  const title=document.getElementById('cal-detail-title');
+  const list=document.getElementById('cal-detail-list');
+  const d=new Date(dateStr+'T00:00');
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  title.innerHTML=`<span class="card-ttl-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>${days[d.getDay()]}, ${d.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]} ${d.getFullYear()}`;
+  if(!items.length){
+    list.innerHTML='<div style="padding:16px;text-align:center;color:var(--text-3);font-size:13px">Nothing scheduled for this day</div>';
+    panel.style.display='';
+    return;
+  }
+  list.innerHTML=items.map(it=>{
+    const badge=`<span class="cal-type-badge ${it.type}">${it.type==='overdue'?'Overdue':it.type==='task'?'Task':it.type==='shoot'?'Shoot':'Event'}</span>`;
+    const check=it.src==='task'?`<div class="md-chk" onclick="calCompleteTask(${it.id})"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>`:'';
+    return `<div class="cal-detail-item">
+      ${check}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(it.title)}</div>
+        ${it.sub?`<div style="font-size:11px;color:var(--text-2);margin-top:2px">${esc(it.sub)}${it.time?' · '+esc(it.time):''}</div>`:''}
+      </div>
+      ${badge}
+    </div>`;
+  }).join('');
+  panel.style.display='';
+}
+
+async function calCompleteTask(id){
+  const t=(D.tasks||[]).find(x=>String(x.id)===String(id));
+  if(!t)return;
+  t.done=true;
+  renderCalendar();
+  try{ await sbC('tasks','PATCH',{done:true},`?id=eq.${id}`); }catch(e){console.error('calCompleteTask',e);}
+}
+
+function openCalEventModal(){
+  const html=`<div class="modal-head"><div class="modal-title">Add Event</div><button class="modal-close" onclick="closeModal('modal-cal-event')">\u00d7</button></div>
+  <div class="modal-body">
+    <div class="form-field"><label class="form-label">Event Title</label><input class="form-input" id="ce-title" placeholder="e.g. Client meeting"></div>
+    <div class="field-row" style="margin-top:10px">
+      <div class="form-field"><label class="form-label">Date</label><input class="form-input" id="ce-date" type="date" value="${calSelectedDate||todayStr()}"></div>
+      <div class="form-field"><label class="form-label">Time</label><input class="form-input" id="ce-time" type="time"></div>
+    </div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Type</label><select class="form-select" id="ce-type"><option value="meeting">Meeting</option><option value="deadline">Deadline</option><option value="reminder">Reminder</option><option value="other">Other</option></select></div>
+    <div class="form-field" style="margin-top:10px"><label class="form-label">Notes</label><textarea class="form-textarea" id="ce-notes" rows="2" placeholder="Optional notes"></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-cal-event')">Cancel</button><button class="btn-primary" onclick="saveCalEvent()">Save Event</button></div>`;
+  let modal=document.getElementById('modal-cal-event');
+  if(!modal){
+    modal=document.createElement('div');modal.id='modal-cal-event';modal.className='modal-overlay';
+    document.body.appendChild(modal);
+  }
+  modal.innerHTML='<div class="modal">'+html+'</div>';
+  modal.classList.remove('hidden');
+  setTimeout(()=>document.getElementById('ce-title').focus(),50);
+}
+
+async function saveCalEvent(){
+  const title=document.getElementById('ce-title').value.trim();
+  const date=document.getElementById('ce-date').value;
+  const time=document.getElementById('ce-time').value;
+  const type=document.getElementById('ce-type').value;
+  const notes=document.getElementById('ce-notes').value.trim();
+  if(!title){alert('Event title required');return;}
+  if(!date){alert('Date required');return;}
+  const data={title,date,time:time||null,type,notes:notes||null};
+  try{
+    const created=await SBpost('events',data);
+    if(Array.isArray(created)&&created[0])D.events.push(created[0]);
+  }catch(e){console.error('saveCalEvent',e);}
+  closeModal('modal-cal-event');
+  renderCalendar();
 }
 
 /* ══════════════════════════════════════
