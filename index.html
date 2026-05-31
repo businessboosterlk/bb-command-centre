@@ -1072,6 +1072,16 @@ td:last-child{padding-right:18px;text-align:right}
 .vp-card-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .vp-card-editor{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--accent);letter-spacing:.04em}
 .vp-col.drag-over{background:var(--surface-3);outline:2px dashed var(--accent);outline-offset:-2px}
+.vp-time-grid{display:grid;grid-template-columns:1fr auto;gap:0;font-size:11px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.vp-time-row{display:contents}.vp-time-row:nth-child(even) .vp-time-cell{background:var(--surface-2)}
+.vp-time-cell{padding:6px 10px;border-bottom:1px solid var(--border)}.vp-time-cell:last-child{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.vp-time-active{color:var(--accent);font-weight:700}
+.vp-bulk-chk{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:4px;border:2px solid var(--accent);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+.vp-bulk-chk.checked{background:var(--accent)}.vp-bulk-chk.checked::after{content:'✓';color:white;font-size:11px;font-weight:700}
+.vp-card-wrap{position:relative}
+.vp-img-drop{border:2px dashed var(--border);border-radius:var(--r-sm);padding:10px;text-align:center;font-size:10px;color:var(--text-3);cursor:pointer;margin-top:6px;transition:border-color .15s}
+.vp-img-drop:hover,.vp-img-drop.drag-over{border-color:var(--accent);color:var(--accent)}
+.vp-img-preview{max-width:100%;max-height:120px;border-radius:var(--r-sm);margin-top:6px}
 .vp-detail-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
 .vp-detail-sec-hd{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:8px}
 .vp-link-row{display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:5px}.vp-link-row:hover{border-color:var(--accent)}
@@ -1906,6 +1916,8 @@ td:last-child{padding-right:18px;text-align:right}
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <select class="form-select" style="width:150px;font-size:11px;padding:5px 8px" id="vp-filter-client" onchange="renderVideoPipeline()"><option value="">All clients</option></select>
         <select class="form-select" style="width:120px;font-size:11px;padding:5px 8px" id="vp-filter-editor" onchange="renderVideoPipeline()"><option value="">All editors</option></select>
+        <button class="btn-ghost btn-sm" id="vp-bulk-btn" onclick="vpToggleBulk()" style="font-size:10px">☐ Bulk Select</button>
+        <button class="btn-ghost btn-sm" id="vp-archive-btn" onclick="vpToggleArchive()" style="font-size:10px">🗄 Archive</button>
         <button class="btn-primary btn-sm" onclick="openNewVideoModal()">+ New Project</button>
       </div>
     </div>
@@ -1929,6 +1941,21 @@ td:last-child{padding-right:18px;text-align:right}
       </div>
     </div>
     <div class="vp-board" id="vp-board"></div>
+    <!-- Bulk action bar -->
+    <div id="vp-bulk-bar" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--accent);border-radius:var(--r);padding:10px 18px;z-index:50;box-shadow:0 8px 30px rgba(0,0,0,.3);display:none;align-items:center;gap:12px">
+      <span style="font-size:11px;font-weight:700;color:var(--text)" id="vp-bulk-cnt">0 selected</span>
+      <select class="form-select" style="font-size:11px;padding:4px 8px;width:160px" id="vp-bulk-stage"></select>
+      <button class="btn-primary btn-sm" onclick="vpBulkMove()">Move All</button>
+      <button class="btn-ghost btn-sm" onclick="vpToggleBulk()">Cancel</button>
+    </div>
+    <!-- Archive view -->
+    <div id="vp-archive-view" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin:0">Archived Projects</h2>
+        <button class="btn-ghost btn-sm" onclick="vpToggleArchive()">← Back to Pipeline</button>
+      </div>
+      <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse" id="vp-archive-table"><thead><tr style="background:var(--surface-2)"><th style="text-align:left;padding:10px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);border-bottom:1px solid var(--border)">Title</th><th style="text-align:left;padding:10px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);border-bottom:1px solid var(--border)">Client</th><th style="text-align:left;padding:10px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);border-bottom:1px solid var(--border)">Last Stage</th><th style="width:80px;padding:10px 12px;border-bottom:1px solid var(--border)"></th></tr></thead><tbody id="vp-archive-tbody"></tbody></table></div></div>
+    </div>
   </div>
 </div>
 
@@ -1939,6 +1966,8 @@ td:last-child{padding-right:18px;text-align:right}
     <div class="modal-body" id="vd-body" style="max-height:70vh;overflow-y:auto"></div>
     <div class="modal-foot">
       <button class="btn-ghost" style="color:var(--red);font-size:11px" onclick="archiveVideo()">Archive</button>
+      <button class="btn-ghost" style="font-size:11px" onclick="duplicateVideo()">Duplicate</button>
+      <button class="btn-ghost" style="font-size:11px" onclick="openEditVideoModal()">Edit Project</button>
       <button class="btn-ghost" onclick="closeModal('modal-video-detail')">Close</button>
     </div>
   </div>
@@ -1965,6 +1994,31 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="form-field" style="margin-top:10px"><label class="form-label">Description</label><textarea class="form-input" id="nv-desc" rows="2" placeholder="Optional notes" style="resize:vertical"></textarea></div>
     </div>
     <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-new-video')">Cancel</button><button class="btn-primary" onclick="saveNewVideo()">Create Project</button></div>
+  </div>
+</div>
+
+<!-- Edit Video Project Modal -->
+<div class="modal-overlay hidden" id="modal-edit-video">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head"><div class="modal-title">Edit Project</div><button class="modal-close" onclick="closeModal('modal-edit-video')">×</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ev-id">
+      <div class="form-field"><label class="form-label">Title *</label><input class="form-input" id="ev-title"></div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field"><label class="form-label">Client</label><select class="form-select" id="ev-client"></select></div>
+        <div class="form-field"><label class="form-label">Editor</label><select class="form-select" id="ev-editor"><option value="">Unassigned</option></select></div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field"><label class="form-label">Target Month</label><select class="form-select" id="ev-month"><option value="">—</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+        <div class="form-field"><label class="form-label">Year</label><input class="form-input" id="ev-year" type="number"></div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field"><label class="form-label">Priority</label><select class="form-select" id="ev-priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+        <div class="form-field"><label class="form-label">Deadline</label><input class="form-input" id="ev-deadline" type="date"></div>
+      </div>
+      <div class="form-field" style="margin-top:10px"><label class="form-label">Description</label><textarea class="form-input" id="ev-desc" rows="2" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-edit-video')">Cancel</button><button class="btn-primary" onclick="saveEditVideo()">Save Changes</button></div>
   </div>
 </div>
 
@@ -4314,6 +4368,8 @@ async function saveGlobalTask(){
 ══════════════════════════════════════ */
 let VP_videos=[],VP_links=[],VP_comments=[],VP_history=[];
 let VP_detailId=null;
+let vpBulkMode=false,vpSelected=new Set();
+let vpCommentImage=null;
 const VP_STAGES=['video_shot','cutting_color_grading','rendering','editing','video_head_review','team_review','changes','client_review','client_changes','sent_to_client','add_to_drive','posted'];
 const VP_LABEL={video_shot:'Video Shot',cutting_color_grading:'Cutting & Color',rendering:'Rendering',editing:'Editing',video_head_review:'Video Head Review',team_review:'Team Review',changes:'Changes',client_review:'COO Check',client_changes:'Client Changes',sent_to_client:'Sent to Client',add_to_drive:'Add to Drive',posted:'Posted'};
 const VP_COLOR={video_shot:'#3b82f6',cutting_color_grading:'#22c55e',rendering:'#ec4899',editing:'var(--orange)',video_head_review:'#8b5cf6',team_review:'#ec4899',changes:'#ef4444',client_review:'#ef4444',client_changes:'#f59e0b',sent_to_client:'#22c55e',add_to_drive:'#22c55e',posted:'#22c55e'};
@@ -4370,7 +4426,9 @@ function vpCard(v){
   const cn=v.clients?.name||'';
   const en=v.team_members?.name||'UNASSIGNED';
   const smm=v.clients?.assigned_smm||'';
-  return `<div class="vp-card" draggable="true" ondragstart="vpDragStart(event,${v.id})" data-vp-id="${v.id}" onclick="openVideoDetail(${v.id})">
+  const bulk=vpBulkMode;
+  const selected=vpSelected.has(v.id);
+  return `<div class="vp-card-wrap">${bulk?`<div class="vp-bulk-chk ${selected?'checked':''}" onclick="event.stopPropagation();vpToggleSelect(${v.id})"></div>`:''}<div class="vp-card" draggable="true" ondragstart="vpDragStart(event,${v.id})" data-vp-id="${v.id}" onclick="openVideoDetail(${v.id})">
     <div class="vp-card-title">${esc(v.title||'Untitled')}</div>
     <div class="vp-card-client">${esc(cn)}</div>
     ${smm?`<div class="vp-card-smm">SMM: ${esc(smm)}</div>`:''}
@@ -4379,7 +4437,7 @@ function vpCard(v){
       <div class="vp-card-dot"></div>
       <div class="vp-card-editor">${esc(en)}</div>
     </div>
-  </div>`;
+  </div></div>`;
 }
 
 // Drag and drop
@@ -4420,63 +4478,68 @@ async function moveVideoStage(id,newStage){
 
 function openVideoDetail(id){
   const v=VP_videos.find(x=>x.id===id);if(!v)return;
-  VP_detailId=id;
+  VP_detailId=id;vpCommentImage=null;
   const cn=v.clients?.name||'Unknown';const en=v.team_members?.name||'Unassigned';
   const links=VP_links.filter(l=>l.video_project_id===id);
   const rawLinks=links.filter(l=>l.tag==='raw_footage');
   const finalLinks=links.filter(l=>l.tag==='final_cut');
   const comments=VP_comments.filter(c=>c.video_project_id===id).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  const history=VP_history.filter(h=>h.video_project_id===id);
   const stageOpts=VP_STAGES.map(st=>`<option value="${st}" ${v.current_stage===st?'selected':''}>${VP_LABEL[st]}</option>`).join('');
   const priOpts=['low','medium','high','urgent'].map(p=>`<option value="${p}" ${v.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('');
-
   document.getElementById('vd-title').textContent=v.title||'Video Details';
 
-  function linkBadge(url){
-    if(!url)return{bg:'var(--text-3)',txt:'??'};
-    if(url.includes('dropbox'))return{bg:'#0061ff',txt:'DB'};
-    if(url.includes('drive.google'))return{bg:'#34a853',txt:'GD'};
-    if(url.includes('youtube')||url.includes('youtu.be'))return{bg:'#ff0000',txt:'YT'};
-    return{bg:'var(--accent)',txt:'LN'};
+  function linkBadge(url){if(!url)return{bg:'var(--text-3)',txt:'??'};if(url.includes('dropbox'))return{bg:'#0061ff',txt:'DB'};if(url.includes('drive.google'))return{bg:'#34a853',txt:'GD'};if(url.includes('youtube')||url.includes('youtu.be'))return{bg:'#ff0000',txt:'YT'};return{bg:'var(--accent)',txt:'LN'};}
+  function linkRow(l){const b=linkBadge(l.url);const dt=l.created_at?new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';return `<div class="vp-link-row"><div class="vp-link-badge" style="background:${b.bg}">${b.txt}</div><a class="vp-link-url" href="${esc(l.url)}" target="_blank">${esc(l.label||l.url)}</a><span style="font-size:9px;color:var(--text-3)">${esc(l.added_by||'')}${dt?' · '+dt:''}</span></div>`;}
+  function fmtDur(s){if(!s&&s!==0)return'—';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);if(h>0)return h+'h '+m+'m';return m+'m';}
+
+  let html=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <span style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase">${esc(cn)}</span><span style="font-size:10px;color:var(--text-3)">·</span><span style="font-size:10px;color:var(--text-2)">${esc(en)}</span>
+    ${v.deadline?`<span style="font-size:10px;color:${v.deadline<todayStr()?'var(--red)':'var(--text-3)'}">${fmtDate(v.deadline)}</span>`:''}</div>
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <div style="flex:1;min-width:140px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Stage</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="moveVideoStage(${id},this.value)">${stageOpts}</select></div>
+    <div style="width:120px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Priority</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="changeVideoPriority(${id},this.value)">${priOpts}</select></div></div>
+  ${v.description?`<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;padding:8px 10px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border)">${esc(v.description)}</div>`:''}`;
+
+  // Time tracking grid
+  if(history.length){
+    html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Time Tracking</div><div class="vp-time-grid">`;
+    // Aggregate time per stage
+    const stageTime={};
+    history.forEach(h=>{
+      const dur=h.exited_at?h.duration_seconds:Math.floor((Date.now()-new Date(h.entered_at))/1000);
+      stageTime[h.stage]=(stageTime[h.stage]||0)+(dur||0);
+    });
+    const activeSt=history.find(h=>!h.exited_at);
+    VP_STAGES.forEach(st=>{
+      if(!stageTime[st])return;
+      const isActive=activeSt&&activeSt.stage===st;
+      html+=`<div class="vp-time-row"><div class="vp-time-cell ${isActive?'vp-time-active':''}">${VP_LABEL[st]||st}${isActive?' ●':''}</div><div class="vp-time-cell ${isActive?'vp-time-active':''}">${fmtDur(stageTime[st])}</div></div>`;
+    });
+    html+=`</div></div>`;
   }
-  function linkRow(l){
-    const b=linkBadge(l.url);
-    const dt=l.created_at?new Date(l.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'}):'';
-    return `<div class="vp-link-row"><div class="vp-link-badge" style="background:${b.bg}">${b.txt}</div><a class="vp-link-url" href="${esc(l.url)}" target="_blank">${esc(l.label||l.url)}</a><span style="font-size:9px;color:var(--text-3)">${esc(l.added_by||'')}${dt?' · '+dt:''}</span></div>`;
-  }
 
-  let html=`
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <span style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase">${esc(cn)}</span>
-      <span style="font-size:10px;color:var(--text-3)">·</span>
-      <span style="font-size:10px;color:var(--text-2)">${esc(en)}</span>
-      ${v.deadline?`<span style="font-size:10px;color:${v.deadline<todayStr()?'var(--red)':'var(--text-3)'}">${fmtDate(v.deadline)}</span>`:''}
-    </div>
-    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <div style="flex:1;min-width:140px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Stage</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="moveVideoStage(${id},this.value)">${stageOpts}</select></div>
-      <div style="width:120px"><label style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--text-3);display:block;margin-bottom:3px">Priority</label><select class="form-select" style="font-size:11px;padding:5px 8px;width:100%" onchange="changeVideoPriority(${id},this.value)">${priOpts}</select></div>
-    </div>
-    ${v.description?`<div style="font-size:12px;color:var(--text-2);margin-bottom:12px;padding:8px 10px;background:var(--surface-2);border-radius:var(--r-sm);border:1px solid var(--border)">${esc(v.description)}</div>`:''}`;
+  // Links
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:var(--green)">Final Video (${finalLinks.length})</div>${finalLinks.length?finalLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No final video linked yet</div>'}</div>`;
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:#3b82f6">Raw Footage (${rawLinks.length})</div>${rawLinks.length?rawLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No raw footage linked yet</div>'}</div>`;
 
-  // Final cuts
-  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:var(--green)">Final Video (${finalLinks.length})</div>
-    ${finalLinks.length?finalLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No final video linked yet</div>'}</div>`;
-
-  // Raw footage
-  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd" style="color:#3b82f6">Raw Footage (${rawLinks.length})</div>
-    ${rawLinks.length?rawLinks.map(l=>linkRow(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:6px 0">No raw footage linked yet</div>'}</div>`;
-
-  // Comments
+  // Comments with image support
   html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Discussion (${comments.length})</div>`;
   if(comments.length){
     html+=comments.map(c=>{
       const dt=c.created_at?new Date(c.created_at).toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+new Date(c.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
       return `<div class="vp-comment"><span class="vp-comment-author">${esc(c.author||'?')}</span><span class="vp-comment-time">${dt}</span><div class="vp-comment-body">${esc(c.body||'')}</div>${c.image_url?`<img class="vp-comment-img" src="${c.image_url}" onclick="window.open(this.src)">`:''}</div>`;
     }).join('');
-  } else {
-    html+='<div style="font-size:11px;color:var(--text-3);padding:6px 0">No comments yet</div>';
-  }
-  html+=`<div style="margin-top:8px"><textarea class="form-input" id="vp-comment-input" rows="2" placeholder="Add a comment..." style="font-size:12px;resize:vertical"></textarea>
-    <div style="margin-top:6px;text-align:right"><button class="btn-primary btn-sm" onclick="postVideoComment(${id})">Post Comment</button></div></div></div>`;
+  } else { html+='<div style="font-size:11px;color:var(--text-3);padding:6px 0">No comments yet</div>'; }
+  html+=`<div style="margin-top:8px">
+    <textarea class="form-input" id="vp-comment-input" rows="2" placeholder="Add a comment..." style="font-size:12px;resize:vertical" onpaste="vpHandlePaste(event)"></textarea>
+    <div class="vp-img-drop" id="vp-img-drop" onclick="document.getElementById('vp-img-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="vpHandleImgDrop(event)">
+      📎 Attach image — paste, drag, or click to browse
+      <input type="file" id="vp-img-file" accept="image/*" style="display:none" onchange="vpHandleFileSelect(event)">
+    </div>
+    <div id="vp-img-preview-wrap" style="display:none"><img id="vp-img-preview" class="vp-img-preview"><button class="btn-ghost btn-sm" onclick="vpClearImage()" style="font-size:10px;color:var(--red);margin-top:4px">Remove image</button></div>
+    <div style="margin-top:6px;text-align:right"><button class="btn-primary btn-sm" onclick="postVideoComment(${id})">Post Comment</button></div>
+  </div></div>`;
 
   document.getElementById('vd-body').innerHTML=html;
   document.getElementById('modal-video-detail').classList.remove('hidden');
@@ -4490,13 +4553,189 @@ async function changeVideoPriority(id,pri){
 
 async function postVideoComment(id){
   const input=document.getElementById('vp-comment-input');if(!input)return;
-  const body=input.value.trim();if(!body)return input.focus();
-  const data={video_project_id:id,body,author:vpUser()};
+  const body=input.value.trim();
+  if(!body&&!vpCommentImage)return input.focus();
+  const data={video_project_id:id,body:body||'',author:vpUser()};
+  if(vpCommentImage)data.image_url=vpCommentImage;
   try{
     const r=await sbC('video_project_comments','POST',data,'');
     if(r&&r[0])VP_comments.unshift(r[0]);
+    vpCommentImage=null;
     openVideoDetail(id);
   }catch(e){console.error('postVideoComment',e);alert('Error posting comment');}
+}
+
+// Image handling for comments
+function vpHandlePaste(e){
+  const items=e.clipboardData?.items;if(!items)return;
+  for(let i=0;i<items.length;i++){
+    if(items[i].type.startsWith('image/')){
+      e.preventDefault();
+      vpReadImageFile(items[i].getAsFile());return;
+    }
+  }
+}
+function vpHandleImgDrop(e){e.preventDefault();e.currentTarget.classList.remove('drag-over');const f=e.dataTransfer?.files;if(f&&f[0]&&f[0].type.startsWith('image/'))vpReadImageFile(f[0]);}
+function vpHandleFileSelect(e){const f=e.target.files;if(f&&f[0])vpReadImageFile(f[0]);}
+function vpReadImageFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    vpCommentImage=ev.target.result;
+    const wrap=document.getElementById('vp-img-preview-wrap');
+    const img=document.getElementById('vp-img-preview');
+    const drop=document.getElementById('vp-img-drop');
+    if(wrap)wrap.style.display='block';
+    if(img)img.src=vpCommentImage;
+    if(drop)drop.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+function vpClearImage(){
+  vpCommentImage=null;
+  const wrap=document.getElementById('vp-img-preview-wrap');if(wrap)wrap.style.display='none';
+  const drop=document.getElementById('vp-img-drop');if(drop)drop.style.display='';
+}
+
+// Archive view
+let vpArchiveMode=false;
+async function vpToggleArchive(){
+  vpArchiveMode=!vpArchiveMode;
+  const board=document.getElementById('vp-board');
+  const stats=board?.previousElementSibling;
+  const archView=document.getElementById('vp-archive-view');
+  const btn=document.getElementById('vp-archive-btn');
+  if(vpArchiveMode){
+    if(board)board.style.display='none';
+    if(stats)stats.style.display='none';
+    if(archView)archView.style.display='block';
+    if(btn)btn.textContent='← Pipeline';
+    await loadArchivedVideos();
+  }else{
+    if(board)board.style.display='';
+    if(stats)stats.style.display='';
+    if(archView)archView.style.display='none';
+    if(btn)btn.textContent='🗄 Archive';
+  }
+}
+async function loadArchivedVideos(){
+  try{
+    const archived=await sb('video_projects','?select=*,clients(name)&is_archived=eq.true&order=updated_at.desc');
+    const tbody=document.getElementById('vp-archive-tbody');if(!tbody)return;
+    if(!archived||!archived.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-3);font-size:12px">No archived projects</td></tr>';return;}
+    tbody.innerHTML=archived.map(v=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 12px;font-size:12px;font-weight:600;color:var(--text)">${esc(v.title||'Untitled')}</td>
+      <td style="padding:10px 12px;font-size:11px;color:var(--text-2)">${esc(v.clients?.name||'—')}</td>
+      <td style="padding:10px 12px;font-size:11px;color:var(--text-3)">${VP_LABEL[v.current_stage]||v.current_stage||'—'}</td>
+      <td style="padding:10px 12px;text-align:right"><button class="btn-ghost btn-sm" style="font-size:10px;color:var(--accent)" onclick="restoreVideo(${v.id})">Restore</button></td>
+    </tr>`).join('');
+  }catch(e){console.error('loadArchivedVideos',e);}
+}
+async function restoreVideo(id){
+  try{
+    await sbC('video_projects','PATCH',{is_archived:false,updated_at:new Date().toISOString()},`?id=eq.${id}`);
+    await loadArchivedVideos();
+    await loadVideoPipeline();
+  }catch(e){console.error('restoreVideo',e);}
+}
+
+// Bulk select
+function vpToggleBulk(){
+  vpBulkMode=!vpBulkMode;
+  vpSelected.clear();
+  const btn=document.getElementById('vp-bulk-btn');
+  const bar=document.getElementById('vp-bulk-bar');
+  if(btn)btn.textContent=vpBulkMode?'Cancel Bulk':'☐ Bulk Select';
+  if(bar)bar.style.display=vpBulkMode?'flex':'none';
+  // Populate stage dropdown
+  if(vpBulkMode){
+    const sel=document.getElementById('vp-bulk-stage');
+    if(sel)sel.innerHTML=VP_STAGES.map(s=>`<option value="${s}">${VP_LABEL[s]}</option>`).join('');
+  }
+  vpUpdateBulkBar();
+  renderVideoPipeline();
+}
+function vpToggleSelect(id){
+  if(vpSelected.has(id))vpSelected.delete(id);else vpSelected.add(id);
+  vpUpdateBulkBar();
+  renderVideoPipeline();
+}
+function vpUpdateBulkBar(){
+  const cnt=document.getElementById('vp-bulk-cnt');
+  if(cnt)cnt.textContent=vpSelected.size+' selected';
+}
+async function vpBulkMove(){
+  const stage=document.getElementById('vp-bulk-stage')?.value;
+  if(!stage||!vpSelected.size)return;
+  if(!confirm(`Move ${vpSelected.size} videos to "${VP_LABEL[stage]}"?`))return;
+  for(const id of vpSelected){await moveVideoStage(id,stage);}
+  vpSelected.clear();vpToggleBulk();
+}
+
+// Duplicate video
+async function duplicateVideo(){
+  if(!VP_detailId)return;
+  const v=VP_videos.find(x=>x.id===VP_detailId);if(!v)return;
+  if(!confirm('Duplicate "'+v.title+'"?'))return;
+  const data={
+    title:(v.title||'')+ ' (Copy)',
+    client_id:v.client_id,assigned_editor_id:v.assigned_editor_id,
+    target_month:v.target_month,target_year:v.target_year,
+    priority:v.priority||'medium',deadline:v.deadline,
+    description:v.description,formula:v.formula,type:v.type,
+    current_stage:'video_shot',is_archived:false,created_by:vpUser()
+  };
+  try{
+    const r=await sbC('video_projects','POST',data,'');
+    if(r&&r[0]){
+      await sbC('video_stage_history','POST',{video_project_id:r[0].id,stage:'video_shot',moved_by:vpUser()},'');
+      closeModal('modal-video-detail');VP_detailId=null;
+      await loadVideoPipeline();
+    }
+  }catch(e){console.error('duplicateVideo',e);alert('Error duplicating');}
+}
+
+// Edit project
+function openEditVideoModal(){
+  if(!VP_detailId)return;
+  const v=VP_videos.find(x=>x.id===VP_detailId);if(!v)return;
+  document.getElementById('ev-id').value=v.id;
+  document.getElementById('ev-title').value=v.title||'';
+  // Populate client dropdown
+  const clients=(D.clients||[]).filter(c=>c.id);
+  document.getElementById('ev-client').innerHTML=clients.map(c=>`<option value="${c.id}" ${c.id===v.client_id?'selected':''}>${esc(c.name)}</option>`).join('');
+  // Populate editor dropdown
+  const editors=(D.editors||[]).filter(e=>e.name);
+  document.getElementById('ev-editor').innerHTML='<option value="">Unassigned</option>'+editors.map(e=>`<option value="${e.id}" ${e.id===v.assigned_editor_id?'selected':''}>${esc(e.name)}</option>`).join('');
+  document.getElementById('ev-month').value=v.target_month||'';
+  document.getElementById('ev-year').value=v.target_year||2026;
+  document.getElementById('ev-priority').value=v.priority||'medium';
+  document.getElementById('ev-deadline').value=v.deadline||'';
+  document.getElementById('ev-desc').value=v.description||'';
+  closeModal('modal-video-detail');
+  document.getElementById('modal-edit-video').classList.remove('hidden');
+}
+async function saveEditVideo(){
+  const id=parseInt(document.getElementById('ev-id').value);if(!id)return;
+  const title=(document.getElementById('ev-title').value||'').trim();
+  if(!title){alert('Title required');return;}
+  const data={
+    title,
+    client_id:parseInt(document.getElementById('ev-client').value)||null,
+    assigned_editor_id:parseInt(document.getElementById('ev-editor').value)||null,
+    target_month:parseInt(document.getElementById('ev-month').value)||null,
+    target_year:parseInt(document.getElementById('ev-year').value)||2026,
+    priority:document.getElementById('ev-priority').value||'medium',
+    deadline:document.getElementById('ev-deadline').value||null,
+    description:document.getElementById('ev-desc').value||null,
+    updated_at:new Date().toISOString()
+  };
+  try{
+    await sbC('video_projects','PATCH',data,`?id=eq.${id}`);
+    closeModal('modal-edit-video');
+    await loadVideoPipeline();
+    VP_detailId=id;openVideoDetail(id);
+  }catch(e){console.error('saveEditVideo',e);alert('Error saving');}
 }
 
 async function archiveVideo(){
