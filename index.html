@@ -1081,6 +1081,45 @@ td:last-child{padding-right:18px;text-align:right}
 .vp-bulk-chk{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:4px;border:2px solid var(--accent);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
 .vp-bulk-chk.checked{background:var(--accent)}.vp-bulk-chk.checked::after{content:'✓';color:white;font-size:11px;font-weight:700}
 @media(max-width:768px){.pipeline-board{gap:10px;min-height:auto;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px}.stage-col{width:82vw;max-width:330px;flex-shrink:0;scroll-snap-align:start;max-height:calc(100dvh - 208px)}}
+
+/* ── SHOOT PIPELINE ── */
+.shoot-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.shoot-tab{background:none;border:none;color:var(--text-3);font-size:13px;font-weight:600;padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s}
+.shoot-tab:hover{color:var(--text)}
+.shoot-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.shoot-card{position:relative}
+.shoot-card-meta{font-size:11px;color:var(--text-3);margin-top:6px}
+.shoot-card-actions{display:flex;gap:6px;margin-top:10px}
+.shoot-card-actions .btn{flex:1}
+.shoot-card-actions .shoot-del{flex:0 0 auto;width:34px;color:var(--text-3)}
+.shoot-card-actions .shoot-del:hover{color:var(--red);background:var(--red-soft)}
+.shoot-card.dragging{opacity:.4}
+.stage-dot.s-videos_confirmed{background:#3b82f6}
+.stage-dot.s-script_made{background:#06b6d4}
+.stage-dot.s-script_changes{background:#f59e0b}
+.stage-dot.s-final_script{background:#8b5cf6}
+.stage-dot.s-get_shoot_date{background:#22c55e}
+.stage-dot.s-date_confirmed{background:#a855f7}
+.stage-dot.s-shot{background:#64748b}
+/* Shoot calendar */
+.cal-head{display:flex;align-items:center;gap:16px;margin-bottom:6px}
+.cal-month{font-size:18px;font-weight:700;color:var(--text)}
+.cal-sub{margin-bottom:12px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{font-size:10px;font-weight:700;color:var(--text-3);letter-spacing:.08em;text-align:center;padding:6px 0}
+.cal-cell{min-height:96px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:6px}
+.cal-cell.cal-empty{background:transparent;border:none}
+.cal-cell.cal-has{border-color:var(--accent)}
+.cal-daynum{font-size:12px;color:var(--text-3);font-weight:600;display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.cal-badge{background:var(--accent);color:#fff;font-size:9px;font-weight:700;border-radius:9px;padding:1px 6px}
+.cal-event{background:var(--surface-3);border-radius:5px;padding:4px 6px;margin-bottom:4px;cursor:pointer;border-left:2px solid var(--accent)}
+.cal-event:hover{background:var(--accent-soft)}
+.cal-event-client{font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:.03em;font-weight:700}
+.cal-event-title{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:768px){
+  .shoot-tab{flex:1;font-size:12px;padding:10px 6px}
+  .cal-grid{gap:3px}.cal-cell{min-height:62px;padding:4px}.cal-dow{font-size:8px}.cal-event-title{font-size:9px}.cal-event-client{font-size:8px}.cal-head{gap:8px}
+}
 /* Detail modal */
 .vp-detail-sec{margin-top:16px;padding-top:14px;border-top:1px solid var(--border)}
 .vp-detail-sec-hd{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
@@ -1187,6 +1226,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-sec">Content</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Content Plans</div>
       <div class="nav-item" id="nav-videopipeline" onclick="showPage('videopipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>Video Pipeline</div>
+      <div class="nav-item" id="nav-shootpipeline" onclick="showPage('shootpipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Shoot Pipeline</div>
       <div class="nav-sec">Operations</div>
       <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
@@ -1977,6 +2017,53 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse" id="vp-archive-table"><thead><tr style="background:var(--surface-2)"><th style="text-align:left;padding:10px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);border-bottom:1px solid var(--border)">Title</th><th style="text-align:left;padding:10px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);border-bottom:1px solid var(--border)">Client</th><th style="text-align:left;padding:10px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);border-bottom:1px solid var(--border)">Last Stage</th><th style="width:80px;padding:10px 12px;border-bottom:1px solid var(--border)"></th></tr></thead><tbody id="vp-archive-tbody"></tbody></table></div></div>
     </div>
   </div>
+</div>
+
+<!-- ══════════════════════════════
+   SHOOT PIPELINE PAGE
+══════════════════════════════ -->
+<div id="page-shootpipeline" class="page-section" style="display:none">
+  <div class="content" style="overflow:hidden;height:calc(100vh - 56px);display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Shoot Pipeline</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px" id="sp-sub">All shoots across all clients</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select class="form-select" style="width:160px;font-size:11px;padding:5px 8px" id="sp-filter-client" onchange="renderShootPipeline()"><option value="">All clients</option></select>
+        <button class="btn-primary btn-sm" onclick="spOpenAddModal()">+ New Shoot</button>
+      </div>
+    </div>
+    <div class="shoot-tabs">
+      <button class="shoot-tab active" data-sview="pipeline" onclick="spSwitchView('pipeline')">Pipeline</button>
+      <button class="shoot-tab" data-sview="calendar" onclick="spSwitchView('calendar')">Weekly Calendar</button>
+    </div>
+    <div id="sp-pipeline-view" style="flex:1;min-height:0;overflow:hidden">
+      <div class="pipeline-board" id="sp-board" style="height:100%"></div>
+    </div>
+    <div id="sp-calendar-view" style="display:none;flex:1;min-height:0;overflow-y:auto">
+      <div class="cal-head">
+        <button class="btn-ghost btn-sm" onclick="spCalNav(-1)">←</button>
+        <div class="cal-month" id="sp-cal-month">June 2026</div>
+        <button class="btn-ghost btn-sm" onclick="spCalNav(1)">→</button>
+      </div>
+      <div class="cal-sub" style="font-size:11px;color:var(--text-3)" id="sp-cal-sub"></div>
+      <div class="cal-grid" id="sp-cal-grid"></div>
+    </div>
+  </div>
+</div>
+<!-- Shoot Pipeline Add/Edit Modal -->
+<div class="modal-overlay hidden" id="modal-sp-shoot">
+  <div class="modal"><div class="modal-head"><div class="modal-title" id="sp-modal-title">Add Shoot</div><button class="modal-close" onclick="closeModal('modal-sp-shoot')">×</button></div>
+  <div class="modal-body">
+    <div class="form-field"><label class="form-label">Client *</label><select class="form-select" id="sp-client"></select></div>
+    <div class="form-field"><label class="form-label">Shoot Title *</label><input class="form-input" id="sp-title" placeholder="e.g. May Product Shoot"></div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Month</label><select class="form-select" id="sp-month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div><div class="form-field"><label class="form-label">Quarter</label><select class="form-select" id="sp-quarter"><option value="">—</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div></div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Shoot Date</label><input class="form-input" id="sp-date" type="date"></div><div class="form-field"><label class="form-label">Videos to Shoot</label><input class="form-input" id="sp-vcount" type="number" placeholder="e.g. 6"></div></div>
+    <div class="form-field"><label class="form-label">Stage</label><select class="form-select" id="sp-stage"><option value="Videos Confirmed">Videos Confirmed</option><option value="Script Made">Script Made</option><option value="Script Changes">Script Changes</option><option value="Final Script">Final Script</option><option value="Shoot Date Set">Get Shoot Date</option><option value="Date Confirmed">Date Confirmed</option><option value="Shot">Shot</option></select></div>
+    <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="sp-notes" placeholder="Optional context"></div>
+  </div>
+  <div class="modal-foot" id="sp-modal-foot"><button class="btn-ghost" onclick="closeModal('modal-sp-shoot')">Cancel</button><button class="btn-primary" onclick="spSaveShoot()">Save Shoot</button></div></div>
 </div>
 
 <!-- Video Detail Modal -->
@@ -2967,6 +3054,9 @@ function showPage(page) {
   } else if (page === 'videopipeline') {
     document.getElementById('topbar-title').textContent = 'Video Pipeline';
     loadVideoPipeline();
+  } else if (page === 'shootpipeline') {
+    document.getElementById('topbar-title').textContent = 'Shoot Pipeline';
+    loadShootPipeline();
   }
 }
 
@@ -4184,6 +4274,7 @@ function uploadLogo(){
 setInterval(loadAll,60000);
 // Video Pipeline auto-refresh every 20s when on that page
 setInterval(()=>{if(CURRENT_PAGE==='videopipeline')loadVideoPipeline();},20000);
+setInterval(()=>{if(CURRENT_PAGE==='shootpipeline')loadShootPipeline();},20000);
 
 /* ══════════════════════════════════════
    TASK BOOK
@@ -4865,6 +4956,332 @@ async function saveNewVideo(){
       await loadVideoPipeline();
     }
   }catch(e){console.error('saveNewVideo',e);alert('Error creating project');}
+}
+
+/* ══════════════════════════════════════
+   SHOOT PIPELINE
+══════════════════════════════════════ */
+const SHOOT_STAGES=[
+  {key:'Videos Confirmed',label:'Videos Confirmed',alt:'videos_confirmed'},
+  {key:'Script Made',label:'Script Made',alt:'script_made'},
+  {key:'Script Changes',label:'Script Changes',alt:'script_changes'},
+  {key:'Final Script',label:'Final Script',alt:'final_script'},
+  {key:'Shoot Date Set',label:'Get Shoot Date',alt:'get_shoot_date'},
+  {key:'Date Confirmed',label:'Date Confirmed',alt:'date_confirmed'},
+  {key:'Shot',label:'Shot',alt:'shot'}
+];
+
+function spStageResolve(raw){
+  if(raw==null||raw==='')return SHOOT_STAGES[0].key;
+  const v=String(raw).trim();
+  const exact=SHOOT_STAGES.find(s=>s.key===v);
+  if(exact)return exact.key;
+  const byAlt=SHOOT_STAGES.find(s=>s.alt===v);
+  if(byAlt)return byAlt.key;
+  const ci=SHOOT_STAGES.find(s=>
+    s.key.toLowerCase()===v.toLowerCase()||
+    s.alt.toLowerCase()===v.toLowerCase()||
+    s.label.toLowerCase()===v.toLowerCase()
+  );
+  if(ci)return ci.key;
+  return '__unmapped__';
+}
+function spStageInfo(key){return SHOOT_STAGES.find(s=>s.key===key)||SHOOT_STAGES[0];}
+
+let SP_shoots=[];
+let SP_clients=[];
+let spDragId=null;
+let spEditId=null;
+let spCalDate=new Date();
+let spCurrentView='pipeline';
+
+function spUser(){return ROLE==='th'?'THULAIB':'SHIARA';}
+
+async function loadShootPipeline(){
+  try{
+    const [shoots,clients]=await Promise.all([
+      sb('smm_shoots','?select=*,clients(name)&order=shoot_date.desc'),
+      sb('clients','?select=id,name&order=name')
+    ]);
+    SP_shoots=shoots||[];
+    SP_clients=clients||[];
+  }catch(e){console.error('loadShootPipeline',e);}
+  renderShootPipeline();
+  if(spCurrentView==='calendar')renderShootCalendar();
+}
+
+function renderShootPipeline(){
+  const cf=document.getElementById('sp-filter-client')?.value||'';
+  let shoots=[...SP_shoots];
+
+  // Populate client filter (preserve selection)
+  const cSel=document.getElementById('sp-filter-client');
+  if(cSel){
+    const prev=cSel.value;
+    const cs=[...new Map(SP_shoots.filter(s=>s.client_id).map(s=>[s.client_id,s.clients?.name||'?'])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));
+    cSel.innerHTML='<option value="">All clients</option>'+cs.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join('');
+    cSel.value=prev;
+  }
+
+  if(cf)shoots=shoots.filter(s=>String(s.client_id)===cf);
+
+  // Resolve stages
+  let unmapped=0;
+  const resolved=shoots.map(s=>{
+    const rk=spStageResolve(s.stage);
+    if(rk==='__unmapped__')unmapped++;
+    return{...s,_resolved:rk};
+  }).filter(s=>s._resolved!=='__unmapped__');
+
+  const total=SP_shoots.length;
+  const sub=document.getElementById('sp-sub');
+  if(sub){
+    let txt=`${total} shoot${total!==1?'s':''}`;
+    if(unmapped>0)txt+=` · ⚠ ${unmapped} unrecognised stage (not shown)`;
+    sub.textContent=txt;
+  }
+
+  const board=document.getElementById('sp-board');if(!board)return;
+  board.innerHTML=SHOOT_STAGES.map(stage=>{
+    const sv=resolved.filter(s=>s._resolved===stage.key);
+    return `<div class="stage-col">
+      <div class="stage-header">
+        <div class="stage-title"><span class="stage-dot s-${stage.alt}"></span>${stage.label}</div>
+        <div class="stage-count">${sv.length}</div>
+      </div>
+      <div class="stage-cards" data-sp-drop="${stage.key}" ondragover="spDragOver(event)" ondragleave="spDragLeave(event)" ondrop="spDrop(event,'${stage.key}')">
+        ${sv.length?sv.map(s=>spCard(s)).join(''):'<div class="stage-empty">No shoots</div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function spCard(s){
+  const cn=s.clients?.name||'Unknown';
+  const info=spStageInfo(s._resolved||spStageResolve(s.stage));
+  const metaParts=[];
+  if(s.quarter)metaParts.push(s.quarter);
+  if(s.month)metaParts.push(s.month);
+  if(s.video_count)metaParts.push(s.video_count+' vids');
+  if(s.shoot_date){
+    const d=new Date(s.shoot_date+'T00:00');
+    metaParts.push(d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+  }
+  return `<div class="card shoot-card" draggable="true" ondragstart="spDragStart(event,${s.id})" data-shoot-id="${s.id}">
+    <div style="text-transform:uppercase;font-size:11px;letter-spacing:.04em;color:var(--accent);font-weight:700">${esc(cn)}</div>
+    <div style="font-size:13.5px;font-weight:700;color:var(--text);margin-top:4px;line-height:1.35">${esc(s.title||'Untitled')}</div>
+    ${metaParts.length?`<div class="shoot-card-meta">${metaParts.join(' · ')}</div>`:''}
+    <div class="shoot-card-actions">
+      <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();spOpenEditModal(${s.id})">Edit</button>
+      <button class="btn btn-ghost btn-sm shoot-del" onclick="event.stopPropagation();spDeleteShoot(${s.id})">×</button>
+    </div>
+  </div>`;
+}
+
+// Drag-drop
+function spDragStart(e,id){spDragId=id;e.dataTransfer.effectAllowed='move';const el=e.target.closest('.shoot-card');if(el)el.classList.add('dragging');setTimeout(()=>{if(el)el.style.opacity='0.4';},0);}
+function spDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drop-target');}
+function spDragLeave(e){e.currentTarget.classList.remove('drop-target');}
+function spDrop(e,stageKey){e.preventDefault();e.currentTarget.classList.remove('drop-target');if(spDragId)moveShootStage(spDragId,stageKey);spDragId=null;}
+
+async function moveShootStage(id,newStageKey){
+  const s=SP_shoots.find(x=>x.id===id);
+  if(!s)return;
+  const oldKey=spStageResolve(s.stage);
+  if(oldKey===newStageKey)return;
+
+  // Shot gate: require video_count
+  if(newStageKey==='Shot'){
+    if(!s.video_count||s.video_count<=0){
+      const vc=prompt('How many videos did this shoot produce?');
+      if(!vc||isNaN(parseInt(vc))||parseInt(vc)<=0)return;
+      s.video_count=parseInt(vc);
+    }
+  }
+
+  // Optimistic update
+  s.stage=newStageKey;
+  s.updated_at=new Date().toISOString();
+  renderShootPipeline();
+
+  try{
+    const patch={stage:newStageKey,updated_at:s.updated_at};
+    if(newStageKey==='Shot')patch.video_count=s.video_count;
+    await SBpatch('smm_shoots',id,patch);
+  }catch(e){console.error('moveShootStage',e);}
+}
+
+// View switching
+function spSwitchView(view){
+  spCurrentView=view;
+  document.querySelectorAll('.shoot-tab').forEach(t=>{
+    t.classList.toggle('active',t.getAttribute('data-sview')===view);
+  });
+  document.getElementById('sp-pipeline-view').style.display=view==='pipeline'?'':'none';
+  document.getElementById('sp-calendar-view').style.display=view==='calendar'?'':'none';
+  if(view==='calendar')renderShootCalendar();
+}
+
+// Calendar
+function spCalNav(dir){
+  spCalDate.setMonth(spCalDate.getMonth()+dir);
+  renderShootCalendar();
+}
+
+function renderShootCalendar(){
+  const year=spCalDate.getFullYear();
+  const month=spCalDate.getMonth();
+  const monthNames=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const dowNames=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+  document.getElementById('sp-cal-month').textContent=monthNames[month]+' '+year;
+
+  const cf=document.getElementById('sp-filter-client')?.value||'';
+  let shoots=[...SP_shoots];
+  if(cf)shoots=shoots.filter(s=>String(s.client_id)===cf);
+
+  // Filter shoots for this month
+  const inMonth=shoots.filter(s=>{
+    if(!s.shoot_date)return false;
+    const d=new Date(s.shoot_date+'T00:00');
+    return d.getFullYear()===year&&d.getMonth()===month;
+  });
+
+  document.getElementById('sp-cal-sub').textContent=`${inMonth.length} shoot${inMonth.length!==1?'s':''} this month`;
+
+  // Group by day
+  const byDay={};
+  inMonth.forEach(s=>{
+    const d=new Date(s.shoot_date+'T00:00').getDate();
+    (byDay[d]=byDay[d]||[]).push(s);
+  });
+
+  const firstDay=new Date(year,month,1);
+  const startDow=firstDay.getDay();
+  const totalDays=new Date(year,month+1,0).getDate();
+
+  let html=dowNames.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  // Empty cells before day 1
+  for(let i=0;i<startDow;i++)html+=`<div class="cal-cell cal-empty"></div>`;
+  // Day cells
+  for(let d=1;d<=totalDays;d++){
+    const ds=byDay[d]||[];
+    const has=ds.length>0;
+    html+=`<div class="cal-cell${has?' cal-has':''}">
+      <div class="cal-daynum">${d}${has?`<span class="cal-badge">${ds.length}</span>`:''}</div>
+      ${ds.map(s=>{
+        const cn=s.clients?.name||'?';
+        return `<div class="cal-event" onclick="spOpenEditModal(${s.id})">
+          <div class="cal-event-client">${esc(cn)}</div>
+          <div class="cal-event-title">${esc(s.title||'Untitled')}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  document.getElementById('sp-cal-grid').innerHTML=html;
+}
+
+// Add/Edit modals
+function spOpenAddModal(){
+  spEditId=null;
+  document.getElementById('sp-modal-title').textContent='Add Shoot';
+  // Populate client selector
+  const cSel=document.getElementById('sp-client');
+  cSel.innerHTML='<option value="">Select client…</option>'+SP_clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  cSel.value='';
+  document.getElementById('sp-title').value='';
+  document.getElementById('sp-date').value='';
+  document.getElementById('sp-notes').value='';
+  document.getElementById('sp-vcount').value='';
+  document.getElementById('sp-month').value=MN[new Date().getMonth()];
+  document.getElementById('sp-quarter').value='';
+  document.getElementById('sp-stage').value='Videos Confirmed';
+  document.getElementById('sp-modal-foot').innerHTML='<button class="btn-ghost" onclick="closeModal(\'modal-sp-shoot\')">Cancel</button><button class="btn-primary" onclick="spSaveShoot()">Save Shoot</button>';
+  document.getElementById('modal-sp-shoot').classList.remove('hidden');
+  document.getElementById('sp-title').focus();
+}
+
+function spOpenEditModal(id){
+  const s=SP_shoots.find(x=>x.id===id);if(!s)return;
+  spEditId=id;
+  document.getElementById('sp-modal-title').textContent='Edit Shoot';
+  const cSel=document.getElementById('sp-client');
+  cSel.innerHTML='<option value="">Select client…</option>'+SP_clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  cSel.value=s.client_id||'';
+  document.getElementById('sp-title').value=s.title||'';
+  document.getElementById('sp-date').value=s.shoot_date||'';
+  document.getElementById('sp-notes').value=s.notes||'';
+  document.getElementById('sp-vcount').value=s.video_count||'';
+  document.getElementById('sp-month').value=s.month||MN[new Date().getMonth()];
+  document.getElementById('sp-quarter').value=s.quarter||'';
+  // Resolve the stage to a valid key for the select
+  const resolved=spStageResolve(s.stage);
+  document.getElementById('sp-stage').value=resolved!=='__unmapped__'?resolved:'Videos Confirmed';
+  document.getElementById('sp-modal-foot').innerHTML='<button class="btn-ghost" onclick="closeModal(\'modal-sp-shoot\')">Cancel</button><button class="btn-primary" onclick="spSaveShoot()">Save Changes</button>';
+  document.getElementById('modal-sp-shoot').classList.remove('hidden');
+}
+
+async function spSaveShoot(){
+  const title=(document.getElementById('sp-title').value||'').trim();
+  if(!title){document.getElementById('sp-title').focus();return;}
+  const clientId=document.getElementById('sp-client').value;
+  if(!clientId){document.getElementById('sp-client').focus();return;}
+  const stageVal=document.getElementById('sp-stage').value;
+  const vcount=parseInt(document.getElementById('sp-vcount').value)||null;
+
+  // Shot gate
+  if(stageVal==='Shot'&&(!vcount||vcount<=0)){
+    alert('Video count is required when stage is Shot');
+    document.getElementById('sp-vcount').focus();
+    return;
+  }
+
+  const data={
+    title:title,
+    client_id:parseInt(clientId),
+    stage:stageVal,
+    shoot_date:document.getElementById('sp-date').value||null,
+    month:document.getElementById('sp-month').value,
+    quarter:document.getElementById('sp-quarter').value||null,
+    video_count:vcount,
+    notes:document.getElementById('sp-notes').value||null,
+    updated_at:new Date().toISOString()
+  };
+
+  try{
+    if(spEditId){
+      await SBpatch('smm_shoots',spEditId,data);
+      const s=SP_shoots.find(x=>x.id===spEditId);
+      if(s){
+        Object.assign(s,data);
+        // Update client name locally
+        const c=SP_clients.find(x=>x.id===data.client_id);
+        if(c)s.clients={name:c.name};
+      }
+    }else{
+      const r=await SBpost('smm_shoots',data);
+      if(r&&r[0]){
+        const c=SP_clients.find(x=>x.id===data.client_id);
+        r[0].clients={name:c?.name||'?'};
+        SP_shoots.unshift(r[0]);
+      }
+    }
+  }catch(e){console.error('spSaveShoot',e);}
+
+  closeModal('modal-sp-shoot');
+  renderShootPipeline();
+  if(spCurrentView==='calendar')renderShootCalendar();
+}
+
+async function spDeleteShoot(id){
+  if(!confirm('Delete this shoot? Removes from CC, Video Hub, and SMM Workspace. Cannot be undone.'))return;
+  try{
+    await SBdel('smm_shoots',id);
+    SP_shoots=SP_shoots.filter(s=>s.id!==id);
+    renderShootPipeline();
+    if(spCurrentView==='calendar')renderShootCalendar();
+  }catch(e){console.error('spDeleteShoot',e);}
 }
 
 </script>
