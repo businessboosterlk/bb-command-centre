@@ -1126,6 +1126,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-clients" onclick="showPage('clients')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Clients</div>
       <div class="nav-item ceo-only" id="nav-pipeline" onclick="showPage('pipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Leads</div>
       <div class="nav-item" id="nav-calendar" onclick="showPage('calendar')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendar</div>
+      <div class="nav-item" id="nav-taskbook" onclick="showPage('taskbook')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Task Book</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Tasks</div>
       <div class="nav-sec">Content</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Content Plans</div>
@@ -1718,7 +1719,155 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
-<!-- ══ MODALS ══ -->
+<!-- ══════════════════════════════════════
+   TASK BOOK PAGE
+══════════════════════════════════════ -->
+<div id="page-taskbook" class="page-section" style="display:none">
+  <div class="content">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Task Book</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px">All client tasks in one view — sorted by urgency</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select class="form-select" style="width:140px;font-size:12px;padding:6px 10px" id="tb-filter-assign" onchange="renderTaskBook()">
+          <option value="">All team</option>
+          <option value="th">Thulaib</option>
+          <option value="sh">Shiara</option>
+          <option value="smm">SMM</option>
+          <option value="gd">GD</option>
+          <option value="video">Video</option>
+          <option value="both">Both</option>
+        </select>
+        <select class="form-select" style="width:140px;font-size:12px;padding:6px 10px" id="tb-filter-status" onchange="renderTaskBook()">
+          <option value="open">Open tasks</option>
+          <option value="overdue">Overdue only</option>
+          <option value="all">All tasks</option>
+          <option value="done">Completed</option>
+        </select>
+        <button class="btn-primary btn-sm" onclick="openGlobalTaskModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Task
+        </button>
+      </div>
+    </div>
+
+    <!-- Stat row -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+      <div class="card" style="padding:14px 16px;border-left:3px solid var(--red)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Overdue</div>
+        <div id="tb-s-overdue" style="font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:var(--red);line-height:1.1;margin-top:4px">0</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">Past due date</div>
+      </div>
+      <div class="card" style="padding:14px 16px;border-left:3px solid var(--orange)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">High Priority</div>
+        <div id="tb-s-high" style="font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:var(--orange);line-height:1.1;margin-top:4px">0</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">Open high priority</div>
+      </div>
+      <div class="card" style="padding:14px 16px;border-left:3px solid var(--accent)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Due This Week</div>
+        <div id="tb-s-week" style="font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:var(--accent);line-height:1.1;margin-top:4px">0</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">Next 7 days</div>
+      </div>
+      <div class="card" style="padding:14px 16px;border-left:3px solid var(--green)">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Completed</div>
+        <div id="tb-s-done" style="font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:var(--green);line-height:1.1;margin-top:4px">0</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">Total done</div>
+      </div>
+    </div>
+
+    <!-- Task table -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:var(--surface-2)">
+              <th style="width:36px;padding:10px 12px;border-bottom:1px solid var(--border)"></th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Task</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Client</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Due</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Assigned</th>
+              <th style="text-align:left;padding:10px 12px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Priority</th>
+              <th style="width:80px;padding:10px 12px;border-bottom:1px solid var(--border)"></th>
+            </tr>
+          </thead>
+          <tbody id="tb-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Book — Add Global Task Modal -->
+<div class="modal-overlay hidden" id="modal-gtask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Add Task</div>
+      <button class="modal-close" onclick="closeModal('modal-gtask')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">Client</label>
+        <select class="form-select" id="gtask-client"></select>
+      </div>
+      <div class="form-field" style="margin-top:10px">
+        <label class="form-label">Task *</label>
+        <input class="form-input" id="gtask-title" placeholder="What needs to be done?">
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field">
+          <label class="form-label">Assign</label>
+          <select class="form-select" id="gtask-assign">
+            <option value="th">Thulaib (CEO)</option>
+            <option value="sh">Shiara (COO)</option>
+            <option value="both">Both</option>
+            <option value="smm">SMM</option>
+            <option value="gd">GD</option>
+            <option value="video">Video</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Priority</label>
+          <select class="form-select" id="gtask-priority">
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row" style="margin-top:10px">
+        <div class="form-field">
+          <label class="form-label">Due Date</label>
+          <input class="form-input" id="gtask-due" type="date">
+        </div>
+        <div class="form-field">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="gtask-cat">
+            <option>Content Creation</option>
+            <option>Client Communication</option>
+            <option>Strategy &amp; Planning</option>
+            <option>Follow-Up</option>
+            <option>Payment</option>
+            <option>Production</option>
+            <option>Reporting</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field" style="margin-top:10px">
+        <label class="form-label">Notes</label>
+        <input class="form-input" id="gtask-notes" placeholder="Optional context">
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal('modal-gtask')">Cancel</button>
+      <button class="btn-primary" onclick="saveGlobalTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- Pipeline Lead -->
 <div class="modal-overlay hidden" id="modal-pipeline">
   <div class="modal"><div class="modal-head"><div class="modal-title" id="pipe-modal-title">Add Lead</div><button class="modal-close" onclick="closeModal('modal-pipeline')">×</button></div>
@@ -2638,6 +2787,9 @@ function showPage(page) {
   } else if (page === 'calendar') {
     document.getElementById('topbar-title').textContent = 'Calendar';
     loadCalendarPage();
+  } else if (page === 'taskbook') {
+    document.getElementById('topbar-title').textContent = 'Task Book';
+    loadTaskBook();
   }
 }
 
@@ -3853,6 +4005,202 @@ function uploadLogo(){
 (()=>{const saved=localStorage.getItem('bb-logo-url');if(saved){const img=document.getElementById('sb-logo-img');if(img)img.src=saved;}})();
 // init handled by showPage
 setInterval(loadAll,60000);
+
+/* ══════════════════════════════════════
+   TASK BOOK
+══════════════════════════════════════ */
+async function loadTaskBook(){
+  if(!D.tasks||!D.tasks.length||!D.clients||!D.clients.length){
+    try{
+      const [tasks,clients]=await Promise.all([
+        sb('tasks','?select=*'),
+        sb('clients','?select=id,name,health&order=name')
+      ]);
+      D.tasks=tasks||D.tasks||[];
+      if(!D.clients||!D.clients.length) D.clients=clients||[];
+    }catch(e){console.error('loadTaskBook',e);}
+  }
+  renderTaskBook();
+}
+
+function renderTaskBook(){
+  const assignFilter=document.getElementById('tb-filter-assign')?.value||'';
+  const statusFilter=document.getElementById('tb-filter-status')?.value||'open';
+  const today=todayStr();
+  const weekAhead=addDays(7);
+
+  const allTasks=D.tasks||[];
+  const clients=D.clients||[];
+
+  // Stats always from all client tasks (exclude pipeline-only tasks)
+  const clientTasks=allTasks.filter(t=>t.client_id);
+  const setEl=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setEl('tb-s-overdue',clientTasks.filter(t=>isOverdue(t)).length);
+  setEl('tb-s-high',clientTasks.filter(t=>!t.done&&t.priority==='high').length);
+  setEl('tb-s-week',clientTasks.filter(t=>!t.done&&t.due&&t.due>=today&&t.due<=weekAhead).length);
+  setEl('tb-s-done',clientTasks.filter(t=>t.done).length);
+
+  // Filter — client tasks only (pipeline tasks shown in Leads)
+  let tasks=clientTasks.filter(t=>!t.pipeline_id);
+  if(assignFilter) tasks=tasks.filter(t=>t.assign===assignFilter||t.assign==='both');
+  if(statusFilter==='open') tasks=tasks.filter(t=>!t.done);
+  else if(statusFilter==='overdue') tasks=tasks.filter(t=>isOverdue(t));
+  else if(statusFilter==='done') tasks=tasks.filter(t=>t.done);
+
+  const tbody=document.getElementById('tb-tbody');
+  if(!tbody)return;
+
+  if(!tasks.length){
+    tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3);font-size:13px">${statusFilter==='done'?'No completed tasks yet.':'All clear — no tasks here. 🎉'}</td></tr>`;
+    return;
+  }
+
+  // Group by client
+  const grouped={};
+  tasks.forEach(t=>{
+    const cid=String(t.client_id||'');
+    if(!grouped[cid]) grouped[cid]={tasks:[]};
+    grouped[cid].tasks.push(t);
+  });
+
+  function sortTasks(arr){
+    const pri={high:0,medium:1,low:2};
+    return arr.sort((a,b)=>{
+      const ao=isOverdue(a),bo=isOverdue(b);
+      if(ao&&!bo)return -1; if(!ao&&bo)return 1;
+      if(a.done&&!b.done)return 1; if(!a.done&&b.done)return -1;
+      const pa=pri[a.priority]??3,pb=pri[b.priority]??3;
+      if(pa!==pb)return pa-pb;
+      return (a.due||'9999')-(b.due||'9999');
+    });
+  }
+
+  const assignLabel={th:'TH',sh:'SH',both:'BOTH',smm:'SMM',gd:'GD',video:'VID'};
+  const assignColor={th:'background:var(--accent)',sh:'background:var(--blue)',both:'background:var(--purple,#8b5cf6)',smm:'background:var(--green)',gd:'background:var(--orange)',video:'background:var(--red)'};
+  const priPill={high:'background:rgba(239,68,68,.12);color:var(--red)',medium:'background:rgba(251,146,60,.12);color:var(--orange)',low:'background:rgba(156,163,175,.12);color:var(--text-3)'};
+
+  let rows='';
+
+  // Sort clients by overdue count desc
+  const sortedClients=Object.entries(grouped).sort((a,b)=>{
+    const aOd=a[1].tasks.filter(t=>isOverdue(t)).length;
+    const bOd=b[1].tasks.filter(t=>isOverdue(t)).length;
+    return bOd-aOd;
+  });
+
+  sortedClients.forEach(([cid,{tasks:ctasks}])=>{
+    const client=clients.find(c=>String(c.id)===cid);
+    const clientName=client?client.name:'Unknown Client';
+    const sorted=sortTasks(ctasks);
+    const openCount=sorted.filter(t=>!t.done).length;
+    const odCount=sorted.filter(t=>isOverdue(t)).length;
+    const healthDot=client?.health?`<span style="width:7px;height:7px;border-radius:50%;background:${client.health==='green'?'var(--green)':client.health==='red'?'var(--red)':'var(--orange)'};display:inline-block;margin-right:5px"></span>`:'';
+
+    rows+=`<tr style="background:var(--surface-2)">
+      <td colspan="7" style="padding:8px 14px;cursor:pointer" onclick="showPage('clients');setTimeout(()=>{ const c=(CLIENTS||[]).find(x=>String(x.id)==='${cid}');if(c)openProfile(c.id);},200)">
+        ${healthDot}<span style="font-size:10.5px;font-weight:800;color:var(--text);text-transform:uppercase;letter-spacing:.06em">${esc(clientName)}</span>
+        <span style="font-size:10px;color:var(--text-3);margin-left:8px;font-weight:400">${openCount} open${odCount?' · <span style="color:var(--red);font-weight:700">'+odCount+' overdue</span>':''}</span>
+      </td>
+    </tr>`;
+
+    sorted.forEach(t=>{
+      const od=isOverdue(t);
+      const dueTxt=t.due?fmtDate(t.due):'No date';
+      const dueColor=od?'var(--red)':t.done?'var(--text-3)':'var(--text-2)';
+      const av=assignLabel[t.assign]||'?';
+      const avStyle=assignColor[t.assign]||'background:var(--text-3)';
+      const pri=t.priority||'medium';
+      rows+=`<tr style="border-bottom:1px solid var(--border);${t.done?'opacity:.45':''}${od?';background:rgba(239,68,68,.03)':''}">
+        <td style="padding:10px 12px;text-align:center">
+          <div style="width:18px;height:18px;border-radius:5px;border:1.5px solid ${t.done?'var(--green)':'var(--border)'};background:${t.done?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;margin:0 auto;transition:all .15s" onclick="toggleTaskBook(${t.id})">
+            ${t.done?`<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+          </div>
+        </td>
+        <td style="padding:10px 12px;max-width:280px">
+          <div style="font-size:12.5px;font-weight:600;color:var(--text);${t.done?'text-decoration:line-through;color:var(--text-3)':''};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.title||'Untitled')}</div>
+          ${t.category?`<div style="font-size:10px;color:var(--text-3);margin-top:2px">${esc(t.category)}</div>`:''}
+        </td>
+        <td style="padding:10px 12px">
+          <span style="font-size:11px;color:var(--text-2)">${esc(clientName)}</span>
+        </td>
+        <td style="padding:10px 12px;white-space:nowrap">
+          <span style="font-size:11px;font-weight:${od?700:400};color:${dueColor}">${od?'OVERDUE · ':''} ${dueTxt}</span>
+        </td>
+        <td style="padding:10px 12px">
+          <div style="width:26px;height:26px;border-radius:50%;${avStyle};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:white">${av}</div>
+        </td>
+        <td style="padding:10px 12px">
+          <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;${priPill[pri]||priPill.medium}">${pri.charAt(0).toUpperCase()+pri.slice(1)}</span>
+        </td>
+        <td style="padding:10px 12px;white-space:nowrap;text-align:right">
+          ${t.done?`<button onclick="toggleTaskBook(${t.id})" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text-3);padding:2px 6px">Undo</button>`:''}
+          <button onclick="deleteTaskBook(${t.id})" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-3);padding:2px 6px;line-height:1" title="Delete">×</button>
+        </td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML=rows;
+}
+
+async function toggleTaskBook(id){
+  const t=(D.tasks||[]).find(x=>String(x.id)===String(id));
+  if(!t)return;
+  const newDone=!t.done;
+  t.done=newDone;
+  renderTaskBook();
+  try{ await sbC('tasks','PATCH',{done:newDone},`?id=eq.${id}`); }catch(e){console.error('toggleTaskBook',e);}
+  // Refresh dashboard counts if visible
+  if(document.getElementById('page-dashboard')?.style.display!=='none') renderAll();
+}
+
+async function deleteTaskBook(id){
+  if(!confirm('Delete this task?'))return;
+  D.tasks=(D.tasks||[]).filter(t=>String(t.id)!==String(id));
+  renderTaskBook();
+  try{ await sbC('tasks','DELETE',null,`?id=eq.${id}`); }catch(e){console.error('deleteTaskBook',e);}
+}
+
+function openGlobalTaskModal(){
+  const clients=(D.clients||[]).filter(c=>c.id);
+  const sel=document.getElementById('gtask-client');
+  if(sel){
+    sel.innerHTML=clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  }
+  document.getElementById('gtask-title').value='';
+  document.getElementById('gtask-assign').value='th';
+  document.getElementById('gtask-priority').value='medium';
+  document.getElementById('gtask-due').value=todayStr();
+  document.getElementById('gtask-cat').value='Content Creation';
+  document.getElementById('gtask-notes').value='';
+  document.getElementById('modal-gtask').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('gtask-title').focus(),50);
+}
+
+async function saveGlobalTask(){
+  const title=(document.getElementById('gtask-title').value||'').trim();
+  if(!title)return document.getElementById('gtask-title').focus();
+  const clientId=document.getElementById('gtask-client').value;
+  const data={
+    title,
+    client_id:clientId||null,
+    assign:document.getElementById('gtask-assign').value,
+    priority:document.getElementById('gtask-priority').value,
+    due:document.getElementById('gtask-due').value||null,
+    category:document.getElementById('gtask-cat').value,
+    notes:document.getElementById('gtask-notes').value||null,
+    done:false,
+    created_by:ROLE==='th'?'THULAIB':'SHIARA'
+  };
+  try{
+    const r=await sbC('tasks','POST',data,'');
+    if(r&&r[0]) D.tasks=[...(D.tasks||[]),r[0]];
+    closeModal('modal-gtask');
+    renderTaskBook();
+  }catch(e){console.error('saveGlobalTask',e);alert('Error saving task: '+e.message);}
+}
+
+
 
 </script>
 </body>
