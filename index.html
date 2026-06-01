@@ -1973,10 +1973,11 @@ td:last-child{padding-right:18px;text-align:right}
 <div class="modal-overlay hidden" id="modal-gtask">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">Add Task</div>
+      <div class="modal-title" id="gtask-modal-title">Add Task</div>
       <button class="modal-close" onclick="closeModal('modal-gtask')">×</button>
     </div>
     <div class="modal-body">
+      <input type="hidden" id="gtask-edit-id">
       <div class="form-field">
         <label class="form-label">Client</label>
         <select class="form-select" id="gtask-client"></select>
@@ -2032,7 +2033,38 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
     <div class="modal-foot">
       <button class="btn-ghost" onclick="closeModal('modal-gtask')">Cancel</button>
-      <button class="btn-primary" onclick="saveGlobalTask()">Add Task</button>
+      <button class="btn-primary" id="gtask-save-btn" onclick="saveGlobalTask()">Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Duplicate Task Modal -->
+<div class="modal-overlay hidden" id="modal-duptask">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Duplicate Task to Clients</div>
+      <button class="modal-close" onclick="closeModal('modal-duptask')">×</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="dup-task-id">
+      <div style="font-size:12px;color:var(--text);font-weight:600;margin-bottom:4px" id="dup-task-preview"></div>
+      <div style="font-size:10px;color:var(--text-3);margin-bottom:14px">Select which clients to copy this task to. The task details, priority, assignee and category will be copied.</div>
+      <div class="form-field">
+        <label class="form-label">Due Date for Copies</label>
+        <input class="form-input" id="dup-task-due" type="date">
+      </div>
+      <div class="form-field" style="margin-top:10px">
+        <label class="form-label">Select Clients</label>
+        <div style="display:flex;gap:6px;margin-bottom:8px">
+          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 10px" onclick="dupSelectAll()">Select All</button>
+          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 10px" onclick="dupSelectNone()">Clear</button>
+        </div>
+        <div id="dup-client-list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm)"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" onclick="closeModal('modal-duptask')">Cancel</button>
+      <button class="btn-primary" onclick="executeDuplicate()">Duplicate</button>
     </div>
   </div>
 </div>
@@ -4343,7 +4375,7 @@ function taskHTML(t,compact){
       </div>
     </div>
     <div class="task-av ${avM[t.assign]||'av-th'}">${avT[t.assign]||'TH'}</div>
-    ${!compact?`<button class="item-btn del" onclick="deleteTask(${t.id})">×</button>`:''}
+    ${!compact?`<button class="item-btn" style="font-size:9px;color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;padding:2px 4px" onclick="editTaskBook(${t.id})">Edit</button><button class="item-btn" style="font-size:9px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;padding:2px 4px" onclick="openDuplicateTask(${t.id})">Dup</button><button class="item-btn del" onclick="deleteTask(${t.id})">×</button>`:''}
   </div>`;
 }
 async function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(!t)return;t.done=!t.done;await SBpatch('tasks',id,{done:t.done});const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);}
@@ -5619,6 +5651,8 @@ function renderTaskBook(){
         </td>
         <td style="padding:10px 12px;white-space:nowrap;text-align:right">
           ${t.done?`<button onclick="toggleTaskBook(${t.id})" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--text-3);padding:2px 6px">Undo</button>`:''}
+          <button onclick="editTaskBook(${t.id})" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--accent);padding:2px 6px;font-weight:600" title="Edit">Edit</button>
+          <button onclick="openDuplicateTask(${t.id})" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--blue);padding:2px 6px;font-weight:600" title="Duplicate to other clients">Dup</button>
           <button onclick="deleteTaskBook(${t.id})" style="background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-3);padding:2px 6px;line-height:1" title="Delete">×</button>
         </td>
       </tr>`;
@@ -5646,18 +5680,35 @@ async function deleteTaskBook(id){
   try{ await sbC('tasks','DELETE',null,`?id=eq.${id}`); }catch(e){console.error('deleteTaskBook',e);}
 }
 
-function openGlobalTaskModal(){
+function openGlobalTaskModal(editId=null){
   const clients=(D.clients||[]).filter(c=>c.id);
   const sel=document.getElementById('gtask-client');
   if(sel){
     sel.innerHTML=clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   }
-  document.getElementById('gtask-title').value='';
-  document.getElementById('gtask-assign').value='th';
-  document.getElementById('gtask-priority').value='medium';
-  document.getElementById('gtask-due').value=todayStr();
-  document.getElementById('gtask-cat').value='Content Creation';
-  document.getElementById('gtask-notes').value='';
+  document.getElementById('gtask-edit-id').value=editId||'';
+  document.getElementById('gtask-modal-title').textContent=editId?'Edit Task':'Add Task';
+  document.getElementById('gtask-save-btn').textContent=editId?'Save Changes':'Add Task';
+
+  if(editId){
+    const t=(D.tasks||[]).find(x=>String(x.id)===String(editId));
+    if(t){
+      if(sel)sel.value=t.client_id||'';
+      document.getElementById('gtask-title').value=t.title||'';
+      document.getElementById('gtask-assign').value=t.assign||'th';
+      document.getElementById('gtask-priority').value=t.priority||'medium';
+      document.getElementById('gtask-due').value=t.due||'';
+      document.getElementById('gtask-cat').value=t.category||'Content Creation';
+      document.getElementById('gtask-notes').value=t.notes||'';
+    }
+  }else{
+    document.getElementById('gtask-title').value='';
+    document.getElementById('gtask-assign').value='th';
+    document.getElementById('gtask-priority').value='medium';
+    document.getElementById('gtask-due').value=todayStr();
+    document.getElementById('gtask-cat').value='Content Creation';
+    document.getElementById('gtask-notes').value='';
+  }
   document.getElementById('modal-gtask').classList.remove('hidden');
   setTimeout(()=>document.getElementById('gtask-title').focus(),50);
 }
@@ -5665,6 +5716,7 @@ function openGlobalTaskModal(){
 async function saveGlobalTask(){
   const title=(document.getElementById('gtask-title').value||'').trim();
   if(!title)return document.getElementById('gtask-title').focus();
+  const editId=document.getElementById('gtask-edit-id').value;
   const clientId=document.getElementById('gtask-client').value;
   const data={
     title,
@@ -5678,11 +5730,81 @@ async function saveGlobalTask(){
     created_by:ROLE==='th'?'THULAIB':'SHIARA'
   };
   try{
-    const r=await sbC('tasks','POST',data,'');
-    if(r&&r[0]) D.tasks=[...(D.tasks||[]),r[0]];
+    if(editId){
+      // EDIT mode
+      await sbC('tasks','PATCH',data,`?id=eq.${editId}`);
+      const existing=(D.tasks||[]).find(x=>String(x.id)===String(editId));
+      if(existing)Object.assign(existing,data);
+    }else{
+      // ADD mode
+      const r=await sbC('tasks','POST',data,'');
+      if(r&&r[0]) D.tasks=[...(D.tasks||[]),r[0]];
+    }
     closeModal('modal-gtask');
     renderTaskBook();
+    // Sync client-profile TASKS array
+    if(typeof TASKS!=='undefined'&&D.tasks){TASKS=D.tasks.map(t=>({...t,clientId:Number(t.client_id||0),done:t.done||false}));}
+    // Refresh views
+    if(document.getElementById('page-dashboard')?.style.display!=='none') renderAll();
+    if(typeof currentId!=='undefined'&&currentId){const c=CLIENTS.find(x=>Number(x.id)===currentId);if(c){renderKPIs(c);renderTasksTab(currentId);}}
   }catch(e){console.error('saveGlobalTask',e);alert('Error saving task: '+e.message);}
+}
+
+function editTaskBook(id){openGlobalTaskModal(id);}
+
+// ── DUPLICATE TASK ──
+let _dupSourceTask=null;
+function openDuplicateTask(id){
+  const t=(D.tasks||[]).find(x=>String(x.id)===String(id));
+  if(!t)return;
+  _dupSourceTask=t;
+  document.getElementById('dup-task-id').value=id;
+  document.getElementById('dup-task-preview').textContent='📋 '+t.title;
+  document.getElementById('dup-task-due').value=t.due||todayStr();
+
+  const clients=(D.clients||[]).filter(c=>c.id);
+  const sourceClientId=String(t.client_id||'');
+  document.getElementById('dup-client-list').innerHTML=clients.map(c=>{
+    const isSelf=String(c.id)===sourceClientId;
+    return `<label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--border);cursor:pointer;${isSelf?'opacity:.4':''}">
+      <input type="checkbox" class="dup-client-cb" value="${c.id}" ${isSelf?'disabled':''}>
+      <span style="font-size:12px;color:var(--text);font-weight:${isSelf?400:600}">${esc(c.name)}${isSelf?' <span style="font-size:10px;color:var(--text-3)">(source)</span>':''}</span>
+    </label>`;
+  }).join('');
+  document.getElementById('modal-duptask').classList.remove('hidden');
+}
+
+function dupSelectAll(){document.querySelectorAll('.dup-client-cb:not(:disabled)').forEach(cb=>cb.checked=true);}
+function dupSelectNone(){document.querySelectorAll('.dup-client-cb').forEach(cb=>cb.checked=false);}
+
+async function executeDuplicate(){
+  if(!_dupSourceTask)return;
+  const selectedIds=[...document.querySelectorAll('.dup-client-cb:checked')].map(cb=>cb.value);
+  if(!selectedIds.length)return alert('Select at least one client');
+  const due=document.getElementById('dup-task-due').value||null;
+  const clients=(D.clients||[]).filter(c=>c.id);
+  let created=0;
+  for(const cid of selectedIds){
+    const data={
+      title:_dupSourceTask.title,
+      client_id:parseInt(cid),
+      assign:_dupSourceTask.assign||'th',
+      priority:_dupSourceTask.priority||'medium',
+      due:due,
+      category:_dupSourceTask.category||'Other',
+      notes:_dupSourceTask.notes||null,
+      done:false,
+      created_by:ROLE==='th'?'THULAIB':'SHIARA'
+    };
+    try{
+      const r=await sbC('tasks','POST',data,'');
+      if(r&&r[0]){D.tasks=[...(D.tasks||[]),r[0]];created++;}
+    }catch(e){console.error('Duplicate error for client '+cid,e);}
+  }
+  closeModal('modal-duptask');
+  renderTaskBook();
+  if(document.getElementById('page-dashboard')?.style.display!=='none') renderAll();
+  alert(`Duplicated to ${created} client${created===1?'':'s'}`);
 }
 
 
