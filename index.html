@@ -1212,6 +1212,15 @@ td:last-child{padding-right:18px;text-align:right}
 .tm-proj-row:last-child{border-bottom:none}
 @media(max-width:900px){.tm-detail-stats{grid-template-columns:1fr 1fr}.tm-cards{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
 @media(max-width:540px){.tm-detail-stats{grid-template-columns:1fr 1fr}.tm-stat-mini-val{font-size:14px}}
+/* ── NOTIFICATIONS ── */
+.notif-badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;pointer-events:none}
+.notif-panel{position:absolute;top:44px;right:0;width:340px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-lg);z-index:300;overflow:hidden}
+.notif-panel-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.notif-item{display:flex;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.notif-item:hover{background:var(--surface-2)}
+.notif-item.unread{background:var(--accent-soft)}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}
+@media(max-width:540px){.notif-panel{width:calc(100vw - 24px);right:-12px}}
 </style>
 </head>
 <body>
@@ -1317,9 +1326,14 @@ td:last-child{padding-right:18px;text-align:right}
         <button class="ico-btn" onclick="toggleTheme()" id="theme-btn">
           <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-        <button class="ico-btn">
+        <button class="ico-btn" onclick="toggleNotifPanel()" id="notif-btn" style="position:relative">
           <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="notif-badge" id="notif-badge" style="display:none">0</span>
         </button>
+        <div class="notif-panel" id="notif-panel" style="display:none">
+          <div class="notif-panel-hd"><span style="font-size:12px;font-weight:700;color:var(--text)">Notifications</span><button style="font-size:10px;color:var(--accent);background:none;border:none;cursor:pointer;font-weight:600" onclick="markAllNotifsRead()">Mark all read</button></div>
+          <div id="notif-list" style="max-height:360px;overflow-y:auto"></div>
+        </div>
       </div>
     </header>
 
@@ -2618,6 +2632,7 @@ function activateRole(role,animate){
 
   updateClock();
   loadAll();
+  loadNotifications();
 }
 
 function signOut(){
@@ -4972,25 +4987,37 @@ function selectTeamMember(id){
   renderTeamPage();
 }
 
-function renderTeamMemberDetail(id){
+let _tmDetailMonth=null; // per-member month override
+function getTmDetailMonth(){return _tmDetailMonth||getTmMonth();}
+function setTmDetailMonth(val){_tmDetailMonth=val;if(TM_selectedId)renderTeamMemberDetail(TM_selectedId);}
+
+async function renderTeamMemberDetail(id){
   const detail=document.getElementById('tm-detail');
   const m=TM_MEMBERS.find(x=>x.id===id);
   if(!m){detail.style.display='none';return;}
   detail.style.display='block';
 
-  const month=getTmMonth();
+  const month=getTmDetailMonth();
   const mNum=parseInt(month.split('-')[1]);
   const yNum=parseInt(month.split('-')[0]);
   const color=TM_COLORS[m.role]||'var(--accent)';
   const initials=m.name.substring(0,2);
   const MNS=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today=new Date().toISOString().split('T')[0];
+
+  // Per-member month selector HTML
+  const monthSelHtml=`<select class="form-select" style="width:120px;font-size:11px;padding:4px 8px" onchange="setTmDetailMonth(this.value)">
+    ${['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'].map(mv=>
+      `<option value="${mv}" ${mv===month?'selected':''}>${MNS[parseInt(mv.split('-')[1])]} ${mv.split('-')[0]}</option>`
+    ).join('')}
+  </select>`;
 
   if(m.role==='Video Head'||m.role==='Video Editor'){
-    // Video data
     const allVids=TM_VIDEOS.filter(v=>Number(v.assigned_editor_id)===id);
     const monthVids=allVids.filter(v=>Number(v.target_month)===mNum&&Number(v.target_year)===yNum);
     const posted=monthVids.filter(v=>v.current_stage==='posted').length;
     const inProg=monthVids.filter(v=>v.current_stage!=='posted').length;
+    const overdue=allVids.filter(v=>v.deadline&&v.deadline<today&&v.current_stage!=='posted'&&!v.is_archived);
     const timeLogs=TM_TIMELOGS.filter(t=>Number(t.team_member_id)===id);
     const monthTimeSecs=timeLogs.filter(t=>{
       const d=new Date(t.started_at||t.created_at);
@@ -4999,11 +5026,8 @@ function renderTeamMemberDetail(id){
     const hrs=Math.floor(monthTimeSecs/3600);
     const mins=Math.floor((monthTimeSecs%3600)/60);
 
-    // Stage breakdown
     const stageCount={};
     monthVids.forEach(v=>{const st=v.current_stage||'unknown';stageCount[st]=(stageCount[st]||0)+1;});
-
-    // Client breakdown
     const clientCount={};
     monthVids.forEach(v=>{
       const cl=CLIENTS.find(c=>Number(c.id)===Number(v.client_id));
@@ -5011,23 +5035,116 @@ function renderTeamMemberDetail(id){
       clientCount[cn]=(clientCount[cn]||0)+1;
     });
 
+    // Pillar section (Ushane only)
+    let pillarHtml='';
+    if(m.role==='Video Head'){
+      let pillarDone=[];
+      try{
+        const rows=await SBget('pillars','?who=eq.USHANE&select=*').catch(()=>[]);
+        if(rows&&rows.length){
+          const row=rows[0];
+          const updatedToday=row.updated_at&&row.updated_at.startsWith(today);
+          pillarDone=updatedToday?JSON.parse(row.done_ids||'[]'):[];
+        }
+      }catch(e){}
+      const pDone=pillarDone.length;
+      const pTotal=USHANE_PILLARS.length;
+      const pPct=Math.round(pDone/pTotal*100);
+      const pColor=pPct>=80?'var(--green)':pPct>=50?'var(--amber)':'var(--red)';
+      pillarHtml=`
+        <div style="margin-bottom:18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3)">Daily Pillars — Today</div>
+            <span style="font-size:12px;font-weight:800;color:${pColor}">${pDone}/${pTotal} done (${pPct}%)</span>
+          </div>
+          <div style="height:4px;background:var(--surface-2);border-radius:2px;overflow:hidden;margin-bottom:10px">
+            <div style="height:100%;width:${pPct}%;background:${pColor};border-radius:2px;transition:width .3s"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            ${USHANE_PILLARS.map(p=>{
+              const done=pillarDone.includes(p.id);
+              return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);${done?'opacity:0.5':''}">
+                <span style="width:16px;height:16px;border-radius:50%;border:2px solid ${done?'var(--green)':'var(--border-strong)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:var(--green)">${done?'✓':''}</span>
+                <div><div style="font-size:11px;font-weight:600;color:var(--text)">${esc(p.lbl)}</div><div style="font-size:9px;color:var(--text-3)">${esc(p.desc)}</div></div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Login time section (editors only)
+    let loginHtml='';
+    if(m.role==='Video Editor'){
+      try{
+        const logs=await SBget('team_login_logs',`?team_member_id=eq.${id}&order=logged_in_at.desc&limit=7`).catch(()=>[]);
+        if(logs&&logs.length){
+          const todayLog=logs.find(l=>l.logged_in_at&&l.logged_in_at.startsWith(today));
+          loginHtml=`<div style="margin-bottom:18px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Login History</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 14px;background:${todayLog?'var(--green-soft)':'var(--red-soft)'};border:1px solid ${todayLog?'var(--green)':'var(--red)'};border-radius:var(--r-sm)">
+              <span style="font-size:13px">${todayLog?'✅':'❌'}</span>
+              <span style="font-size:12px;font-weight:700;color:${todayLog?'var(--green)':'var(--red)'}">${todayLog?'Logged in today at '+new Date(todayLog.logged_in_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'Not logged in yet today'}</span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              ${logs.slice(0,7).map(l=>{
+                const d=new Date(l.logged_in_at);
+                const day=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+                const time=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+                return `<span style="font-size:10px;padding:3px 8px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-2)">${day} · ${time}</span>`;
+              }).join('')}
+            </div>
+          </div>`;
+        }
+      }catch(e){}
+    }
+
+    // Overdue / delayed projects
+    let overdueHtml='';
+    if(overdue.length){
+      overdueHtml=`<div style="margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--red);margin-bottom:8px">⚠ Delayed / Overdue (${overdue.length})</div>
+        <div class="card" style="padding:0;overflow:hidden;border-color:var(--red)">
+          ${overdue.map(v=>{
+            const cl=CLIENTS.find(c=>Number(c.id)===Number(v.client_id));
+            const cn=cl?cl.name:'—';
+            const daysLate=Math.floor((Date.now()-new Date(v.deadline).getTime())/86400000);
+            return `<div class="tm-proj-row" style="background:var(--red-soft)">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(v.title||'Untitled')}</div>
+                <div style="font-size:10px;color:var(--text-3)">${esc(cn)} · Due ${v.deadline}</div>
+              </div>
+              <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--red-soft);color:var(--red);border:1px solid var(--red)">${daysLate}d LATE</span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+    }
+
     detail.innerHTML=`
       <div class="tm-detail-card">
         <div class="tm-detail-hd">
           <div class="tm-av" style="background:${color};width:48px;height:48px;font-size:16px">${initials}</div>
           <div>
             <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${esc(m.name.charAt(0)+m.name.slice(1).toLowerCase())}</div>
-            <div style="font-size:11px;color:var(--text-3)">${esc(m.role)} · ${MNS[mNum]} ${yNum}</div>
+            <div style="font-size:11px;color:var(--text-3)">${esc(m.role)}</div>
           </div>
-          <button class="btn-ghost btn-sm" style="margin-left:auto;font-size:11px" onclick="TM_selectedId=null;renderTeamPage()">Close ×</button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            ${monthSelHtml}
+            <button class="btn-ghost btn-sm" style="font-size:11px" onclick="_tmDetailMonth=null;TM_selectedId=null;renderTeamPage()">Close ×</button>
+          </div>
         </div>
 
+        ${pillarHtml}
+        ${loginHtml}
+
         <div class="tm-detail-stats">
-          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--text)">${monthVids.length}</div><div class="tm-detail-stat-lbl">Total Assigned</div></div>
+          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--text)">${monthVids.length}</div><div class="tm-detail-stat-lbl">Assigned</div></div>
           <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--green)">${posted}</div><div class="tm-detail-stat-lbl">Posted</div></div>
           <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--amber)">${inProg}</div><div class="tm-detail-stat-lbl">In Progress</div></div>
           <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--blue)">${hrs}h ${mins}m</div><div class="tm-detail-stat-lbl">Time Logged</div></div>
         </div>
+
+        ${overdueHtml}
 
         ${Object.keys(clientCount).length?`
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">By Client</div>
@@ -5038,14 +5155,14 @@ function renderTeamMemberDetail(id){
         </div>`:''}
 
         ${Object.keys(stageCount).length?`
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Current Stage Breakdown</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Stage Breakdown</div>
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
           ${Object.entries(stageCount).map(([st,ct])=>`
             <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:var(--surface-2);border:1px solid var(--border);font-weight:500;color:var(--text-2)">${VP_LABEL[st]||st} <span style="font-weight:800">${ct}</span></span>
           `).join('')}
         </div>`:''}
 
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Projects This Month (${monthVids.length})</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Projects — ${MNS[mNum]} ${yNum} (${monthVids.length})</div>
         <div class="card" style="padding:0;overflow:hidden">
           ${monthVids.length?monthVids.map(v=>{
             const cl=CLIENTS.find(c=>Number(c.id)===Number(v.client_id));
@@ -5059,20 +5176,22 @@ function renderTeamMemberDetail(id){
               <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--surface-2);color:${sc};border:1px solid var(--border);white-space:nowrap">${VP_LABEL[v.current_stage]||v.current_stage}</span>
               ${v.priority==='urgent'||v.priority==='high'?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;background:var(--red-soft);color:var(--red)">${v.priority.toUpperCase()}</span>`:''}
             </div>`;
-          }).join(''):`<div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px">No projects assigned for ${MNS[mNum]} ${yNum}</div>`}
+          }).join(''):`<div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px">No projects for ${MNS[mNum]} ${yNum}</div>`}
         </div>
       </div>`;
   } else {
-    // SMM or GD — no system data yet
     detail.innerHTML=`
       <div class="tm-detail-card">
         <div class="tm-detail-hd">
           <div class="tm-av" style="background:${color};width:48px;height:48px;font-size:16px">${initials}</div>
           <div>
             <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${esc(m.name.charAt(0)+m.name.slice(1).toLowerCase())}</div>
-            <div style="font-size:11px;color:var(--text-3)">${esc(m.role)} · ${MNS[mNum]} ${yNum}</div>
+            <div style="font-size:11px;color:var(--text-3)">${esc(m.role)}</div>
           </div>
-          <button class="btn-ghost btn-sm" style="margin-left:auto;font-size:11px" onclick="TM_selectedId=null;renderTeamPage()">Close ×</button>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+            ${monthSelHtml}
+            <button class="btn-ghost btn-sm" style="font-size:11px" onclick="_tmDetailMonth=null;TM_selectedId=null;renderTeamPage()">Close ×</button>
+          </div>
         </div>
         <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">
           <div style="font-size:28px;margin-bottom:8px">🔧</div>
@@ -5080,10 +5199,170 @@ function renderTeamMemberDetail(id){
         </div>
       </div>`;
   }
-
-  // Scroll to detail
   detail.scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+/* ══════════════════════════════════════
+   NOTIFICATION SYSTEM
+══════════════════════════════════════ */
+let NOTIFS=[];
+let _notifPanelOpen=false;
+
+// Ushane's 6 daily pillars (matches Video System)
+const USHANE_PILLARS=[
+  {id:1,lbl:'System Update',desc:'Check all BB systems are running'},
+  {id:2,lbl:'Team Check',desc:'Touch base with each editor'},
+  {id:3,lbl:'Shiara Brief',desc:'Brief Shiara on the day'},
+  {id:4,lbl:'Shoot Check',desc:'Confirm today\'s shoots are on track'},
+  {id:5,lbl:'Folder Update',desc:'Update Drive folders + raw footage links'},
+  {id:6,lbl:'Close Day',desc:'Review system + log any issues'}
+];
+
+function toggleNotifPanel(){
+  _notifPanelOpen=!_notifPanelOpen;
+  document.getElementById('notif-panel').style.display=_notifPanelOpen?'block':'none';
+  if(_notifPanelOpen)renderNotifPanel();
+}
+
+// Close panel when clicking outside
+document.addEventListener('click',function(e){
+  if(_notifPanelOpen&&!e.target.closest('#notif-btn')&&!e.target.closest('#notif-panel')){
+    _notifPanelOpen=false;
+    document.getElementById('notif-panel').style.display='none';
+  }
+});
+
+async function loadNotifications(){
+  try{
+    const today=new Date().toISOString().split('T')[0];
+    NOTIFS=await SBget('cc_notifications','?select=*&order=created_at.desc&limit=20').catch(()=>[]);
+    // Check pillar alerts (2 PM rule)
+    await checkPillarAlert();
+    // Check today's login events
+    await checkLoginAlerts(today);
+    updateNotifBadge();
+  }catch(e){console.error('loadNotifications',e);}
+}
+
+function updateNotifBadge(){
+  const unread=NOTIFS.filter(n=>!n.is_read).length;
+  const badge=document.getElementById('notif-badge');
+  if(badge){
+    badge.style.display=unread>0?'flex':'none';
+    badge.textContent=unread>9?'9+':unread;
+  }
+}
+
+function renderNotifPanel(){
+  const list=document.getElementById('notif-list');
+  if(!NOTIFS.length){
+    list.innerHTML='<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No notifications</div>';
+    return;
+  }
+  list.innerHTML=NOTIFS.map(n=>{
+    const dotColor={pillar_alert:'var(--red)',login:'var(--green)',general:'var(--accent)'}[n.type]||'var(--text-3)';
+    const ago=timeAgo(n.created_at);
+    return `<div class="notif-item${n.is_read?'':' unread'}" onclick="markNotifRead(${n.id})">
+      <div class="notif-dot" style="background:${dotColor}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(n.title)}</div>
+        ${n.body?`<div style="font-size:11px;color:var(--text-3);margin-top:2px">${esc(n.body)}</div>`:''}
+        <div style="font-size:10px;color:var(--text-3);margin-top:3px">${ago}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function timeAgo(dateStr){
+  const diff=Math.floor((Date.now()-new Date(dateStr).getTime())/1000);
+  if(diff<60)return 'just now';
+  if(diff<3600)return Math.floor(diff/60)+'m ago';
+  if(diff<86400)return Math.floor(diff/3600)+'h ago';
+  return Math.floor(diff/86400)+'d ago';
+}
+
+async function markNotifRead(id){
+  await SBpatch('cc_notifications',id,{is_read:true});
+  const n=NOTIFS.find(x=>x.id===id);if(n)n.is_read=true;
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+async function markAllNotifsRead(){
+  const unread=NOTIFS.filter(n=>!n.is_read);
+  for(const n of unread){
+    await SBpatch('cc_notifications',n.id,{is_read:true});
+    n.is_read=true;
+  }
+  updateNotifBadge();
+  renderNotifPanel();
+}
+
+// ── 2 PM Pillar Check ──
+async function checkPillarAlert(){
+  const now=new Date();
+  const hour=now.getHours();
+  if(hour<14)return; // Before 2 PM — no alert
+
+  const today=now.toISOString().split('T')[0];
+  // Check if we already fired an alert today
+  const existingAlert=NOTIFS.find(n=>n.type==='pillar_alert'&&n.related_member==='USHANE'&&n.created_at&&n.created_at.startsWith(today));
+  if(existingAlert)return;
+
+  // Check Ushane's pillar state
+  try{
+    const rows=await SBget('pillars','?who=eq.USHANE&select=*').catch(()=>[]);
+    if(!rows||!rows.length)return; // No data = Video System hasn't written yet
+    const row=rows[0];
+    const doneIds=JSON.parse(row.done_ids||'[]');
+    const updatedToday=row.updated_at&&row.updated_at.startsWith(today);
+    if(!updatedToday)return; // Hasn't touched pillars today at all
+
+    const pct=Math.round(doneIds.length/USHANE_PILLARS.length*100);
+    if(pct<50){
+      // Fire notification
+      const notif={
+        type:'pillar_alert',
+        title:'⚠️ Ushane — Pillars below 50%',
+        body:`${doneIds.length}/${USHANE_PILLARS.length} done (${pct}%) at ${now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}. Follow up.`,
+        for_role:'all',
+        related_member:'USHANE'
+      };
+      const r=await SBpost('cc_notifications',notif);
+      if(r&&r[0])NOTIFS.unshift(r[0]);
+    }
+  }catch(e){console.error('checkPillarAlert',e);}
+}
+
+// ── Login Alerts ──
+async function checkLoginAlerts(today){
+  try{
+    const logs=await SBget('team_login_logs',`?logged_in_at=gte.${today}T00:00:00&order=logged_in_at.desc`).catch(()=>[]);
+    if(!logs||!logs.length)return;
+
+    for(const log of logs){
+      // Check if notification already exists for this login
+      const exists=NOTIFS.find(n=>n.type==='login'&&n.related_member===log.member_name&&n.created_at&&n.created_at.startsWith(today));
+      if(exists)continue;
+
+      const loginTime=new Date(log.logged_in_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const notif={
+        type:'login',
+        title:`${log.member_name} logged in`,
+        body:`Logged into ${log.app||'Video System'} at ${loginTime}`,
+        for_role:'all',
+        related_member:log.member_name
+      };
+      const r=await SBpost('cc_notifications',notif);
+      if(r&&r[0])NOTIFS.unshift(r[0]);
+    }
+  }catch(e){console.error('checkLoginAlerts',e);}
+}
+
+// ── Auto-check every 5 minutes ──
+setInterval(function(){
+  if(CURRENT_PAGE)loadNotifications();
+},300000);
 
 /* ── JOURNEY ── */
 function renderJourneyTab(id){
