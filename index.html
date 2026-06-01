@@ -1188,6 +1188,30 @@ td:last-child{padding-right:18px;text-align:right}
   .fin-view-tabs{width:100%}
   .fin-vtab{flex:1;text-align:center;font-size:11px;padding:6px 8px}
 }
+/* ── TEAM PAGE ── */
+.tm-dept{margin-bottom:24px}
+.tm-dept-hd{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--text-3);margin-bottom:10px;padding-left:2px}
+.tm-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.tm-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:all .15s;position:relative}
+.tm-card:hover{border-color:var(--accent);transform:translateY(-1px)}
+.tm-card.active{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-glow)}
+.tm-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Poppins',sans-serif;font-size:14px;font-weight:800;color:#fff;margin-bottom:10px}
+.tm-name{font-family:'Poppins',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+.tm-role{font-size:10px;color:var(--text-3);margin-top:2px}
+.tm-stat-row{display:flex;gap:12px;margin-top:10px}
+.tm-stat-mini{text-align:center;flex:1}
+.tm-stat-mini-val{font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)}
+.tm-stat-mini-lbl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)}
+.tm-detail-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-top:16px}
+.tm-detail-hd{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.tm-detail-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.tm-detail-stat{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;text-align:center}
+.tm-detail-stat-val{font-family:'Poppins',sans-serif;font-size:20px;font-weight:800}
+.tm-detail-stat-lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-top:3px}
+.tm-proj-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.tm-proj-row:last-child{border-bottom:none}
+@media(max-width:900px){.tm-detail-stats{grid-template-columns:1fr 1fr}.tm-cards{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))}}
+@media(max-width:540px){.tm-detail-stats{grid-template-columns:1fr 1fr}.tm-stat-mini-val{font-size:14px}}
 </style>
 </head>
 <body>
@@ -1266,7 +1290,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-shootpipeline" onclick="showPage('shootpipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Shoot Pipeline</div>
       <div class="nav-sec">Operations</div>
       <div class="nav-item" id="nav-finance" onclick="showPage('finance')"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
-      <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
+      <div class="nav-item" id="nav-team" onclick="showPage('team')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
       <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
     </div>
     <div class="user-card">
@@ -2214,6 +2238,29 @@ td:last-child{padding-right:18px;text-align:right}
 
     <!-- By Client View -->
     <div id="fin-client-view" style="display:none"></div>
+  </div>
+</div>
+<!-- ══════════════ TEAM PAGE ══════════════ -->
+<div id="page-team" class="page-section" style="display:none">
+  <div class="content">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Team</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px" id="tm-sub">6 active members</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-select" id="tm-month-sel" style="width:130px;font-size:12px" onchange="renderTeamPage()">
+          <option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option><option value="2026-03">Mar 2026</option>
+          <option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option><option value="2026-06">Jun 2026</option>
+          <option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option><option value="2026-09">Sep 2026</option>
+          <option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
+        </select>
+      </div>
+    </div>
+    <!-- Team grid by department -->
+    <div id="tm-grid"></div>
+    <!-- Member detail panel (shown on click) -->
+    <div id="tm-detail" style="display:none"></div>
   </div>
 </div>
 <div class="modal-overlay hidden" id="modal-sp-shoot">
@@ -3291,6 +3338,9 @@ function showPage(page) {
   } else if (page === 'finance') {
     document.getElementById('topbar-title').textContent = 'Finance';
     loadFinancePage();
+  } else if (page === 'team') {
+    document.getElementById('topbar-title').textContent = 'Team';
+    loadTeamPage();
   }
 }
 
@@ -4828,6 +4878,211 @@ function renderFinByClient(){
       }).join('')}
     </div>`;
   }).join('');
+}
+
+/* ══════════════════════════════════════
+   TEAM PAGE
+══════════════════════════════════════ */
+let TM_MEMBERS=[];
+let TM_VIDEOS=[];
+let TM_TIMELOGS=[];
+let TM_selectedId=null;
+
+const TM_ROLE_ORDER=['Social Media Manager','Video Head','Video Editor','Graphic Designer'];
+const TM_DEPT_LABELS={'Social Media Manager':'Social Media','Video Head':'Video Team','Video Editor':'Video Team','Graphic Designer':'Graphic Design'};
+const TM_COLORS={'Social Media Manager':'var(--pink)','Video Head':'var(--accent)','Video Editor':'var(--blue)','Graphic Designer':'var(--green)'};
+
+function getTmMonth(){
+  const sel=document.getElementById('tm-month-sel');
+  return sel?sel.value:'2026-06';
+}
+
+async function loadTeamPage(){
+  try{
+    const [members,videos,timelogs]=await Promise.all([
+      SBget('team_members','?select=*&active=eq.true&order=role,name'),
+      SBget('video_projects','?select=*&is_archived=eq.false').catch(()=>[]),
+      SBget('video_time_logs','?select=*').catch(()=>[])
+    ]);
+    TM_MEMBERS=members||[];
+    TM_VIDEOS=videos||[];
+    TM_TIMELOGS=timelogs||[];
+  }catch(e){console.error('loadTeamPage',e);}
+  const{y,m}=nowYM();
+  const cur=`${y}-${String(m).padStart(2,'0')}`;
+  const sel=document.getElementById('tm-month-sel');
+  if(sel&&sel.querySelector(`option[value="${cur}"]`))sel.value=cur;
+  document.getElementById('tm-sub').textContent=TM_MEMBERS.length+' active members';
+  TM_selectedId=null;
+  renderTeamPage();
+}
+
+function renderTeamPage(){
+  const month=getTmMonth();
+  const mNum=parseInt(month.split('-')[1]);
+  const yNum=parseInt(month.split('-')[0]);
+  const grid=document.getElementById('tm-grid');
+  const detail=document.getElementById('tm-detail');
+
+  // Group members by department
+  const depts={};
+  TM_MEMBERS.forEach(m=>{
+    const dept=TM_DEPT_LABELS[m.role]||m.role;
+    if(!depts[dept])depts[dept]=[];
+    depts[dept].push(m);
+  });
+
+  // Sort departments
+  const deptOrder=['Social Media','Video Team','Graphic Design'];
+  const sortedDepts=Object.entries(depts).sort((a,b)=>(deptOrder.indexOf(a[0])||99)-(deptOrder.indexOf(b[0])||99));
+
+  grid.innerHTML=sortedDepts.map(([dept,members])=>{
+    return `<div class="tm-dept">
+      <div class="tm-dept-hd">${dept} <span style="font-weight:400;letter-spacing:0;text-transform:none">(${members.length})</span></div>
+      <div class="tm-cards">${members.map(m=>{
+        const vids=TM_VIDEOS.filter(v=>Number(v.assigned_editor_id)===m.id&&Number(v.target_month)===mNum&&Number(v.target_year)===yNum);
+        const done=vids.filter(v=>v.current_stage==='posted').length;
+        const inProg=vids.filter(v=>v.current_stage!=='posted').length;
+        const color=TM_COLORS[m.role]||'var(--accent)';
+        const initials=m.name.substring(0,2);
+        const isActive=TM_selectedId===m.id;
+        return `<div class="tm-card${isActive?' active':''}" onclick="selectTeamMember(${m.id})">
+          <div class="tm-av" style="background:${color}">${initials}</div>
+          <div class="tm-name">${esc(m.name.charAt(0)+m.name.slice(1).toLowerCase())}</div>
+          <div class="tm-role">${esc(m.role)}</div>
+          ${m.role==='Video Head'||m.role==='Video Editor'?`
+          <div class="tm-stat-row">
+            <div class="tm-stat-mini"><div class="tm-stat-mini-val">${vids.length}</div><div class="tm-stat-mini-lbl">Assigned</div></div>
+            <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:var(--green)">${done}</div><div class="tm-stat-mini-lbl">Posted</div></div>
+            <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:${inProg>0?'var(--amber)':'var(--text-3)'}">${inProg}</div><div class="tm-stat-mini-lbl">In Progress</div></div>
+          </div>`:`
+          <div style="margin-top:10px;font-size:10px;color:var(--text-3);font-style:italic">System data coming soon</div>`}
+        </div>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // If someone is selected, show detail
+  if(TM_selectedId)renderTeamMemberDetail(TM_selectedId);
+  else detail.style.display='none';
+}
+
+function selectTeamMember(id){
+  TM_selectedId=TM_selectedId===id?null:id;
+  renderTeamPage();
+}
+
+function renderTeamMemberDetail(id){
+  const detail=document.getElementById('tm-detail');
+  const m=TM_MEMBERS.find(x=>x.id===id);
+  if(!m){detail.style.display='none';return;}
+  detail.style.display='block';
+
+  const month=getTmMonth();
+  const mNum=parseInt(month.split('-')[1]);
+  const yNum=parseInt(month.split('-')[0]);
+  const color=TM_COLORS[m.role]||'var(--accent)';
+  const initials=m.name.substring(0,2);
+  const MNS=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  if(m.role==='Video Head'||m.role==='Video Editor'){
+    // Video data
+    const allVids=TM_VIDEOS.filter(v=>Number(v.assigned_editor_id)===id);
+    const monthVids=allVids.filter(v=>Number(v.target_month)===mNum&&Number(v.target_year)===yNum);
+    const posted=monthVids.filter(v=>v.current_stage==='posted').length;
+    const inProg=monthVids.filter(v=>v.current_stage!=='posted').length;
+    const timeLogs=TM_TIMELOGS.filter(t=>Number(t.team_member_id)===id);
+    const monthTimeSecs=timeLogs.filter(t=>{
+      const d=new Date(t.started_at||t.created_at);
+      return d.getMonth()+1===mNum&&d.getFullYear()===yNum;
+    }).reduce((s,t)=>s+(Number(t.duration_seconds)||0),0);
+    const hrs=Math.floor(monthTimeSecs/3600);
+    const mins=Math.floor((monthTimeSecs%3600)/60);
+
+    // Stage breakdown
+    const stageCount={};
+    monthVids.forEach(v=>{const st=v.current_stage||'unknown';stageCount[st]=(stageCount[st]||0)+1;});
+
+    // Client breakdown
+    const clientCount={};
+    monthVids.forEach(v=>{
+      const cl=CLIENTS.find(c=>Number(c.id)===Number(v.client_id));
+      const cn=cl?cl.name:'Unknown';
+      clientCount[cn]=(clientCount[cn]||0)+1;
+    });
+
+    detail.innerHTML=`
+      <div class="tm-detail-card">
+        <div class="tm-detail-hd">
+          <div class="tm-av" style="background:${color};width:48px;height:48px;font-size:16px">${initials}</div>
+          <div>
+            <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${esc(m.name.charAt(0)+m.name.slice(1).toLowerCase())}</div>
+            <div style="font-size:11px;color:var(--text-3)">${esc(m.role)} · ${MNS[mNum]} ${yNum}</div>
+          </div>
+          <button class="btn-ghost btn-sm" style="margin-left:auto;font-size:11px" onclick="TM_selectedId=null;renderTeamPage()">Close ×</button>
+        </div>
+
+        <div class="tm-detail-stats">
+          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--text)">${monthVids.length}</div><div class="tm-detail-stat-lbl">Total Assigned</div></div>
+          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--green)">${posted}</div><div class="tm-detail-stat-lbl">Posted</div></div>
+          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--amber)">${inProg}</div><div class="tm-detail-stat-lbl">In Progress</div></div>
+          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--blue)">${hrs}h ${mins}m</div><div class="tm-detail-stat-lbl">Time Logged</div></div>
+        </div>
+
+        ${Object.keys(clientCount).length?`
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">By Client</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+          ${Object.entries(clientCount).sort((a,b)=>b[1]-a[1]).map(([cn,ct])=>`
+            <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:var(--surface-2);border:1px solid var(--border);font-weight:600;color:var(--text-2)">${esc(cn)} <span style="color:var(--accent);font-weight:800">${ct}</span></span>
+          `).join('')}
+        </div>`:''}
+
+        ${Object.keys(stageCount).length?`
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Current Stage Breakdown</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+          ${Object.entries(stageCount).map(([st,ct])=>`
+            <span style="font-size:11px;padding:4px 10px;border-radius:20px;background:var(--surface-2);border:1px solid var(--border);font-weight:500;color:var(--text-2)">${VP_LABEL[st]||st} <span style="font-weight:800">${ct}</span></span>
+          `).join('')}
+        </div>`:''}
+
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3);margin-bottom:8px">Projects This Month (${monthVids.length})</div>
+        <div class="card" style="padding:0;overflow:hidden">
+          ${monthVids.length?monthVids.map(v=>{
+            const cl=CLIENTS.find(c=>Number(c.id)===Number(v.client_id));
+            const cn=cl?cl.name:'—';
+            const sc={posted:'var(--green)',sent_to_client:'var(--blue)',client_changes:'var(--amber)',coo_check:'var(--pink)',video_head_review:'var(--accent)',team_review:'var(--accent)',changes:'var(--red)'}[v.current_stage]||'var(--text-2)';
+            return `<div class="tm-proj-row">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(v.title||'Untitled')}</div>
+                <div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(cn)}${v.deadline?' · Due '+v.deadline:''}</div>
+              </div>
+              <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--surface-2);color:${sc};border:1px solid var(--border);white-space:nowrap">${VP_LABEL[v.current_stage]||v.current_stage}</span>
+              ${v.priority==='urgent'||v.priority==='high'?`<span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px;background:var(--red-soft);color:var(--red)">${v.priority.toUpperCase()}</span>`:''}
+            </div>`;
+          }).join(''):`<div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px">No projects assigned for ${MNS[mNum]} ${yNum}</div>`}
+        </div>
+      </div>`;
+  } else {
+    // SMM or GD — no system data yet
+    detail.innerHTML=`
+      <div class="tm-detail-card">
+        <div class="tm-detail-hd">
+          <div class="tm-av" style="background:${color};width:48px;height:48px;font-size:16px">${initials}</div>
+          <div>
+            <div style="font-family:'Poppins',sans-serif;font-size:16px;font-weight:800;color:var(--text)">${esc(m.name.charAt(0)+m.name.slice(1).toLowerCase())}</div>
+            <div style="font-size:11px;color:var(--text-3)">${esc(m.role)} · ${MNS[mNum]} ${yNum}</div>
+          </div>
+          <button class="btn-ghost btn-sm" style="margin-left:auto;font-size:11px" onclick="TM_selectedId=null;renderTeamPage()">Close ×</button>
+        </div>
+        <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">
+          <div style="font-size:28px;margin-bottom:8px">🔧</div>
+          System data for ${esc(m.role)}s will appear here once the ${m.role==='Social Media Manager'?'SMM':'GD'} Workspace tracking is connected.
+        </div>
+      </div>`;
+  }
+
+  // Scroll to detail
+  detail.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 /* ── JOURNEY ── */
