@@ -1151,6 +1151,43 @@ td:last-child{padding-right:18px;text-align:right}
 .vp-comment-time{font-size:9px;color:var(--text-3);margin-left:8px}
 .vp-comment-body{font-size:12px;color:var(--text);margin-top:4px;line-height:1.5;white-space:pre-wrap}
 .vp-comment-img{max-width:100%;max-height:300px;border-radius:var(--r-sm);margin-top:6px;cursor:pointer}
+/* ── FINANCE PAGE ── */
+.fin-ph{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.fin-ph-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fin-view-tabs{display:flex;gap:0;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
+.fin-vtab{background:none;border:none;padding:6px 14px;font-size:11.5px;font-weight:600;color:var(--text-2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.fin-vtab:hover{color:var(--text)}
+.fin-vtab.active{background:var(--accent);color:#fff}
+.fin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.fin-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:15px 17px;transition:border-color .15s}
+.fin-stat:hover{border-color:var(--border-strong)}
+.fin-stat-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-3)}
+.fin-stat-val{font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.02em;margin:5px 0 3px}
+.fin-stat-note{font-size:10px;color:var(--text-3)}
+.fin-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.fin-inv-row{display:flex;align-items:flex-start;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
+.fin-inv-row:last-child{border-bottom:none}
+.fin-extras-breakdown{margin-top:5px;padding:5px 10px;background:var(--surface-2);border-left:2px solid var(--border-strong);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.fin-cost-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
+.fin-cost-row:last-child{border-bottom:none}
+.fin-extra-input-row{display:flex;gap:7px;align-items:center;margin-bottom:6px}
+.fin-yr-table{width:100%;border-collapse:collapse}
+.fin-yr-table th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-2);padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.fin-yr-table td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:12px}
+.fin-yr-table tfoot td{font-size:12px;font-weight:800;background:var(--surface-2)}
+@media(max-width:900px){
+  .fin-stats{grid-template-columns:1fr 1fr}
+  .fin-two-col{grid-template-columns:1fr}
+  .fin-ph{flex-direction:column;align-items:flex-start}
+  .fin-ph-right{width:100%}
+}
+@media(max-width:540px){
+  .fin-stats{grid-template-columns:1fr 1fr}
+  .fin-stat-val{font-size:18px}
+  .fin-ph-right{flex-wrap:wrap;gap:6px}
+  .fin-view-tabs{width:100%}
+  .fin-vtab{flex:1;text-align:center;font-size:11px;padding:6px 8px}
+}
 </style>
 </head>
 <body>
@@ -1228,7 +1265,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-videopipeline" onclick="showPage('videopipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>Video Pipeline</div>
       <div class="nav-item" id="nav-shootpipeline" onclick="showPage('shootpipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Shoot Pipeline</div>
       <div class="nav-sec">Operations</div>
-      <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
+      <div class="nav-item ceo-only" id="nav-finance" onclick="showPage('finance')"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
       <div class="nav-item"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
       <div class="nav-item ceo-only"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
     </div>
@@ -2052,7 +2089,133 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
   </div>
 </div>
-<!-- Shoot Pipeline Add/Edit Modal -->
+<!-- ══════════════ FINANCE PAGE ══════════════ -->
+<div id="page-finance" class="page-section" style="display:none">
+  <div class="content">
+    <!-- Page Header -->
+    <div class="fin-ph">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Finance</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px">Revenue, costs and profit — updated in real time</div>
+      </div>
+      <div class="fin-ph-right">
+        <div class="fin-view-tabs">
+          <button class="fin-vtab active" id="fvt-month" onclick="setFinView('month')">Monthly</button>
+          <button class="fin-vtab" id="fvt-year" onclick="setFinView('year')">Yearly</button>
+          <button class="fin-vtab" id="fvt-client" onclick="setFinView('client')">By Client</button>
+        </div>
+        <select class="form-select" id="fin-month-sel" style="width:150px;font-size:12px" onchange="renderFinancePage()">
+          <option value="2025-12">Dec 2025</option>
+          <option value="2026-01">Jan 2026</option>
+          <option value="2026-02">Feb 2026</option>
+          <option value="2026-03">Mar 2026</option>
+          <option value="2026-04">Apr 2026</option>
+          <option value="2026-05" selected>May 2026</option>
+          <option value="2026-06">Jun 2026</option>
+          <option value="2026-07">Jul 2026</option>
+          <option value="2026-08">Aug 2026</option>
+          <option value="2026-09">Sep 2026</option>
+          <option value="2026-10">Oct 2026</option>
+          <option value="2026-11">Nov 2026</option>
+          <option value="2026-12">Dec 2026</option>
+        </select>
+        <button class="btn-ghost btn-sm" onclick="openFinCostModal()">+ Add Cost</button>
+        <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+ Add Invoice</button>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="fin-stats" id="fin-stat-wrap">
+      <div class="fin-stat" style="border-top:2px solid var(--green)">
+        <div class="fin-stat-lbl">Total Invoiced</div>
+        <div class="fin-stat-val" id="fst-revenue" style="color:var(--green)">LKR 0</div>
+        <div class="fin-stat-note" id="fst-rev-note">All invoices this month</div>
+      </div>
+      <div class="fin-stat" style="border-top:2px solid var(--amber)">
+        <div class="fin-stat-lbl">Outstanding</div>
+        <div class="fin-stat-val" id="fst-outstanding" style="color:var(--amber)">LKR 0</div>
+        <div class="fin-stat-note">Unpaid / not yet received</div>
+      </div>
+      <div class="fin-stat" style="border-top:2px solid var(--red)">
+        <div class="fin-stat-lbl">Total Costs</div>
+        <div class="fin-stat-val" id="fst-costs" style="color:var(--red)">LKR 0</div>
+        <div class="fin-stat-note">All expenses this month</div>
+      </div>
+      <div class="fin-stat" style="border-top:2px solid var(--accent)">
+        <div class="fin-stat-lbl">Net Profit</div>
+        <div class="fin-stat-val" id="fst-profit">LKR 0</div>
+        <div class="fin-stat-note" id="fst-margin">Revenue minus costs</div>
+      </div>
+    </div>
+
+    <!-- Delayed Payments Alert -->
+    <div id="fin-delayed-wrap" style="display:none;margin-bottom:14px">
+      <div class="card" style="padding:0;overflow:hidden;border-color:rgba(239,68,68,0.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--red-soft);border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;box-shadow:0 0 6px var(--red)"></span>
+            <span style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Overdue / Delayed Payments</span>
+          </div>
+          <span style="font-size:12px;font-weight:800;color:var(--red)" id="fin-delayed-total">LKR 0</span>
+        </div>
+        <div id="fin-delayed-list"></div>
+      </div>
+    </div>
+
+    <!-- Smart Flag -->
+    <div id="fin-smartflag-wrap" style="display:none;margin-bottom:14px">
+      <div class="card" style="padding:0;overflow:hidden;border-color:rgba(251,191,36,0.3)">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--amber-soft);border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px">⚠️</span>
+            <span style="font-size:11px;font-weight:700;color:var(--amber);text-transform:uppercase;letter-spacing:.06em">Smart Check — Client Costs Not On Invoice</span>
+          </div>
+          <span style="font-size:11px;color:var(--text-3)">These costs are linked to a client but not yet added to their invoice</span>
+        </div>
+        <div id="fin-smartflag-list"></div>
+      </div>
+    </div>
+
+    <!-- Monthly View -->
+    <div id="fin-monthly-view">
+      <div class="fin-two-col">
+        <!-- Invoices -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2)">Payments to Receive</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:2px">Total: <span id="fin-inv-total" style="color:var(--text);font-weight:700">LKR 0</span></div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <select class="form-select" style="font-size:11px;padding:4px 8px;width:auto" onchange="finInvFilter=this.value;renderFinancePage()">
+                <option value="">All</option><option value="paid">Paid</option><option value="unpaid">Pending</option><option value="overdue">Overdue</option>
+              </select>
+              <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+</button>
+            </div>
+          </div>
+          <div id="fin-invoice-list" style="max-height:500px;overflow-y:auto"></div>
+        </div>
+        <!-- Costs -->
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2)">Costs & Expenses</div>
+              <div style="font-size:10px;color:var(--text-3);margin-top:2px">Total: <span id="fin-cost-total" style="color:var(--red);font-weight:700">LKR 0</span></div>
+            </div>
+            <button class="btn-ghost btn-sm" onclick="openFinCostModal()">+</button>
+          </div>
+          <div id="fin-cost-list" style="max-height:500px;overflow-y:auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Yearly View -->
+    <div id="fin-yearly-view" style="display:none"></div>
+
+    <!-- By Client View -->
+    <div id="fin-client-view" style="display:none"></div>
+  </div>
+</div>
 <div class="modal-overlay hidden" id="modal-sp-shoot">
   <div class="modal"><div class="modal-head"><div class="modal-title" id="sp-modal-title">Add Shoot</div><button class="modal-close" onclick="closeModal('modal-sp-shoot')">×</button></div>
   <div class="modal-body">
@@ -2189,15 +2352,83 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
   <div class="modal-foot" id="sh-modal-foot"><button class="btn-ghost" onclick="closeModal('modal-shoot')">Cancel</button><button class="btn-primary" onclick="saveShoot()">Save Shoot</button></div></div>
 </div>
-<!-- Add/Edit Invoice -->
-<div class="modal-overlay hidden" id="modal-invoice">
-  <div class="modal"><div class="modal-head"><div class="modal-title" id="inv-modal-title">Add Invoice</div><button class="modal-close" onclick="closeModal('modal-invoice')">×</button></div>
-  <div class="modal-body">
-    <div class="field-row"><div class="form-field"><label class="form-label">Month (YYYY-MM) *</label><input class="form-input" id="inv-month" placeholder="2026-05"></div><div class="form-field"><label class="form-label">Amount (LKR) *</label><input class="form-input" id="inv-amount" type="number" placeholder="70000"></div></div>
-    <div class="field-row"><div class="form-field"><label class="form-label">Status</label><select class="form-select" id="inv-status"><option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option></select></div><div class="form-field"><label class="form-label">Due Date</label><input class="form-input" id="inv-due" type="date"></div></div>
-    <div class="form-field"><label class="form-label">Notes (retainer + extras e.g. shoot lights, equipment)</label><input class="form-input" id="inv-notes" placeholder="e.g. May retainer + shoot lights LKR 8,000"></div>
+<!-- Add/Edit Invoice (Finance Page) -->
+<div class="modal-overlay hidden" id="modal-fin-invoice">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head"><div class="modal-title" id="fin-inv-modal-title">Add Invoice</div><button class="modal-close" onclick="closeModal('modal-fin-invoice')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-label">Client *</label>
+        <select class="form-select" id="fin-inv-client" onchange="finInvClientChanged()"><option value="">Select client</option></select>
+      </div>
+      <div class="field-row">
+        <div class="form-field"><label class="form-label">Base Retainer (LKR) *</label><input class="form-input" id="fin-inv-amount" type="number" placeholder="e.g. 90000" oninput="finRecalcTotal()"></div>
+        <div class="form-field"><label class="form-label">Month *</label>
+          <select class="form-select" id="fin-inv-month">
+            <option value="2025-12">Dec 2025</option><option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option>
+            <option value="2026-03">Mar 2026</option><option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option>
+            <option value="2026-06">Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
+            <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
+          </select>
+        </div>
+      </div>
+      <!-- Extras -->
+      <div style="margin:4px 0 10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+          <label class="form-label" style="margin:0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em">Additional Charges</label>
+          <button type="button" class="btn-ghost btn-sm" style="font-size:10px;padding:2px 10px" onclick="finAddExtra()">+ Add Item</button>
+        </div>
+        <div id="fin-extras-list"></div>
+      </div>
+      <!-- Running total -->
+      <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 14px;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Invoice Total</span>
+        <span style="font-size:15px;font-weight:800;color:var(--accent);font-family:'Poppins',sans-serif" id="fin-inv-total-live">LKR 0</span>
+      </div>
+      <div class="field-row">
+        <div class="form-field"><label class="form-label">Due Date</label><input class="form-input" id="fin-inv-due" type="date"></div>
+        <div class="form-field"><label class="form-label">Status</label>
+          <select class="form-select" id="fin-inv-status">
+            <option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="fin-inv-notes" placeholder="Optional"></div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-fin-invoice')">Cancel</button><button class="btn-primary" onclick="saveFinInvoice()">Save Invoice</button></div>
   </div>
-  <div class="modal-foot" id="inv-modal-foot"><button class="btn-ghost" onclick="closeModal('modal-invoice')">Cancel</button><button class="btn-primary" onclick="saveInvoice()">Save</button></div></div>
+</div>
+<!-- Add/Edit Cost (Finance Page) -->
+<div class="modal-overlay hidden" id="modal-fin-cost">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="fin-cost-modal-title">Add Cost</div><button class="modal-close" onclick="closeModal('modal-fin-cost')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-label">Description *</label><input class="form-input" id="fin-cost-desc" placeholder="e.g. Speaker cable for Home Depot, Salary, AI Tools"></div>
+      <div class="field-row">
+        <div class="form-field"><label class="form-label">Amount (LKR) *</label><input class="form-input" id="fin-cost-amount" type="number" placeholder="e.g. 8500"></div>
+        <div class="form-field"><label class="form-label">Month *</label>
+          <select class="form-select" id="fin-cost-month">
+            <option value="2025-12">Dec 2025</option><option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option>
+            <option value="2026-03">Mar 2026</option><option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option>
+            <option value="2026-06">Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
+            <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-field"><label class="form-label">Category</label>
+        <select class="form-select" id="fin-cost-category">
+          <option value="Salaries">Salaries</option><option value="Freelancers">Freelancers</option>
+          <option value="Software">Software & Tools</option><option value="Ad Spend">Ad Spend</option>
+          <option value="Equipment">Equipment</option><option value="Office">Office & Admin</option><option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">Linked Client <span style="color:var(--text-3);font-weight:400;font-size:10px">(optional — enables smart flag)</span></label>
+        <select class="form-select" id="fin-cost-client"><option value="">No specific client</option></select>
+      </div>
+      <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="fin-cost-notes" placeholder="Optional"></div>
+    </div>
+    <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-fin-cost')">Cancel</button><button class="btn-primary" onclick="saveFinCost()">Save Cost</button></div>
+  </div>
 </div>
 <!-- Add Task -->
 <div class="modal-overlay hidden" id="modal-task">
@@ -3057,6 +3288,9 @@ function showPage(page) {
   } else if (page === 'shootpipeline') {
     document.getElementById('topbar-title').textContent = 'Shoot Pipeline';
     loadShootPipeline();
+  } else if (page === 'finance') {
+    document.getElementById('topbar-title').textContent = 'Finance';
+    loadFinancePage();
   }
 }
 
@@ -4150,6 +4384,451 @@ async function saveInvoice(){
   closeModal('modal-invoice');renderFinanceTab(currentId);renderKPIs(c);renderAlertBanner(c);
 }
 async function deleteInv(id){if(!confirm('Delete this invoice?'))return;await SBdel('invoices',id);INVOICES=INVOICES.filter(i=>i.id!==id);renderFinanceTab(currentId);const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderAlertBanner(c);}
+
+/* ══════════════════════════════════════
+   FINANCE PAGE (standalone CEO/COO view)
+══════════════════════════════════════ */
+let FIN_INVOICES=[];
+let FIN_COSTS=[];
+let finView='month';
+let finInvFilter='';
+let finEditInvId=null;
+let finEditCostId=null;
+let _finExtras=[];
+
+const FIN_MONTH_NAMES={'2025-12':'Dec 2025','2026-01':'Jan 2026','2026-02':'Feb 2026','2026-03':'Mar 2026',
+  '2026-04':'Apr 2026','2026-05':'May 2026','2026-06':'Jun 2026','2026-07':'Jul 2026',
+  '2026-08':'Aug 2026','2026-09':'Sep 2026','2026-10':'Oct 2026','2026-11':'Nov 2026','2026-12':'Dec 2026'};
+
+function getFinMonth(){return document.getElementById('fin-month-sel')?.value||'2026-05';}
+
+async function loadFinancePage(){
+  try{
+    const [inv,costs]=await Promise.all([
+      SBget('invoices','?select=*&order=month.desc,created_at.desc'),
+      SBget('costs','?select=*&order=month.desc,created_at.desc').catch(()=>[])
+    ]);
+    FIN_INVOICES=inv||[];
+    FIN_COSTS=costs||[];
+    // Sync into INVOICES so client profile tab stays fresh
+    INVOICES=FIN_INVOICES;
+  }catch(e){console.error('loadFinancePage',e);}
+  // Set month selector to current month
+  const{y,m}=nowYM();
+  const cur=`${y}-${String(m).padStart(2,'0')}`;
+  const sel=document.getElementById('fin-month-sel');
+  if(sel&&sel.querySelector(`option[value="${cur}"]`))sel.value=cur;
+  renderFinancePage();
+}
+
+function setFinView(v){
+  finView=v;
+  ['month','year','client'].forEach(x=>{
+    const btn=document.getElementById('fvt-'+x);
+    if(btn)btn.classList.toggle('active',x===v);
+  });
+  const mSel=document.getElementById('fin-month-sel');
+  if(mSel)mSel.style.display=v==='month'?'':'none';
+  document.getElementById('fin-monthly-view').style.display=v==='month'?'':'none';
+  document.getElementById('fin-yearly-view').style.display=v==='year'?'block':'none';
+  document.getElementById('fin-client-view').style.display=v==='client'?'block':'none';
+  document.getElementById('fin-stat-wrap').style.display=v==='month'?'':'none';
+  if(v==='year')renderFinYearly();
+  if(v==='client')renderFinByClient();
+}
+
+function renderFinancePage(){
+  const month=getFinMonth();
+  const invoices=FIN_INVOICES.filter(i=>String(i.month)===month);
+  const costs=FIN_COSTS.filter(c=>String(c.month)===month);
+
+  const invTotal=invoices.reduce((s,i)=>s+(i.amount||0),0);
+  const outstanding=invoices.filter(i=>i.status!=='paid').reduce((s,i)=>s+(i.amount||0),0);
+  const totalCosts=costs.reduce((s,c)=>s+(c.amount||0),0);
+  const profit=invTotal-totalCosts;
+  const margin=invTotal>0?Math.round(profit/invTotal*100):0;
+
+  document.getElementById('fst-revenue').textContent='LKR '+invTotal.toLocaleString();
+  document.getElementById('fst-outstanding').textContent='LKR '+outstanding.toLocaleString();
+  document.getElementById('fst-costs').textContent='LKR '+totalCosts.toLocaleString();
+  const profEl=document.getElementById('fst-profit');
+  profEl.textContent='LKR '+profit.toLocaleString();
+  profEl.style.color=profit>=0?'var(--green)':'var(--red)';
+  document.getElementById('fst-margin').textContent=margin+'% margin';
+  document.getElementById('fin-inv-total').textContent='LKR '+invTotal.toLocaleString();
+  document.getElementById('fin-cost-total').textContent='LKR '+totalCosts.toLocaleString();
+
+  // Delayed payments (all months)
+  const allDelayed=FIN_INVOICES.filter(i=>i.status!=='paid');
+  const delWrap=document.getElementById('fin-delayed-wrap');
+  if(allDelayed.length){
+    delWrap.style.display='block';
+    const delSum=allDelayed.reduce((s,i)=>s+(i.amount||0),0);
+    document.getElementById('fin-delayed-total').textContent='LKR '+delSum.toLocaleString();
+    const byM={};
+    allDelayed.forEach(i=>{const mk=i.month||'—';(byM[mk]=byM[mk]||[]).push(i);});
+    document.getElementById('fin-delayed-list').innerHTML=
+      Object.keys(byM).sort().reverse().map(mk=>{
+        const mInvs=byM[mk];const mSum=mInvs.reduce((s,i)=>s+(i.amount||0),0);
+        return `<div style="padding:7px 18px 7px 36px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface-2)">
+          <span style="font-size:10px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">${FIN_MONTH_NAMES[mk]||mk}</span>
+          <span style="font-size:11px;font-weight:800;color:var(--red)">LKR ${mSum.toLocaleString()}</span></div>`+
+          mInvs.map(inv=>{
+            const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
+            const nm=inv.client_name||(cl?cl.name:'')||'—';
+            const isOv=inv.status==='overdue';
+            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 18px 9px 36px;border-bottom:1px solid var(--border)">
+              <div style="flex:1;font-size:12px;font-weight:600;color:var(--text)">${esc(nm)}</div>
+              <div style="font-size:13px;font-weight:800;color:var(--text)">LKR ${(inv.amount||0).toLocaleString()}</div>
+              <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isOv?'var(--red-soft)':'var(--amber-soft)'};color:${isOv?'var(--red)':'var(--amber)'}">${isOv?'OVERDUE':'PENDING'}</span>
+              <button style="font-size:10px;padding:3px 9px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid ✓</button>
+            </div>`;
+          }).join('');
+      }).join('');
+  }else{delWrap.style.display='none';}
+
+  // Smart flag
+  renderFinSmartFlag(month);
+
+  // Invoice list
+  let filtered=finInvFilter?invoices.filter(i=>i.status===finInvFilter):invoices;
+  filtered=[...filtered].sort((a,b)=>({overdue:0,unpaid:1,paid:2}[a.status]||3)-({overdue:0,unpaid:1,paid:2}[b.status]||3));
+  const invEl=document.getElementById('fin-invoice-list');
+  if(!filtered.length){
+    invEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No invoices for ${FIN_MONTH_NAMES[month]||month}</div>`;
+  }else{
+    invEl.innerHTML=filtered.map(inv=>{
+      const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
+      const nm=inv.client_name||(cl?cl.name:'')||'—';
+      const sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
+      const sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
+      const sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||inv.status.toUpperCase();
+      let extras=[];
+      try{extras=Array.isArray(inv.extras)?inv.extras:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
+      const extrasHtml=extras.length?`<div class="fin-extras-breakdown">${extras.map(ex=>`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);padding:1px 0"><span>+ ${esc(ex.desc||'Extra')}</span><span style="color:var(--text-2);font-weight:600">LKR ${(parseInt(ex.amt)||0).toLocaleString()}</span></div>`).join('')}</div>`:'';
+      return `<div class="fin-inv-row">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${esc(nm)}</div>
+          ${inv.notes?`<div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(inv.notes)}</div>`:''}
+          ${extrasHtml}
+        </div>
+        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--text);flex-shrink:0">LKR ${(inv.amount||0).toLocaleString()}</div>
+        <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${sb};color:${sc};flex-shrink:0;min-width:58px;text-align:center">${sl}</span>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          ${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid ✓</button>`:''}
+          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px" onclick="openFinInvoiceModal(${inv.id})">Edit</button>
+          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteInvoice(${inv.id})">×</button>
+        </div>
+      </div>`;
+    }).join('')+`<div style="display:flex;justify-content:space-between;padding:9px 18px;background:var(--surface-2);border-top:1px solid var(--border)"><span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Total</span><span style="font-size:13px;font-weight:800">LKR ${invTotal.toLocaleString()}</span></div>`;
+  }
+
+  // Cost list
+  const costEl=document.getElementById('fin-cost-list');
+  if(!costs.length){
+    costEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No costs for ${FIN_MONTH_NAMES[month]||month}</div>`;
+  }else{
+    const sorted=[...costs].sort((a,b)=>(b.amount||0)-(a.amount||0));
+    costEl.innerHTML=sorted.map(cost=>{
+      const linkedCl=cost.client_id?CLIENTS.find(c=>Number(c.id)===Number(cost.client_id)):null;
+      const clientTag=linkedCl?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);margin-left:6px">${esc(linkedCl.name)}</span>`:'';
+      return `<div class="fin-cost-row">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:3px">
+            <span style="font-size:13px;font-weight:700;color:var(--text)">${esc(cost.description)}</span>${clientTag}
+          </div>
+          ${cost.category?`<div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(cost.category)}${cost.notes?' · '+esc(cost.notes):''}</div>`:''}
+        </div>
+        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--red);flex-shrink:0">LKR ${(cost.amount||0).toLocaleString()}</div>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px" onclick="openFinCostModal(${cost.id})">Edit</button>
+          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteCost(${cost.id})">×</button>
+        </div>
+      </div>`;
+    }).join('')+`<div style="display:flex;justify-content:space-between;padding:9px 18px;background:var(--surface-2);border-top:1px solid var(--border)"><span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Total</span><span style="font-size:13px;font-weight:800;color:var(--red)">LKR ${totalCosts.toLocaleString()}</span></div>`;
+  }
+}
+
+function renderFinSmartFlag(month){
+  const clientCosts=FIN_COSTS.filter(c=>String(c.month)===month&&c.client_id);
+  const wrap=document.getElementById('fin-smartflag-wrap');
+  const listEl=document.getElementById('fin-smartflag-list');
+  if(!wrap||!listEl){return;}
+  const flags=[];
+  clientCosts.forEach(cost=>{
+    const inv=FIN_INVOICES.find(i=>String(i.month)===month&&Number(i.client_id)===Number(cost.client_id));
+    let extras=[];
+    try{extras=Array.isArray(inv?.extras)?inv.extras:(inv?.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
+    const alreadyCaptured=extras.some(e=>{
+      const ed=(e.desc||'').toLowerCase().trim();const cd=(cost.description||'').toLowerCase().trim();
+      return ed&&cd&&(ed.includes(cd.substring(0,6))||cd.includes(ed.substring(0,6)));
+    });
+    if(!alreadyCaptured){
+      const cl=CLIENTS.find(c=>Number(c.id)===Number(cost.client_id));
+      flags.push({cost,client:cl,inv});
+    }
+  });
+  if(!flags.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  listEl.innerHTML=flags.map(({cost,client,inv})=>{
+    const cName=client?client.name:(cost.client_name||'Unknown');
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <div style="flex:1;min-width:160px">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">${esc(cName)}</div>
+        <div style="font-size:10px;color:var(--text-3);margin-top:2px">${esc(cost.description)} — LKR ${(cost.amount||0).toLocaleString()} (${esc(cost.category||'Cost')})</div>
+      </div>
+      <span style="font-size:10px;color:var(--amber);font-weight:600">${inv?'Invoice exists — extra not added':'No invoice yet this month'}</span>
+      ${inv?`<button style="font-size:10px;padding:4px 12px;background:var(--amber-soft);border:1px solid var(--amber);color:var(--amber);border-radius:var(--r-sm);cursor:pointer;font-weight:600;white-space:nowrap" onclick="finQuickAddExtra(${inv.id},'${(cost.description||'').replace(/'/g,"\\'")}',${cost.amount||0})">Add to Invoice ↗</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function finQuickAddExtra(invId,desc,amt){
+  const inv=FIN_INVOICES.find(i=>i.id===invId);if(!inv)return;
+  let extras=[];try{extras=Array.isArray(inv.extras)?[...inv.extras]:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
+  extras.push({desc,amt:parseInt(amt)||0});
+  const newTotal=(inv.amount||0)+(parseInt(amt)||0);
+  await SBpatch('invoices',invId,{extras:JSON.stringify(extras),amount:newTotal});
+  await loadFinancePage();
+}
+
+async function finMarkPaid(id){
+  await SBpatch('invoices',id,{status:'paid'});
+  const i=FIN_INVOICES.find(x=>x.id===id);if(i)i.status='paid';
+  // Also sync INVOICES
+  const gi=INVOICES.find(x=>x.id===id);if(gi)gi.status='paid';
+  renderFinancePage();
+}
+async function finDeleteInvoice(id){
+  if(!confirm('Delete this invoice?'))return;
+  await SBdel('invoices',id);
+  FIN_INVOICES=FIN_INVOICES.filter(i=>i.id!==id);
+  INVOICES=FIN_INVOICES;
+  renderFinancePage();
+}
+async function finDeleteCost(id){
+  if(!confirm('Delete this cost?'))return;
+  await SBdel('costs',id);
+  FIN_COSTS=FIN_COSTS.filter(c=>c.id!==id);
+  renderFinancePage();
+}
+
+// ── Extras helpers ──
+function finAddExtra(desc='',amt=''){
+  _finExtras.push({desc,amt});
+  _renderFinExtras();
+}
+function finRemoveExtra(i){_finExtras.splice(i,1);_renderFinExtras();}
+function _renderFinExtras(){
+  const el=document.getElementById('fin-extras-list');if(!el)return;
+  if(!_finExtras.length){el.innerHTML='<div style="font-size:11px;color:var(--text-3);padding:4px 0">No additional charges — base retainer only</div>';finRecalcTotal();return;}
+  el.innerHTML=_finExtras.map((ex,i)=>`
+    <div class="fin-extra-input-row">
+      <input class="form-input" style="flex:1" placeholder="Description (e.g. Shoot lights)" value="${esc(ex.desc||'')}" oninput="_finExtras[${i}].desc=this.value">
+      <input class="form-input" style="width:120px" type="number" placeholder="Amount" value="${ex.amt||''}" oninput="_finExtras[${i}].amt=parseInt(this.value)||0;finRecalcTotal()">
+      <button type="button" class="btn-ghost btn-sm" style="padding:3px 9px;color:var(--red);flex-shrink:0" onclick="finRemoveExtra(${i})">×</button>
+    </div>`).join('');
+  finRecalcTotal();
+}
+function finRecalcTotal(){
+  const base=parseInt(document.getElementById('fin-inv-amount')?.value)||0;
+  const extSum=_finExtras.reduce((s,e)=>s+(parseInt(e.amt)||0),0);
+  const el=document.getElementById('fin-inv-total-live');
+  if(el)el.textContent='LKR '+(base+extSum).toLocaleString();
+}
+function finInvClientChanged(){
+  if(finEditInvId)return; // don't overwrite on edit
+  const cid=parseInt(document.getElementById('fin-inv-client')?.value)||null;
+  if(!cid)return;
+  const cl=CLIENTS.find(c=>c.id===cid);if(!cl)return;
+  const PKG_MRR={Spark:90000,Ignite:150000,Blaze:230000,'SEO Essential':40000,'SEO+Maintenance':50000};
+  const mrr=cl.mrr||PKG_MRR[cl.package]||0;
+  if(mrr){document.getElementById('fin-inv-amount').value=mrr;finRecalcTotal();}
+}
+
+// ── Invoice modal ──
+function openFinInvoiceModal(id=null){
+  finEditInvId=id||null;
+  _finExtras=[];
+  document.getElementById('fin-inv-modal-title').textContent=id?'Edit Invoice':'Add Invoice';
+  const csel=document.getElementById('fin-inv-client');
+  csel.innerHTML='<option value="">Select client</option>'+(CLIENTS||[]).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  const month=getFinMonth();
+  if(id){
+    const inv=FIN_INVOICES.find(x=>x.id===id);
+    if(inv){
+      csel.value=inv.client_id||'';
+      document.getElementById('fin-inv-amount').value=inv.amount||'';
+      document.getElementById('fin-inv-month').value=inv.month||month;
+      document.getElementById('fin-inv-due').value=inv.due_date||'';
+      document.getElementById('fin-inv-status').value=inv.status||'unpaid';
+      document.getElementById('fin-inv-notes').value=inv.notes||'';
+      try{_finExtras=Array.isArray(inv.extras)?[...inv.extras]:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){_finExtras=[];}
+    }
+  }else{
+    csel.value='';
+    ['fin-inv-amount','fin-inv-notes'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
+    document.getElementById('fin-inv-month').value=month;
+    document.getElementById('fin-inv-due').value='';
+    document.getElementById('fin-inv-status').value='unpaid';
+  }
+  _renderFinExtras();
+  finRecalcTotal();
+  document.getElementById('modal-fin-invoice').classList.remove('hidden');
+}
+async function saveFinInvoice(){
+  const cid=parseInt(document.getElementById('fin-inv-client').value)||null;
+  if(!cid)return alert('Please select a client');
+  const base=parseInt(document.getElementById('fin-inv-amount').value)||0;
+  if(!base)return alert('Please enter a base amount');
+  const extras=_finExtras.filter(e=>e.desc&&parseInt(e.amt)>0).map(e=>({desc:e.desc,amt:parseInt(e.amt)||0}));
+  const extTotal=extras.reduce((s,e)=>s+e.amt,0);
+  const cl=CLIENTS.find(c=>c.id===cid);
+  const data={
+    client_id:cid,client_name:cl?.name||'',
+    amount:base+extTotal,
+    extras:JSON.stringify(extras),
+    month:document.getElementById('fin-inv-month').value,
+    due_date:document.getElementById('fin-inv-due').value||null,
+    status:document.getElementById('fin-inv-status').value,
+    notes:document.getElementById('fin-inv-notes').value.trim()||null
+  };
+  if(finEditInvId){
+    await SBpatch('invoices',finEditInvId,data);
+    const i=FIN_INVOICES.find(x=>x.id===finEditInvId);if(i)Object.assign(i,data);
+    const gi=INVOICES.find(x=>x.id===finEditInvId);if(gi)Object.assign(gi,data);
+  }else{
+    const r=await SBpost('invoices',data);
+    if(r&&r[0]){FIN_INVOICES.unshift(r[0]);INVOICES.push(r[0]);}
+  }
+  closeModal('modal-fin-invoice');
+  renderFinancePage();
+}
+
+// ── Cost modal ──
+function openFinCostModal(id=null){
+  finEditCostId=id||null;
+  document.getElementById('fin-cost-modal-title').textContent=id?'Edit Cost':'Add Cost';
+  const csel=document.getElementById('fin-cost-client');
+  csel.innerHTML='<option value="">No specific client</option>'+(CLIENTS||[]).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  const month=getFinMonth();
+  if(id){
+    const cost=FIN_COSTS.find(x=>x.id===id);
+    if(cost){
+      document.getElementById('fin-cost-desc').value=cost.description||'';
+      document.getElementById('fin-cost-amount').value=cost.amount||'';
+      document.getElementById('fin-cost-month').value=cost.month||month;
+      document.getElementById('fin-cost-category').value=cost.category||'Other';
+      document.getElementById('fin-cost-notes').value=cost.notes||'';
+      csel.value=cost.client_id||'';
+    }
+  }else{
+    ['fin-cost-desc','fin-cost-amount','fin-cost-notes'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
+    document.getElementById('fin-cost-month').value=month;
+    document.getElementById('fin-cost-category').value='Other';
+    csel.value='';
+  }
+  document.getElementById('modal-fin-cost').classList.remove('hidden');
+}
+async function saveFinCost(){
+  const desc=document.getElementById('fin-cost-desc').value.trim();
+  const amt=parseInt(document.getElementById('fin-cost-amount').value)||0;
+  if(!desc)return alert('Description required');
+  if(!amt)return alert('Amount required');
+  const cid=parseInt(document.getElementById('fin-cost-client').value)||null;
+  const cl=cid?CLIENTS.find(c=>c.id===cid):null;
+  const data={description:desc,amount:amt,month:document.getElementById('fin-cost-month').value,category:document.getElementById('fin-cost-category').value,notes:document.getElementById('fin-cost-notes').value.trim()||null,client_id:cid||null,client_name:cl?.name||null};
+  if(finEditCostId){
+    await SBpatch('costs',finEditCostId,data);
+    const c=FIN_COSTS.find(x=>x.id===finEditCostId);if(c)Object.assign(c,data);
+  }else{
+    const r=await SBpost('costs',data);
+    if(r&&r[0])FIN_COSTS.unshift(r[0]);
+  }
+  closeModal('modal-fin-cost');
+  renderFinancePage();
+}
+
+// ── Yearly view ──
+function renderFinYearly(){
+  const el=document.getElementById('fin-yearly-view');if(!el)return;
+  const months=Object.keys(FIN_MONTH_NAMES).filter(m=>m.startsWith('2026'));
+  let totRev=0,totCost=0;
+  const rows=months.map(m=>{
+    const rev=FIN_INVOICES.filter(i=>String(i.month)===m).reduce((s,i)=>s+(i.amount||0),0);
+    const cost=FIN_COSTS.filter(c=>String(c.month)===m).reduce((s,c)=>s+(c.amount||0),0);
+    if(!rev&&!cost)return '';
+    totRev+=rev;totCost+=cost;
+    const pft=rev-cost;const mg=rev>0?Math.round(pft/rev*100):0;
+    return `<tr>
+      <td style="font-weight:700">${FIN_MONTH_NAMES[m]}</td>
+      <td style="color:var(--green)">${rev?'LKR '+rev.toLocaleString():'—'}</td>
+      <td style="color:var(--red)">${cost?'LKR '+cost.toLocaleString():'—'}</td>
+      <td style="color:${pft>=0?'var(--green)':'var(--red)'};font-weight:700">${rev||cost?'LKR '+pft.toLocaleString():'—'}</td>
+      <td style="color:var(--text-3)">${rev?mg+'%':'—'}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+  const totPft=totRev-totCost;const totMg=totRev>0?Math.round(totPft/totRev*100):0;
+  el.innerHTML=`
+    <div class="fin-stats" style="margin-bottom:16px">
+      <div class="fin-stat" style="border-top:2px solid var(--green)"><div class="fin-stat-lbl">Revenue 2026</div><div class="fin-stat-val" style="color:var(--green)">LKR ${totRev.toLocaleString()}</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--red)"><div class="fin-stat-lbl">Costs 2026</div><div class="fin-stat-val" style="color:var(--red)">LKR ${totCost.toLocaleString()}</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--accent)"><div class="fin-stat-lbl">Net Profit 2026</div><div class="fin-stat-val" style="color:${totPft>=0?'var(--green)':'var(--red)'}">LKR ${totPft.toLocaleString()}</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--amber)"><div class="fin-stat-lbl">Avg Margin 2026</div><div class="fin-stat-val" style="color:var(--amber)">${totMg}%</div></div>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="fin-yr-table">
+        <thead><tr><th>Month</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Margin</th></tr></thead>
+        <tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">No data yet for 2026</td></tr>'}</tbody>
+        <tfoot><tr><td>TOTAL</td><td style="color:var(--green)">LKR ${totRev.toLocaleString()}</td><td style="color:var(--red)">LKR ${totCost.toLocaleString()}</td><td style="color:${totPft>=0?'var(--green)':'var(--red)'}">LKR ${totPft.toLocaleString()}</td><td style="color:var(--amber)">${totMg}%</td></tr></tfoot>
+      </table>
+    </div>`;
+}
+
+// ── By Client view ──
+function renderFinByClient(){
+  const el=document.getElementById('fin-client-view');if(!el)return;
+  const grouped={};
+  FIN_INVOICES.forEach(inv=>{
+    const key=inv.client_id||('_'+inv.client_name);
+    if(!grouped[key]){
+      const cl=inv.client_id?CLIENTS.find(c=>Number(c.id)===Number(inv.client_id)):null;
+      grouped[key]={name:inv.client_name||(cl?cl.name:'Unknown'),invoices:[]};
+    }
+    grouped[key].invoices.push(inv);
+  });
+  const sorted=Object.values(grouped).sort((a,b)=>b.invoices.reduce((s,i)=>s+(i.amount||0),0)-a.invoices.reduce((s,i)=>s+(i.amount||0),0));
+  if(!sorted.length){el.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-3)">No invoice data yet</div>';return;}
+  const MNS={'2026-01':'Jan 26','2026-02':'Feb 26','2026-03':'Mar 26','2026-04':'Apr 26','2026-05':'May 26','2026-06':'Jun 26','2026-07':'Jul 26','2026-08':'Aug 26','2026-09':'Sep 26','2026-10':'Oct 26','2026-11':'Nov 26','2026-12':'Dec 26','2025-12':'Dec 25'};
+  el.innerHTML=sorted.map(g=>{
+    const total=g.invoices.reduce((s,i)=>s+(i.amount||0),0);
+    const paid=g.invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+(i.amount||0),0);
+    const owed=total-paid;
+    const sortedInv=[...g.invoices].sort((a,b)=>(b.month||'').localeCompare(a.month||''));
+    return `<div class="card" style="margin-bottom:12px;padding:0;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:var(--surface-2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px">
+        <div style="font-size:14px;font-weight:800;color:var(--text)">${esc(g.name)}</div>
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+          <div style="text-align:right"><div style="font-size:9px;color:var(--text-3);font-weight:600;text-transform:uppercase">Total</div><div style="font-size:14px;font-weight:800">LKR ${total.toLocaleString()}</div></div>
+          <div style="text-align:right"><div style="font-size:9px;color:var(--text-3);font-weight:600;text-transform:uppercase">Collected</div><div style="font-size:14px;font-weight:700;color:var(--green)">LKR ${paid.toLocaleString()}</div></div>
+          ${owed>0?`<div style="text-align:right"><div style="font-size:9px;color:var(--text-3);font-weight:600;text-transform:uppercase">Owed</div><div style="font-size:14px;font-weight:700;color:var(--red)">LKR ${owed.toLocaleString()}</div></div>`:''}
+        </div>
+      </div>
+      ${sortedInv.map(inv=>{
+        const sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
+        const sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
+        const sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||'—';
+        return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">
+          <div style="font-size:11px;color:var(--text-3);font-weight:700;min-width:60px">${MNS[inv.month]||inv.month||'—'}</div>
+          <div style="flex:1;font-size:12px;color:var(--text-2)">${inv.notes?esc(inv.notes):'—'}</div>
+          <div style="font-size:13px;font-weight:800">LKR ${(inv.amount||0).toLocaleString()}</div>
+          <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${sb};color:${sc};min-width:56px;text-align:center">${sl}</span>
+          ${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid ✓</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
 
 /* ── JOURNEY ── */
 function renderJourneyTab(id){
