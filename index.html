@@ -2539,6 +2539,37 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 <!-- Add Task -->
+  <div class="modal-overlay hidden" id="modal-invoice">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-head"><div class="modal-title" id="inv-modal-title">Add Invoice</div><button class="modal-close" onclick="closeModal('modal-invoice')">×</button></div>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="form-field"><label class="form-label">Base Retainer (LKR) *</label><input class="form-input" id="inv-amount" type="number" placeholder="e.g. 90000"></div>
+          <div class="form-field"><label class="form-label">Month *</label>
+            <select class="form-select" id="inv-month">
+              <option value="2025-12">Dec 2025</option><option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option>
+              <option value="2026-03">Mar 2026</option><option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option>
+              <option value="2026-06" selected>Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
+              <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="form-field"><label class="form-label">Due Date</label><input class="form-input" id="inv-due" type="date"></div>
+          <div class="form-field"><label class="form-label">Status</label>
+            <select class="form-select" id="inv-status">
+              <option value="unpaid">Unpaid</option><option value="paid">Paid</option><option value="overdue">Overdue</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="inv-notes" placeholder="Optional"></div>
+      </div>
+      <div class="modal-foot" id="inv-modal-foot">
+        <button class="btn-ghost" onclick="closeModal('modal-invoice')">Cancel</button>
+        <button class="btn-primary" onclick="saveInvoice()">Add Invoice</button>
+      </div>
+    </div>
+  </div>
 <div class="modal-overlay hidden" id="modal-task">
   <div class="modal"><div class="modal-head"><div class="modal-title">Add Task</div><button class="modal-close" onclick="closeModal('modal-task')">×</button></div>
   <div class="modal-body">
@@ -3348,7 +3379,6 @@ function toggleNav(){
 ══════════════════════════════════════ */
 updateClock();
 setInterval(updateClock,30000);
-initApp();
 setInterval(()=>{if(ROLE)loadAll();},60000);
 
 /* ══════════════════════════════════════
@@ -4094,6 +4124,7 @@ const nowMonthStr=()=>{const{y,m}=nowYM();return`${y}-${String(m).padStart(2,'0'
     document.body.setAttribute('data-role',s);
   }
 })();
+initApp();
 
 /* ── LOAD ── */
 async function loadClientsPage(){
