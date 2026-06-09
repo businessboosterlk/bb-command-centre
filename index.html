@@ -4550,14 +4550,17 @@ function getFinMonth(){return document.getElementById('fin-month-sel')?.value||'
 
 async function loadFinancePage(){
   try{
-    const [inv,costs]=await Promise.all([
+    const [inv,costs,cls]=await Promise.all([
       SBget('invoices','?select=*&order=month.desc,created_at.desc'),
-      SBget('costs','?select=*&order=month.desc,created_at.desc').catch(()=>[])
+      SBget('costs','?select=*&order=month.desc,created_at.desc').catch(()=>[]),
+      CLIENTS.length?Promise.resolve(CLIENTS):SBget('clients','?select=*&order=name')
     ]);
     FIN_INVOICES=inv||[];
     FIN_COSTS=costs||[];
     // Sync into INVOICES so client profile tab stays fresh
     INVOICES=FIN_INVOICES;
+    // Ensure CLIENTS is populated for invoice/cost modals
+    if(!CLIENTS.length)CLIENTS=cls||[];
   }catch(e){console.error('loadFinancePage',e);}
   // Set month selector to current month
   const{y,m}=nowYM();
