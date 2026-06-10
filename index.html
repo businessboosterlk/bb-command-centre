@@ -3062,6 +3062,7 @@ function updateClock(){
    LOAD
 ══════════════════════════════════════ */
 async function loadAll(){
+  if(ROLE==='demo') return;
   const [clients,tasks,pipeline,events,pillars,videos,invoices,shoots,editors]=await Promise.all([
     sb('clients','?select=*&order=name'),
     sb('tasks','?select=*'),
@@ -3344,7 +3345,7 @@ function renderPillars(who,defs,listId,progId,barId){
   let done=[];try{done=row?JSON.parse(row.done_ids||'[]'):[]}catch{done=[]}
   document.getElementById(listId).innerHTML=defs.map(p=>{
     const isDone=done.includes(p.id);
-    return `<div class="pil-item">
+    return `<div class="pil-item" onclick="togglePillar('${who}',${p.id})" style="cursor:pointer">
       <div class="pil-chk ${who} ${isDone?'done':''}">
         <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
       </div>
@@ -3357,6 +3358,24 @@ function renderPillars(who,defs,listId,progId,barId){
   }).join('');
   document.getElementById(progId).textContent=`${done.length}/${defs.length}`;
   document.getElementById(barId).style.width=`${(done.length/defs.length)*100}%`;
+}
+
+/* ── PILLAR TOGGLE ── */
+async function togglePillar(who,id){
+  if(ROLE==='demo') return;
+  const row=D.pillars.find(p=>p.who===who);
+  let done=[];try{done=row?JSON.parse(row.done_ids||'[]'):[]}catch{done=[]}
+  done=done.includes(id)?done.filter(x=>x!==id):[...done,id];
+  const payload={done_ids:JSON.stringify(done)};
+  if(row&&row.id){
+    await sbC('pillars','PATCH',payload,`?id=eq.${row.id}`);
+    row.done_ids=JSON.stringify(done);
+  } else {
+    const created=await sbC('pillars','POST',{who:who,top3:'[]',done_ids:JSON.stringify(done)},'');
+    if(Array.isArray(created)&&created[0]) D.pillars.push(created[0]);
+  }
+  if(who==='th') renderPillars('th',TH_P,'th-list','th-prog','th-bar');
+  else renderPillars('sh',SH_P,'sh-list','sh-prog','sh-bar');
 }
 
 /* ── TEAM CHECK (COO) ── */
@@ -5584,6 +5603,7 @@ document.addEventListener('click',function(e){
 });
 
 async function loadNotifications(){
+  if(ROLE==='demo') return;
   try{
     const today=new Date().toISOString().split('T')[0];
     NOTIFS=await SBget('cc_notifications','?select=*&order=created_at.desc&limit=20').catch(()=>[]);
@@ -7331,6 +7351,69 @@ async function deleteMission(id){
   try{await SBdel('missions',id);MS_items=MS_items.filter(i=>i.id!==id);}catch(e){console.error('deleteMission',e);}
   renderMissions();
 }
+
+/* ══════════════════════════════════════════════
+   BB BUG DETECTION SYSTEM
+   Catches JS errors + unhandled promise rejections
+   → Logs to Supabase error_log table
+   → Shows CEO-only floating badge
+══════════════════════════════════════════════ */
+(function initBugDetector(){
+  let _errCount=0;
+  const BADGE_ID='bb-bug-badge';
+
+  function showBugBadge(count){
+    if(typeof ROLE==='undefined'||ROLE!=='th') return; // CEO-only
+    let badge=document.getElementById(BADGE_ID);
+    if(!badge){
+      badge=document.createElement('div');
+      badge.id=BADGE_ID;
+      badge.style.cssText='position:fixed;bottom:18px;right:18px;z-index:99999;background:#ef4444;color:#fff;font-family:Poppins,sans-serif;font-size:11px;font-weight:700;letter-spacing:.04em;padding:8px 14px;border-radius:8px;box-shadow:0 4px 20px rgba(239,68,68,.45);cursor:pointer;display:flex;align-items:center;gap:8px;transition:transform .2s';
+      badge.innerHTML='<span style="font-size:15px">🐛</span><span id="bb-bug-txt"></span>';
+      badge.title='Click to dismiss — check console for details';
+      badge.onclick=()=>{ badge.style.display='none'; _errCount=0; };
+      document.body.appendChild(badge);
+    }
+    badge.style.display='flex';
+    document.getElementById('bb-bug-txt').textContent=`${count} JS error${count>1?'s':''} detected`;
+  }
+
+  async function logToSupabase(msg,src,line,col,errStack){
+    try{
+      // Only log if user is authenticated (has a real ROLE)
+      if(typeof ROLE==='undefined'||ROLE==='demo') return;
+      const payload={
+        role: ROLE||'unknown',
+        message: String(msg).slice(0,500),
+        source: String(src).slice(0,200),
+        line_no: line||null,
+        col_no: col||null,
+        stack: String(errStack||'').slice(0,1000),
+        url: location.href.slice(0,200),
+        user_agent: navigator.userAgent.slice(0,200),
+        occurred_at: new Date().toISOString()
+      };
+      // Fire-and-forget — don't await or crash if table doesn't exist yet
+      sbC('error_log','POST',payload,'').catch(()=>{});
+    }catch(e){ /* silent */ }
+  }
+
+  window.onerror=function(msg,src,line,col,err){
+    _errCount++;
+    showBugBadge(_errCount);
+    logToSupabase(msg,src,line,col,err?err.stack:'');
+    return false; // let browser also log it
+  };
+
+  window.addEventListener('unhandledrejection',function(e){
+    _errCount++;
+    showBugBadge(_errCount);
+    const reason=e.reason;
+    const msg=reason instanceof Error?reason.message:String(reason);
+    const stack=reason instanceof Error?reason.stack:'';
+    logToSupabase('UnhandledRejection: '+msg,'promise',null,null,stack);
+  });
+})();
 
 </script>
 </body>
