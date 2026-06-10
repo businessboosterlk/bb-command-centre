@@ -137,6 +137,18 @@ body{
   border-color:rgba(236,72,153,0.5);
   background:var(--pink-soft);
 }
+.login-card.demo:hover{
+  border-color:rgba(139,92,246,0.5);
+  background:rgba(139,92,246,0.09);
+}
+.login-card.selected-demo{
+  border-color:rgba(139,92,246,0.7);
+  background:rgba(139,92,246,0.09);
+}
+.login-av.demo{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+#demo-banner{display:none}
+body[data-role="demo"] #demo-banner{display:block!important}
+body[data-role="demo"] #finance-demo-overlay{display:flex!important}
 .login-av{
   width:64px;height:64px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -803,6 +815,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sa
 .user-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:white;flex-shrink:0}
 .user-av.th{background:linear-gradient(135deg,var(--accent),var(--accent-2))}
 .user-av.sh{background:linear-gradient(135deg,var(--pink),#be185d)}
+.user-av.demo{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
 .user-info{flex:1;min-width:0}
 .user-name{font-size:12.5px;font-weight:700;color:var(--text)}
 .user-role-lbl{font-size:8.5px;color:var(--text-3);letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
@@ -1268,6 +1281,17 @@ td:last-child{padding-right:18px;text-align:right}
         Enter Dashboard
       </div>
     </div>
+    <div class="login-card demo" id="card-demo" onclick="selectCard('demo')" style="border-color:rgba(139,92,246,0.25)">
+      <div class="login-av demo">BB</div>
+      <div>
+        <div class="login-person-name" style="color:var(--text)">DEMO</div>
+        <div class="login-role-lbl" style="color:#8b5cf6">Preview Mode</div>
+      </div>
+      <div class="login-enter" style="color:#8b5cf6">
+        <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        Preview System
+      </div>
+    </div>
   </div>
   <!-- PASSWORD AREA -->
   <div id="pw-area" style="display:none;flex-direction:column;align-items:center;gap:10px;margin-top:22px;width:100%;max-width:400px">
@@ -1351,6 +1375,8 @@ td:last-child{padding-right:18px;text-align:right}
         </div>
       </div>
     </header>
+
+    <div id="demo-banner" style="background:linear-gradient(90deg,#8b5cf6,#6d28d9);color:white;padding:7px 20px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-align:center;flex-shrink:0">🔒 DEMO MODE · BB Command Centre Preview · Contact Business Booster to build this for your business</div>
 
     <div class="content"><div id="page-dashboard" class="page-section" style="display:block">
 
@@ -2175,7 +2201,13 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 <!-- ══════════════ FINANCE PAGE ══════════════ -->
-<div id="page-finance" class="page-section" style="display:none">
+<div id="page-finance" class="page-section" style="display:none;position:relative">
+  <div id="finance-demo-overlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:40px">
+    <div style="font-size:56px">🔒</div>
+    <div style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--text)">Financial data is private</div>
+    <div style="font-size:13px;color:var(--text-2);max-width:400px;line-height:1.6">This module tracks all BB revenue, costs and profit in real time. Contact Business Booster to see a full walkthrough of this and the complete system.</div>
+    <div style="margin-top:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;padding:10px 24px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em">businessboosterlk@gmail.com</div>
+  </div>
   <div class="content">
     <!-- Page Header -->
     <div class="fin-ph">
@@ -2824,7 +2856,7 @@ async function sb(table,q=''){
    LOGIN — CARD SELECT + PASSWORD
 ══════════════════════════════════════ */
 // CHANGE PASSWORDS HERE:
-const PASSWORDS = { th: '1031', sh: '1006' };
+const PASSWORDS = { th: '1031', sh: '1006', demo: '0000' };
 
 let _pendingRole = null;
 
@@ -2832,12 +2864,19 @@ function selectCard(role){
   _pendingRole = role;
   const th = document.getElementById('card-th');
   const sh = document.getElementById('card-sh');
+  const demo = document.getElementById('card-demo');
   if(role === 'th'){
     th.className = 'login-card th selected-th';
     sh.className = 'login-card sh dimmed';
-  } else {
+    demo.className = 'login-card demo dimmed';
+  } else if(role === 'sh'){
     sh.className = 'login-card sh selected-sh';
     th.className = 'login-card th dimmed';
+    demo.className = 'login-card demo dimmed';
+  } else {
+    demo.className = 'login-card demo selected-demo';
+    th.className = 'login-card th dimmed';
+    sh.className = 'login-card sh dimmed';
   }
   const area = document.getElementById('pw-area');
   area.style.display = 'flex';
@@ -2875,7 +2914,7 @@ function initApp(){
 }
 
 function selectRole(role){
-  localStorage.setItem('bb_cc_role',role);
+  if(role !== 'demo') localStorage.setItem('bb_cc_role',role);
   const ls=document.getElementById('login-screen');
   ls.style.opacity='0';
   setTimeout(()=>{ls.style.display='none';activateRole(role,true);},300);
@@ -2893,6 +2932,11 @@ function activateRole(role,animate){
     av.className='user-av th';av.textContent='TH';
     nm.textContent='Thulaib';rl.textContent='CEO';
     document.getElementById('hero-title').textContent='Welcome back, THULAIB';
+    document.getElementById('topbar-title').textContent='Dashboard';
+  } else if(role==='demo'){
+    av.className='user-av demo';av.textContent='BB';
+    nm.textContent='Demo Mode';rl.textContent='Preview';
+    document.getElementById('hero-title').textContent='BB Command Centre — Preview';
     document.getElementById('topbar-title').textContent='Dashboard';
   } else {
     av.className='user-av sh';av.textContent='SH';
