@@ -2842,12 +2842,23 @@ td:last-child{padding-right:18px;text-align:right}
 const SB_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 
+/* ── EGRESS CACHE (5-min TTL, invalidated on writes) ── */
+const _sbCache={};
+const _sbTTL=5*60*1000;
+function _sbCacheGet(k){const e=_sbCache[k];if(e&&Date.now()-e.t<_sbTTL)return e.d;return null;}
+function _sbCacheSet(k,d){_sbCache[k]={d,t:Date.now()};}
+function _sbCacheInvalidate(table){Object.keys(_sbCache).filter(k=>k.startsWith(table+'|')).forEach(k=>delete _sbCache[k]);}
+
 async function sb(table,q=''){
+  const ck=table+'|'+q;
+  const hit=_sbCacheGet(ck);if(hit)return hit;
   try{
     const r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
-    return r.ok?await r.json():[];
+    const d=r.ok?await r.json():[];
+    if(r.ok)_sbCacheSet(ck,d);
+    return d;
   }catch(e){console.error(table,e);return[];}
 }
 
@@ -4349,11 +4360,16 @@ async function saveCalEvent(){
 
 /* ── SUPABASE ── */
 async function sbC(table,method='GET',body=null,query='?order=id.asc'){
+  const ck=table+'|'+query;
+  if(method==='GET'){const hit=_sbCacheGet(ck);if(hit)return hit;}
   try{
     const o={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'}};
     if(body)o.body=JSON.stringify(body);
     const r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,o);
-    const t=await r.text();return t?JSON.parse(t):null;
+    const t=await r.text();const d=t?JSON.parse(t):null;
+    if(method==='GET'&&r.ok&&d)_sbCacheSet(ck,d);
+    if(method!=='GET')_sbCacheInvalidate(table);
+    return d;
   }catch(e){console.error(e);return null;}
 }
 const SBget=(t,q)=>sbC(t,'GET',null,q||'?order=id.asc');
