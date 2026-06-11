@@ -8601,3 +8601,117 @@ async function deleteMission(id){
 }(window));
 </script>
  
+
+<script>
+(function () {
+  'use strict';
+  var SB = 'https://yyviiwnqgphyklcoijyd.supabase.co';
+  var AK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
+  var AU = SB + '/functions/v1/bb-alert';
+  var POLL_MS = 5 * 60 * 1000;
+  var COOL_MS = 60 * 60 * 1000;
+  var cooldowns = {};
+  function isAlertTime() {
+    var now = new Date();
+    var slt = new Date(now.getTime() + (5.5 * 60 * 60 * 1000));
+    var day = slt.getUTCDay(); var hour = slt.getUTCHours(); var min = slt.getUTCMinutes();
+    if (day === 0) return false;
+    return (hour === 9 && min < 15) || (hour === 18 && min < 15);
+  }
+  function sendAlert(msg) {
+    ['smm','ceo'].forEach(function(role) {
+      fetch(AU, { method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + AK },
+        body: JSON.stringify({ message: msg, page: 'Command Centre', role: role })
+      }).catch(function(e) { console.warn('[BBC Patch]', e); });
+    });
+  }
+  var META = {
+    'client-health': '\uD83C\uDFE5 Client Health',
+    'revenue'      : '\uD83D\uDCB0 Revenue',
+    'team'         : '\uD83D\uDC65 Team',
+    'content'      : '\uD83D\uDCCB Content',
+    'ceo-brief'    : '\uD83D\uDCCA CEO Brief',
+    'onboarding'   : '\uD83D\uDD11 Onboarding',
+    'anomaly'      : '\u26A0\uFE0F Anomaly',
+    'shoot'        : '\uD83C\uDFAC Shoot'
+  };
+  function injectDash() {
+    if (document.getElementById('bbc-agent-alerts-section')) return;
+    var css = '<style id="bbc-css">' +
+      '#bbc-agent-alerts-section{margin:20px 0 8px;padding:0 20px;}' +
+      '#bbc-alerts-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}' +
+      '#bbc-alerts-ttl{font-size:15px;font-weight:700;color:#e2e8f0;}' +
+      '#bbc-run-btn{background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;}' +
+      '#bbc-run-btn:hover{background:#6d28d9;}' +
+      '#bbc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;}' +
+      '.bbc-card{background:#1e293b;border:1px solid #334155;border-radius:10px;padding:14px 16px;transition:border-color .25s;}' +
+      '.bbc-card.bbc-ok{border-color:#22c55e;}' +
+      '.bbc-card.bbc-flag{border-color:#ef4444;background:#1f1215;}' +
+      '.bbc-nm{font-size:11px;font-weight:600;color:#94a3b8;margin-bottom:6px;}' +
+      '.bbc-vl{font-size:18px;font-weight:800;color:#f1f5f9;}' +
+      '.bbc-card.bbc-flag .bbc-vl{color:#ef4444;}' +
+      '.bbc-card.bbc-ok .bbc-vl{color:#22c55e;}' +
+      '.bbc-ts{font-size:10px;color:#475569;margin-top:4px;}' +
+    '</style>';
+    var cards = Object.keys(META).map(function(k) {
+      return '<div class="bbc-card" id="bbc-c-'+k+'"><div class="bbc-nm">'+META[k]+'</div>' +
+        '<div class="bbc-vl" id="bbc-v-'+k+'">\u2014</div><div class="bbc-ts" id="bbc-t-'+k+'">Not yet run</div></div>';
+    }).join('');
+    var html = '<div id="bbc-agent-alerts-section">'+css+
+      '<div id="bbc-alerts-hdr"><div id="bbc-alerts-ttl">&#x1F916; AI Agent Alerts</div>' +
+      '<button id="bbc-run-btn" onclick="window.BB_CMD_PATCH&&window.BB_CMD_PATCH.runNow()">Run Now</button></div>' +
+      '<div id="bbc-grid">'+cards+'</div></div>';
+    var ap = document.getElementById('attention-panel');
+    var dp = document.getElementById('page-dashboard');
+    if (ap && ap.parentNode) ap.insertAdjacentHTML('afterend', html);
+    else if (dp) dp.insertAdjacentHTML('afterbegin', html);
+  }
+  function updateDash() {
+    if (!document.getElementById('bbc-agent-alerts-section')) { injectDash(); return; }
+    if (!window.BB_AGENTS) return;
+    var state = window.BB_AGENTS.getState();
+    var ts = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    Object.keys(META).forEach(function(k) {
+      var a = state[k]||{}; var f = a.flags||0; var s = a.status||'idle';
+      var card=document.getElementById('bbc-c-'+k);
+      var vEl=document.getElementById('bbc-v-'+k);
+      var tEl=document.getElementById('bbc-t-'+k);
+      if (!card||!vEl) return;
+      card.className='bbc-card'+(f>0?' bbc-flag':(s==='ok'?' bbc-ok':''));
+      if (s==='checking') vEl.textContent='\u23F3 Scanning\u2026';
+      else if (f>0) vEl.textContent='\uD83D\uDD34 '+f+' issue'+(f>1?'s':'');
+      else if (s==='ok') vEl.textContent='\u2705 All clear';
+      else vEl.textContent='\u2014 Waiting';
+      if (tEl) tEl.textContent='Updated '+ts;
+    });
+  }
+  function tick() {
+    if (!window.BB_AGENTS) return;
+    try { window.BB_AGENTS.runAll(false); } catch(e) {}
+    setTimeout(function() {
+      updateDash();
+      if (!isAlertTime()) return;
+      var state = window.BB_AGENTS.getState(); var flagged = [];
+      Object.keys(META).forEach(function(k) {
+        var f = (state[k]||{}).flags||0; if (!f) return;
+        var now = Date.now();
+        if (now-(cooldowns[k]||0) < COOL_MS) return;
+        cooldowns[k] = now;
+        flagged.push(META[k]+': '+f+' issue'+(f>1?'s':''));
+      });
+      if (!flagged.length) return;
+      sendAlert('\uD83D\uDD34 BB Command Centre\n'+flagged.join('\n')+'\n\u23F0 Needs attention');
+    }, 4000);
+  }
+  function init() {
+    setTimeout(function() { injectDash(); tick(); setInterval(tick, POLL_MS); }, 2500);
+  }
+  window.BB_CMD_PATCH = {
+    runNow: function() { tick(); },
+    isAlertTime: isAlertTime,
+    getState: function() { return window.BB_AGENTS ? window.BB_AGENTS.getState() : {}; }
+  };
+  document.readyState==='loading' ? document.addEventListener('DOMContentLoaded',init) : init();
+}());
+</script>
