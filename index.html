@@ -8504,7 +8504,7 @@ async function deleteMission(id){
     panel.id = 'bba-panel';
     panel.innerHTML = '<div class="bba-hdr">' +
       '<span class="bba-title">\uD83E\uDD16 BB AI Agents</span>' +
-      '<button class="bba-run" onclick="window.BB_AGENTS.runAll(true)">â¶ Run All</button>' +
+      '<button class="bba-run" onclick="window.BB_AGENTS.runAll(true)">\u25B6 Run All</button>' +
       '</div><div id="bba-list"></div>';
 
     document.body.appendChild(fab);
@@ -8524,7 +8524,7 @@ async function deleteMission(id){
       } else if (a.flags > 0) {
         badge = '<span class="bba-badge has">' + a.flags + ' flag' + (a.flags > 1 ? 's' : '') + '</span>';
       } else {
-        badge = '<span class="bba-badge ok">â clear</span>';
+        badge = '<span class="bba-badge ok">\u2713 clear</span>';
       }
       var t = a.lastRun
         ? new Date(a.lastRun).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
@@ -8536,7 +8536,7 @@ async function deleteMission(id){
           '<div class="bba-time">Last: ' + t + '</div>' +
         '</div>' +
         badge +
-        '<button class="bba-btn" onclick="window.BB_AGENTS.runAgent(\'' + id + '\',true)">â¶</button>' +
+        '<button class="bba-btn" onclick="window.BB_AGENTS.runAgent(\'' + id + '\',true)">\u25B6</button>' +
         '</div>';
     });
     list.innerHTML = html;
