@@ -7604,3 +7604,1000 @@ async function deleteMission(id){
 </script>
 </body>
 </html>
+
+<!-- âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+     BB COMMAND CENTRE â AI AGENTS LAYER v1.0
+     Append this entire <script> block to the END of index.html
+     (paste just before the closing </body> tag, or at the very end)
+
+     DO NOT touch anything above this block.
+     DO NOT modify the Video Pipeline section (lines ~2117â2168 / ~6161â6240).
+
+     Agents:
+       1. Client Health Agent     â 6h poll
+       2. Revenue Alert Agent     â 6h poll
+       3. Team Bottleneck Agent   â 6h poll
+       4. Content Pipeline Agent  â 6h poll
+       5. Weekly CEO Briefing     â Monday 8am
+       6. Onboarding Completion   â 6h poll
+       7. Anomaly Detector        â 24h poll
+       8. Shoot Tracker Agent     â 6h poll
+
+     WhatsApp alerts: via bb-alert Edge Function (credentials server-side only)
+     Persistence: localStorage (bb_agent_* keys)
+     UI: ð¤ FAB button (bottom-right) â agent status panel
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
+
+<script>
+/* global BB_AGENTS */
+(function (global) {
+  'use strict';
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // CONSTANTS
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  var SB_URL    = 'https://yyviiwnqgphyklcoijyd.supabase.co';
+  var SB_KEY    = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
+  var ALERT_URL = SB_URL + '/functions/v1/bb-alert';
+  var REST_URL  = SB_URL + '/rest/v1';
+
+  var SB_HEADERS = {
+    'apikey': SB_KEY,
+    'Authorization': 'Bearer ' + SB_KEY,
+    'Content-Type': 'application/json'
+  };
+
+  var POLL_6H   = 6  * 60 * 60 * 1000;
+  var POLL_24H  = 24 * 60 * 60 * 1000;
+  var POLL_TICK = 15 * 60 * 1000;       // polling tick â checks every 15 min
+  var CEO_TICK  =  5 * 60 * 1000;       // monday check every 5 min
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // SUPABASE REST HELPER
+  // Thin wrapper â no extra library needed
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function sbQuery(table, opts) {
+    opts = opts || {};
+    return new Promise(function (resolve) {
+      try {
+        var url = new URL(REST_URL + '/' + table);
+        url.searchParams.set('select', opts.select || '*');
+        if (opts.limit) url.searchParams.set('limit', String(opts.limit));
+        if (opts.order) url.searchParams.set('order', opts.order);
+        function addFilter(op, map) {
+          if (!map) return;
+          Object.keys(map).forEach(function (k) {
+            url.searchParams.append(k, op + '.' + map[k]);
+          });
+        }
+        addFilter('eq',  opts.eq);
+        addFilter('neq', opts.neq);
+        addFilter('lt',  opts.lt);
+        addFilter('lte', opts.lte);
+        addFilter('gte', opts.gte);
+        addFilter('is',  opts.is);
+        fetch(url.toString(), { headers: SB_HEADERS })
+          .then(function (res) { return res.ok ? res.json() : []; })
+          .then(function (data) { resolve(Array.isArray(data) ? data : []); })
+          .catch(function () { resolve([]); });
+      } catch (e) {
+        console.warn('[BB Agents] sbQuery error (' + table + '):', e.message);
+        resolve([]);
+      }
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // bb-alert HELPER
+  // POST {message, page, role} â no credentials in frontend
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function sendAlert(role, message) {
+    return fetch(ALERT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: message, page: 'BB Command Centre', role: role })
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      console.log('[BB Agents] Alert (' + role + '):', d.status);
+      return d;
+    })
+    .catch(function (e) {
+      console.warn('[BB Agents] Alert failed (' + role + '):', e.message);
+      return { status: 'error' };
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // LOCALSTORAGE HELPERS
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  var LS = 'bb_agent_';
+
+  function lsGet(key, fallback) {
+    try {
+      var v = localStorage.getItem(LS + key);
+      return v !== null ? JSON.parse(v) : (fallback !== undefined ? fallback : null);
+    } catch (e) { return fallback !== undefined ? fallback : null; }
+  }
+
+  function lsSet(key, value) {
+    try { localStorage.setItem(LS + key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  function needsRun(agentKey, interval) {
+    var last = lsGet(agentKey + '_lastrun');
+    if (!last) return true;
+    return (Date.now() - new Date(last).getTime()) >= interval;
+  }
+
+  function markRan(agentKey) {
+    lsSet(agentKey + '_lastrun', new Date().toISOString());
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // DATE HELPERS
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function safeDate(str) {
+    if (!str) return null;
+    var d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function daysAgo(n) {
+    var d = new Date();
+    d.setDate(d.getDate() - n);
+    return d;
+  }
+
+  function weekStart() {
+    // Monday-based week start
+    var d = new Date();
+    var day = d.getDay(); // 0=Sun
+    var diff = (day === 0) ? 6 : day - 1;
+    d.setDate(d.getDate() - diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+
+  function todayStr() {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  function inDays(n) {
+    var d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().split('T')[0];
+  }
+
+  // Returns true if the text month field (e.g. "June 2026", "2026-06") matches m (1-12), y
+  var MON_NAMES = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  function monthMatches(text, m, y) {
+    if (!text) return false;
+    var s = text.toLowerCase();
+    var mName = MON_NAMES[m - 1];
+    var yStr  = String(y);
+    var mPad  = String(m).padStart(2, '0');
+    return s.includes(yStr) && (
+      s.includes(mName) ||
+      s.includes(mPad + '/') ||
+      s.includes('-' + mPad) ||
+      s.includes('/' + mPad)
+    );
+  }
+
+  function curMonthYear() {
+    var d = new Date();
+    return { m: d.getMonth() + 1, y: d.getFullYear() };
+  }
+
+  function nextMonthYear() {
+    var d = new Date();
+    d.setMonth(d.getMonth() + 1);
+    return { m: d.getMonth() + 1, y: d.getFullYear() };
+  }
+
+  function prevMonthYear() {
+    var d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return { m: d.getMonth() + 1, y: d.getFullYear() };
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT STATUS STORE (drives the UI panel)
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  var STATE = {
+    'client-health': { name: 'ð¥ Client Health',    status: 'idle', flags: 0, lastRun: null },
+    'revenue':       { name: 'ð° Revenue Alert',     status: 'idle', flags: 0, lastRun: null },
+    'team':          { name: 'ð¥ Team Bottleneck',   status: 'idle', flags: 0, lastRun: null },
+    'content':       { name: 'ð Content Pipeline',  status: 'idle', flags: 0, lastRun: null },
+    'ceo-brief':     { name: 'ð CEO Briefing',      status: 'idle', flags: 0, lastRun: null },
+    'onboarding':    { name: 'ð Onboarding',        status: 'idle', flags: 0, lastRun: null },
+    'anomaly':       { name: 'ð Anomaly Detector',  status: 'idle', flags: 0, lastRun: null },
+    'shoot':         { name: 'ð¬ Shoot Tracker',     status: 'idle', flags: 0, lastRun: null }
+  };
+
+  function setS(id, upd) {
+    Object.assign(STATE[id], upd);
+    renderPanel();
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 1 â CLIENT HEALTH
+  // Flags: no content plan posted this week | shoot overdue | no invoice this month
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runClientHealth(force) {
+    var KEY = 'client_health';
+    if (!force && !needsRun(KEY, POLL_6H)) return Promise.resolve();
+    setS('client-health', { status: 'running' });
+
+    var now = new Date();
+    var wkStart  = weekStart().toISOString().split('T')[0];
+    var cur      = curMonthYear();
+
+    return Promise.all([
+      sbQuery('clients',       { select: 'id,name,health,mrr' }),
+      sbQuery('content_plans', { select: 'client_id,posted,scheduled_date',
+                                  eq: { posted: true }, gte: { scheduled_date: wkStart } }),
+      sbQuery('smm_shoots',    { select: 'client_id,shoot_date,status,title',
+                                  lt: { shoot_date: todayStr() }, neq: { status: 'delivered' } }),
+      sbQuery('invoices',      { select: 'client_id,month' })
+    ]).then(function (results) {
+      var clients   = results[0];
+      var posted    = results[1];
+      var overShoot = results[2];
+      var invoices  = results[3];
+
+      // Index: which clients have content posted this week
+      var hasContent = {};
+      posted.forEach(function (p) { hasContent[p.client_id] = true; });
+
+      // Index: which clients have an overdue shoot
+      var shootMap = {};
+      overShoot.forEach(function (s) {
+        if (!shootMap[s.client_id]) shootMap[s.client_id] = s;
+      });
+
+      // Index: which clients have an invoice this month
+      var hasInvoice = {};
+      invoices.forEach(function (inv) {
+        if (monthMatches(inv.month, cur.m, cur.y)) hasInvoice[inv.client_id] = true;
+      });
+
+      var flags = [];
+      var dayOfMonth = now.getDate();
+
+      clients.forEach(function (c) {
+        var issues = [];
+        if (!hasContent[c.id])                          issues.push('no content posted this week');
+        if (shootMap[c.id]) {
+          var s = shootMap[c.id];
+          var d = safeDate(s.shoot_date);
+          var overDays = d ? Math.floor((now - d) / 86400000) : 0;
+          issues.push('shoot overdue ' + overDays + 'd ("' + (s.title || 'untitled') + '")');
+        }
+        if (c.mrr && !hasInvoice[c.id] && dayOfMonth >= 5) {
+          issues.push('no invoice raised this month');
+        }
+        if (issues.length) flags.push({ client: c.name, health: c.health, issues: issues });
+      });
+
+      markRan(KEY);
+      setS('client-health', { status: flags.length ? 'alert' : 'ok', flags: flags.length, lastRun: new Date().toISOString() });
+
+      if (!flags.length) return;
+
+      var lines = ['â ï¸ *BB Client Health Alert*\n'];
+      flags.slice(0, 10).forEach(function (f) {
+        var icon = f.health === 'red' ? 'ð´' : f.health === 'amber' ? 'ð ' : 'ð¡';
+        lines.push(icon + ' *' + f.client + '*');
+        f.issues.forEach(function (i) { lines.push('  â¢ ' + i); });
+      });
+      if (flags.length > 10) lines.push('\nâ¦and ' + (flags.length - 10) + ' more');
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-client-health', lines.join('\n'));
+    }).catch(function (e) {
+      setS('client-health', { status: 'error' });
+      console.error('[BB Agents] Client Health error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 2 â REVENUE ALERT
+  // Flags: unpaid invoice 7+ days overdue | client with MRR but no invoice this month
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runRevenue(force) {
+    var KEY = 'revenue';
+    if (!force && !needsRun(KEY, POLL_6H)) return Promise.resolve();
+    setS('revenue', { status: 'running' });
+
+    var now     = new Date();
+    var sevenDA = daysAgo(7);
+    var cur     = curMonthYear();
+
+    return Promise.all([
+      sbQuery('invoices', { select: 'id,client_id,client_name,amount,due_date,month,status',
+                             eq: { status: 'unpaid' } }),
+      sbQuery('clients',  { select: 'id,name,mrr' }),
+      sbQuery('invoices', { select: 'client_id,month' })
+    ]).then(function (results) {
+      var unpaid    = results[0];
+      var clients   = results[1];
+      var allInv    = results[2];
+
+      var flags = [];
+
+      // Unpaid invoices where due_date > 7 days ago
+      unpaid.forEach(function (inv) {
+        var due = safeDate(inv.due_date);
+        if (due && due < sevenDA) {
+          var over = Math.floor((now - due) / 86400000);
+          flags.push({ type: 'overdue', client: inv.client_name || '?', amount: inv.amount || 0, over: over, month: inv.month });
+        }
+      });
+
+      // Clients with MRR but no invoice this month (grace: after 5th)
+      if (now.getDate() >= 5) {
+        var hasInv = {};
+        allInv.forEach(function (inv) {
+          if (monthMatches(inv.month, cur.m, cur.y)) hasInv[inv.client_id] = true;
+        });
+        clients.forEach(function (c) {
+          if (c.mrr && !hasInv[c.id]) {
+            flags.push({ type: 'missing', client: c.name, mrr: c.mrr || 0 });
+          }
+        });
+      }
+
+      markRan(KEY);
+      setS('revenue', { status: flags.length ? 'alert' : 'ok', flags: flags.length, lastRun: new Date().toISOString() });
+
+      if (!flags.length) return;
+
+      var overdue  = flags.filter(function (f) { return f.type === 'overdue'; });
+      var missing  = flags.filter(function (f) { return f.type === 'missing'; });
+      var lines    = ['ð° *BB Revenue Alert*\n'];
+
+      if (overdue.length) {
+        lines.push('*Overdue Invoices (7+ days unpaid):*');
+        overdue.slice(0, 8).forEach(function (f) {
+          lines.push('ð´ ' + f.client + ' â LKR ' + f.amount.toLocaleString() + ' â ' + f.over + 'd overdue');
+        });
+        lines.push('');
+      }
+      if (missing.length) {
+        lines.push('*No Invoice Raised This Month:*');
+        missing.slice(0, 8).forEach(function (f) {
+          lines.push('ð  ' + f.client + ' â MRR: LKR ' + f.mrr.toLocaleString());
+        });
+      }
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-revenue', lines.join('\n'));
+    }).catch(function (e) {
+      setS('revenue', { status: 'error' });
+      console.error('[BB Agents] Revenue error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 3 â TEAM BOTTLENECK
+  // Flags: tasks overdue AND undone | tasks stuck 3+ days (localStorage snapshot)
+  // Note: tasks.due is TEXT â parsed defensively
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runTeam(force) {
+    var KEY = 'team';
+    if (!force && !needsRun(KEY, POLL_6H)) return Promise.resolve();
+    setS('team', { status: 'running' });
+
+    var now = new Date();
+
+    return sbQuery('tasks', { select: 'id,title,assign,due,done,priority,category',
+                               eq: { done: false } })
+    .then(function (tasks) {
+      var snapshot    = lsGet('team_snapshot', {});
+      var newSnapshot = {};
+      var overdueF    = [];
+      var stuckF      = [];
+      var seen        = {};
+
+      tasks.forEach(function (t) {
+        var firstSeen = (snapshot[t.id] && snapshot[t.id].fs) || now.toISOString();
+        newSnapshot[t.id] = { fs: firstSeen };
+
+        // Overdue
+        var due = safeDate(t.due);
+        if (due && due < now) {
+          var overDays = Math.floor((now - due) / 86400000);
+          if (overDays >= 1 && !seen[t.id]) {
+            overdueF.push({ task: t.title || 'Untitled', assign: t.assign || 'Unassigned', over: overDays, pri: t.priority });
+            seen[t.id] = true;
+          }
+        }
+
+        // Stuck (unchanged open task for 3+ days â based on first_seen)
+        if (!seen[t.id]) {
+          var stuckDays = Math.floor((now - new Date(firstSeen)) / 86400000);
+          if (stuckDays >= 3) {
+            stuckF.push({ task: t.title || 'Untitled', assign: t.assign || 'Unassigned', days: stuckDays, pri: t.priority });
+            seen[t.id] = true;
+          }
+        }
+      });
+
+      lsSet('team_snapshot', newSnapshot);
+
+      var total = overdueF.length + stuckF.length;
+      markRan(KEY);
+      setS('team', { status: total ? 'alert' : 'ok', flags: total, lastRun: new Date().toISOString() });
+
+      if (!total) return;
+
+      var lines = ['ð¥ *BB Team Bottleneck Alert*\n'];
+      if (overdueF.length) {
+        lines.push('*Overdue Tasks (' + overdueF.length + '):*');
+        overdueF.slice(0, 8).forEach(function (f) {
+          lines.push('ð´ ' + f.task + ' â ' + f.assign + ' â ' + f.over + 'd overdue');
+        });
+        lines.push('');
+      }
+      if (stuckF.length) {
+        lines.push('*Stuck Tasks 3+ Days (' + stuckF.length + '):*');
+        stuckF.slice(0, 8).forEach(function (f) {
+          lines.push('ð  ' + f.task + ' â ' + f.assign + ' â ' + f.days + 'd open');
+        });
+      }
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-team', lines.join('\n'));
+    }).catch(function (e) {
+      setS('team', { status: 'error' });
+      console.error('[BB Agents] Team error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 4 â CONTENT PIPELINE
+  // Flags: active client with no content_plans for next month | plan with 0 posts
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runContent(force) {
+    var KEY = 'content';
+    if (!force && !needsRun(KEY, POLL_6H)) return Promise.resolve();
+    setS('content', { status: 'running' });
+
+    var nxt = nextMonthYear();
+
+    return Promise.all([
+      sbQuery('clients',       { select: 'id,name,health,mrr' }),
+      sbQuery('content_plans', { select: 'client_id,type,posted',
+                                  eq: { month: nxt.m, year: nxt.y } })
+    ]).then(function (results) {
+      var clients  = results[0];
+      var plans    = results[1];
+
+      // Group plans by client
+      var planMap = {};
+      plans.forEach(function (p) {
+        if (!planMap[p.client_id]) planMap[p.client_id] = [];
+        planMap[p.client_id].push(p);
+      });
+
+      var flags = [];
+      clients.forEach(function (c) {
+        var cp = planMap[c.id] || [];
+        if (cp.length === 0) {
+          flags.push({ client: c.name, issue: 'no content plan for next month (' + nxt.m + '/' + nxt.y + ')' });
+        } else {
+          var posts = cp.filter(function (p) { return p.type === 'post'; });
+          if (posts.length === 0) {
+            flags.push({ client: c.name, issue: 'plan exists but 0 posts scheduled for next month' });
+          }
+        }
+      });
+
+      markRan(KEY);
+      setS('content', { status: flags.length ? 'alert' : 'ok', flags: flags.length, lastRun: new Date().toISOString() });
+
+      if (!flags.length) return;
+
+      var lines = ['ð *BB Content Pipeline Alert*\n', '*Not planned for next month:*'];
+      flags.slice(0, 12).forEach(function (f) {
+        lines.push('ð  *' + f.client + '* â ' + f.issue);
+      });
+      if (flags.length > 12) lines.push('â¦and ' + (flags.length - 12) + ' more');
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-content', lines.join('\n'));
+    }).catch(function (e) {
+      setS('content', { status: 'error' });
+      console.error('[BB Agents] Content error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 5 â WEEKLY CEO BRIEFING
+  // Runs once per Monday after 8am (day-of-week + localStorage guard)
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runCEOBrief(force) {
+    var KEY = 'ceo_brief';
+    if (!force) {
+      var now  = new Date();
+      var dow  = now.getDay();   // 0=Sun, 1=Mon
+      var hr   = now.getHours();
+      if (dow !== 1 || hr < 8) return Promise.resolve();
+      // Already ran today?
+      var lastRan = lsGet(KEY + '_lastrun');
+      if (lastRan) {
+        var lr = new Date(lastRan);
+        if (lr.toDateString() === now.toDateString()) return Promise.resolve();
+      }
+    }
+
+    setS('ceo-brief', { status: 'running' });
+
+    var now   = new Date();
+    var end7d = inDays(7);
+    var today = todayStr();
+
+    return Promise.all([
+      sbQuery('clients',  { select: 'id,name,health,mrr' }),
+      sbQuery('tasks',    { select: 'id,title,assign,due,done,priority', eq: { done: false } }),
+      sbQuery('invoices', { select: 'id,client_name,amount,status,due_date', eq: { status: 'unpaid' } })
+    ]).then(function (results) {
+      var clients   = results[0];
+      var tasks     = results[1];
+      var unpaid    = results[2];
+
+      var greens = clients.filter(function (c) { return c.health === 'green'; }).length;
+      var ambers = clients.filter(function (c) { return c.health === 'amber'; }).length;
+      var reds   = clients.filter(function (c) { return c.health === 'red'; }).length;
+      var totalMRR = clients.reduce(function (s, c) { return s + (c.mrr || 0); }, 0);
+
+      var dueSoon = tasks.filter(function (t) {
+        var d = safeDate(t.due);
+        return d && t.due >= today && t.due <= end7d;
+      });
+      var overdueT = tasks.filter(function (t) {
+        var d = safeDate(t.due);
+        return d && d < now;
+      });
+
+      var totalUnpaid = unpaid.reduce(function (s, i) { return s + (i.amount || 0); }, 0);
+      var overdueInv  = unpaid.filter(function (i) {
+        var d = safeDate(i.due_date);
+        return d && d < now;
+      });
+
+      var redFlags = [];
+      if (ambers > 0)          redFlags.push(ambers + ' client' + (ambers > 1 ? 's' : '') + ' on amber â ï¸');
+      if (reds > 0)            redFlags.push(reds + ' client' + (reds > 1 ? 's' : '') + ' on RED â churn risk ð´');
+      if (overdueT.length > 0) redFlags.push(overdueT.length + ' overdue task' + (overdueT.length > 1 ? 's' : ''));
+      if (overdueInv.length > 0) redFlags.push(overdueInv.length + ' overdue invoice' + (overdueInv.length > 1 ? 's' : ''));
+
+      var weekLabel = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      var lines = [
+        'ð *BB Weekly CEO Briefing*',
+        'Week of ' + weekLabel,
+        '',
+        '*ð¥ Clients (' + clients.length + ')*',
+        'ð¢ Green: ' + greens + '  ð  Amber: ' + ambers + '  ð´ Red: ' + reds,
+        'ð° Total MRR: LKR ' + totalMRR.toLocaleString(),
+        '',
+        '*â Tasks*',
+        'Due this week: ' + dueSoon.length + '  |  Overdue: ' + overdueT.length
+      ];
+      dueSoon.slice(0, 3).forEach(function (t) {
+        lines.push('  â¢ ' + (t.title || '?') + ' (' + (t.assign || '?') + ')');
+      });
+      lines.push('', '*ð§¾ Invoices*');
+      lines.push('Unpaid: LKR ' + totalUnpaid.toLocaleString() + ' (' + unpaid.length + ' invoices)');
+      if (overdueInv.length) lines.push('Overdue: ' + overdueInv.length);
+      lines.push('');
+
+      if (redFlags.length) {
+        lines.push('*ð¨ Red Flags*');
+        redFlags.forEach(function (f) { lines.push('  â¢ ' + f); });
+      } else {
+        lines.push('â No critical red flags this week â solid position');
+      }
+      lines.push('\n_BB Command Centre â Automated Brief_');
+
+      markRan(KEY);
+      setS('ceo-brief', { status: 'ok', flags: redFlags.length, lastRun: new Date().toISOString() });
+      return sendAlert('agent-ceo-brief', lines.join('\n'));
+    }).catch(function (e) {
+      setS('ceo-brief', { status: 'error' });
+      console.error('[BB Agents] CEO Brief error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 6 â ONBOARDING COMPLETION
+  // Flags: new client (â¤14 days) with no onboarding tasks | overdue onboarding tasks
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runOnboarding(force) {
+    var KEY = 'onboarding';
+    if (!force && !needsRun(KEY, POLL_6H)) return Promise.resolve();
+    setS('onboarding', { status: 'running' });
+
+    var now    = new Date();
+    var cutoff = daysAgo(14).toISOString().split('T')[0];
+
+    return Promise.all([
+      sbQuery('clients', { select: 'id,name,start_date,assigned_smm',
+                            gte: { start_date: cutoff } }),
+      sbQuery('tasks',   { select: 'id,client_id,title,done,due,category',
+                            eq: { category: 'onboarding', done: false } })
+    ]).then(function (results) {
+      var newClients    = results[0];
+      var openTasks     = results[1];
+
+      if (!newClients.length) {
+        markRan(KEY);
+        setS('onboarding', { status: 'ok', flags: 0, lastRun: new Date().toISOString() });
+        return;
+      }
+
+      // Index onboarding tasks by client
+      var taskMap = {};
+      openTasks.forEach(function (t) {
+        if (!taskMap[t.client_id]) taskMap[t.client_id] = [];
+        taskMap[t.client_id].push(t);
+      });
+
+      var flags = [];
+      newClients.forEach(function (c) {
+        var startD = safeDate(c.start_date);
+        var dayIn  = startD ? Math.floor((now - startD) / 86400000) : 0;
+        var cTasks = taskMap[c.id] || [];
+
+        if (cTasks.length === 0) {
+          flags.push({ client: c.name, issue: 'no onboarding tasks created', day: dayIn });
+        } else {
+          var overTasks = cTasks.filter(function (t) {
+            var d = safeDate(t.due);
+            return d && d < now;
+          });
+          if (overTasks.length) {
+            flags.push({
+              client: c.name,
+              issue:  overTasks.length + ' onboarding task' + (overTasks.length > 1 ? 's' : '') + ' overdue',
+              day:    dayIn,
+              tasks:  overTasks.map(function (t) { return t.title; })
+            });
+          }
+        }
+      });
+
+      markRan(KEY);
+      setS('onboarding', { status: flags.length ? 'alert' : 'ok', flags: flags.length, lastRun: new Date().toISOString() });
+
+      if (!flags.length) return;
+
+      var lines = ['ð *BB Onboarding Alert*\n'];
+      flags.forEach(function (f) {
+        lines.push('ð  *' + f.client + '* (Day ' + f.day + ')');
+        lines.push('  â¢ ' + f.issue);
+        if (f.tasks) f.tasks.slice(0, 3).forEach(function (t) { lines.push('    â ' + t); });
+      });
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-onboarding', lines.join('\n'));
+    }).catch(function (e) {
+      setS('onboarding', { status: 'error' });
+      console.error('[BB Agents] Onboarding error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 7 â ANOMALY DETECTOR
+  // Flags: paid revenue down >20% vs last month | client health flipped to red/amber
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runAnomaly(force) {
+    var KEY = 'anomaly';
+    if (!force && !needsRun(KEY, POLL_24H)) return Promise.resolve();
+    setS('anomaly', { status: 'running' });
+
+    var cur  = curMonthYear();
+    var prev = prevMonthYear();
+
+    return Promise.all([
+      sbQuery('invoices', { select: 'client_id,amount,month', eq: { status: 'paid' } }),
+      sbQuery('clients',  { select: 'id,name,health' })
+    ]).then(function (results) {
+      var paidInv  = results[0];
+      var clients  = results[1];
+
+      // Revenue comparison
+      var thisMonthRev = 0, lastMonthRev = 0;
+      paidInv.forEach(function (inv) {
+        if (monthMatches(inv.month, cur.m,  cur.y))  thisMonthRev += (inv.amount || 0);
+        if (monthMatches(inv.month, prev.m, prev.y)) lastMonthRev += (inv.amount || 0);
+      });
+
+      var flags = [];
+
+      if (lastMonthRev > 0 && thisMonthRev < lastMonthRev * 0.8) {
+        var drop = Math.round(((lastMonthRev - thisMonthRev) / lastMonthRev) * 100);
+        flags.push({ type: 'rev_drop', drop: drop, cur: thisMonthRev, prev: lastMonthRev });
+      }
+
+      // Client health snapshot comparison
+      var prevSnap    = lsGet('anomaly_snap', {});
+      var newSnap     = {};
+      clients.forEach(function (c) {
+        newSnap[c.id] = c.health;
+        var was = prevSnap[c.id];
+        if (was && was !== 'red'   && c.health === 'red')   flags.push({ type: 'to_red',   client: c.name, from: was });
+        if (was === 'green'        && c.health === 'amber') flags.push({ type: 'to_amber',  client: c.name });
+      });
+      lsSet('anomaly_snap', newSnap);
+
+      markRan(KEY);
+      setS('anomaly', { status: flags.length ? 'alert' : 'ok', flags: flags.length, lastRun: new Date().toISOString() });
+
+      if (!flags.length) return;
+
+      var lines = ['ð *BB Anomaly Detected*\n'];
+      flags.forEach(function (f) {
+        if (f.type === 'rev_drop') {
+          lines.push('ð *Revenue Down ' + f.drop + '% vs last month*');
+          lines.push('  This month:  LKR ' + f.cur.toLocaleString());
+          lines.push('  Last month:  LKR ' + f.prev.toLocaleString());
+          lines.push('');
+        }
+        if (f.type === 'to_red')   lines.push('ð´ *' + f.client + '* moved to RED â churn risk!');
+        if (f.type === 'to_amber') lines.push('ð  *' + f.client + '* moved to AMBER â needs attention');
+      });
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-anomaly', lines.join('\n'));
+    }).catch(function (e) {
+      setS('anomaly', { status: 'error' });
+      console.error('[BB Agents] Anomaly error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // AGENT 8 â SHOOT TRACKER
+  // Flags: shoot_date passed + status â  delivered | shoot in 48h with status=requested
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runShoot(force) {
+    var KEY = 'shoot';
+    if (!force && !needsRun(KEY, POLL_6H)) return Promise.resolve();
+    setS('shoot', { status: 'running' });
+
+    var today48 = inDays(2);
+    var today   = todayStr();
+
+    return Promise.all([
+      sbQuery('smm_shoots', { select: 'id,title,client_id,shoot_date,status',
+                               neq: { status: 'delivered' } }),
+      sbQuery('clients',    { select: 'id,name' })
+    ]).then(function (results) {
+      var shoots  = results[0];
+      var clients = results[1];
+      var cMap    = {};
+      clients.forEach(function (c) { cMap[c.id] = c.name; });
+
+      var overdueF     = [];
+      var unconfirmedF = [];
+
+      shoots.forEach(function (s) {
+        var sd = s.shoot_date; // YYYY-MM-DD (DATE column)
+        var cn = cMap[s.client_id] || 'Unknown';
+        if (!sd) return;
+
+        if (sd < today) {
+          // Overdue and not delivered
+          var d    = safeDate(sd);
+          var over = d ? Math.floor((new Date() - d) / 86400000) : 0;
+          overdueF.push({ title: s.title || 'Untitled', client: cn, date: sd, over: over, status: s.status });
+        } else if (sd <= today48 && s.status === 'requested') {
+          // Upcoming in 48h but not confirmed
+          unconfirmedF.push({ title: s.title || 'Untitled', client: cn, date: sd });
+        }
+      });
+
+      var total = overdueF.length + unconfirmedF.length;
+      markRan(KEY);
+      setS('shoot', { status: total ? 'alert' : 'ok', flags: total, lastRun: new Date().toISOString() });
+
+      if (!total) return;
+
+      var lines = ['ð¬ *BB Shoot Tracker Alert*\n'];
+      if (overdueF.length) {
+        lines.push('*Overdue Shoots (' + overdueF.length + '):*');
+        overdueF.slice(0, 6).forEach(function (f) {
+          lines.push('ð´ ' + f.title + ' â ' + f.client + ' â ' + f.over + 'd overdue (' + f.status + ')');
+        });
+        lines.push('');
+      }
+      if (unconfirmedF.length) {
+        lines.push('*Shoots in 48h â Not Confirmed (' + unconfirmedF.length + '):*');
+        unconfirmedF.slice(0, 6).forEach(function (f) {
+          lines.push('ð  ' + f.title + ' â ' + f.client + ' â ' + f.date);
+        });
+      }
+      lines.push('\nâ± ' + new Date().toLocaleString());
+      return sendAlert('agent-shoot', lines.join('\n'));
+    }).catch(function (e) {
+      setS('shoot', { status: 'error' });
+      console.error('[BB Agents] Shoot error:', e);
+    });
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // RUN ALL (staggered to avoid Supabase rate-limit burst)
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function runAll(force) {
+    var agents = [
+      function () { return runClientHealth(force); },
+      function () { return runRevenue(force); },
+      function () { return runTeam(force); },
+      function () { return runContent(force); },
+      function () { return runOnboarding(force); },
+      function () { return runAnomaly(force); },
+      function () { return runShoot(force); }
+    ];
+    // Stagger 2s apart to avoid hammering Supabase simultaneously
+    agents.forEach(function (fn, i) {
+      setTimeout(fn, i * 2000);
+    });
+    // CEO brief runs independently
+    setTimeout(function () { runCEOBrief(force); }, agents.length * 2000);
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // UI PANEL â ð¤ FAB button â agent status panel (bottom-right)
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function injectPanel() {
+    if (document.getElementById('bba-fab')) return;
+
+    var style = document.createElement('style');
+    style.textContent = [
+      '#bba-fab{position:fixed;bottom:24px;right:24px;z-index:9999;width:50px;height:50px;',
+      'border-radius:50%;background:#FF6B2B;border:none;cursor:pointer;',
+      'box-shadow:0 4px 20px rgba(255,107,43,.5);font-size:22px;',
+      'display:flex;align-items:center;justify-content:center;',
+      'transition:transform .2s;}',
+      '#bba-fab:hover{transform:scale(1.12);}',
+      '#bba-panel{position:fixed;bottom:82px;right:24px;z-index:9998;width:310px;',
+      'background:#13131c;border:1px solid rgba(255,107,43,.25);border-radius:12px;',
+      'padding:14px 14px 10px;display:none;',
+      'box-shadow:0 8px 36px rgba(0,0,0,.65);',
+      'font-family:Inter,system-ui,sans-serif;color:#e5e7eb;',
+      'max-height:68vh;overflow-y:auto;}',
+      '#bba-panel.open{display:block;}',
+      '.bba-hdr{display:flex;justify-content:space-between;align-items:center;',
+      'margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(255,107,43,.18);}',
+      '.bba-title{font-size:12px;font-weight:700;color:#FF6B2B;letter-spacing:.6px;text-transform:uppercase;}',
+      '.bba-run{background:#FF6B2B;color:#fff;border:none;cursor:pointer;',
+      'padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;}',
+      '.bba-row{display:flex;align-items:center;gap:8px;padding:6px 0;',
+      'border-bottom:1px solid rgba(255,255,255,.04);}',
+      '.bba-row:last-child{border-bottom:none;}',
+      '.bba-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}',
+      '.bba-dot.idle{background:#52525b;}',
+      '.bba-dot.ok{background:#22c55e;}',
+      '.bba-dot.alert{background:#FF6B2B;animation:bbpulse 1.4s infinite;}',
+      '.bba-dot.running{background:#facc15;animation:bbpulse .7s infinite;}',
+      '.bba-dot.error{background:#ef4444;}',
+      '@keyframes bbpulse{0%,100%{opacity:1}50%{opacity:.35}}',
+      '.bba-info{flex:1}',
+      '.bba-name{font-size:12px;font-weight:500;}',
+      '.bba-time{font-size:10px;color:#52525b;margin-top:1px;}',
+      '.bba-badge{font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px;}',
+      '.bba-badge.has{color:#FF6B2B;background:rgba(255,107,43,.1);}',
+      '.bba-badge.ok{color:#22c55e;background:rgba(34,197,94,.1);}',
+      '.bba-badge.run{color:#facc15;background:rgba(250,204,21,.1);}',
+      '.bba-btn{background:rgba(255,107,43,.15);color:#FF6B2B;border:none;',
+      'cursor:pointer;padding:3px 8px;border-radius:5px;font-size:10px;}'
+    ].join('');
+    document.head.appendChild(style);
+
+    var fab = document.createElement('button');
+    fab.id = 'bba-fab';
+    fab.title = 'BB AI Agents';
+    fab.textContent = 'ð¤';
+    fab.onclick = function () {
+      var p = document.getElementById('bba-panel');
+      if (p) p.classList.toggle('open');
+    };
+
+    var panel = document.createElement('div');
+    panel.id = 'bba-panel';
+    panel.innerHTML = '<div class="bba-hdr">' +
+      '<span class="bba-title">ð¤ BB AI Agents</span>' +
+      '<button class="bba-run" onclick="window.BB_AGENTS.runAll(true)">â¶ Run All</button>' +
+      '</div><div id="bba-list"></div>';
+
+    document.body.appendChild(fab);
+    document.body.appendChild(panel);
+    renderPanel();
+  }
+
+  function renderPanel() {
+    var list = document.getElementById('bba-list');
+    if (!list) return;
+    var html = '';
+    Object.keys(STATE).forEach(function (id) {
+      var a = STATE[id];
+      var badge;
+      if (a.status === 'running') {
+        badge = '<span class="bba-badge run">runningâ¦</span>';
+      } else if (a.flags > 0) {
+        badge = '<span class="bba-badge has">' + a.flags + ' flag' + (a.flags > 1 ? 's' : '') + '</span>';
+      } else {
+        badge = '<span class="bba-badge ok">â clear</span>';
+      }
+      var t = a.lastRun
+        ? new Date(a.lastRun).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+        : 'never run';
+      html += '<div class="bba-row">' +
+        '<div class="bba-dot ' + a.status + '"></div>' +
+        '<div class="bba-info">' +
+          '<div class="bba-name">' + a.name + '</div>' +
+          '<div class="bba-time">Last: ' + t + '</div>' +
+        '</div>' +
+        badge +
+        '<button class="bba-btn" onclick="window.BB_AGENTS.runAgent(\'' + id + '\',true)">â¶</button>' +
+        '</div>';
+    });
+    list.innerHTML = html;
+  }
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // PUBLIC API  window.BB_AGENTS
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  var AGENT_FNS = {
+    'client-health': runClientHealth,
+    'revenue':       runRevenue,
+    'team':          runTeam,
+    'content':       runContent,
+    'ceo-brief':     runCEOBrief,
+    'onboarding':    runOnboarding,
+    'anomaly':       runAnomaly,
+    'shoot':         runShoot
+  };
+
+  global.BB_AGENTS = {
+    runAll:    runAll,
+    runAgent:  function (id, force) {
+      if (AGENT_FNS[id]) AGENT_FNS[id](!!force);
+    },
+    getState:  function () { return STATE; },
+    resetAll:  function () {
+      Object.keys(STATE).forEach(function (id) {
+        var k = id.replace('-', '_');
+        localStorage.removeItem(LS + k + '_lastrun');
+      });
+      lsSet('team_snapshot',  {});
+      lsSet('anomaly_snap',   {});
+      console.log('[BB Agents] All timers and snapshots reset');
+    }
+  };
+
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // INIT
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  function init() {
+    console.log('[BB Agents] AI Agents Layer v1.0 â initialising');
+
+    // Inject UI after DOM is ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', injectPanel);
+    } else {
+      injectPanel();
+    }
+
+    // First run: 4s delay so the rest of the app finishes loading
+    setTimeout(function () { runAll(false); }, 4000);
+
+    // Polling tick â every 15 min, each agent checks its own interval
+    setInterval(function () { runAll(false); }, POLL_TICK);
+
+    // CEO brief check every 5 min (to catch Monday 8am window)
+    setInterval(function () { runCEOBrief(false); }, CEO_TICK);
+  }
+
+  init();
+
+}(window));
+</script>
+ 
