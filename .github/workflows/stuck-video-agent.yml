@@ -1,0 +1,78 @@
+name: BB Stuck Video Agent
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # every 6 hours, 24/7
+  workflow_dispatch:
+
+jobs:
+  stuck-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for stuck videos
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB    = os.environ['SB_URL']
+          KEY   = os.environ['SB_KEY']
+          ALERT = os.environ['ALERT_URL']
+          HDR   = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def send_alert(msg):
+              payload = json.dumps({"message": msg, "page": "Video Pipeline", "role": "ceo"}).encode()
+              req = urllib.request.Request(ALERT, data=payload,
+                  headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          now = datetime.datetime.utcnow()
+          cutoff_48h = (now - datetime.timedelta(hours=48)).isoformat()
+          cutoff_72h = (now - datetime.timedelta(hours=72)).isoformat()
+
+          # Get active video stage history to find last move time per project
+          videos = get("video_projects?is_archived=eq.false&select=id,title,current_stage,assigned_editor_id")
+          STUCK_STAGES  = ['editing', 'changes']
+          CLIENT_STAGES = ['client_changes', 'sent_to_client']
+          DONE_STAGES   = ['add_to_drive', 'sent_to_client', 'posted']
+
+          active = [v for v in videos if v['current_stage'] not in DONE_STAGES]
+
+          stuck_editing = []
+          stuck_client  = []
+
+          for v in active:
+              # Get latest history entry for this video
+              hist = get(f"video_stage_history?video_project_id=eq.{v['id']}&order=entered_at.desc&limit=1&select=entered_at,stage")
+              if not hist:
+                  continue
+              last_move = hist[0]['entered_at'][:19]  # trim microseconds
+              if v['current_stage'] in STUCK_STAGES and last_move < cutoff_48h[:19]:
+                  hours = int((now - datetime.datetime.fromisoformat(last_move)).total_seconds() / 3600)
+                  stuck_editing.append(f"  → {v['title'][:40]} ({hours}h in {v['current_stage']})")
+              elif v['current_stage'] in CLIENT_STAGES and last_move < cutoff_72h[:19]:
+                  hours = int((now - datetime.datetime.fromisoformat(last_move)).total_seconds() / 3600)
+                  stuck_client.append(f"  → {v['title'][:40]} ({hours}h waiting on client)")
+
+          alerts = []
+          if stuck_editing:
+              alerts.append(f"⏳ {len(stuck_editing)} video(s) stuck in editing 48h+:\n" + "\n".join(stuck_editing))
+          if stuck_client:
+              alerts.append(f"📤 {len(stuck_client)} video(s) waiting on client 72h+:\n" + "\n".join(stuck_client))
+
+          if alerts:
+              msg = "🎬 BB VIDEO — Stuck Projects\n\n" + "\n\n".join(alerts)
+              print(msg)
+              send_alert(msg)
+              print("Alert sent.")
+          else:
+              print("All videos moving — no stuck projects.")
+          PYEOF

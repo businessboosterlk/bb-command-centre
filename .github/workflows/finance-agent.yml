@@ -1,0 +1,80 @@
+name: BB Finance Agent (5:30pm)
+
+on:
+  schedule:
+    - cron: '0 12 * * 1-6'   # 5:30 PM Sri Lanka (UTC+5:30) Mon-Sat
+  workflow_dispatch:
+
+jobs:
+  finance-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check finance health and write to CC
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB  = os.environ['SB_URL']
+          KEY = os.environ['SB_KEY']
+          HDR = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def write_alert(agent, message, severity="info"):
+              payload = json.dumps({"agent": agent, "message": message, "severity": severity}).encode()
+              req = urllib.request.Request(
+                  f"{SB}/agent_alerts",
+                  data=payload,
+                  headers={**HDR, "Content-Type": "application/json", "Prefer": "return=minimal"},
+                  method="POST"
+              )
+              urllib.request.urlopen(req)
+
+          today  = datetime.date.today()
+          issues = []
+
+          # ── Overdue invoices ──────────────────────────────
+          invoices = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,due_date,status")
+          long_overdue = []
+          for inv in invoices:
+              if inv.get('due_date'):
+                  try:
+                      due = datetime.date.fromisoformat(str(inv['due_date'])[:10])
+                      days_late = (today - due).days
+                      if days_late >= 14:
+                          long_overdue.append(f"{inv['client_name']} — LKR {inv['amount']:,} ({days_late}d late)")
+                  except: pass
+
+          if long_overdue:
+              msg = "💸 OVERDUE 14+ DAYS:\n" + "\n".join(long_overdue)
+              write_alert("finance", msg, "critical")
+              print(msg)
+
+          total_unpaid = sum(i.get('amount', 0) for i in invoices)
+          if total_unpaid > 0:
+              msg = f"💰 Total unpaid: LKR {total_unpaid:,} across {len(invoices)} invoice(s)"
+              write_alert("finance", msg, "warning")
+              print(msg)
+
+          # ── Renewals this week ────────────────────────────
+          clients = get("clients?select=name,renewal")
+          for c in clients:
+              if c.get('renewal'):
+                  try:
+                      ren = datetime.date.fromisoformat(str(c['renewal'])[:10])
+                      days_left = (ren - today).days
+                      if 0 <= days_left <= 7:
+                          msg = f"🔄 Renewal in {days_left}d: {c['name']}"
+                          write_alert("finance", msg, "warning" if days_left > 2 else "critical")
+                          print(msg)
+                  except: pass
+
+          if not long_overdue and total_unpaid == 0:
+              print("Finance OK — no issues today.")
+          PYEOF

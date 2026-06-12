@@ -1,0 +1,55 @@
+name: BB Client Health Agent
+
+on:
+  schedule:
+    - cron: '0 */4 * * *'   # every 4 hours, 24/7
+  workflow_dispatch:
+
+jobs:
+  client-health:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check client health changes
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB    = os.environ['SB_URL']
+          KEY   = os.environ['SB_KEY']
+          ALERT = os.environ['ALERT_URL']
+          HDR   = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def send_alert(msg):
+              payload = json.dumps({"message": msg, "page": "Client Health", "role": "ceo"}).encode()
+              req = urllib.request.Request(ALERT, data=payload,
+                  headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          clients = get("clients?select=id,name,health")
+          red    = [c for c in clients if c.get('health') == 'red']
+          amber  = [c for c in clients if c.get('health') == 'amber']
+
+          alerts = []
+          if red:
+              names = ', '.join(c['name'] for c in red)
+              alerts.append(f"🔴 RED clients ({len(red)}): {names}\nThese clients need immediate attention.")
+          if amber:
+              names = ', '.join(c['name'] for c in amber)
+              alerts.append(f"🟡 AMBER clients ({len(amber)}): {names}")
+
+          if alerts:
+              msg = "🏥 BB Client Health Alert\n\n" + "\n\n".join(alerts) + "\n\nLog into CC to action these."
+              print(msg)
+              send_alert(msg)
+          else:
+              print(f"All {len(clients)} clients healthy.")
+          PYEOF

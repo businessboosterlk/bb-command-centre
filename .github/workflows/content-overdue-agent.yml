@@ -1,0 +1,56 @@
+name: BB Content Overdue Agent
+
+on:
+  schedule:
+    - cron: '0 4 * * *'   # 9:30 AM Sri Lanka daily (UTC+5:30)
+  workflow_dispatch:
+
+jobs:
+  content-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check overdue content posts
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB    = os.environ['SB_URL']
+          KEY   = os.environ['SB_KEY']
+          ALERT = os.environ['ALERT_URL']
+          HDR   = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def send_alert(msg, role):
+              payload = json.dumps({"message": msg, "page": "SMM Content", "role": role}).encode()
+              req = urllib.request.Request(ALERT, data=payload,
+                  headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          today = datetime.date.today().isoformat()
+
+          content = get("content_plans?select=id,title,client_id,scheduled_date,posted,type")
+          overdue = [c for c in content if c.get('scheduled_date') and
+                     c['scheduled_date'] < today and not c.get('posted')]
+
+          if not overdue:
+              print("All content posted on schedule.")
+          else:
+              lines = [f"  → {c.get('title','Untitled')[:40]} (due {c['scheduled_date']})"
+                       for c in sorted(overdue, key=lambda x: x.get('scheduled_date',''))[:10]]
+              msg = f"📱 BB CONTENT — {len(overdue)} post(s) overdue\n\n" + "\n".join(lines)
+              if len(overdue) > 10:
+                  msg += f"\n  ... and {len(overdue)-10} more"
+              msg += "\n\nNirvana — please post these ASAP or update SMM Workspace."
+              print(msg)
+              send_alert(msg, "ceo")
+              send_alert(msg, "smm")
+              print("Alert sent to CEO and SMM.")
+          PYEOF

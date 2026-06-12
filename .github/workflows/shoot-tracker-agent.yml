@@ -1,0 +1,76 @@
+name: BB Shoot Tracker Agent
+
+on:
+  schedule:
+    - cron: '30 1 * * *'   # 7:00 AM Sri Lanka daily (UTC+5:30)
+  workflow_dispatch:
+
+jobs:
+  shoot-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check upcoming and overdue shoots
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB    = os.environ['SB_URL']
+          KEY   = os.environ['SB_KEY']
+          ALERT = os.environ['ALERT_URL']
+          HDR   = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def send_alert(msg):
+              payload = json.dumps({"message": msg, "page": "Shoots", "role": "ceo"}).encode()
+              req = urllib.request.Request(ALERT, data=payload,
+                  headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          today     = datetime.date.today()
+          today_str = today.isoformat()
+          in_3_days = (today + datetime.timedelta(days=3)).isoformat()
+
+          try:
+              shoots = get("shoots?select=id,client_name,shoot_date,status,notes")
+          except:
+              try:
+                  shoots = get("events?type=eq.shoot&select=id,client_name,date,status,notes")
+              except:
+                  print("No shoots table found — skipping.")
+                  exit(0)
+
+          date_key   = 'shoot_date' if shoots and 'shoot_date' in shoots[0] else 'date'
+          alerts     = []
+
+          today_shoots = [s for s in shoots if s.get(date_key,'') == today_str]
+          upcoming     = [s for s in shoots if today_str < s.get(date_key,'') <= in_3_days]
+          overdue      = [s for s in shoots if s.get(date_key,'') < today_str
+                          and s.get('status','') not in ('done','completed','posted')]
+
+          if today_shoots:
+              names = ', '.join(s.get('client_name','?') for s in today_shoots)
+              alerts.append(f"📸 TODAY'S SHOOT(S): {names}")
+
+          if upcoming:
+              lines = [f"  → {s.get('client_name','?')} on {s.get(date_key,'?')}" for s in upcoming]
+              alerts.append(f"📅 Upcoming shoots (3 days):\n" + "\n".join(lines))
+
+          if overdue:
+              lines = [f"  → {s.get('client_name','?')} — {s.get(date_key,'?')}" for s in overdue[:5]]
+              alerts.append(f"⚠️ Shoots not marked done ({len(overdue)}):\n" + "\n".join(lines))
+
+          if alerts:
+              msg = "🎥 BB Shoot Tracker\n\n" + "\n\n".join(alerts)
+              print(msg)
+              send_alert(msg)
+          else:
+              print("No shoot alerts today.")
+          PYEOF
