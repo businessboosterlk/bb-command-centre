@@ -1,0 +1,171 @@
+name: BB Daily Operations Report
+
+on:
+  schedule:
+    - cron: '0 13 * * 1-6'   # 6:30 PM Sri Lanka (UTC+5:30) Mon-Sat
+  workflow_dispatch:
+
+jobs:
+  daily-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Daily Operations Report
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB   = os.environ['SB_URL']
+          KEY  = os.environ['SB_KEY']
+          ALERT= os.environ['ALERT_URL']
+          HDR  = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def post_alert(msg):
+              payload = json.dumps({"message": msg, "page": "Daily Ops Report", "role": "ceo"}).encode()
+              req = urllib.request.Request(ALERT, data=payload,
+                  headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          today     = datetime.date.today()
+          today_str = today.isoformat()
+          now       = datetime.datetime.utcnow()
+          day_start = datetime.datetime.combine(today, datetime.time.min).isoformat()
+
+          lines = []
+          lines.append(f"📊 BB DAILY OPS REPORT — {today.strftime('%A, %d %B %Y')}")
+          lines.append("=" * 48)
+
+          # ─── COMMAND CENTRE ───────────────────────────────
+          lines.append("\n🧠 COMMAND CENTRE")
+
+          tasks = get("tasks?done=eq.false&select=id,title,assign,due,priority")
+          overdue_tasks = [t for t in tasks if t.get('due') and t['due'] < today_str]
+          due_today     = [t for t in tasks if t.get('due') == today_str]
+
+          lines.append(f"  Tasks overdue    : {len(overdue_tasks)}")
+          lines.append(f"  Tasks due today  : {len(due_today)}")
+          if overdue_tasks[:3]:
+              for t in overdue_tasks[:3]:
+                  lines.append(f"    ⚠ {t['title'][:45]} [{t.get('assign','?')}]")
+              if len(overdue_tasks) > 3:
+                  lines.append(f"    ... and {len(overdue_tasks)-3} more")
+
+          clients = get("clients?select=name,health,package")
+          red   = [c['name'] for c in clients if c.get('health') == 'red']
+          amber = [c['name'] for c in clients if c.get('health') == 'amber']
+          lines.append(f"  🔴 Red clients   : {', '.join(red) if red else 'None'}")
+          lines.append(f"  🟡 Amber clients : {len(amber)} ({', '.join(amber[:3])}{'...' if len(amber)>3 else ''})")
+
+          invoices = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,status")
+          total_unpaid = sum(i.get('amount',0) for i in invoices)
+          overdue_inv  = [i for i in invoices if i.get('status') == 'overdue']
+          lines.append(f"  💰 Unpaid invoices: {len(invoices)} | LKR {total_unpaid:,}")
+          if overdue_inv:
+              lines.append(f"  🔥 OVERDUE: {', '.join(i['client_name'] for i in overdue_inv[:3])}")
+
+          # ─── VIDEO SYSTEM ─────────────────────────────────
+          lines.append("\n🎬 VIDEO SYSTEM")
+
+          videos = get("video_projects?is_archived=eq.false&select=id,title,current_stage,deadline,assigned_editor_id,completed_at")
+          DONE_STAGES = ['add_to_drive', 'sent_to_client', 'posted']
+          STUCK_STAGES = ['editing', 'changes', 'client_changes']
+
+          active    = [v for v in videos if v['current_stage'] not in DONE_STAGES]
+          posted    = [v for v in videos if v['current_stage'] == 'posted']
+          coo_check = [v for v in videos if v['current_stage'] == 'coo_check']
+          stuck     = [v for v in videos if v['current_stage'] in STUCK_STAGES]
+          overdue_v = [v for v in active if v.get('deadline') and v['deadline'] < today_str]
+
+          lines.append(f"  Active videos    : {len(active)}")
+          lines.append(f"  Posted           : {len(posted)}")
+          lines.append(f"  ✅ Awaiting COO check : {len(coo_check)}" + (f" — {', '.join(v['title'][:30] for v in coo_check)}" if coo_check else ""))
+          lines.append(f"  ⏳ Stuck in editing  : {len(stuck)}")
+          if overdue_v:
+              lines.append(f"  🚨 OVERDUE videos: {', '.join(v['title'][:30] for v in overdue_v[:3])}")
+
+          # Who logged in today (video team)
+          try:
+              logs = get(f"team_login_logs?app=eq.video-system&logged_in_at=gte.{day_start}T00:00:00&select=member_name,logged_in_at")
+              logged_in = list(set(l['member_name'] for l in logs))
+              lines.append(f"  Team logged in   : {', '.join(logged_in) if logged_in else 'Nobody yet'}")
+          except:
+              lines.append(f"  Team logged in   : (no data)")
+
+          # Ushane pillars
+          try:
+              pillar = get(f"pillars?who=eq.USHANE&select=done_ids,updated_at")
+              if pillar:
+                  done_ids = json.loads(pillar[0].get('done_ids') or '[]')
+                  lines.append(f"  Ushane pillars   : {len(done_ids)}/6 done today")
+              else:
+                  lines.append(f"  Ushane pillars   : Not updated today")
+          except:
+              pass
+
+          # ─── SMM WORKSPACE ────────────────────────────────
+          lines.append("\n📱 SMM WORKSPACE")
+
+          try:
+              content = get("content_plans?select=id,stage,status,client_id,scheduled_date")
+              cur_month = today.month
+              cur_year  = today.year
+
+              posted_smm   = [c for c in content if c.get('stage') == 'posted' or c.get('status') == 'posted']
+              pending_appr = [c for c in content if c.get('stage') in ('client-approval','send-client')]
+              overdue_smm  = [c for c in content if c.get('scheduled_date') and
+                              c.get('scheduled_date') < today_str and
+                              c.get('stage') not in ('posted','drive')]
+
+              lines.append(f"  Content posted   : {len(posted_smm)} items this month")
+              lines.append(f"  Pending approval : {len(pending_appr)} items")
+              if overdue_smm:
+                  lines.append(f"  ⚠ Overdue posts  : {len(overdue_smm)} past schedule date")
+          except Exception as e:
+              lines.append(f"  (content data unavailable: {e})")
+
+          # Nirvana login today
+          try:
+              smm_logs = get(f"team_login_logs?app=eq.smm-workspace&logged_in_at=gte.{day_start}T00:00:00&select=member_name")
+              nirvana_in = any(l['member_name'] == 'NIRVANA' for l in smm_logs)
+              lines.append(f"  Nirvana logged in: {'✅ Yes' if nirvana_in else '❌ Not yet today'}")
+          except:
+              pass
+
+          # ─── GRAPHIC SYSTEM ────────────────────────────────
+          lines.append("\n🎨 GRAPHIC SYSTEM")
+          lines.append("  (System not yet live — coming soon)")
+
+          # ─── WHAT NEEDS ACTION ────────────────────────────
+          lines.append("\n🎯 NEEDS YOUR ATTENTION")
+          actions = []
+          if overdue_tasks:  actions.append(f"{len(overdue_tasks)} overdue task(s) — assign or reschedule")
+          if overdue_inv:    actions.append(f"{len(overdue_inv)} overdue invoice(s) — chase payment")
+          if coo_check:      actions.append(f"{len(coo_check)} video(s) waiting for your COO check")
+          if red:            actions.append(f"Red health clients: {', '.join(red)}")
+          if overdue_v:      actions.append(f"{len(overdue_v)} video(s) past deadline")
+          if pending_appr if 'pending_appr' in dir() else []:
+              if len(pending_appr) > 0:
+                  actions.append(f"{len(pending_appr)} content item(s) stuck waiting for approval")
+
+          if actions:
+              for a in actions:
+                  lines.append(f"  → {a}")
+          else:
+              lines.append("  ✅ All good — no urgent actions!")
+
+          lines.append("\n" + "─" * 48)
+          lines.append("BB Command Centre → businessboosterlk.github.io/bb-command-centre")
+
+          msg = "\n".join(lines)
+          print(msg)
+          post_alert(msg)
+          print("\nDaily ops report sent.")
+          PYEOF
