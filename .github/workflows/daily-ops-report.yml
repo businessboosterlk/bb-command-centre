@@ -114,7 +114,7 @@ jobs:
           lines.append("\n📱 SMM WORKSPACE")
 
           try:
-              content = get("content_plans?select=id,stage,status,client_id,scheduled_date")
+              content = get("content_plans?select=id,posted,client_id,scheduled_date")
               cur_month = today.month
               cur_year  = today.year
 
