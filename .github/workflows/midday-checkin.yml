@@ -1,0 +1,260 @@
+name: BB Midday Check-in (12pm)
+
+on:
+  schedule:
+    - cron: '30 6 * * 1-6'   # 12:00 PM Sri Lanka (UTC+5:30) Mon-Sat
+  workflow_dispatch:
+
+jobs:
+  midday-checkin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Midday team check-in report
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB    = os.environ['SB_URL']
+          KEY   = os.environ['SB_KEY']
+          ALERT = os.environ['ALERT_URL']
+          HDR   = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+
+          def get(path):
+              req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          def send(msg, role):
+              payload = json.dumps({"message": msg, "page": "Midday Check-in", "role": role}).encode()
+              req = urllib.request.Request(ALERT, data=payload,
+                  headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          today     = datetime.date.today()
+          today_str = today.isoformat()
+          day_start = today_str + "T00:00:00"
+
+          # ── Ushane pillars (from daily_pillar_state) ──────
+          USHANE_PILLARS = [
+              ("system_update",  "System Update"),
+              ("team_check",     "Team Check"),
+              ("shiara_brief",   "Shiara Brief"),
+              ("shoot_check",    "Shoot Check"),
+              ("folder_update",  "Folder Update"),
+              ("close_day",      "Close Day"),
+          ]
+          try:
+              ps = get(f"daily_pillar_state?user_name=eq.USHANE&pillar_date=eq.{today_str}&select=state")
+              state = json.loads(ps[0]['state']) if ps and ps[0].get('state') else {}
+              if isinstance(state, str):
+                  state = json.loads(state)
+              ushane_done  = [label for key, label in USHANE_PILLARS if state.get(key)]
+              ushane_left  = [label for key, label in USHANE_PILLARS if not state.get(key)]
+              ushane_score = f"{len(ushane_done)}/6"
+          except Exception as e:
+              ushane_done  = []
+              ushane_left  = [l for _, l in USHANE_PILLARS]
+              ushane_score = "0/6"
+
+          # ── Nirvana pillars (stored in pillars table as who=NIRVANA) ──
+          NIRVANA_PILLARS = [
+              "Content Production",
+              "Client Communication",
+              "Community Management",
+              "Performance Review",
+              "Content Planning",
+              "Reporting & Admin",
+              "Learning & Growth",
+          ]
+          try:
+              np = get("pillars?who=eq.NIRVANA&select=done_ids,updated_at")
+              if np:
+                  done_ids = json.loads(np[0].get('done_ids') or '[]')
+                  nirvana_done  = [NIRVANA_PILLARS[i-1] for i in done_ids if 0 < i <= len(NIRVANA_PILLARS)]
+                  nirvana_left  = [p for p in NIRVANA_PILLARS if p not in nirvana_done]
+                  nirvana_score = f"{len(nirvana_done)}/7"
+              else:
+                  nirvana_done, nirvana_left, nirvana_score = [], NIRVANA_PILLARS[:], "0/7"
+          except:
+              nirvana_done, nirvana_left, nirvana_score = [], NIRVANA_PILLARS[:], "0/7"
+
+          # ── Thulaib pillars ───────────────────────────────
+          try:
+              tp = get("pillars?who=eq.th&select=top3,done_ids&order=updated_at.desc&limit=1")
+              if tp:
+                  top3     = json.loads(tp[0].get('top3') or '[]')
+                  done_ids = json.loads(tp[0].get('done_ids') or '[]')
+                  th_done  = len(done_ids)
+                  th_total = len(top3)
+                  th_score = f"{th_done}/{th_total}"
+                  th_left  = [top3[i] for i in range(th_total) if (i+1) not in done_ids]
+              else:
+                  th_score, th_left = "?", []
+          except:
+              th_score, th_left = "?", []
+
+          # ── Shiara pillars ────────────────────────────────
+          try:
+              sp = get("pillars?who=eq.sh&select=top3,done_ids&order=updated_at.desc&limit=1")
+              if sp:
+                  top3     = json.loads(sp[0].get('top3') or '[]')
+                  done_ids = json.loads(sp[0].get('done_ids') or '[]')
+                  sh_done  = len(done_ids)
+                  sh_total = len(top3)
+                  sh_score = f"{sh_done}/{sh_total}"
+                  sh_left  = [top3[i] for i in range(sh_total) if (i+1) not in done_ids]
+              else:
+                  sh_score, sh_left = "?", []
+          except:
+              sh_score, sh_left = "?", []
+
+          # ── Who logged in today ───────────────────────────
+          try:
+              vid_logs = get(f"team_login_logs?app=eq.video-system&logged_in_at=gte.{day_start}&select=member_name")
+              smm_logs = get(f"team_login_logs?app=eq.smm-workspace&logged_in_at=gte.{day_start}&select=member_name")
+              video_in = list(set(l['member_name'] for l in vid_logs))
+              nirvana_logged = any(l['member_name'] == 'NIRVANA' for l in smm_logs)
+          except:
+              video_in, nirvana_logged = [], False
+
+          # ── Tasks completed today ─────────────────────────
+          try:
+              done_tasks = get(f"tasks?done=eq.true&select=id,title,assign")
+              # No updated_at filter available easily, show total done
+              tasks_done_count = len(done_tasks)
+          except:
+              tasks_done_count = "?"
+
+          # ── Videos moved today ────────────────────────────
+          try:
+              history = get(f"video_stage_history?entered_at=gte.{day_start}&select=video_project_id,stage&limit=100")
+              vids_moved = len(set(h['video_project_id'] for h in history))
+          except:
+              vids_moved = 0
+
+          # ── Build CEO report ──────────────────────────────
+          def tick(done): return "✅" if done else "❌"
+
+          ceo_lines = [
+              f"☀️ BB MIDDAY CHECK-IN — {today.strftime('%a %d %b')}",
+              "─" * 42,
+              "",
+              "👤 TEAM DAILY PILLARS",
+              "",
+              f"  🎬 USHANE (Video Head) — {ushane_score}",
+          ]
+          for label in USHANE_PILLARS:
+              key, lbl = label
+              done = state.get(key) if 'state' in dir() else False
+              ceo_lines.append(f"    {tick(done)} {lbl}")
+
+          ceo_lines += [
+              "",
+              f"  📱 NIRVANA (SMM) — {nirvana_score}",
+          ]
+          for p in NIRVANA_PILLARS:
+              ceo_lines.append(f"    {tick(p in nirvana_done)} {p}")
+
+          ceo_lines += [
+              "",
+              f"  🧠 THULAIB (CEO) — {th_score}",
+          ]
+          for p in th_left[:3]:
+              ceo_lines.append(f"    ❌ {p[:45]}")
+
+          ceo_lines += [
+              "",
+              f"  📋 SHIARA (COO) — {sh_score}",
+          ]
+          for p in sh_left[:3]:
+              ceo_lines.append(f"    ❌ {p[:45]}")
+
+          ceo_lines += [
+              "",
+              "─" * 42,
+              "👥 WHO'S IN THE SYSTEM",
+              f"  Video team : {', '.join(video_in) if video_in else '❌ Nobody logged in yet'}",
+              f"  Nirvana    : {'✅ Logged in' if nirvana_logged else '❌ Not in SMM yet'}",
+              "",
+              "─" * 42,
+              "⚡ ACTIVITY SO FAR TODAY",
+              f"  Videos moved stages  : {vids_moved}",
+          ]
+
+          # Urgent flags
+          flags = []
+          if not video_in:
+              flags.append("Video team not logged in — check with Ushane")
+          if not nirvana_logged:
+              flags.append("Nirvana not in SMM Workspace yet")
+          if len(ushane_done) < 3:
+              flags.append(f"Ushane only {ushane_score} pillars done by midday")
+          if len(nirvana_done) < 2:
+              flags.append(f"Nirvana only {nirvana_score} pillars done by midday")
+
+          if flags:
+              ceo_lines += ["", "⚠️ FOLLOW UP NEEDED"]
+              for f in flags:
+                  ceo_lines.append(f"  → {f}")
+          else:
+              ceo_lines += ["", "✅ All team members on track at midday."]
+
+          ceo_msg = "\n".join(ceo_lines)
+          print(ceo_msg)
+          send(ceo_msg, "ceo")
+
+          # ── COO report (Shiara) ────────────────────────────
+          # Shiara gets: video pipeline status + content approvals
+          try:
+              videos = get("video_projects?is_archived=eq.false&select=title,current_stage,deadline")
+              coo_check = [v for v in videos if v['current_stage'] == 'coo_check']
+              in_editing = [v for v in videos if v['current_stage'] in ('editing','changes','client_changes')]
+              overdue_v  = [v for v in videos if v.get('deadline') and v['deadline'] < today_str
+                            and v['current_stage'] not in ('posted','add_to_drive','sent_to_client')]
+
+              content = get("content_plans?select=id,posted,client_id,scheduled_date,title")
+              overdue_c = [c for c in content if c.get('scheduled_date') and
+                           c['scheduled_date'] < today_str and not c.get('posted')]
+
+              coo_lines = [
+                  f"📋 BB MIDDAY UPDATE — {today.strftime('%a %d %b')}",
+                  "─" * 42,
+                  "",
+                  f"🎬 VIDEO PIPELINE",
+                  f"  Awaiting your COO check : {len(coo_check)}",
+              ]
+              if coo_check:
+                  for v in coo_check[:5]:
+                      coo_lines.append(f"    → {v['title'][:40]}")
+              coo_lines += [
+                  f"  In editing             : {len(in_editing)}",
+              ]
+              if overdue_v:
+                  coo_lines.append(f"  🚨 Overdue videos: {', '.join(v['title'][:25] for v in overdue_v[:3])}")
+
+              coo_lines += [
+                  "",
+                  f"📱 CONTENT",
+                  f"  Overdue posts (not posted past schedule): {len(overdue_c)}",
+                  f"  Ushane pillars : {ushane_score}",
+                  f"  Nirvana pillars: {nirvana_score}",
+              ]
+
+              if not video_in:
+                  coo_lines.append("\n⚠️ Video team not logged in — check with Ushane")
+              if not nirvana_logged:
+                  coo_lines.append("⚠️ Nirvana not in SMM Workspace yet")
+
+              coo_msg = "\n".join(coo_lines)
+              print("\n--- COO Report ---")
+              print(coo_msg)
+              send(coo_msg, "smm")  # routes to COO/Shiara
+          except Exception as e:
+              print(f"COO report error: {e}")
+
+          print("\nMidday check-in sent.")
+          PYEOF

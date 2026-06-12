@@ -1,15 +1,15 @@
-name: BB Daily Operations Report
+name: BB Daily Operations Report (6pm)
 
 on:
   schedule:
-    - cron: '0 13 * * 1-6'   # 6:30 PM Sri Lanka (UTC+5:30) Mon-Sat
+    - cron: '0 13 * * 1-6'   # 6:30 PM Sri Lanka (UTC+5:30) Mon-Sat  (13:00 UTC = 18:30 SLT)
   workflow_dispatch:
 
 jobs:
   daily-report:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Daily Operations Report
+      - name: Generate full daily ops report
         env:
           SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
           SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
@@ -18,154 +18,229 @@ jobs:
           python3 << 'PYEOF'
           import urllib.request, json, os, datetime
 
-          SB   = os.environ['SB_URL']
-          KEY  = os.environ['SB_KEY']
-          ALERT= os.environ['ALERT_URL']
-          HDR  = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
+          SB    = os.environ['SB_URL']
+          KEY   = os.environ['SB_KEY']
+          ALERT = os.environ['ALERT_URL']
+          HDR   = {"apikey": KEY, "Authorization": f"Bearer {KEY}"}
 
           def get(path):
               req = urllib.request.Request(f"{SB}/{path}", headers=HDR)
               with urllib.request.urlopen(req) as r:
                   return json.load(r)
 
-          def post_alert(msg):
-              payload = json.dumps({"message": msg, "page": "Daily Ops Report", "role": "ceo"}).encode()
+          def send(msg, role):
+              payload = json.dumps({"message": msg, "page": "Daily Ops Report", "role": role}).encode()
               req = urllib.request.Request(ALERT, data=payload,
                   headers={"Content-Type": "application/json"}, method="POST")
               urllib.request.urlopen(req)
 
           today     = datetime.date.today()
           today_str = today.isoformat()
-          now       = datetime.datetime.utcnow()
-          day_start = datetime.datetime.combine(today, datetime.time.min).isoformat()
+          day_start = today_str + "T00:00:00"
 
-          lines = []
-          lines.append(f"📊 BB DAILY OPS REPORT — {today.strftime('%A, %d %B %Y')}")
-          lines.append("=" * 48)
+          tick = lambda done: "✅" if done else "❌"
 
-          # ─── COMMAND CENTRE ───────────────────────────────
-          lines.append("\n🧠 COMMAND CENTRE")
+          USHANE_PILLARS = [
+              ("system_update", "System Update"),
+              ("team_check",    "Team Check"),
+              ("shiara_brief",  "Shiara Brief"),
+              ("shoot_check",   "Shoot Check"),
+              ("folder_update", "Folder Update"),
+              ("close_day",     "Close Day"),
+          ]
+          NIRVANA_PILLARS = [
+              "Content Production", "Client Communication", "Community Management",
+              "Performance Review", "Content Planning", "Reporting & Admin", "Learning & Growth",
+          ]
 
-          tasks = get("tasks?done=eq.false&select=id,title,assign,due,priority")
-          overdue_tasks = [t for t in tasks if t.get('due') and t['due'] < today_str]
-          due_today     = [t for t in tasks if t.get('due') == today_str]
+          # ── Pillars ───────────────────────────────────────
+          try:
+              ps = get(f"daily_pillar_state?user_name=eq.USHANE&pillar_date=eq.{today_str}&select=state")
+              u_state = json.loads(ps[0]['state']) if ps and ps[0].get('state') else {}
+              if isinstance(u_state, str): u_state = json.loads(u_state)
+          except: u_state = {}
+          u_done  = [l for k,l in USHANE_PILLARS if u_state.get(k)]
+          u_left  = [l for k,l in USHANE_PILLARS if not u_state.get(k)]
 
-          lines.append(f"  Tasks overdue    : {len(overdue_tasks)}")
-          lines.append(f"  Tasks due today  : {len(due_today)}")
-          if overdue_tasks[:3]:
-              for t in overdue_tasks[:3]:
-                  lines.append(f"    ⚠ {t['title'][:45]} [{t.get('assign','?')}]")
-              if len(overdue_tasks) > 3:
-                  lines.append(f"    ... and {len(overdue_tasks)-3} more")
+          try:
+              np = get("pillars?who=eq.NIRVANA&select=done_ids")
+              done_ids = json.loads(np[0].get('done_ids') or '[]') if np else []
+              n_done = [NIRVANA_PILLARS[i-1] for i in done_ids if 0 < i <= len(NIRVANA_PILLARS)]
+              n_left = [p for p in NIRVANA_PILLARS if p not in n_done]
+          except: n_done, n_left = [], NIRVANA_PILLARS[:]
 
-          clients = get("clients?select=name,health,package")
-          red   = [c['name'] for c in clients if c.get('health') == 'red']
-          amber = [c['name'] for c in clients if c.get('health') == 'amber']
-          lines.append(f"  🔴 Red clients   : {', '.join(red) if red else 'None'}")
-          lines.append(f"  🟡 Amber clients : {len(amber)} ({', '.join(amber[:3])}{'...' if len(amber)>3 else ''})")
+          try:
+              tp = get("pillars?who=eq.th&select=top3,done_ids&order=updated_at.desc&limit=1")
+              if tp:
+                  th_top3 = json.loads(tp[0].get('top3') or '[]')
+                  th_done_ids = json.loads(tp[0].get('done_ids') or '[]')
+              else: th_top3, th_done_ids = [], []
+          except: th_top3, th_done_ids = [], []
 
-          invoices = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,status")
-          total_unpaid = sum(i.get('amount',0) for i in invoices)
-          overdue_inv  = [i for i in invoices if i.get('status') == 'overdue']
-          lines.append(f"  💰 Unpaid invoices: {len(invoices)} | LKR {total_unpaid:,}")
-          if overdue_inv:
-              lines.append(f"  🔥 OVERDUE: {', '.join(i['client_name'] for i in overdue_inv[:3])}")
+          try:
+              sp = get("pillars?who=eq.sh&select=top3,done_ids&order=updated_at.desc&limit=1")
+              if sp:
+                  sh_top3 = json.loads(sp[0].get('top3') or '[]')
+                  sh_done_ids = json.loads(sp[0].get('done_ids') or '[]')
+              else: sh_top3, sh_done_ids = [], []
+          except: sh_top3, sh_done_ids = [], []
 
-          # ─── VIDEO SYSTEM ─────────────────────────────────
-          lines.append("\n🎬 VIDEO SYSTEM")
+          # ── Login logs ────────────────────────────────────
+          try:
+              vid_logs = get(f"team_login_logs?app=eq.video-system&logged_in_at=gte.{day_start}&select=member_name")
+              smm_logs = get(f"team_login_logs?app=eq.smm-workspace&logged_in_at=gte.{day_start}&select=member_name")
+              video_in = list(set(l['member_name'] for l in vid_logs))
+              nirvana_in = any(l['member_name'] == 'NIRVANA' for l in smm_logs)
+          except: video_in, nirvana_in = [], False
 
-          videos = get("video_projects?is_archived=eq.false&select=id,title,current_stage,deadline,assigned_editor_id,completed_at")
-          DONE_STAGES = ['add_to_drive', 'sent_to_client', 'posted']
-          STUCK_STAGES = ['editing', 'changes', 'client_changes']
-
-          active    = [v for v in videos if v['current_stage'] not in DONE_STAGES]
-          posted    = [v for v in videos if v['current_stage'] == 'posted']
-          coo_check = [v for v in videos if v['current_stage'] == 'coo_check']
-          stuck     = [v for v in videos if v['current_stage'] in STUCK_STAGES]
+          # ── Video pipeline ────────────────────────────────
+          videos = get("video_projects?is_archived=eq.false&select=id,title,current_stage,deadline,assigned_editor_id")
+          DONE_V   = ['add_to_drive','sent_to_client','posted']
+          STUCK_V  = ['editing','changes','client_changes']
+          active   = [v for v in videos if v['current_stage'] not in DONE_V]
+          coo_chk  = [v for v in videos if v['current_stage'] == 'coo_check']
+          stuck    = [v for v in videos if v['current_stage'] in STUCK_V]
           overdue_v = [v for v in active if v.get('deadline') and v['deadline'] < today_str]
 
-          lines.append(f"  Active videos    : {len(active)}")
-          lines.append(f"  Posted           : {len(posted)}")
-          lines.append(f"  ✅ Awaiting COO check : {len(coo_check)}" + (f" — {', '.join(v['title'][:30] for v in coo_check)}" if coo_check else ""))
-          lines.append(f"  ⏳ Stuck in editing  : {len(stuck)}")
+          try:
+              history = get(f"video_stage_history?entered_at=gte.{day_start}&select=video_project_id,stage&limit=200")
+              vids_moved = len(set(h['video_project_id'] for h in history))
+          except: vids_moved = 0
+
+          # ── Tasks ─────────────────────────────────────────
+          tasks = get("tasks?done=eq.false&select=id,title,assign,due,priority")
+          overdue_t = [t for t in tasks if t.get('due') and t['due'] < today_str]
+          due_today = [t for t in tasks if t.get('due') == today_str]
+
+          # ── Clients + Finance ─────────────────────────────
+          clients   = get("clients?select=name,health")
+          red       = [c['name'] for c in clients if c.get('health') == 'red']
+          amber     = [c['name'] for c in clients if c.get('health') == 'amber']
+          invoices  = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,status")
+          total_unpaid = sum(i.get('amount',0) for i in invoices)
+          overdue_inv  = [i for i in invoices if i.get('status') == 'overdue']
+
+          # ── Content ───────────────────────────────────────
+          try:
+              content   = get("content_plans?select=id,posted,client_id,scheduled_date")
+              c_posted  = [c for c in content if c.get('posted')]
+              c_overdue = [c for c in content if not c.get('posted') and c.get('scheduled_date') and c['scheduled_date'] < today_str]
+          except: c_posted, c_overdue = [], []
+
+          # ══════════════════════════════════════════════════
+          # CEO REPORT
+          # ══════════════════════════════════════════════════
+          L = []
+          L.append(f"🌆 BB END OF DAY REPORT — {today.strftime('%A, %d %B %Y')}")
+          L.append("═" * 48)
+
+          L.append("\n📌 DAILY PILLARS — DID EVERYONE DO THEIR JOB?")
+          L.append("")
+          L.append(f"  🎬 USHANE (Video Head) — {len(u_done)}/6")
+          for k, lbl in USHANE_PILLARS:
+              L.append(f"    {tick(u_state.get(k))} {lbl}")
+
+          L.append(f"\n  📱 NIRVANA (SMM) — {len(n_done)}/7")
+          for p in NIRVANA_PILLARS:
+              L.append(f"    {tick(p in n_done)} {p}")
+
+          L.append(f"\n  🧠 THULAIB (CEO) — {len(th_done_ids)}/{len(th_top3)}")
+          for i, p in enumerate(th_top3):
+              L.append(f"    {tick((i+1) in th_done_ids)} {p[:45]}")
+
+          L.append(f"\n  📋 SHIARA (COO) — {len(sh_done_ids)}/{len(sh_top3)}")
+          for i, p in enumerate(sh_top3):
+              L.append(f"    {tick((i+1) in sh_done_ids)} {p[:45]}")
+
+          L.append("\n" + "─" * 48)
+          L.append("👥 WHO WAS IN THE SYSTEMS TODAY")
+          L.append(f"  Video System : {', '.join(video_in) if video_in else '❌ Nobody logged in'}")
+          L.append(f"  SMM Workspace: {'✅ Nirvana logged in' if nirvana_in else '❌ Nirvana did NOT log in'}")
+
+          L.append("\n" + "─" * 48)
+          L.append("🎬 VIDEO SYSTEM")
+          L.append(f"  Active videos         : {len(active)}")
+          L.append(f"  Videos moved today    : {vids_moved}")
+          L.append(f"  ✅ Awaiting COO check : {len(coo_chk)}" + (f" — {', '.join(v['title'][:25] for v in coo_chk)}" if coo_chk else ""))
+          L.append(f"  ⏳ Stuck in editing   : {len(stuck)}" + (f" — {', '.join(v['title'][:22] for v in stuck[:3])}" if stuck else ""))
           if overdue_v:
-              lines.append(f"  🚨 OVERDUE videos: {', '.join(v['title'][:30] for v in overdue_v[:3])}")
+              L.append(f"  🚨 Overdue           : {', '.join(v['title'][:22] for v in overdue_v[:3])}")
 
-          # Who logged in today (video team)
-          try:
-              logs = get(f"team_login_logs?app=eq.video-system&logged_in_at=gte.{day_start}T00:00:00&select=member_name,logged_in_at")
-              logged_in = list(set(l['member_name'] for l in logs))
-              lines.append(f"  Team logged in   : {', '.join(logged_in) if logged_in else 'Nobody yet'}")
-          except:
-              lines.append(f"  Team logged in   : (no data)")
+          L.append("\n" + "─" * 48)
+          L.append("📱 SMM WORKSPACE")
+          L.append(f"  Content posted (total): {len(c_posted)}")
+          if c_overdue:
+              L.append(f"  ⚠ Posts past schedule : {len(c_overdue)} not yet posted")
 
-          # Ushane pillars
-          try:
-              pillar = get(f"pillars?who=eq.USHANE&select=done_ids,updated_at")
-              if pillar:
-                  done_ids = json.loads(pillar[0].get('done_ids') or '[]')
-                  lines.append(f"  Ushane pillars   : {len(done_ids)}/6 done today")
-              else:
-                  lines.append(f"  Ushane pillars   : Not updated today")
-          except:
-              pass
+          L.append("\n" + "─" * 48)
+          L.append("🧠 COMMAND CENTRE")
+          L.append(f"  Overdue tasks         : {len(overdue_t)}")
+          L.append(f"  Due today (remaining) : {len(due_today)}")
+          if overdue_t[:3]:
+              for t in overdue_t[:3]:
+                  L.append(f"    ⚠ {t['title'][:42]} [{t.get('assign','?')}]")
+              if len(overdue_t) > 3:
+                  L.append(f"    ... and {len(overdue_t)-3} more")
+          L.append(f"  🔴 Red clients        : {', '.join(red) if red else 'None'}")
+          L.append(f"  🟡 Amber clients      : {len(amber)}")
+          L.append(f"  💰 Unpaid invoices    : {len(invoices)} | LKR {total_unpaid:,}")
+          if overdue_inv:
+              L.append(f"  🔥 Overdue invoices  : {', '.join(i['client_name'] for i in overdue_inv[:4])}")
 
-          # ─── SMM WORKSPACE ────────────────────────────────
-          lines.append("\n📱 SMM WORKSPACE")
+          L.append("\n" + "─" * 48)
+          L.append("🎨 GRAPHIC SYSTEM  — (Coming soon)")
 
-          try:
-              content = get("content_plans?select=id,posted,client_id,scheduled_date")
-              cur_month = today.month
-              cur_year  = today.year
-
-              posted_smm   = [c for c in content if c.get('stage') == 'posted' or c.get('status') == 'posted']
-              pending_appr = [c for c in content if c.get('stage') in ('client-approval','send-client')]
-              overdue_smm  = [c for c in content if c.get('scheduled_date') and
-                              c.get('scheduled_date') < today_str and
-                              c.get('stage') not in ('posted','drive')]
-
-              lines.append(f"  Content posted   : {len(posted_smm)} items this month")
-              lines.append(f"  Pending approval : {len(pending_appr)} items")
-              if overdue_smm:
-                  lines.append(f"  ⚠ Overdue posts  : {len(overdue_smm)} past schedule date")
-          except Exception as e:
-              lines.append(f"  (content data unavailable: {e})")
-
-          # Nirvana login today
-          try:
-              smm_logs = get(f"team_login_logs?app=eq.smm-workspace&logged_in_at=gte.{day_start}T00:00:00&select=member_name")
-              nirvana_in = any(l['member_name'] == 'NIRVANA' for l in smm_logs)
-              lines.append(f"  Nirvana logged in: {'✅ Yes' if nirvana_in else '❌ Not yet today'}")
-          except:
-              pass
-
-          # ─── GRAPHIC SYSTEM ────────────────────────────────
-          lines.append("\n🎨 GRAPHIC SYSTEM")
-          lines.append("  (System not yet live — coming soon)")
-
-          # ─── WHAT NEEDS ACTION ────────────────────────────
-          lines.append("\n🎯 NEEDS YOUR ATTENTION")
+          L.append("\n" + "═" * 48)
+          L.append("🎯 ACTION ITEMS FOR TOMORROW")
           actions = []
-          if overdue_tasks:  actions.append(f"{len(overdue_tasks)} overdue task(s) — assign or reschedule")
-          if overdue_inv:    actions.append(f"{len(overdue_inv)} overdue invoice(s) — chase payment")
-          if coo_check:      actions.append(f"{len(coo_check)} video(s) waiting for your COO check")
-          if red:            actions.append(f"Red health clients: {', '.join(red)}")
-          if overdue_v:      actions.append(f"{len(overdue_v)} video(s) past deadline")
-          if pending_appr if 'pending_appr' in dir() else []:
-              if len(pending_appr) > 0:
-                  actions.append(f"{len(pending_appr)} content item(s) stuck waiting for approval")
+          if u_left:      actions.append(f"Chase Ushane — {len(u_left)} pillars not done: {', '.join(u_left)}")
+          if n_left:      actions.append(f"Chase Nirvana — {len(n_left)} pillars not done: {', '.join(n_left[:3])}")
+          if not video_in: actions.append("Video team never logged in today")
+          if not nirvana_in: actions.append("Nirvana never logged into SMM today")
+          if coo_chk:     actions.append(f"Review {len(coo_chk)} video(s) in COO check")
+          if overdue_inv: actions.append(f"Chase {len(overdue_inv)} overdue invoice(s)")
+          if red:         actions.append(f"Resolve red client(s): {', '.join(red)}")
+          if overdue_v:   actions.append(f"{len(overdue_v)} video(s) past deadline")
 
           if actions:
-              for a in actions:
-                  lines.append(f"  → {a}")
+              for a in actions: L.append(f"  → {a}")
           else:
-              lines.append("  ✅ All good — no urgent actions!")
+              L.append("  ✅ Great day — no outstanding actions!")
 
-          lines.append("\n" + "─" * 48)
-          lines.append("BB Command Centre → businessboosterlk.github.io/bb-command-centre")
+          ceo_msg = "\n".join(L)
+          print(ceo_msg)
+          send(ceo_msg, "ceo")
 
-          msg = "\n".join(lines)
-          print(msg)
-          post_alert(msg)
-          print("\nDaily ops report sent.")
+          # ══════════════════════════════════════════════════
+          # COO REPORT (Shiara) — shorter, ops-focused
+          # ══════════════════════════════════════════════════
+          SL = []
+          SL.append(f"📋 COO END OF DAY — {today.strftime('%a %d %b')}")
+          SL.append("─" * 42)
+          SL.append(f"\n🎬 VIDEO PIPELINE")
+          SL.append(f"  Videos awaiting your COO check: {len(coo_chk)}")
+          if coo_chk:
+              for v in coo_chk[:5]: SL.append(f"    → {v['title'][:40]}")
+          SL.append(f"  Stuck in editing: {len(stuck)}" + (f" — {', '.join(v['title'][:22] for v in stuck[:3])}" if stuck else ""))
+          SL.append(f"  Overdue videos  : {len(overdue_v)}" + (f" — {', '.join(v['title'][:22] for v in overdue_v[:3])}" if overdue_v else ""))
+          SL.append(f"\n📱 CONTENT")
+          SL.append(f"  Posts past schedule: {len(c_overdue)}")
+          SL.append(f"  Nirvana logged in  : {'✅ Yes' if nirvana_in else '❌ No'}")
+          SL.append(f"  Nirvana pillars    : {len(n_done)}/7")
+          SL.append(f"\n💰 FINANCE")
+          SL.append(f"  Unpaid: {len(invoices)} invoices | LKR {total_unpaid:,}")
+          if overdue_inv:
+              SL.append(f"  🔥 Overdue: {', '.join(i['client_name'] for i in overdue_inv[:4])}")
+          SL.append(f"\n👥 TEAM")
+          SL.append(f"  Ushane pillars  : {len(u_done)}/6")
+          SL.append(f"  Video team in   : {', '.join(video_in) if video_in else 'Nobody'}")
+          if u_left:
+              SL.append(f"  ⚠ Ushane missed : {', '.join(u_left)}")
+
+          coo_msg = "\n".join(SL)
+          print("\n--- COO Report ---")
+          print(coo_msg)
+          send(coo_msg, "smm")
+
+          print("\nEnd of day reports sent to CEO and COO.")
           PYEOF
