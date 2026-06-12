@@ -7468,8 +7468,13 @@ async function deleteMission(id){
   }
 
   /* ── core handler ── */
+  /* Network blips that are not real bugs — ignore completely */
+  const _NOISE = /failed to fetch|networkerror|network request failed|load failed|the internet connection appears to be offline|net::/i;
+  function _isNetworkBlip(msg){ return _NOISE.test(String(msg)); }
+
   function _handle(msg, src, line, col, stack, type){
     if(!_isReal()) return;
+    if(_isNetworkBlip(msg)) return;
     const fp = _fingerprint(msg, src, line);
     if(!_dedupOk(fp)) return;
     if(!_throttleOk()) return;
