@@ -31,7 +31,16 @@ jobs:
           check "BB Command Centre"   "https://businessboosterlk.github.io/bb-command-centre/"
           check "BB Video System"     "https://businessboosterlk.github.io/bb-video-system/"
           check "BB SMM Workspace"    "https://businessboosterlk.github.io/bb-smm-workspace/"
-          check "Supabase REST"       "https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1/?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc"
+          # Supabase: use authenticated request — 200 = up, anything else = down
+          SB_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+            -H "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc" \
+            "https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1/clients?select=id&limit=1")
+          if [ "$SB_CODE" = "200" ]; then
+            echo "OK: Supabase REST (200)"
+          else
+            echo "FAIL: Supabase REST returned HTTP $SB_CODE"
+            FAILED="$FAILED\n- Supabase REST (HTTP $SB_CODE)"
+          fi
 
           if [ -n "$FAILED" ]; then
             MSG="🚨 OUTAGE DETECTED — BB Systems down:\n$FAILED\n\nGitHub Actions detected this at $(date -u '+%H:%M UTC'). Check immediately."
