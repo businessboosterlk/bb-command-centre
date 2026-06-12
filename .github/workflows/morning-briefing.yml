@@ -1,0 +1,66 @@
+name: BB Morning Briefing Agent
+
+on:
+  schedule:
+    - cron: '30 2 * * 1-6'  # 8:00 AM Sri Lanka (UTC+5:30) Mon-Sat
+  workflow_dispatch:
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate and send morning briefing
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          HEADERS='-H "apikey: '"$SB_KEY"'" -H "Authorization: Bearer '"$SB_KEY"'"'
+
+          # Overdue tasks
+          OVERDUE=$(curl -s "$SB_URL/tasks?done=eq.false&due=lt.$TODAY&select=id,title,assign,due" \
+            -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d))")
+
+          # Unpaid invoices
+          UNPAID=$(curl -s "$SB_URL/invoices?status=in.(unpaid,overdue)&select=id,client_name,amount,status" \
+            -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); total=sum(x.get('amount',0) for x in d); print(f'{len(d)} invoices | LKR {total:,}')")
+
+          # Red health clients
+          RED_CLIENTS=$(curl -s "$SB_URL/clients?health=eq.red&select=name" \
+            -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); names=[x['name'] for x in d]; print(', '.join(names) if names else 'None')")
+
+          # Videos at COO check stage
+          COO_CHECK=$(curl -s "$SB_URL/video_projects?current_stage=eq.coo_check&is_archived=eq.false&select=title" \
+            -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" | \
+            python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d))")
+
+          # Stalled pipeline leads (no update in 5+ days)
+          STALE_LEADS=$(curl -s "$SB_URL/pipeline?status=eq.potential&select=name,created_at" \
+            -H "apikey: $SB_KEY" -H "Authorization: Bearer $SB_KEY" | \
+            python3 -c "
+          import sys,json,datetime
+          d=json.load(sys.stdin)
+          cutoff=(datetime.datetime.utcnow()-datetime.timedelta(days=5)).isoformat()
+          stale=[x['name'] for x in d if x.get('created_at','') < cutoff]
+          print(', '.join(stale[:3]) if stale else 'None')
+          ")
+
+          MSG="☀️ Good morning Thulaib — BB Daily Briefing for $(date '+%A, %d %b')
+
+📋 OVERDUE TASKS: $OVERDUE tasks past due date
+💰 UNPAID INVOICES: $UNPAID
+🔴 RED HEALTH CLIENTS: $RED_CLIENTS
+🎬 VIDEOS AWAITING COO CHECK: $COO_CHECK
+🎯 STALE LEADS (5d+ no action): $STALE_LEADS
+
+Log in to BB Command Centre to action these."
+
+          curl -s -X POST "$ALERT_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"message\":$(echo "$MSG" | python3 -c 'import sys,json; print(json.dumps(sys.stdin.read()))'),\"page\":\"Morning Briefing\",\"role\":\"ceo\"}"
+
+          echo "Morning briefing sent."

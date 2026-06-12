@@ -1731,7 +1731,7 @@ td:last-child{padding-right:18px;text-align:right}
         <div class="ptab" id="ptab-content" onclick="switchTab('content')">Content Plan</div>
         <div class="ptab" id="ptab-tasks" onclick="switchTab('tasks')">Tasks</div>
         <div class="ptab" id="ptab-shoots" onclick="switchTab('shoots')">Shoots</div>
-        <div class="ptab ceo-only" id="ptab-finance" onclick="switchTab('finance')">Finance</div>
+        <div class="ptab" id="ptab-finance" onclick="switchTab('finance')">Finance</div>
         <div class="ptab" id="ptab-journey" onclick="switchTab('journey')">Journey</div>
         <div class="ptab" id="ptab-notes" onclick="switchTab('notes')">Notes</div>
       </div>
@@ -1776,7 +1776,7 @@ td:last-child{padding-right:18px;text-align:right}
         <div class="card"><div class="card-hd"><div class="card-ttl"><span class="card-ttl-ico pink"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Shoot Pipeline <span class="card-cnt" id="s-cnt">0</span></div><button class="btn-primary btn-sm" onclick="openAddShootModal()">+ Add Shoot</button></div><div id="shoots-list"></div></div>
       </div>
       <!-- TAB: FINANCE CEO only -->
-      <div id="tab-finance" style="display:none" class="ceo-only">
+      <div id="tab-finance" style="display:none">
         <div class="card"><div class="card-hd"><div class="card-ttl"><span class="card-ttl-ico green"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Invoices &amp; Payments</div><button class="btn-primary btn-sm" onclick="openAddInvoiceModal()">+ Add Invoice</button></div><div id="finance-rows"></div><div class="fin-summary" id="finance-summary"></div></div>
       </div>
       <!-- TAB: JOURNEY -->

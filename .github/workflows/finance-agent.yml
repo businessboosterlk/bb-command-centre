@@ -1,0 +1,76 @@
+name: BB Finance Health Agent
+
+on:
+  schedule:
+    - cron: '30 12 * * 1-6'  # 6:00 PM Sri Lanka (UTC+5:30) Mon-Sat
+  workflow_dispatch:
+
+jobs:
+  finance-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check finance health
+        env:
+          SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
+          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          python3 << 'PYEOF'
+          import urllib.request, json, os, datetime
+
+          SB_URL = os.environ['SB_URL']
+          SB_KEY = os.environ['SB_KEY']
+          ALERT_URL = os.environ['ALERT_URL']
+
+          def sb_get(path):
+              req = urllib.request.Request(f"{SB_URL}/{path}",
+                  headers={"apikey": SB_KEY, "Authorization": f"Bearer {SB_KEY}"})
+              with urllib.request.urlopen(req) as r:
+                  return json.load(r)
+
+          today = datetime.date.today()
+          issues = []
+
+          # Overdue invoices (14+ days past due)
+          invoices = sb_get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,due_date,status")
+          long_overdue = []
+          for inv in invoices:
+              if inv.get('due_date'):
+                  try:
+                      due = datetime.date.fromisoformat(str(inv['due_date'])[:10])
+                      days_late = (today - due).days
+                      if days_late >= 14:
+                          long_overdue.append(f"{inv['client_name']} — LKR {inv['amount']:,} ({days_late}d overdue)")
+                  except: pass
+          if long_overdue:
+              issues.append("💸 OVERDUE 14+ DAYS:\n" + "\n".join(long_overdue))
+
+          # Clients with unpaid invoices total
+          total_unpaid = sum(i.get('amount', 0) for i in invoices)
+          if total_unpaid > 0:
+              issues.append(f"💰 Total unpaid: LKR {total_unpaid:,} across {len(invoices)} invoice(s)")
+
+          # Upcoming renewals (within 7 days)
+          clients = sb_get("clients?select=name,renewal")
+          upcoming = []
+          for c in clients:
+              if c.get('renewal'):
+                  try:
+                      ren = datetime.date.fromisoformat(str(c['renewal'])[:10])
+                      days_left = (ren - today).days
+                      if 0 <= days_left <= 7:
+                          upcoming.append(f"{c['name']} — renews in {days_left}d")
+                  except: pass
+          if upcoming:
+              issues.append("🔄 RENEWALS THIS WEEK:\n" + "\n".join(upcoming))
+
+          if not issues:
+              print("Finance health OK — no issues.")
+          else:
+              msg = "💼 BB Finance Alert — " + today.strftime("%d %b") + "\n\n" + "\n\n".join(issues)
+              payload = json.dumps({"message": msg, "page": "Finance", "role": "ceo"})
+              req = urllib.request.Request(ALERT_URL, data=payload.encode(),
+                  headers={"Content-Type": "application/json"}, method="POST")
+              with urllib.request.urlopen(req) as r:
+                  print("Finance alert sent:", r.read())
+          PYEOF

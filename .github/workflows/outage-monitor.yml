@@ -1,0 +1,45 @@
+name: BB Outage Monitor
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # every 5 minutes, 24/7
+  workflow_dispatch:         # manual trigger for testing
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all BB systems
+        env:
+          ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
+        run: |
+          FAILED=""
+
+          check() {
+            local name=$1
+            local url=$2
+            local code
+            code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "$url")
+            if [ "$code" != "200" ] && [ "$code" != "301" ] && [ "$code" != "302" ]; then
+              echo "FAIL: $name returned HTTP $code"
+              FAILED="$FAILED\n- $name (HTTP $code)"
+            else
+              echo "OK: $name ($code)"
+            fi
+          }
+
+          check "BB Command Centre"   "https://businessboosterlk.github.io/bb-command-centre/"
+          check "BB Video System"     "https://businessboosterlk.github.io/bb-video-system/"
+          check "BB SMM Workspace"    "https://businessboosterlk.github.io/bb-smm-workspace/"
+          check "Supabase REST"       "https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1/?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc"
+
+          if [ -n "$FAILED" ]; then
+            MSG="🚨 OUTAGE DETECTED — BB Systems down:\n$FAILED\n\nGitHub Actions detected this at $(date -u '+%H:%M UTC'). Check immediately."
+            curl -s -X POST "$ALERT_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"message\":\"$(echo -e "$MSG" | sed 's/"/\\"/g')\",\"page\":\"Outage Monitor\",\"role\":\"ceo\"}"
+            echo "Alert sent."
+            exit 1
+          else
+            echo "All systems operational."
+          fi
