@@ -116,10 +116,12 @@ jobs:
           try:
               vid_logs = get(f"team_login_logs?app=eq.video-system&logged_in_at=gte.{day_start}&select=member_name")
               smm_logs = get(f"team_login_logs?app=eq.smm-workspace&logged_in_at=gte.{day_start}&select=member_name")
+              gfx_logs = get(f"team_login_logs?app=eq.graphic-system&logged_in_at=gte.{day_start}&select=member_name")
               video_in = list(set(l['member_name'] for l in vid_logs))
               nirvana_logged = any(l['member_name'] == 'NIRVANA' for l in smm_logs)
+              graphic_in = list(set(l['member_name'] for l in gfx_logs))
           except:
-              video_in, nirvana_logged = [], False
+              video_in, nirvana_logged, graphic_in = [], False, []
 
           # ── Tasks completed today ─────────────────────────
           try:
@@ -177,8 +179,9 @@ jobs:
               "",
               "─" * 42,
               "👥 WHO'S IN THE SYSTEM",
-              f"  Video team : {', '.join(video_in) if video_in else '❌ Nobody logged in yet'}",
-              f"  Nirvana    : {'✅ Logged in' if nirvana_logged else '❌ Not in SMM yet'}",
+              f"  Video team  : {', '.join(video_in) if video_in else '❌ Nobody logged in yet'}",
+              f"  Graphic team: {', '.join(graphic_in) if graphic_in else '❌ Nobody logged in yet'}",
+              f"  Nirvana     : {'✅ Logged in' if nirvana_logged else '❌ Not in SMM yet'}",
               "",
               "─" * 42,
               "⚡ ACTIVITY SO FAR TODAY",

@@ -116,8 +116,7 @@ jobs:
           clients   = get("clients?select=name,health")
           red       = [c['name'] for c in clients if c.get('health') == 'red']
           amber     = [c['name'] for c in clients if c.get('health') == 'amber']
-          invoices  = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,status")
-          total_unpaid = sum(i.get('amount',0) for i in invoices)
+          invoices     = get("invoices?status=in.(unpaid,overdue)&select=client_name,status")
           overdue_inv  = [i for i in invoices if i.get('status') == 'overdue']
 
           # ── Content ───────────────────────────────────────
@@ -126,6 +125,21 @@ jobs:
               c_posted  = [c for c in content if c.get('posted')]
               c_overdue = [c for c in content if not c.get('posted') and c.get('scheduled_date') and c['scheduled_date'] < today_str]
           except: c_posted, c_overdue = [], []
+
+          # ── Graphic System ────────────────────────────────
+          GRAPHIC_DONE = ['uploaded','posted']
+          try:
+              gfx = get("graphic_projects?is_archived=eq.false&select=id,title,current_stage,assigned_designer,priority,deadline")
+              gfx_active  = [g for g in gfx if g['current_stage'] not in GRAPHIC_DONE]
+              gfx_head    = [g for g in gfx_active if g['current_stage'] == 'head_review']
+              gfx_client  = [g for g in gfx_active if g['current_stage'] in ('client_approval','client_changes')]
+              gfx_overdue = [g for g in gfx_active if g.get('deadline') and g['deadline'] < today_str]
+              gfx_urgent  = [g for g in gfx_active if g.get('priority') == 'urgent']
+              try:
+                  gfx_hist = get(f"graphic_stage_history?entered_at=gte.{day_start}&select=graphic_project_id&limit=200")
+                  gfx_moved = len(set(h['graphic_project_id'] for h in gfx_hist))
+              except: gfx_moved = 0
+          except: gfx_active,gfx_head,gfx_client,gfx_overdue,gfx_urgent,gfx_moved=[],[],[],[],[],0
 
           # ══════════════════════════════════════════════════
           # CEO REPORT
@@ -183,12 +197,20 @@ jobs:
                   L.append(f"    ... and {len(overdue_t)-3} more")
           L.append(f"  🔴 Red clients        : {', '.join(red) if red else 'None'}")
           L.append(f"  🟡 Amber clients      : {len(amber)}")
-          L.append(f"  💰 Unpaid invoices    : {len(invoices)} | LKR {total_unpaid:,}")
+          L.append(f"  💰 Unpaid invoices    : {len(invoices)} (see CC Finance tab)")
           if overdue_inv:
-              L.append(f"  🔥 Overdue invoices  : {', '.join(i['client_name'] for i in overdue_inv[:4])}")
+              L.append(f"  🔥 Overdue invoices  : {len(overdue_inv)} client(s) — check CC Finance tab")
 
           L.append("\n" + "─" * 48)
-          L.append("🎨 GRAPHIC SYSTEM  — (Coming soon)")
+          L.append("🎨 GRAPHIC SYSTEM")
+          L.append(f"  Active projects       : {len(gfx_active)}")
+          L.append(f"  Projects moved today  : {gfx_moved}")
+          L.append(f"  ✅ Awaiting head review: {len(gfx_head)}" + (f" — {', '.join(g['title'][:25] for g in gfx_head)}" if gfx_head else ""))
+          L.append(f"  📤 With client        : {len(gfx_client)}" + (f" — {', '.join(g['title'][:22] for g in gfx_client[:3])}" if gfx_client else ""))
+          if gfx_urgent:
+              L.append(f"  🔥 Urgent             : {', '.join(g['title'][:22] for g in gfx_urgent[:3])}")
+          if gfx_overdue:
+              L.append(f"  🚨 Overdue            : {', '.join(g['title'][:22] for g in gfx_overdue[:3])}")
 
           L.append("\n" + "═" * 48)
           L.append("🎯 ACTION ITEMS FOR TOMORROW")
@@ -198,9 +220,12 @@ jobs:
           if not video_in: actions.append("Video team never logged in today")
           if not nirvana_in: actions.append("Nirvana never logged into SMM today")
           if coo_chk:     actions.append(f"Review {len(coo_chk)} video(s) in COO check")
-          if overdue_inv: actions.append(f"Chase {len(overdue_inv)} overdue invoice(s)")
+          if overdue_inv: actions.append(f"Check Finance tab — {len(overdue_inv)} overdue invoice(s)")
           if red:         actions.append(f"Resolve red client(s): {', '.join(red)}")
           if overdue_v:   actions.append(f"{len(overdue_v)} video(s) past deadline")
+          if gfx_head:    actions.append(f"Review {len(gfx_head)} graphic(s) in head review")
+          if gfx_overdue: actions.append(f"{len(gfx_overdue)} graphic project(s) past deadline")
+          if gfx_urgent:  actions.append(f"Urgent graphics: {', '.join(g['title'][:22] for g in gfx_urgent[:3])}")
 
           if actions:
               for a in actions: L.append(f"  → {a}")
@@ -228,9 +253,9 @@ jobs:
           SL.append(f"  Nirvana logged in  : {'✅ Yes' if nirvana_in else '❌ No'}")
           SL.append(f"  Nirvana pillars    : {len(n_done)}/7")
           SL.append(f"\n💰 FINANCE")
-          SL.append(f"  Unpaid: {len(invoices)} invoices | LKR {total_unpaid:,}")
+          SL.append(f"  Unpaid invoices: {len(invoices)} — see CC Finance tab")
           if overdue_inv:
-              SL.append(f"  🔥 Overdue: {', '.join(i['client_name'] for i in overdue_inv[:4])}")
+              SL.append(f"  🔥 Overdue: {len(overdue_inv)} invoice(s) — see CC Finance tab")
           SL.append(f"\n👥 TEAM")
           SL.append(f"  Ushane pillars  : {len(u_done)}/6")
           SL.append(f"  Video team in   : {', '.join(video_in) if video_in else 'Nobody'}")

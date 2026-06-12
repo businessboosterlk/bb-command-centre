@@ -35,8 +35,7 @@ jobs:
           tasks     = get("tasks?done=eq.false&select=id,title,assign,due")
           overdue   = [t for t in tasks if t.get('due') and t['due'] < today_str]
 
-          invoices  = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,status")
-          total     = sum(i.get('amount', 0) for i in invoices)
+          invoices  = get("invoices?status=in.(unpaid,overdue)&select=client_name,status")
 
           red       = get("clients?health=eq.red&select=name")
           red_names = ', '.join(c['name'] for c in red) if red else 'None'
@@ -53,7 +52,7 @@ jobs:
               "Here's what needs your attention today:",
               "",
               f"📋 Overdue tasks      : {len(overdue)}",
-              f"💰 Unpaid invoices    : {len(invoices)} | LKR {total:,}",
+              f"💰 Unpaid invoices    : {len(invoices)} (check CC Finance tab)",
               f"🔴 Red health clients : {red_names}",
               f"🎬 Videos at COO check: {len(coo_chk)}",
               f"🎯 Stale leads (5d+)  : {', '.join(stale[:3]) if stale else 'None'}",
