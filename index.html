@@ -9319,3 +9319,290 @@ async function deleteMission(id){
   document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
 }());
 </script>
+
+<!-- ══════════════════════════════════════════════════════════
+     BB AI AGENT — COMMAND CENTRE EDITION
+     Floating chat assistant + background JS/Supabase error monitor
+     Knowledge base: all CC pages, live data from D / CLIENTS / TASKS
+══════════════════════════════════════════════════════════ -->
+<style>
+#bbcc-bubble{position:fixed;bottom:24px;right:24px;width:54px;height:54px;background:linear-gradient(135deg,#FF6B2B,#D94F0A);border-radius:50%;border:none;cursor:pointer;z-index:9990;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,107,43,0.45);transition:transform .2s,box-shadow .2s;outline:none}
+#bbcc-bubble:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(255,107,43,0.6)}
+#bbcc-bubble svg{width:26px;height:26px;fill:#fff}
+#bbcc-err-badge{position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg);font-family:'Poppins',sans-serif}
+#bbcc-panel{position:fixed;bottom:90px;right:24px;width:348px;max-height:520px;background:#111318;border:1px solid rgba(255,107,43,0.28);border-radius:16px;z-index:9989;display:none;flex-direction:column;box-shadow:0 12px 48px rgba(0,0,0,.7);overflow:hidden;font-family:'Inter',sans-serif;animation:bbccIn .22s ease}
+@keyframes bbccIn{from{opacity:0;transform:translateY(10px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+#bbcc-panel.open{display:flex}
+#bbcc-hd{background:linear-gradient(135deg,rgba(255,107,43,.18),rgba(255,107,43,.06));border-bottom:1px solid rgba(255,107,43,.18);padding:13px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+#bbcc-av{width:36px;height:36px;background:linear-gradient(135deg,#FF6B2B,#D94F0A);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-.5px;font-family:'Poppins',sans-serif}
+#bbcc-hi{flex:1;min-width:0}
+#bbcc-hi .bbt{font-size:13px;font-weight:700;color:#fff}
+#bbcc-hi .bbs{font-size:10px;color:rgba(255,107,43,.85);margin-top:1px;display:flex;align-items:center;gap:4px}
+#bbcc-hi .bbs::before{content:'';display:inline-block;width:6px;height:6px;background:#FF6B2B;border-radius:50%;animation:bbpulse 2s infinite}
+@keyframes bbpulse{0%,100%{opacity:1}50%{opacity:.3}}
+#bbcc-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);font-size:18px;padding:4px 6px;line-height:1;transition:color .2s;border-radius:4px}
+#bbcc-close:hover{color:#fff;background:rgba(255,255,255,.06)}
+#bbcc-msgs{flex:1;overflow-y:auto;padding:14px 14px 8px;display:flex;flex-direction:column;min-height:0;gap:0}
+#bbcc-msgs::-webkit-scrollbar{width:3px}
+#bbcc-msgs::-webkit-scrollbar-thumb{background:#1e2230;border-radius:2px}
+.bbm{max-width:88%;margin-bottom:9px;animation:bbmin .2s ease}
+.bbm-bot{align-self:flex-start}.bbm-usr{align-self:flex-end}
+.bbm-bot .bbb{background:#1a1d23;border:1px solid rgba(255,255,255,.07);border-radius:12px 12px 12px 3px;padding:9px 13px;font-size:12px;line-height:1.65;color:#e8eaf0}
+.bbm-usr .bbb{background:linear-gradient(135deg,rgba(255,107,43,.18),rgba(255,107,43,.08));border:1px solid rgba(255,107,43,.3);border-radius:12px 12px 3px 12px;padding:9px 13px;font-size:12px;line-height:1.65;color:#fff}
+@keyframes bbmin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.bbt-dot{display:inline-block;width:5px;height:5px;background:rgba(255,107,43,.6);border-radius:50%;margin:0 2px;animation:bbtd 1.2s ease infinite}
+.bbt-dot:nth-child(2){animation-delay:.2s}.bbt-dot:nth-child(3){animation-delay:.4s}
+@keyframes bbtd{0%,80%,100%{transform:scale(1);opacity:.5}40%{transform:scale(1.3);opacity:1}}
+.bberr{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:9px 12px;font-size:11px;color:#f87171;margin-bottom:9px;animation:bbmin .2s ease}
+#bbcc-chips{padding:8px 14px 6px;display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.04)}
+.bbchip{background:rgba(255,107,43,.07);border:1px solid rgba(255,107,43,.22);color:#FF6B2B;font-size:10px;font-weight:600;padding:4px 10px;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'Poppins',sans-serif}
+.bbchip:hover{background:rgba(255,107,43,.18);transform:translateY(-1px)}
+#bbcc-inp-row{padding:8px 12px 12px;display:flex;gap:8px;flex-shrink:0;border-top:1px solid rgba(255,255,255,.04)}
+#bbcc-inp{flex:1;background:#0b0c0f;border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:8px 12px;font-size:12px;color:#fff;outline:none;transition:border-color .2s;font-family:'Inter',sans-serif}
+#bbcc-inp:focus{border-color:rgba(255,107,43,.4)}
+#bbcc-inp::placeholder{color:#3d4260}
+#bbcc-send{background:linear-gradient(135deg,#FF6B2B,#D94F0A);border:none;border-radius:8px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform .15s,box-shadow .15s}
+#bbcc-send:hover{transform:scale(1.07);box-shadow:0 2px 12px rgba(255,107,43,.4)}
+#bbcc-send svg{width:15px;height:15px;fill:#fff}
+</style>
+
+<button id="bbcc-bubble" onclick="bbccToggle()" title="BB Assistant — Ask anything">
+  <div id="bbcc-err-badge">0</div>
+  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+</button>
+
+<div id="bbcc-panel">
+  <div id="bbcc-hd">
+    <div id="bbcc-av">BB</div>
+    <div id="bbcc-hi">
+      <div class="bbt">BB Assistant</div>
+      <div class="bbs">Command Centre · Live</div>
+    </div>
+    <button id="bbcc-close" onclick="bbccToggle()">✕</button>
+  </div>
+  <div id="bbcc-msgs"></div>
+  <div id="bbcc-chips">
+    <span class="bbchip" onclick="bbccChip('what needs attention')">Urgent</span>
+    <span class="bbchip" onclick="bbccChip('overdue tasks')">Overdue Tasks</span>
+    <span class="bbchip" onclick="bbccChip('how to use')">How To Use</span>
+    <span class="bbchip" onclick="bbccChip('show errors')">Errors</span>
+    <span class="bbchip" onclick="bbccChip('pages')">All Pages</span>
+  </div>
+  <div id="bbcc-inp-row">
+    <input id="bbcc-inp" type="text" placeholder="Ask anything about the system…" onkeydown="if(event.key==='Enter')bbccSend()">
+    <button id="bbcc-send" onclick="bbccSend()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+var _open=false,_greeted=false,_errLog=[],_errCount=0,MAX_ERR=50;
+
+var KB=[
+  {keys:['hello','hi','hey','good morning','sup','what can you do'],
+   ans:'__GREET__'},
+  {keys:['what needs attention','urgent','overdue','priorities','whats happening','status update','action items','what is going on','what should i do','what next'],
+   ans:'__LIVE_URGENT__'},
+  {keys:['help','what can you do','capabilities','overview'],
+   ans:'<strong>I can help you with:</strong><br><br>• <strong>Navigation</strong> — finding any page in the system<br>• <strong>Live status</strong> — overdue tasks, pipeline leads, alerts<br>• <strong>Page guides</strong> — how each page works<br>• <strong>Troubleshooting</strong> — when something breaks<br>• <strong>Error log</strong> — type "show errors" to see caught bugs<br><br>Just ask in plain English.'},
+  {keys:['pages','navigation','menu','sidebar','all pages','what pages'],
+   ans:'<strong>📱 All 13 pages in CC:</strong><br><br>• <strong>Dashboard</strong> — Live stats, alerts, video strip<br>• <strong>My Day</strong> — Your tasks due today + overdue<br>• <strong>Clients</strong> — All 20 clients, profiles, tasks, finance<br>• <strong>Leads</strong> — Sales pipeline (CEO only)<br>• <strong>Calendar</strong> — Events by month<br>• <strong>Task Book</strong> — Every task across all clients<br>• <strong>Content Plans</strong> — Monthly content per client<br>• <strong>Video Pipeline</strong> — 12-stage production kanban<br>• <strong>Shoot Pipeline</strong> — Shoot scheduling tracker<br>• <strong>Finance</strong> — Invoices, costs, P&amp;L<br>• <strong>Team</strong> — Team members, pillars, login history<br>• <strong>Missions</strong> — CEO quarterly strategic objectives<br>• <strong>Agents</strong> — Background AI agent alerts'},
+  {keys:['dashboard','home','stats','overview'],
+   ans:'<strong>📊 Dashboard:</strong><br><br>Shows live data pulled from Supabase every 60 seconds:<br>• Active client count + MRR total<br>• Attention alerts (overdue, unhealthy clients)<br>• Video projects in progress<br>• Hot leads in pipeline<br>• Upcoming shoots<br>• Week\'s tasks<br>• Team check-in (Ushane pillars, Nirvana status)<br>• CEO/COO Top 3 priorities (editable)<br><br>Click the refresh button in the topbar to force a reload.'},
+  {keys:['client','clients','client list','health','profile'],
+   ans:'<strong>👥 Clients Page:</strong><br><br>Lists all 20 clients with health indicators.<br><br><strong>Health colours:</strong><br>🟢 Green — healthy, no issues<br>🟡 Amber — needs attention<br>🔴 Red — at-risk, action required<br><br>Click any client to open their profile with 7 tabs:<br><strong>Overview</strong> · Tasks · Content · Shoots · Finance · Journey · Notes<br><br>To change health: open client profile → Overview tab → edit health.'},
+  {keys:['task','tasks','task book','overdue tasks','bulk','assign'],
+   ans:'<strong>✅ Task Book:</strong><br><br>Every task across all clients in one view.<br><br>• Filter by team member or status (open/overdue/done)<br>• <strong>⚡ Bulk Fix Overdue</strong> button — select multiple tasks and close or reassign in one action<br>• Click any task row to edit it<br>• + Add Task to create a new one<br><br><strong>121+ overdue tasks exist</strong> — use Bulk Fix to clear them fast.'},
+  {keys:['content plan','content plans','monthly content','content calendar'],
+   ans:'<strong>📋 Content Plans:</strong><br><br>Monthly content calendar across all clients.<br><br>• Filter by month and client<br>• 3 views: By Client / By Type / By Status<br>• Statuses: Planned → Scripted → Designed → Scheduled → Posted<br>• Click any card to edit<br>• + Add Content to create a new item<br><br>Content plans link to specific clients — pick the client when creating.'},
+  {keys:['video','video pipeline','production','kanban','12 stage','video projects'],
+   ans:'<strong>🎬 Video Pipeline:</strong><br><br>12-stage production kanban. Drag cards between stages.<br><br><strong>Stages:</strong> Video Shot → Cutting/Color → Rendering → Editing → Video Head Review → Team Review → Changes → COO Check → Sent to Client → Client Changes → Add to Drive → Posted<br><br>• Filter by client or editor<br>• Bulk select mode for mass updates<br>• Click a card for comments, links, time tracking<br>• Auto-refreshes every 20 seconds'},
+  {keys:['shoot','shoots','shoot pipeline','filming'],
+   ans:'<strong>📸 Shoot Pipeline:</strong><br><br>7-stage shoot tracker. Tracks all client video shoots.<br><br><strong>Stages:</strong> Videos Confirmed → Script Made → Script Changes → Final Script → Get Shoot Date → Date Confirmed → Shot<br><br>• Filter by client or stage<br>• Calendar view shows shoots on a grid<br>• Click a card to update the stage'},
+  {keys:['finance','invoice','invoices','costs','revenue','profit','p&l','money','payment'],
+   ans:'<strong>💰 Finance Page:</strong><br><br>Full financial view — invoices, costs, P&amp;L.<br><br>• Switch months with the month selector<br>• Tabs: Monthly / Yearly / By Client<br>• Smart Flag panel — flags invoice/cost mismatches<br>• Agent Alerts panel at top — AI-generated finance insights<br>• Shiara has full access to Finance<br><br>Finance data is isolated to the Finance page — it doesn\'t show anywhere else.'},
+  {keys:['team','team page','member','pillars','ushane','nirvana','login history'],
+   ans:'<strong>👤 Team Page:</strong><br><br>All team members grouped by department.<br><br>Click a member to see:<br>• Their active video projects and overdue items<br>• Monthly stats (videos assigned/posted/in-progress)<br>• Login history from the Video System<br>• Ushane\'s 6 daily pillars completion<br><br>Pillar data syncs from the Video System when Ushane checks off pillars.'},
+  {keys:['mission','missions','quarterly','objectives','strategic goals','q3','q2'],
+   ans:'<strong>🎯 Missions (CEO only):</strong><br><br>CEO quarterly strategic objectives.<br><br>• Filter by quarter (Q2/Q3/Q4 2026)<br>• Priority levels: Critical / High / Medium / Low<br>• Progress % per mission<br>• Statuses: Not Started → In Progress → Done<br><br>Use missions for big-picture goals that span months — not day-to-day tasks.'},
+  {keys:['agent','agents','agent alerts','background agent','ai agent'],
+   ans:'<strong>🤖 Agents Page:</strong><br><br>Background AI agents that monitor BB\'s systems and fire alerts.<br><br>• Filter by type, priority, or status<br>• Mark alerts as read<br>• Alerts stored in agent_alerts Supabase table<br>• Finance agents also show on the Finance page<br><br>The 🔔 badge on the Agents nav item shows unread alert count.'},
+  {keys:['leads','pipeline','sales','prospects','potential clients'],
+   ans:'<strong>📊 Leads (CEO only):</strong><br><br>Sales pipeline with 4 statuses: Potential → 50% → Likely Leave → Closed.<br><br>• Drag cards between columns<br>• Add tasks per lead<br>• Track next action and industry<br>• Closed leads removed from active view'},
+  {keys:['calendar','events','schedule'],
+   ans:'<strong>📅 Calendar:</strong><br><br>Month view with colour-coded dots for different event types.<br>Click any day to see details. Add events with the + button.'},
+  {keys:['login','pin','password','sign in','credentials'],
+   ans:'<strong>🔐 Logins:</strong><br><br>• <strong>Thulaib (CEO):</strong> PIN 1031<br>• <strong>Shiara (COO):</strong> PIN 1006<br>• <strong>Demo:</strong> PIN 0000<br><br>Sessions persist in localStorage — you stay logged in between browser sessions. Click "Switch" in the sidebar to log out.'},
+  {keys:['my day','today','daily','morning'],
+   ans:'<strong>☀️ My Day:</strong><br><br>Focused view of your tasks for today.<br><br>• Overdue tasks first (sorted by how many days late)<br>• Due today section below<br>• Tick a task to mark it done<br>• Red count badge shows how many are overdue<br><br>Start every day on My Day to know exactly what\'s on your plate.'},
+  {keys:['not working','broken','error','bug','issue','problem','blank','loading','not loading'],
+   ans:'<strong>🔧 Troubleshooting:</strong><br><br>1. <strong>Hard refresh</strong> — Cmd+Shift+R (clears cache)<br>2. <strong>Check internet</strong> — Supabase needs a connection<br>3. <strong>Type "show errors"</strong> here — I\'ll show what I caught<br>4. Open console (Cmd+Option+J) — look for red errors<br>5. Screenshot console + what you were doing → send to Thulaib<br><br>Most blank pages are caused by Supabase connection issues or a JS error on load.'},
+  {keys:['show errors','error log','errors','detected errors','bugs found'],
+   ans:'__SHOW_ERRORS__'},
+  {keys:['clear errors','reset errors','clear error log'],
+   ans:'__CLEAR_ERRORS__'},
+  {keys:['what is this','about','about this system','what is cc','command centre'],
+   ans:'<strong>BB Command Centre:</strong><br><br>The CEO/COO operations hub for Business Booster. 20 active clients, LKR 1.69M+ MRR.<br><br>Built as a single HTML file on GitHub Pages with Supabase backend. Shared between Thulaib and Shiara. Real-time data, no page reloads needed.<br><br>It connects to the BB Video System (Ushane\'s pillar data + editor logins) and the BB SMM Workspace (Nirvana\'s login logs).'}
+];
+
+function matchKB(input){
+  var q=input.toLowerCase().replace(/[?!.,]/g,'').trim();
+  var best=null,bestScore=0;
+  for(var i=0;i<KB.length;i++){
+    var e=KB[i],score=0;
+    for(var j=0;j<e.keys.length;j++){
+      var kw=e.keys[j].toLowerCase();
+      if(q===kw){score=200;break;}
+      if(q.indexOf(kw)!==-1)score=Math.max(score,kw.length*3);
+      if(kw.indexOf(q)!==-1&&q.length>3)score=Math.max(score,q.length*2);
+      var qw=q.split(/\s+/),kws=kw.split(/\s+/);
+      for(var a=0;a<qw.length;a++){
+        if(qw[a].length<3)continue;
+        for(var b=0;b<kws.length;b++){if(qw[a]===kws[b])score=Math.max(score,10);}
+      }
+    }
+    if(score>bestScore){bestScore=score;best=e;}
+  }
+  return bestScore>=9?best:null;
+}
+
+function getUserName(){
+  try{return typeof ROLE!=='undefined'?(ROLE==='th'?'Thulaib':ROLE==='sh'?'Shiara':'there'):'there';}catch(e){return 'there';}
+}
+
+function buildLiveUrgent(){
+  var today=new Date().toISOString().split('T')[0];
+  try{
+    var tasks=(typeof D!=='undefined'&&D.tasks)||[];
+    var overdue=tasks.filter(function(t){return !t.done&&t.due&&t.due<today;});
+    var todayTasks=tasks.filter(function(t){return !t.done&&t.due&&t.due===today;});
+    var clients=(typeof CLIENTS!=='undefined'&&CLIENTS)||[];
+    var atRisk=clients.filter(function(c){return c.health==='red';});
+    if(!overdue.length&&!todayTasks.length&&!atRisk.length){
+      return '✅ <strong>All clear!</strong><br><br>No overdue tasks, nothing urgent. Good time to plan ahead or review missions.';
+    }
+    var msg='📋 <strong>What needs your attention:</strong><br><br>';
+    if(atRisk.length){
+      msg+='🔴 <strong>'+atRisk.length+' at-risk client'+(atRisk.length>1?'s':'')+':</strong><br>';
+      atRisk.slice(0,3).forEach(function(c){msg+='&nbsp;&nbsp;• '+c.name+(c.package?' ('+c.package+')':'')+'<br>';});
+      msg+='<br>';
+    }
+    if(overdue.length){
+      msg+='⚠️ <strong>'+overdue.length+' overdue task'+(overdue.length>1?'s':'')+'</strong> — go to Task Book → ⚡ Bulk Fix<br><br>';
+    }
+    if(todayTasks.length){
+      msg+='📅 <strong>'+todayTasks.length+' task'+(todayTasks.length>1?'s':'')+' due today</strong> — check My Day<br><br>';
+    }
+    msg+='<span style="color:#555;font-size:11px">Open My Day or Task Book for full details.</span>';
+    return msg;
+  }catch(e){return 'I couldn\'t read live data right now. Open Dashboard to see current status.';}
+}
+
+function buildAnswer(entry){
+  if(!entry)return fallback();
+  if(entry.ans==='__GREET__'){
+    var n=getUserName();
+    return 'Hey '+n+'! 👋 I\'m your <strong>BB Assistant</strong>.<br><br>I know the Command Centre inside out and I\'m monitoring for errors in the background.<br><br>Ask me anything — or tap a chip below to get started!';
+  }
+  if(entry.ans==='__LIVE_URGENT__')return buildLiveUrgent();
+  if(entry.ans==='__SHOW_ERRORS__')return buildErrReport();
+  if(entry.ans==='__CLEAR_ERRORS__'){_errLog=[];_errCount=0;updateBadge();return '<span style="color:#4ade80">✅ Error log cleared.</span>';}
+  return entry.ans.replace(/\n/g,'<br>');
+}
+
+function fallback(){
+  return 'I\'m not sure about that. Try: <strong style="color:#FF6B2B">urgent</strong>, <strong style="color:#FF6B2B">overdue tasks</strong>, <strong style="color:#FF6B2B">pages</strong>, <strong style="color:#FF6B2B">show errors</strong>, or <strong style="color:#FF6B2B">how to use</strong>.';
+}
+
+function buildErrReport(){
+  if(!_errLog.length)return '<span style="color:#4ade80">✅ No errors detected. System running clean.</span>';
+  var html='<strong style="color:#f87171">⚠️ '+_errLog.length+' error(s):</strong><br><br>';
+  _errLog.slice(-8).forEach(function(e){
+    html+='<div style="background:rgba(239,68,68,.1);border-radius:6px;padding:7px 10px;margin-bottom:5px;font-size:11px"><span style="color:#f87171;font-weight:700">['+e.type+']</span> '+_xesc(e.msg)+' <span style="color:#3d4260">('+e.time+')</span></div>';
+  });
+  if(_errLog.length>8)html+='<div style="color:#3d4260;font-size:11px;margin-top:4px">...+'+(_errLog.length-8)+' more. Type <strong>clear errors</strong> to reset.</div>';
+  return html;
+}
+
+function _xesc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function logErr(type,msg){
+  if(_errLog.length>=MAX_ERR)_errLog.shift();
+  _errLog.push({type:type,msg:String(msg).slice(0,200),time:new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})});
+  _errCount++;updateBadge();
+  if(_open){var el=document.getElementById('bbcc-msgs');if(el){var d=document.createElement('div');d.className='bberr';d.innerHTML='⚠️ <strong>'+type+':</strong> '+_xesc(msg);el.appendChild(d);el.scrollTop=el.scrollHeight;}}
+}
+
+function updateBadge(){var b=document.getElementById('bbcc-err-badge');if(!b)return;if(_errCount>0){b.textContent=_errCount>9?'9+':String(_errCount);b.style.display='flex';}else{b.style.display='none';}}
+
+var NOISE=/failed to fetch|networkerror|network request failed|load failed|net::/i;
+function isNoise(m){return NOISE.test(String(m));}
+
+// Wire error hooks
+var _origOE=window.onerror;
+window.onerror=function(msg,src,line,col,err){
+  if(isNoise(msg))return false;
+  logErr('JS',msg+(src?' — '+src.split('/').pop()+':'+line:''));
+  if(_origOE)return _origOE.apply(this,arguments);return false;
+};
+window.addEventListener('unhandledrejection',function(ev){
+  var m=ev.reason?(ev.reason.message||String(ev.reason)):'Promise rejection';
+  if(isNoise(m))return;logErr('Promise',m.slice(0,180));
+});
+var _origFetch=window.fetch;
+window.fetch=function(){
+  var args=arguments,url='';
+  try{url=typeof args[0]==='string'?args[0]:(args[0]&&args[0].url)||'';}catch(e){}
+  var isSB=url.indexOf('supabase.co')!==-1;
+  return _origFetch.apply(this,args).then(function(res){
+    if(isSB&&!res.ok&&res.status>=400)logErr('Supabase '+res.status,url.split('/').slice(-2).join('/'));
+    return res;
+  }).catch(function(err){if(isNoise(err.message))throw err;if(isSB)logErr('Supabase Network',err.message||'Fetch failed');throw err;});
+};
+
+// Chat functions (global)
+window.bbccToggle=function(){
+  _open=!_open;
+  var p=document.getElementById('bbcc-panel');if(!p)return;
+  if(_open){
+    p.classList.add('open');
+    var msgs=document.getElementById('bbcc-msgs');
+    if(msgs&&msgs.children.length===0){
+      var n=getUserName();
+      _addMsg('Hey '+n+'! 👋 I\'m your <strong>BB Assistant</strong>.<br><br>Ask me anything about the Command Centre — or tap a chip below.','bot');
+      if(_errCount>0)setTimeout(function(){_addMsg('⚠️ I\'ve caught <strong style="color:#f87171">'+_errCount+' error(s)</strong> since you loaded. Tap <strong style="color:#FF6B2B">Errors</strong> to see them.','bot');},600);
+    }
+    var inp=document.getElementById('bbcc-inp');if(inp)setTimeout(function(){inp.focus();},150);
+  }else{p.classList.remove('open');}
+};
+window.bbccChip=function(t){var inp=document.getElementById('bbcc-inp');if(inp)inp.value=t;bbccSend();};
+window.bbccSend=function(){
+  var el=document.getElementById('bbcc-inp');if(!el)return;
+  var q=el.value.trim();if(!q)return;el.value='';
+  _addMsg(q,'user');
+  var typ=_addTyping();
+  setTimeout(function(){
+    try{if(typ&&typ.parentNode)typ.parentNode.removeChild(typ);_addMsg(buildAnswer(matchKB(q))||fallback(),'bot');}
+    catch(e){try{if(typ&&typ.parentNode)typ.parentNode.removeChild(typ);}catch(x){}
+    _addMsg('Something went wrong. Try again or tap a chip.','bot');}
+  },280+Math.floor(Math.random()*180));
+};
+function _addMsg(html,role){
+  var l=document.getElementById('bbcc-msgs');if(!l)return;
+  var w=document.createElement('div');w.className='bbm bbm-'+(role==='user'?'usr':'bot');
+  var b=document.createElement('div');b.className='bbb';
+  if(role==='user')b.textContent=html;else b.innerHTML=html;
+  w.appendChild(b);l.appendChild(w);l.scrollTop=l.scrollHeight;return w;
+}
+function _addTyping(){
+  var l=document.getElementById('bbcc-msgs');if(!l)return null;
+  var w=document.createElement('div');w.className='bbm bbm-bot';
+  w.innerHTML='<div class="bbb"><span class="bbt-dot"></span><span class="bbt-dot"></span><span class="bbt-dot"></span></div>';
+  l.appendChild(w);l.scrollTop=l.scrollHeight;return w;
+}
+console.log('[BB CC Agent] v1.0 loaded — chat + error monitor active');
+})();
+</script>
