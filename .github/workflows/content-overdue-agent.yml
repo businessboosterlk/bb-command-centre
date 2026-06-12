@@ -2,7 +2,7 @@ name: BB Content Overdue Agent
 
 on:
   schedule:
-    - cron: '0 4 * * *'   # 9:30 AM Sri Lanka daily (UTC+5:30)
+    - cron: '0 4 * * *'   # 9:30 AM Sri Lanka daily
   workflow_dispatch:
 
 jobs:
@@ -28,14 +28,23 @@ jobs:
               with urllib.request.urlopen(req) as r:
                   return json.load(r)
 
-          def send_alert(msg, role):
+          def send_email(msg, role):
               payload = json.dumps({"message": msg, "page": "SMM Content", "role": role}).encode()
               req = urllib.request.Request(ALERT, data=payload,
                   headers={"Content-Type": "application/json"}, method="POST")
               urllib.request.urlopen(req)
 
-          today = datetime.date.today().isoformat()
+          def write_alert(message, severity="warning", system="smm"):
+              payload = json.dumps({
+                  "agent": "content-overdue", "system": system,
+                  "message": message, "severity": severity
+              }).encode()
+              req = urllib.request.Request(f"{SB}/agent_alerts", data=payload,
+                  headers={**HDR, "Content-Type": "application/json", "Prefer": "return=minimal"},
+                  method="POST")
+              urllib.request.urlopen(req)
 
+          today   = datetime.date.today().isoformat()
           content = get("content_plans?select=id,title,client_id,scheduled_date,posted,type")
           overdue = [c for c in content if c.get('scheduled_date') and
                      c['scheduled_date'] < today and not c.get('posted')]
@@ -50,7 +59,9 @@ jobs:
                   msg += f"\n  ... and {len(overdue)-10} more"
               msg += "\n\nNirvana — please post these ASAP or update SMM Workspace."
               print(msg)
-              send_alert(msg, "ceo")
-              send_alert(msg, "smm")
-              print("Alert sent to CEO and SMM.")
+              send_email(msg, "ceo")
+              send_email(msg, "smm")
+              write_alert(msg, "warning", "smm")
+              write_alert(msg, "warning", "cc")
+              print("Alert sent to Gmail + in-app (SMM + CC).")
           PYEOF

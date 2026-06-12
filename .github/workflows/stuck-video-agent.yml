@@ -28,33 +28,38 @@ jobs:
               with urllib.request.urlopen(req) as r:
                   return json.load(r)
 
-          def send_alert(msg):
+          def send_email(msg):
               payload = json.dumps({"message": msg, "page": "Video Pipeline", "role": "ceo"}).encode()
               req = urllib.request.Request(ALERT, data=payload,
                   headers={"Content-Type": "application/json"}, method="POST")
+              urllib.request.urlopen(req)
+
+          def write_alert(message, severity="warning"):
+              payload = json.dumps({
+                  "agent": "stuck-video", "system": "video",
+                  "message": message, "severity": severity
+              }).encode()
+              req = urllib.request.Request(f"{SB}/agent_alerts", data=payload,
+                  headers={**HDR, "Content-Type": "application/json", "Prefer": "return=minimal"},
+                  method="POST")
               urllib.request.urlopen(req)
 
           now = datetime.datetime.utcnow()
           cutoff_48h = (now - datetime.timedelta(hours=48)).isoformat()
           cutoff_72h = (now - datetime.timedelta(hours=72)).isoformat()
 
-          # Get active video stage history to find last move time per project
-          videos = get("video_projects?is_archived=eq.false&select=id,title,current_stage,assigned_editor_id")
+          videos = get("video_projects?is_archived=eq.false&select=id,title,current_stage")
           STUCK_STAGES  = ['editing', 'changes']
           CLIENT_STAGES = ['client_changes', 'sent_to_client']
           DONE_STAGES   = ['add_to_drive', 'sent_to_client', 'posted']
-
           active = [v for v in videos if v['current_stage'] not in DONE_STAGES]
 
-          stuck_editing = []
-          stuck_client  = []
+          stuck_editing, stuck_client = [], []
 
           for v in active:
-              # Get latest history entry for this video
               hist = get(f"video_stage_history?video_project_id=eq.{v['id']}&order=entered_at.desc&limit=1&select=entered_at,stage")
-              if not hist:
-                  continue
-              last_move = hist[0]['entered_at'][:19]  # trim microseconds
+              if not hist: continue
+              last_move = hist[0]['entered_at'][:19]
               if v['current_stage'] in STUCK_STAGES and last_move < cutoff_48h[:19]:
                   hours = int((now - datetime.datetime.fromisoformat(last_move)).total_seconds() / 3600)
                   stuck_editing.append(f"  → {v['title'][:40]} ({hours}h in {v['current_stage']})")
@@ -71,8 +76,9 @@ jobs:
           if alerts:
               msg = "🎬 BB VIDEO — Stuck Projects\n\n" + "\n\n".join(alerts)
               print(msg)
-              send_alert(msg)
-              print("Alert sent.")
+              send_email(msg)
+              write_alert(msg, "warning")
+              print("Alert sent to Gmail + in-app.")
           else:
               print("All videos moving — no stuck projects.")
           PYEOF
