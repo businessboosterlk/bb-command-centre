@@ -1340,6 +1340,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-finance" onclick="showPage('finance')"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
       <div class="nav-item" id="nav-team" onclick="showPage('team')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
+      <div class="nav-item" id="nav-agents" onclick="showPage('agents')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>Agents <span class="sb-badge" id="agents-unread-badge" style="display:none"></span></div>
     </div>
     <div class="user-card">
       <div class="user-av th" id="user-av">TH</div>
@@ -1958,6 +1959,9 @@ td:last-child{padding-right:18px;text-align:right}
           <option value="all">All tasks</option>
           <option value="done">Completed</option>
         </select>
+        <button class="btn-ghost btn-sm" onclick="openBulkTaskModal()" style="border-color:var(--red);color:var(--red)" id="bulk-overdue-btn">
+          ⚡ Bulk Fix Overdue
+        </button>
         <button class="btn-primary btn-sm" onclick="openGlobalTaskModal()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Add Task
@@ -2567,6 +2571,81 @@ td:last-child{padding-right:18px;text-align:right}
     <div class="modal-ft">
       <button class="btn-ghost" onclick="closeMsModal()">Cancel</button>
       <button class="btn-primary" id="ms-save-btn" onclick="saveMission()">Add Mission</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ AGENTS PAGE ══════════════ -->
+<div id="page-agents" class="page-section" style="display:none">
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">🤖 Agents</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px">Live alerts from all BB system agents — updated automatically</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-sm btn-ghost" onclick="loadAgentsPage()">↻ Refresh</button>
+        <button class="btn btn-sm btn-ghost" onclick="markAllAlertsRead()">Mark all read</button>
+      </div>
+    </div>
+    <!-- Filter bar -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="agent-filters">
+      <button class="fin-vtab active" onclick="filterAgents('all',this)">All</button>
+      <button class="fin-vtab" onclick="filterAgents('cc',this)">Command Centre</button>
+      <button class="fin-vtab" onclick="filterAgents('video',this)">Video</button>
+      <button class="fin-vtab" onclick="filterAgents('smm',this)">SMM</button>
+      <button class="fin-vtab" onclick="filterAgents('graphic',this)">Graphic</button>
+    </div>
+    <div id="agents-page-list">
+      <div style="color:var(--text-3);font-size:13px;padding:20px 0;">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BULK OVERDUE TASK TOOL ══ -->
+<div class="modal-overlay hidden" id="modal-bulk-tasks">
+  <div class="modal" style="max-width:660px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-hd">
+      <div class="modal-ttl">⚡ Bulk Fix Overdue Tasks</div>
+      <button class="modal-close" onclick="closeModal('modal-bulk-tasks')">✕</button>
+    </div>
+    <div style="padding:14px 20px;background:var(--red-soft);border-bottom:1px solid var(--border);flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--red);font-weight:700" id="bulk-count-label">0 overdue tasks selected</span>
+        <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">
+          <select class="form-select" id="bulk-reassign-to" style="width:130px;font-size:12px">
+            <option value="">Reassign to…</option>
+            <option value="th">Thulaib</option>
+            <option value="sh">Shiara</option>
+            <option value="smm">SMM</option>
+            <option value="gd">GD</option>
+            <option value="video">Video</option>
+          </select>
+          <input class="form-input" type="date" id="bulk-new-due" style="width:140px;font-size:12px;padding:5px 8px" title="Push due date to…">
+          <button class="btn-ghost btn-sm" style="border-color:var(--amber);color:var(--amber)" onclick="bulkReassign()">Reassign</button>
+          <button class="btn-ghost btn-sm" style="border-color:var(--green);color:var(--green)" onclick="bulkClose()">✓ Close All</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:5px;cursor:pointer">
+          <input type="checkbox" id="bulk-select-all" onchange="bulkToggleAll(this.checked)" style="cursor:pointer"> Select all
+        </label>
+        <select class="form-select" id="bulk-filter-assign" onchange="renderBulkList()" style="width:120px;font-size:11px">
+          <option value="">All team</option>
+          <option value="th">Thulaib</option>
+          <option value="sh">Shiara</option>
+          <option value="smm">SMM</option>
+          <option value="gd">GD</option>
+          <option value="video">Video</option>
+        </select>
+        <input class="form-input" type="text" id="bulk-search" oninput="renderBulkList()" placeholder="Search tasks…" style="width:160px;font-size:11px;padding:5px 8px">
+        <span style="font-size:10px;color:var(--text-3);margin-left:auto" id="bulk-total-label"></span>
+      </div>
+    </div>
+    <div style="overflow-y:auto;flex:1" id="bulk-task-list"></div>
+    <div class="modal-ft" style="flex-shrink:0">
+      <button class="btn-ghost" onclick="closeModal('modal-bulk-tasks')">Close</button>
+      <span style="font-size:11px;color:var(--text-3)" id="bulk-done-msg"></span>
     </div>
   </div>
 </div>
@@ -3732,6 +3811,9 @@ function showPage(page) {
   } else if (page === 'missions') {
     document.getElementById('topbar-title').textContent = 'Missions';
     loadMissionsPage();
+  } else if (page === 'agents') {
+    document.getElementById('topbar-title').textContent = 'Agents';
+    loadAgentsPage();
   }
 }
 
@@ -4899,7 +4981,113 @@ async function markAlertRead(id,el){
   try{
     await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},`?id=eq.${id}`);
     el.style.borderLeftColor='var(--border)';
-    el.querySelector('div').textContent=el.querySelector('div').textContent.replace(' · NEW','');
+    const badge=el.querySelector('.alert-new-badge');
+    if(badge)badge.remove();
+  }catch(e){}
+}
+
+let _agentsFilter='all';
+function loadAgentsPage(){
+  filterAgents(_agentsFilter,null,true);
+  // update unread badge on nav
+  updateAgentsUnreadBadge();
+}
+
+async function filterAgents(system,btn,force){
+  if(!force && system===_agentsFilter) return;
+  _agentsFilter=system;
+  // highlight active button
+  document.querySelectorAll('#agent-filters .fin-vtab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  else{
+    // find button by matching text content
+    const btns=document.querySelectorAll('#agent-filters .fin-vtab');
+    btns.forEach(b=>{ if(b.textContent.trim().toLowerCase().startsWith(system==='all'?'all':system)) b.classList.add('active'); });
+  }
+  await loadAgentAlerts(system,'agents-page-list');
+}
+
+async function loadAgentAlerts(system,containerId){
+  const el=document.getElementById(containerId);
+  if(!el)return;
+  el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:20px 0;text-align:center;">Loading alerts...</div>';
+  try{
+    const q=system==='all'
+      ? 'agent_alerts?order=created_at.desc&limit=50&select=*'
+      : `agent_alerts?or=(system.eq.${system},system.eq.all)&order=created_at.desc&limit=50&select=*`;
+    const resp=await fetch(`${SB_URL}/rest/v1/${q}`,{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
+    });
+    const alerts=resp.ok?await resp.json():[];
+    if(!alerts||alerts.length===0){
+      el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:24px 0;text-align:center;">✅ No alerts — everything running smoothly.</div>';
+      return;
+    }
+    const sevColor={critical:'var(--red)',warning:'var(--amber)',info:'#3b82f6'};
+    const sevLabel={critical:'🔴 CRITICAL',warning:'🟡 WARNING',info:'🔵 INFO'};
+    const agentLabel={
+      'finance':'Finance','stuck-video':'Stuck Video','client-health':'Client Health',
+      'content-overdue':'Content Overdue','shoot-tracker':'Shoot Tracker'
+    };
+    el.innerHTML=alerts.map(a=>{
+      const d=new Date(a.created_at);
+      const fmt=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+
+                d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const col=sevColor[a.severity]||'var(--text-2)';
+      const unread=!a.read_at;
+      const border=unread?`3px solid ${col}`:'3px solid var(--border)';
+      const aLabel=agentLabel[a.agent]||a.agent;
+      return `<div id="alert-card-${a.id}" style="border-left:${border};padding:12px 16px;background:var(--surface-2);border-radius:8px;margin-bottom:10px;"
+        onclick="markAlertReadFull(${a.id})">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+          <span style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase;">${sevLabel[a.severity]||a.severity}</span>
+          ${unread?'<span class="alert-new-badge" style="font-size:10px;font-weight:700;background:'+col+';color:#fff;padding:2px 6px;border-radius:4px;">NEW</span>':''}
+          <span style="font-size:11px;color:var(--text-3);margin-left:auto;">${aLabel} · ${fmt}</span>
+        </div>
+        <div style="font-size:13px;white-space:pre-wrap;line-height:1.5;color:var(--text-1);">${esc(a.message)}</div>
+        ${unread?'<div style="font-size:11px;color:var(--text-3);margin-top:8px;">Click to mark as read</div>':''}
+      </div>`;
+    }).join('');
+    updateAgentsUnreadBadge();
+  }catch(e){
+    el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:16px 0;">Could not load alerts.</div>';
+    console.error('loadAgentAlerts',e);
+  }
+}
+
+async function markAlertReadFull(id){
+  const card=document.getElementById('alert-card-'+id);
+  if(!card)return;
+  try{
+    await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},`?id=eq.${id}`);
+    card.style.borderLeftColor='var(--border)';
+    card.querySelector('.alert-new-badge')?.remove();
+    const hint=card.querySelector('div:last-child');
+    if(hint&&hint.textContent==='Click to mark as read')hint.remove();
+    updateAgentsUnreadBadge();
+  }catch(e){}
+}
+
+async function markAllAlertsRead(){
+  try{
+    await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},'?read_at=is.null');
+    document.querySelectorAll('.alert-new-badge').forEach(b=>b.remove());
+    document.querySelectorAll('[id^="alert-card-"]').forEach(c=>c.style.borderLeftColor='var(--border)');
+    updateAgentsUnreadBadge();
+  }catch(e){}
+}
+
+async function updateAgentsUnreadBadge(){
+  try{
+    const resp=await fetch(`${SB_URL}/rest/v1/agent_alerts?read_at=is.null&select=id`,{
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}
+    });
+    const count=parseInt(resp.headers.get('content-range')?.split('/')[1]||'0');
+    const badge=document.getElementById('agents-unread-badge');
+    if(badge){
+      badge.textContent=count;
+      badge.style.display=count>0?'':'none';
+    }
   }catch(e){}
 }
 
@@ -7072,7 +7260,7 @@ function renderContentPlans(){
   const clientF=document.getElementById('cp-filter-client')?.value||'';
   const typeF=document.getElementById('cp-filter-type')?.value||'';
 
-  let items=CP_items.filter(i=>String(i.month)===month);
+  let items=CP_items.filter(i=>(i.month_str||String(i.year||'')+'-'+String(i.month||'').padStart(2,'0'))===month);
   if(clientF)items=items.filter(i=>String(i.client_id)===clientF);
   if(typeF)items=items.filter(i=>i.type===typeF);
 
@@ -7212,10 +7400,14 @@ async function saveCpItem(){
   const clientName=clientEl?clientEl.options[clientEl.selectedIndex]?.getAttribute('data-name')||clientEl.options[clientEl.selectedIndex]?.text||'':'';
   const title=document.getElementById('cp-f-title').value.trim();
   if(!title){alert('Please enter a title.');return;}
+  const monthStr=document.getElementById('cp-f-month').value;
+  const [mYear,mMon]=(monthStr||'').split('-').map(Number);
   const data={
     client_id:clientId?parseInt(clientId):null,
     client_name:clientName,
-    month:document.getElementById('cp-f-month').value,
+    month_str:monthStr,
+    month:mMon||null,
+    year:mYear||null,
     type:document.getElementById('cp-f-type').value,
     platform:document.getElementById('cp-f-platform').value,
     title,
@@ -7243,6 +7435,144 @@ async function deleteCpItem(id){
   if(!confirm('Remove this content item?'))return;
   try{await SBdel('content_plans',id);CP_items=CP_items.filter(i=>i.id!==id);}catch(e){console.error('deleteCpItem',e);}
   renderContentPlans();
+}
+
+/* ══════════════════════════════════════
+   BULK OVERDUE TASK TOOL
+══════════════════════════════════════ */
+let BULK_overdue=[];
+let BULK_selected=new Set();
+
+async function openBulkTaskModal(){
+  const today=new Date().toISOString().split('T')[0];
+  try{
+    let tasks=D.tasks&&D.tasks.length?D.tasks:await sb('tasks','?select=*').catch(()=>[]);
+    if(!D.tasks||!D.tasks.length)D.tasks=tasks||[];
+    BULK_overdue=(tasks||[]).filter(t=>!t.done&&t.due&&t.due<today);
+  }catch(e){BULK_overdue=[];}
+  BULK_selected=new Set(BULK_overdue.map(t=>t.id));
+  const nd=document.getElementById('bulk-new-due');
+  if(nd)nd.value=today;
+  document.getElementById('bulk-filter-assign').value='';
+  document.getElementById('bulk-search').value='';
+  document.getElementById('bulk-select-all').checked=true;
+  document.getElementById('bulk-done-msg').textContent='';
+  renderBulkList();
+  openModal('modal-bulk-tasks');
+}
+
+function renderBulkList(){
+  const assignF=document.getElementById('bulk-filter-assign').value;
+  const search=(document.getElementById('bulk-search').value||'').toLowerCase();
+  let items=BULK_overdue;
+  if(assignF)items=items.filter(t=>(t.assigned_to||t.assignedTo||'').toLowerCase()===assignF.toLowerCase());
+  if(search)items=items.filter(t=>(t.text||t.title||'').toLowerCase().includes(search));
+  const el=document.getElementById('bulk-task-list');
+  if(!el)return;
+  if(!items.length){
+    el.innerHTML='<div style="padding:32px;text-align:center;color:var(--text-3);font-size:13px">No overdue tasks match filter</div>';
+    updateBulkCount();return;
+  }
+  const today=new Date().toISOString().split('T')[0];
+  const clientMap={};
+  (D.clients||[]).forEach(c=>{clientMap[c.id]=c.name;});
+  el.innerHTML=items.map(t=>{
+    const daysOver=Math.round((new Date(today)-new Date(t.due))/(86400000));
+    const checked=BULK_selected.has(t.id);
+    const client=clientMap[t.client_id||t.clientId]||'';
+    return `<label style="display:flex;align-items:flex-start;gap:10px;padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;${checked?'background:var(--red-soft)':''}">
+      <input type="checkbox" ${checked?'checked':''} onchange="bulkToggleOne(${t.id},this.checked)" style="margin-top:2px;flex-shrink:0;cursor:pointer">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.text||t.title||'Untitled')}</div>
+        <div style="display:flex;gap:10px;margin-top:3px;flex-wrap:wrap">
+          ${client?`<span style="font-size:10px;color:var(--text-3)">&#128193; ${esc(client)}</span>`:''}
+          <span style="font-size:10px;color:var(--red);font-weight:700">${daysOver}d overdue (${t.due})</span>
+          ${t.assigned_to||t.assignedTo?`<span style="font-size:10px;color:var(--text-3)">&#128100; ${esc(t.assigned_to||t.assignedTo)}</span>`:''}
+          ${t.priority?`<span style="font-size:10px;color:var(--amber)">${esc(t.priority)}</span>`:''}
+        </div>
+      </div>
+    </label>`;
+  }).join('');
+  updateBulkCount();
+  document.getElementById('bulk-total-label').textContent=`${items.length} shown of ${BULK_overdue.length} overdue`;
+}
+
+function bulkToggleOne(id,checked){
+  if(checked)BULK_selected.add(id);else BULK_selected.delete(id);
+  updateBulkCount();
+  document.querySelectorAll('#bulk-task-list label').forEach(lbl=>{
+    const cb=lbl.querySelector('input[type=checkbox]');
+    if(cb)lbl.style.background=cb.checked?'var(--red-soft)':'';
+  });
+}
+
+function bulkToggleAll(checked){
+  const assignF=document.getElementById('bulk-filter-assign').value;
+  const search=(document.getElementById('bulk-search').value||'').toLowerCase();
+  let visible=BULK_overdue;
+  if(assignF)visible=visible.filter(t=>(t.assigned_to||t.assignedTo||'').toLowerCase()===assignF.toLowerCase());
+  if(search)visible=visible.filter(t=>(t.text||t.title||'').toLowerCase().includes(search));
+  visible.forEach(t=>{if(checked)BULK_selected.add(t.id);else BULK_selected.delete(t.id);});
+  renderBulkList();
+}
+
+function updateBulkCount(){
+  const el=document.getElementById('bulk-count-label');
+  if(el)el.textContent=`${BULK_selected.size} task${BULK_selected.size!==1?'s':''} selected`;
+}
+
+async function bulkClose(){
+  const ids=[...BULK_selected];
+  if(!ids.length){alert('No tasks selected.');return;}
+  if(!confirm(`Mark ${ids.length} overdue task${ids.length!==1?'s':''} as done?`))return;
+  document.getElementById('bulk-done-msg').textContent='Closing...';
+  let done=0;
+  for(const id of ids){
+    try{
+      await SBpatch('tasks',id,{done:true,updated_at:new Date().toISOString()});
+      const idx=D.tasks.findIndex(t=>t.id===id);
+      if(idx>=0)D.tasks[idx].done=true;
+      BULK_overdue=BULK_overdue.filter(t=>t.id!==id);
+      BULK_selected.delete(id);
+      done++;
+    }catch(e){console.error('bulkClose',id,e);}
+  }
+  document.getElementById('bulk-done-msg').textContent=`&#10003; ${done} task${done!==1?'s':''} closed`;
+  renderBulkList();
+  if(typeof renderTaskBook==='function')renderTaskBook();
+}
+
+async function bulkReassign(){
+  const ids=[...BULK_selected];
+  const to=document.getElementById('bulk-reassign-to').value;
+  const newDue=document.getElementById('bulk-new-due').value;
+  if(!ids.length){alert('No tasks selected.');return;}
+  if(!to&&!newDue){alert('Choose a new assignee or due date (or both).');return;}
+  const parts=[];
+  if(to)parts.push(`reassign to ${to}`);
+  if(newDue)parts.push(`push due date to ${newDue}`);
+  if(!confirm(`${parts.join(' & ')} for ${ids.length} task${ids.length!==1?'s':''}?`))return;
+  document.getElementById('bulk-done-msg').textContent='Saving...';
+  const patch={updated_at:new Date().toISOString()};
+  if(to)patch.assigned_to=to;
+  if(newDue)patch.due=newDue;
+  let done=0;
+  const todayStr2=new Date().toISOString().split('T')[0];
+  for(const id of ids){
+    try{
+      await SBpatch('tasks',id,patch);
+      const idx=D.tasks.findIndex(t=>t.id===id);
+      if(idx>=0)D.tasks[idx]={...D.tasks[idx],...patch};
+      if(newDue&&newDue>=todayStr2){
+        BULK_overdue=BULK_overdue.filter(t=>t.id!==id);
+        BULK_selected.delete(id);
+      }
+      done++;
+    }catch(e){console.error('bulkReassign',id,e);}
+  }
+  document.getElementById('bulk-done-msg').textContent=`&#10003; ${done} task${done!==1?'s':''} updated`;
+  renderBulkList();
+  if(typeof renderTaskBook==='function')renderTaskBook();
 }
 
 /* ══════════════════════════════════════
@@ -7497,7 +7827,7 @@ async function deleteMission(id){
     }catch(e){/* silent */}
   }
 
-  /* ── WhatsApp alert via Edge Function ── */
+  /* ── Email alert via bb-alert Edge Function (Gmail) ── */
   let _waLastSent = 0;
   async function _sendWhatsApp(msg, page){
     try{
