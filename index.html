@@ -8029,7 +8029,41 @@ async function deleteMission(id){
 
   var POLL_6H   = 6  * 60 * 60 * 1000;
   var POLL_24H  = 24 * 60 * 60 * 1000;
-  var POLL_TICK = 15 * 60 * 1000;       // polling tick â checks every 15 min
+  var POLL_TICK = 15 * 60 * 1000;
+
+  // ── ALERT SCHEDULE: Gmail alerts ONLY at 9 AM, 1 PM, 6 PM ─────────
+  var ALERT_SLOTS = [9, 13, 18];
+
+  function inAlertWindow() {
+    var d = new Date(), h = d.getHours(), mn = d.getMinutes();
+    return ALERT_SLOTS.some(function(s){ return h === s && mn < 15; });
+  }
+
+  function alertSlotKey() {
+    var d = new Date();
+    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var slot = ALERT_SLOTS.find(function(s){ return d.getHours() === s; });
+    return slot !== undefined ? ('bba_slot_' + ds + '_' + slot) : null;
+  }
+
+  function slotAlreadyFired() {
+    var k = alertSlotKey(); return k ? localStorage.getItem(k) === '1' : true;
+  }
+
+  function markSlotFired() {
+    var k = alertSlotKey(); if (k) localStorage.setItem(k, '1');
+  }
+
+  // ── INVOICE DATE GATE ───────────────────────────────────────────────
+  // Only alert on invoices due up to and including the CURRENT month.
+  // Future months are pre-planned revenue — ignore for alerts.
+  function invoiceInAlertRange(dueDateStr) {
+    if (!dueDateStr) return false;
+    var due = new Date(dueDateStr);
+    if (isNaN(due.getTime())) return false;
+    var now = new Date();
+    return (due.getFullYear() * 100 + due.getMonth() + 1) <= (now.getFullYear() * 100 + now.getMonth() + 1);
+  }       // polling tick â checks every 15 min
   var CEO_TICK  =  5 * 60 * 1000;       // monday check every 5 min
 
   // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
@@ -8086,6 +8120,14 @@ async function deleteMission(id){
       console.warn('[BB Agents] Alert failed (' + role + '):', e.message);
       return { status: 'error' };
     });
+  }
+
+  // Scheduled wrapper — only fires inside the 9 AM / 1 PM / 6 PM windows
+  function scheduledAlert(role, message) {
+    if (!inAlertWindow())   return Promise.resolve({ status: 'skipped-not-window' });
+    if (slotAlreadyFired()) return Promise.resolve({ status: 'skipped-slot-done' });
+    markSlotFired();
+    return sendAlert(role, message);
   }
 
   // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
@@ -8274,7 +8316,7 @@ async function deleteMission(id){
       });
       if (flags.length > 10) lines.push('\nâ¦and ' + (flags.length - 10) + ' more');
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-client-health', lines.join('\n'));
+      return scheduledAlert('agent-client-health', lines.join('\n'));
     }).catch(function (e) {
       setS('client-health', { status: 'error' });
       console.error('[BB Agents] Client Health error:', e);
@@ -8309,7 +8351,7 @@ async function deleteMission(id){
       // Unpaid invoices where due_date > 7 days ago
       unpaid.forEach(function (inv) {
         var due = safeDate(inv.due_date);
-        if (due && due < sevenDA) {
+        if (due && due < sevenDA && invoiceInAlertRange(inv.due_date)) {
           var over = Math.floor((now - due) / 86400000);
           flags.push({ type: 'overdue', client: inv.client_name || '?', amount: inv.amount || 0, over: over, month: inv.month });
         }
@@ -8351,7 +8393,7 @@ async function deleteMission(id){
         });
       }
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-revenue', lines.join('\n'));
+      return scheduledAlert('agent-revenue', lines.join('\n'));
     }).catch(function (e) {
       setS('revenue', { status: 'error' });
       console.error('[BB Agents] Revenue error:', e);
@@ -8426,7 +8468,7 @@ async function deleteMission(id){
         });
       }
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-team', lines.join('\n'));
+      return scheduledAlert('agent-team', lines.join('\n'));
     }).catch(function (e) {
       setS('team', { status: 'error' });
       console.error('[BB Agents] Team error:', e);
@@ -8483,7 +8525,7 @@ async function deleteMission(id){
       });
       if (flags.length > 12) lines.push('â¦and ' + (flags.length - 12) + ' more');
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-content', lines.join('\n'));
+      return scheduledAlert('agent-content', lines.join('\n'));
     }).catch(function (e) {
       setS('content', { status: 'error' });
       console.error('[BB Agents] Content error:', e);
@@ -8581,7 +8623,7 @@ async function deleteMission(id){
 
       markRan(KEY);
       setS('ceo-brief', { status: 'ok', flags: redFlags.length, lastRun: new Date().toISOString() });
-      return sendAlert('agent-ceo-brief', lines.join('\n'));
+      return scheduledAlert('agent-ceo-brief', lines.join('\n'));
     }).catch(function (e) {
       setS('ceo-brief', { status: 'error' });
       console.error('[BB Agents] CEO Brief error:', e);
@@ -8658,7 +8700,7 @@ async function deleteMission(id){
         if (f.tasks) f.tasks.slice(0, 3).forEach(function (t) { lines.push('    â ' + t); });
       });
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-onboarding', lines.join('\n'));
+      return scheduledAlert('agent-onboarding', lines.join('\n'));
     }).catch(function (e) {
       setS('onboarding', { status: 'error' });
       console.error('[BB Agents] Onboarding error:', e);
@@ -8726,7 +8768,7 @@ async function deleteMission(id){
         if (f.type === 'to_amber') lines.push('\uD83D\uDFE0 *' + f.client + '* moved to AMBER â needs attention');
       });
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-anomaly', lines.join('\n'));
+      return scheduledAlert('agent-anomaly', lines.join('\n'));
     }).catch(function (e) {
       setS('anomaly', { status: 'error' });
       console.error('[BB Agents] Anomaly error:', e);
@@ -8795,7 +8837,7 @@ async function deleteMission(id){
         });
       }
       lines.push('\nâ± ' + new Date().toLocaleString());
-      return sendAlert('agent-shoot', lines.join('\n'));
+      return scheduledAlert('agent-shoot', lines.join('\n'));
     }).catch(function (e) {
       setS('shoot', { status: 'error' });
       console.error('[BB Agents] Shoot error:', e);
