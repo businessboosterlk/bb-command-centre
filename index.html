@@ -6496,6 +6496,8 @@ function renderVideoPipeline(){
   if(eSel){const prev=eSel.value;const es=[...new Map(VP_videos.filter(v=>v.assigned_editor_id).map(v=>[v.assigned_editor_id,v.team_members?.name||'?'])).entries()];eSel.innerHTML='<option value="">All editors</option>'+es.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join('');eSel.value=prev;}
 
   const board=document.getElementById('vp-board');if(!board)return;
+  const _vpBL=board.scrollLeft;
+  const _vpCols=Array.from(board.querySelectorAll('.stage-cards')).map(c=>c.scrollTop);
   board.innerHTML=VP_STAGES.map(stage=>{
     const sv=vids.filter(v=>v.current_stage===stage);
     return `<div class="stage-col">
@@ -6508,6 +6510,10 @@ function renderVideoPipeline(){
       </div>
     </div>`;
   }).join('');
+  requestAnimationFrame(()=>{
+    board.scrollLeft=_vpBL;
+    board.querySelectorAll('.stage-cards').forEach((c,i)=>{if(_vpCols[i])c.scrollTop=_vpCols[i];});
+  });
 }
 
 function vpCard(v){
@@ -7014,6 +7020,8 @@ function renderShootPipeline(){
   }
 
   const board=document.getElementById('sp-board');if(!board)return;
+  const _spBL=board.scrollLeft;
+  const _spCols=Array.from(board.querySelectorAll('.stage-cards')).map(c=>c.scrollTop);
   board.innerHTML=SHOOT_STAGES.map(stage=>{
     const sv=resolved.filter(s=>s._resolved===stage.key);
     return `<div class="stage-col">
@@ -7026,6 +7034,10 @@ function renderShootPipeline(){
       </div>
     </div>`;
   }).join('');
+  requestAnimationFrame(()=>{
+    board.scrollLeft=_spBL;
+    board.querySelectorAll('.stage-cards').forEach((c,i)=>{if(_spCols[i])c.scrollTop=_spCols[i];});
+  });
 }
 
 function spClientName(s){
