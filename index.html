@@ -4533,6 +4533,54 @@ async function refreshData(){
 }
 
 /* ── LIST ── */
+
+/* ── AUTO CLIENT HEALTH SCORING ─────────────────────────────── */
+async function autoScoreClientHealth(){
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const [allTasks, allInvoices, allContent] = await Promise.all([
+      SBget('tasks','?select=id,client_id,done,due&done=eq.false'),
+      SBget('invoices','?select=client_id,status,due_date'),
+      SBget('content_plans','?select=client_id,posted,scheduled_date&order=scheduled_date.desc')
+    ]);
+    const clients = D.clients || [];
+    const updates = [];
+    clients.forEach(c => {
+      if(!c.id) return;
+      const cid = String(c.id);
+      const overdueTasks = (allTasks||[]).filter(t => String(t.client_id)===cid && t.due && t.due < today).length;
+      const overdueInvs  = (allInvoices||[]).filter(i => String(i.client_id)===cid && i.status!=='paid' && i.due_date && i.due_date < today).length;
+      const clientContent = (allContent||[]).filter(p => String(p.client_id)===cid);
+      const lastPosted    = clientContent.find(p => p.posted && p.scheduled_date);
+      const daysSincePost = lastPosted ? Math.floor((Date.now()-new Date(lastPosted.scheduled_date).getTime())/86400000) : 999;
+      const hasScheduled  = clientContent.some(p => !p.posted && p.scheduled_date >= today);
+      let score = 'green';
+      if(overdueTasks>=3 || overdueInvs>=2 || (daysSincePost>=21 && !hasScheduled)) score='red';
+      else if(overdueTasks>=1 || overdueInvs>=1 || daysSincePost>=14) score='amber';
+      if(score !== (c.health||'green')) updates.push({id:c.id, oldHealth:c.health, newHealth:score,
+        reasons:[overdueTasks?overdueTasks+' overdue task'+(overdueTasks>1?'s':''):null,
+                 overdueInvs?overdueInvs+' unpaid invoice'+(overdueInvs>1?'s':''):null,
+                 daysSincePost>=14?daysSincePost+'d since last post':null].filter(Boolean)});
+    });
+    if(!updates.length){ console.log('[Health] No changes'); return; }
+    for(const u of updates){
+      try{
+        await sbC('clients','PATCH',{health:u.newHealth},`?id=eq.${u.id}`);
+        const c=(D.clients||[]).find(x=>Number(x.id)===u.id); if(c) c.health=u.newHealth;
+        console.log('[Health]',c?.name||u.id,u.oldHealth,'→',u.newHealth,'|',u.reasons.join(', '));
+      }catch(e){ console.warn('[Health] patch failed',u.id,e); }
+    }
+    try{renderAll();}catch(e){}
+    const toast=document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface,#1e293b);border:1px solid var(--border);border-left:3px solid #6366f1;color:var(--text,#f1f5f9);padding:10px 18px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.4);white-space:nowrap';
+    toast.textContent='⚡ Health auto-scored — '+updates.length+' client'+(updates.length>1?'s':'')+' updated';
+    document.body.appendChild(toast); setTimeout(()=>toast.remove(),4000);
+  } catch(e){ console.warn('[Health] Auto-score error:',e); }
+}
+setTimeout(autoScoreClientHealth, 7000);
+setInterval(autoScoreClientHealth, 30*60*1000);
+
+
 function renderClientStats(){
   const c=CLIENTS;
   document.getElementById('st-total').textContent=c.length;
@@ -7982,6 +8030,24 @@ async function deleteMission(id){
 })();
 
 </script>
+
+<!-- ⌘K COMMAND BAR -->
+<div id="cmdbar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10000;backdrop-filter:blur(4px)" onclick="closeCmdBar()"></div>
+<div id="cmdbar" style="display:none;position:fixed;top:18vh;left:50%;transform:translateX(-50%);width:580px;max-width:92vw;background:var(--card,#1e293b);border:1.5px solid rgba(99,102,241,.5);border-radius:14px;box-shadow:0 24px 60px rgba(0,0,0,.6),0 0 0 1px rgba(99,102,241,.1);z-index:10001;overflow:hidden;font-family:'Inter',system-ui,sans-serif">
+  <div style="display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border,#334155)">
+    <svg width="16" height="16" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="cmdbar-input" placeholder="Search pages, add task, find client…" autocomplete="off"
+      style="flex:1;background:none;border:none;outline:none;font-size:14px;color:var(--text,#f1f5f9);font-family:inherit"
+      oninput="renderCmdResults()" onkeydown="handleCmdKey(event)">
+    <kbd style="font-size:10px;color:var(--text-3,#64748b);background:var(--surface,#0f172a);border:1px solid var(--border,#334155);border-radius:5px;padding:2px 6px">ESC</kbd>
+  </div>
+  <div id="cmdbar-results" style="max-height:380px;overflow-y:auto;padding:6px"></div>
+  <div style="padding:8px 16px;border-top:1px solid var(--border,#334155);display:flex;gap:16px;font-size:10px;color:var(--text-3,#64748b)">
+    <span><kbd style="background:var(--surface,#0f172a);border:1px solid var(--border,#334155);border-radius:3px;padding:1px 5px;font-size:9px">↑↓</kbd> navigate</span>
+    <span><kbd style="background:var(--surface,#0f172a);border:1px solid var(--border,#334155);border-radius:3px;padding:1px 5px;font-size:9px">↵</kbd> select</span>
+    <span><kbd style="background:var(--surface,#0f172a);border:1px solid var(--border,#334155);border-radius:3px;padding:1px 5px;font-size:9px">⌘K</kbd> toggle</span>
+  </div>
+</div>
 </body>
 </html>
 
@@ -9023,6 +9089,106 @@ async function deleteMission(id){
 }(window));
 </script>
  
+
+<script>
+(function(){
+  var _open=false, _sel=0;
+  var PAGES=[
+    {icon:'📊',label:'Dashboard',    fn:'dashboard'},
+    {icon:'☀️',label:'My Day',       fn:'myday'},
+    {icon:'👥',label:'Clients',      fn:'clients'},
+    {icon:'🎯',label:'Leads',        fn:'leads'},
+    {icon:'📅',label:'Calendar',     fn:'calendar'},
+    {icon:'✅',label:'Task Book',    fn:'taskbook'},
+    {icon:'📋',label:'Content Plans',fn:'content-plans'},
+    {icon:'🎬',label:'Video Pipeline',fn:'video-pipeline'},
+    {icon:'📸',label:'Shoot Pipeline',fn:'shoot-pipeline'},
+    {icon:'💰',label:'Finance',      fn:'finance'},
+    {icon:'👔',label:'Team',         fn:'team'},
+    {icon:'🚀',label:'Missions',     fn:'missions'},
+    {icon:'🤖',label:'Agents',       fn:'agents'},
+  ];
+  var ACTIONS=[
+    {icon:'➕',label:'Add Task',          hint:'Quick-add a new task',          fn:function(){closeCmdBar();typeof openGlobalTaskModal!=='undefined'&&openGlobalTaskModal();}},
+    {icon:'👤',label:'Add Client',        hint:'Register a new client',         fn:function(){closeCmdBar();typeof openAddClientModal!=='undefined'&&openAddClientModal();}},
+    {icon:'💸',label:'Add Invoice',       hint:'Log a client invoice',          fn:function(){closeCmdBar();showPage('finance');setTimeout(function(){typeof openFinInvoiceModal!=='undefined'&&openFinInvoiceModal();},300);}},
+    {icon:'📝',label:'Add Cost',          hint:'Log an expense',                fn:function(){closeCmdBar();showPage('finance');setTimeout(function(){typeof openFinCostModal!=='undefined'&&openFinCostModal();},300);}},
+    {icon:'🏋️',label:'Add Lead',         hint:'Add to pipeline',               fn:function(){closeCmdBar();showPage('leads');setTimeout(function(){typeof openLeadModal!=='undefined'&&openLeadModal();},300);}},
+    {icon:'⚡',label:'Run Agent Scan',    hint:'Refresh all AI alerts',         fn:function(){closeCmdBar();window.BBA3&&window.BBA3.runAll();}},
+    {icon:'🏥',label:'Re-score Health',  hint:'Auto-score all client health',  fn:function(){closeCmdBar();typeof autoScoreClientHealth!=='undefined'&&autoScoreClientHealth();}},
+    {icon:'📆',label:'Daily Check-In',   hint:'Open overdue task check-in',    fn:function(){closeCmdBar();window.BBA3&&window.BBA3.openCheckin();}},
+  ];
+  function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function buildItems(q){
+    var ql=q.toLowerCase().trim(), items=[];
+    if(!ql){
+      items.push({type:'h',label:'Quick Actions'});
+      ACTIONS.forEach(function(a){items.push({type:'a',icon:a.icon,label:a.label,hint:a.hint,fn:a.fn});});
+      items.push({type:'h',label:'Navigate'});
+      PAGES.forEach(function(p){items.push({type:'a',icon:p.icon,label:p.label,fn:function(pg){return function(){closeCmdBar();showPage(pg);};}(p.fn)});});
+    } else {
+      ACTIONS.forEach(function(a){if(a.label.toLowerCase().includes(ql)||(a.hint||'').toLowerCase().includes(ql)) items.push({type:'a',icon:a.icon,label:a.label,hint:a.hint,fn:a.fn});});
+      PAGES.forEach(function(p){if(p.label.toLowerCase().includes(ql)) items.push({type:'a',icon:p.icon,label:p.label,fn:function(pg){return function(){closeCmdBar();showPage(pg);};}(p.fn)});});
+      var clients=(window.D&&window.D.clients)||[];
+      clients.filter(function(c){return c.name&&c.name.toLowerCase().includes(ql);}).slice(0,5).forEach(function(c){
+        items.push({type:'a',icon:'👤',label:esc(c.name),hint:'Open client profile',fn:(function(cid){return function(){closeCmdBar();showPage('clients');setTimeout(function(){typeof openClient!=='undefined'&&openClient(cid);},300);};})(c.id)});
+      });
+    }
+    return items;
+  }
+  window._cmdItems=[];
+  window.renderCmdResults=function(){
+    var inp=document.getElementById('cmdbar-input');
+    var res=document.getElementById('cmdbar-results');
+    if(!inp||!res)return;
+    var items=buildItems(inp.value);
+    window._cmdItems=items; _sel=0;
+    var html='', ai=-1;
+    items.forEach(function(item,i){
+      if(item.type==='h'){html+='<div style="font-size:10px;font-weight:700;color:var(--text-3,#64748b);text-transform:uppercase;letter-spacing:.06em;padding:10px 14px 4px">'+esc(item.label)+'</div>';}
+      else{ai++;html+='<div class="cmd-item" data-idx="'+i+'" data-ai="'+ai+'" onclick="window._cmdItems['+i+']&&window._cmdItems['+i+'].fn&&window._cmdItems['+i+'].fn()" onmouseenter="hoverCmd('+i+')" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;cursor:pointer;margin:1px 4px;transition:background .1s"><span style="font-size:15px;width:22px;text-align:center;flex-shrink:0">'+item.icon+'</span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text,#f1f5f9)">'+esc(item.label)+'</div>'+(item.hint?'<div style="font-size:11px;color:var(--text-3,#64748b)">'+esc(item.hint)+'</div>':'')+'</div></div>';}
+    });
+    res.innerHTML=html||'<div style="padding:24px;text-align:center;font-size:13px;color:var(--text-3,#64748b)">No results</div>';
+    highlightCmd();
+  };
+  function highlightCmd(){
+    document.querySelectorAll('.cmd-item').forEach(function(el){
+      el.style.background=parseInt(el.getAttribute('data-ai'))===_sel?'rgba(99,102,241,.12)':'';
+    });
+  }
+  window.hoverCmd=function(idx){
+    var el=document.querySelector('.cmd-item[data-idx="'+idx+'"]');
+    if(el){_sel=parseInt(el.getAttribute('data-ai')||0);highlightCmd();}
+  };
+  window.handleCmdKey=function(e){
+    var actionCount=document.querySelectorAll('.cmd-item').length;
+    if(e.key==='ArrowDown'){e.preventDefault();_sel=Math.min(_sel+1,actionCount-1);highlightCmd();}
+    else if(e.key==='ArrowUp'){e.preventDefault();_sel=Math.max(_sel-1,0);highlightCmd();}
+    else if(e.key==='Enter'){
+      e.preventDefault();
+      var el=document.querySelector('.cmd-item[data-ai="'+_sel+'"]');
+      if(el){var idx=parseInt(el.getAttribute('data-idx'));window._cmdItems[idx]&&window._cmdItems[idx].fn&&window._cmdItems[idx].fn();}
+    } else if(e.key==='Escape'){closeCmdBar();}
+  };
+  window.openCmdBar=function(){
+    _open=true;
+    document.getElementById('cmdbar-overlay').style.display='block';
+    document.getElementById('cmdbar').style.display='block';
+    var inp=document.getElementById('cmdbar-input');
+    if(inp){inp.value='';inp.focus();}
+    renderCmdResults();
+  };
+  window.closeCmdBar=function(){
+    _open=false;
+    document.getElementById('cmdbar-overlay').style.display='none';
+    document.getElementById('cmdbar').style.display='none';
+  };
+  document.addEventListener('keydown',function(e){
+    if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();_open?closeCmdBar():openCmdBar();}
+    if(e.key==='Escape'&&_open)closeCmdBar();
+  });
+}());
+</script>
 
 <script>
 /* ═══════════════════════════════════════════════════════════════
