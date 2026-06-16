@@ -1079,6 +1079,7 @@ td:last-child{padding-right:18px;text-align:right}
 [data-theme="dark"] #sb-logo-img{filter:none;opacity:1}
 [data-theme="light"] #sb-logo-img{filter:invert(1) brightness(0);opacity:0.85}
 [id^='tab-']{width:100%;box-sizing:border-box}
+.sb-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:800;letter-spacing:.02em;margin-left:4px;line-height:1;vertical-align:middle}
 @media(max-width:900px){.main{margin-left:0!important;width:100%!important}.stat-row,.kpi-row{grid-template-columns:repeat(2,1fr)}.fields-bar-row{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.month-grid{grid-template-columns:1fr}.content{padding:14px}.field-row{flex-direction:column}.modal{max-width:calc(100vw - 24px)!important}}
 
 /* ── CLIENTS PAGE STYLES ── */
@@ -2268,8 +2269,8 @@ td:last-child{padding-right:18px;text-align:right}
           <option value="2026-02">Feb 2026</option>
           <option value="2026-03">Mar 2026</option>
           <option value="2026-04">Apr 2026</option>
-          <option value="2026-05" selected>May 2026</option>
-          <option value="2026-06">Jun 2026</option>
+          <option value="2026-05">May 2026</option>
+          <option value="2026-06" selected>Jun 2026</option>
           <option value="2026-07">Jul 2026</option>
           <option value="2026-08">Aug 2026</option>
           <option value="2026-09">Sep 2026</option>
@@ -5068,7 +5069,7 @@ const FIN_MONTH_NAMES={'2025-12':'Dec 2025','2026-01':'Jan 2026','2026-02':'Feb 
   '2026-04':'Apr 2026','2026-05':'May 2026','2026-06':'Jun 2026','2026-07':'Jul 2026',
   '2026-08':'Aug 2026','2026-09':'Sep 2026','2026-10':'Oct 2026','2026-11':'Nov 2026','2026-12':'Dec 2026'};
 
-function getFinMonth(){return document.getElementById('fin-month-sel')?.value||'2026-05';}
+function getFinMonth(){return document.getElementById('fin-month-sel')?.value||'2026-06';}
 
 async function loadFinancePage(){
   try{
@@ -6220,7 +6221,8 @@ function switchTab(tab){
 }
 
 /* ── MODAL ── */
-function closeModal(id){document.getElementById(id).classList.add('hidden');}
+function openModal(id){const el=document.getElementById(id);if(el)el.classList.remove('hidden');}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.add('hidden');}
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hidden');}));
 
 /* ── EXPORT ── */
@@ -9200,23 +9202,24 @@ async function deleteMission(id){
     {icon:'📊',label:'Dashboard',    fn:'dashboard'},
     {icon:'☀️',label:'My Day',       fn:'myday'},
     {icon:'👥',label:'Clients',      fn:'clients'},
-    {icon:'🎯',label:'Leads',        fn:'leads'},
+    {icon:'🎯',label:'Leads',        fn:'pipeline'},
     {icon:'📅',label:'Calendar',     fn:'calendar'},
     {icon:'✅',label:'Task Book',    fn:'taskbook'},
-    {icon:'📋',label:'Content Plans',fn:'content-plans'},
-    {icon:'🎬',label:'Video Pipeline',fn:'video-pipeline'},
-    {icon:'📸',label:'Shoot Pipeline',fn:'shoot-pipeline'},
+    {icon:'📋',label:'Content Plans',fn:'contentplans'},
+    {icon:'🎬',label:'Video Pipeline',fn:'videopipeline'},
+    {icon:'📸',label:'Shoot Pipeline',fn:'shootpipeline'},
     {icon:'💰',label:'Finance',      fn:'finance'},
     {icon:'👔',label:'Team',         fn:'team'},
     {icon:'🚀',label:'Missions',     fn:'missions'},
     {icon:'🤖',label:'Agents',       fn:'agents'},
+    {icon:'📆',label:'Weekly Plan',  fn:'weeklyplan'},
   ];
   var ACTIONS=[
     {icon:'➕',label:'Add Task',          hint:'Quick-add a new task',          fn:function(){closeCmdBar();typeof openGlobalTaskModal!=='undefined'&&openGlobalTaskModal();}},
     {icon:'👤',label:'Add Client',        hint:'Register a new client',         fn:function(){closeCmdBar();typeof openAddClientModal!=='undefined'&&openAddClientModal();}},
     {icon:'💸',label:'Add Invoice',       hint:'Log a client invoice',          fn:function(){closeCmdBar();showPage('finance');setTimeout(function(){typeof openFinInvoiceModal!=='undefined'&&openFinInvoiceModal();},300);}},
     {icon:'📝',label:'Add Cost',          hint:'Log an expense',                fn:function(){closeCmdBar();showPage('finance');setTimeout(function(){typeof openFinCostModal!=='undefined'&&openFinCostModal();},300);}},
-    {icon:'🏋️',label:'Add Lead',         hint:'Add to pipeline',               fn:function(){closeCmdBar();showPage('leads');setTimeout(function(){typeof openLeadModal!=='undefined'&&openLeadModal();},300);}},
+    {icon:'🏋️',label:'Add Lead',         hint:'Add to pipeline',               fn:function(){closeCmdBar();showPage('pipeline');setTimeout(function(){typeof openPipelineModal!=='undefined'&&openPipelineModal();},300);}},
     {icon:'⚡',label:'Run Agent Scan',    hint:'Refresh all AI alerts',         fn:function(){closeCmdBar();window.BBA3&&window.BBA3.runAll();}},
     {icon:'🏥',label:'Re-score Health',  hint:'Auto-score all client health',  fn:function(){closeCmdBar();typeof autoScoreClientHealth!=='undefined'&&autoScoreClientHealth();}},
     {icon:'📆',label:'Daily Check-In',   hint:'Open overdue task check-in',    fn:function(){closeCmdBar();window.BBA3&&window.BBA3.openCheckin();}},
@@ -9234,7 +9237,7 @@ async function deleteMission(id){
       PAGES.forEach(function(p){if(p.label.toLowerCase().includes(ql)) items.push({type:'a',icon:p.icon,label:p.label,fn:function(pg){return function(){closeCmdBar();showPage(pg);};}(p.fn)});});
       var clients=(window.D&&window.D.clients)||[];
       clients.filter(function(c){return c.name&&c.name.toLowerCase().includes(ql);}).slice(0,5).forEach(function(c){
-        items.push({type:'a',icon:'👤',label:esc(c.name),hint:'Open client profile',fn:(function(cid){return function(){closeCmdBar();showPage('clients');setTimeout(function(){typeof openClient!=='undefined'&&openClient(cid);},300);};})(c.id)});
+        items.push({type:'a',icon:'👤',label:esc(c.name),hint:'Open client profile',fn:(function(cid){return function(){closeCmdBar();showPage('clients');setTimeout(function(){typeof openProfile!=='undefined'&&openProfile(cid);},300);};})(c.id)});
       });
     }
     return items;
