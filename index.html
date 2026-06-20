@@ -10326,3 +10326,79 @@ async function wpDeleteTask(){
   wpLoadWeek();
 }
 </script>
+
+<!-- ===================== BB SENTINEL — system watchdog ===================== -->
+<script>
+(function(){
+  'use strict';
+  var APP='command-centre';
+  var SB_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
+  var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
+  var TABLES=[
+    {name:'clients',core:true},
+    {name:'team_members',core:true},
+    {name:'tasks',core:false},
+    {name:'content_plans',core:false},
+    {name:'smm_shoots',core:false},
+    {name:'invoices',core:false},
+    {name:'client_journal',core:false},
+    {name:'costs',core:false},
+    {name:'missions',core:false},
+    {name:'pillars',core:false},
+    {name:'video_projects',core:false},
+    {name:'agent_alerts',core:false},
+    {name:'cc_notifications',core:false},
+    {name:'video_time_logs',core:false},
+    {name:'team_login_logs',core:false}
+  ];
+  var _seen={},_issues=[],DEDUPE_MS=10*60*1000;
+  function role(){try{return (typeof ROLE!=='undefined')?ROLE:null;}catch(e){return null;}}
+  function who(){var r=role();return r==='th'?'THULAIB':r==='sh'?'SHIARA':(r||'anon');}
+  function isAdminViewer(){var r=role();return r==='th'||r==='sh';}
+
+  function report(issue){
+    try{
+      var key=(issue.category||'')+'|'+(issue.table_name||'')+'|'+(issue.message||'').slice(0,120);
+      var now=Date.now();
+      if(_seen[key]&&(now-_seen[key])<DEDUPE_MS)return;
+      _seen[key]=now;_issues.push(issue);
+      console.error('[BB Sentinel]',issue.category,issue.table_name||'',issue.message,issue.detail||'');
+      fetch(SB_URL+'/rest/v1/system_bug_log',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({app:APP,severity:issue.severity||'error',category:issue.category||null,table_name:issue.table_name||null,message:(issue.message||'').slice(0,500),detail:(issue.detail||'').slice(0,2000),user_name:who(),url:location.href.slice(0,300),user_agent:(navigator.userAgent||'').slice(0,300)})}).catch(function(){});
+      renderBanner();
+    }catch(e){}
+  }
+  window.bbReportDbError=function(table,op,err){if(!err)return;var msg=(err.message||err.msg||(typeof err==='string'?err:JSON.stringify(err))||'unknown');var code=err.code?(' ['+err.code+']'):'';report({severity:'error',category:'db_write',table_name:table,message:op+' failed'+code,detail:msg});};
+  window.bbSentinelReport=report;
+
+  function renderBanner(){
+    if(!isAdminViewer()||!_issues.length)return;
+    var el=document.getElementById('bbSentinelBanner');
+    if(!el){el=document.createElement('div');el.id='bbSentinelBanner';el.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;background:linear-gradient(90deg,#7f1d1d,#b91c1c);color:#fff;font:600 12.5px/1.4 Inter,system-ui,sans-serif;padding:9px 16px;box-shadow:0 2px 14px rgba(0,0,0,.4);display:flex;align-items:center;gap:12px;';document.body.appendChild(el);}
+    var top=_issues.slice(-3).map(function(i){return (i.table_name?i.table_name+': ':'')+i.message;}).join('  ·  ');
+    el.innerHTML='<span style="font-size:15px">⚠️</span><span style="flex:1">System issue detected ('+_issues.length+'): '+top+'</span><button id="bbSentinelView" style="background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:6px;padding:4px 10px;font:700 11px Inter;cursor:pointer">Details</button><button id="bbSentinelHide" style="background:none;border:none;color:#fff;opacity:.7;font-size:17px;cursor:pointer;line-height:1">×</button>';
+    document.getElementById('bbSentinelHide').onclick=function(){el.remove();};
+    document.getElementById('bbSentinelView').onclick=showDetails;
+  }
+  function showDetails(){
+    var rows=_issues.map(function(i){return '<div style="padding:10px 12px;border:1px solid #2a2a3a;border-radius:8px;margin-bottom:8px;background:#1a1a26"><div style="font-weight:700;color:#f87171;font-size:12px;text-transform:uppercase;letter-spacing:.04em">'+(i.category||'issue')+(i.table_name?' · '+i.table_name:'')+'</div><div style="margin-top:3px;font-size:13px;color:#e8e8f0">'+(i.message||'')+'</div>'+(i.detail?'<div style="margin-top:3px;font-size:11px;color:#8888a0;word-break:break-word">'+i.detail+'</div>':'')+'</div>';}).join('');
+    var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.innerHTML='<div style="background:#12121a;border:1px solid #3a3a4e;border-radius:14px;max-width:560px;width:100%;max-height:80vh;display:flex;flex-direction:column"><div style="padding:16px 20px;border-bottom:1px solid #2a2a3a;display:flex;align-items:center;justify-content:space-between"><div style="font:800 15px Poppins,Inter;color:#fff">🛡️ Sentinel — '+_issues.length+' issue(s)</div><button id="bbSentClose" style="background:none;border:none;color:#a0a0b8;font-size:22px;cursor:pointer">×</button></div><div style="padding:16px 20px;overflow-y:auto">'+rows+'<div style="margin-top:6px;font-size:11px;color:#8888a0">All issues logged to <code>system_bug_log</code> in Supabase.</div></div></div>';
+    ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);document.getElementById('bbSentClose').onclick=function(){ov.remove();};
+  }
+  function headCount(table){
+    return fetch(SB_URL+'/rest/v1/'+table+'?select=id&limit=1',{method:'GET',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}}).then(function(r){var cr=r.headers.get('content-range');var total=null;if(cr&&cr.indexOf('/')>-1){var t=cr.split('/')[1];total=(t==='*')?null:parseInt(t,10);}return r.text().then(function(body){return {ok:r.ok,status:r.status,count:total,body:body};});}).catch(function(e){return {ok:false,status:0,count:null,body:String(e&&e.message||e)};});
+  }
+  function checkHealth(){
+    TABLES.forEach(function(t){headCount(t.name).then(function(res){
+      if(!res.ok){var cat=res.status===404?'table_missing':(res.status===401||res.status===403?'db_permission':'network');report({severity:'error',category:cat,table_name:t.name,message:'read failed (HTTP '+res.status+')',detail:(res.body||'').slice(0,300)});return;}
+      if(t.core&&res.count===0){report({severity:'warning',category:'empty_core',table_name:t.name,message:'returned 0 rows — likely a permissions (RLS) block',detail:'Core table should never be empty. Check RLS policy for the anon role.'});}
+    });});
+  }
+  window.bbSentinelCheck=checkHealth;
+  window.addEventListener('error',function(e){if(!e)return;var msg=e.message||'script error';var detail=(e.filename?e.filename+':'+e.lineno+':'+e.colno:'')+(e.error&&e.error.stack?'\n'+e.error.stack:'');report({severity:'error',category:'js_error',message:msg.slice(0,200),detail:detail.slice(0,800)});});
+  window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(!r)return;var msg=(r.message||r.msg||(typeof r==='string'?r:JSON.stringify(r))||'unhandled promise rejection');var code=r.code?(' ['+r.code+']'):'';report({severity:'error',category:'promise_rejection',message:('unhandled: '+msg+code).slice(0,200),detail:(r.stack||'').slice(0,800)});});
+  var _tries=0;
+  function waitAndRun(){_tries++;var r=role();if(r&&r!=='demo'){setTimeout(checkHealth,500);return;}if(_tries<40)setTimeout(waitAndRun,500);}
+  if(document.readyState==='complete')waitAndRun();else window.addEventListener('load',waitAndRun);
+})();
+</script>
