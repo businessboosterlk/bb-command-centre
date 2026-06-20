@@ -1276,6 +1276,51 @@ td:last-child{padding-right:18px;text-align:right}
 .wp-pending-chip{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:20px;padding:6px 14px;font-size:0.82rem;font-weight:500;color:var(--amber,#f59e0b);cursor:pointer;transition:all .15s}
 .wp-pending-chip:hover{background:var(--amber,#f59e0b);color:#fff}
 @media(max-width:900px){.wp-board{grid-template-columns:1fr}}
+
+/* ─── TEAM WEEKLY VIEW ─── */
+.tw-chip{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 14px;font-size:0.78rem;font-weight:600;color:var(--text-2);cursor:pointer;transition:all .15s;text-transform:uppercase;letter-spacing:0.4px}
+.tw-chip.active{background:var(--chip-c,var(--accent));border-color:var(--chip-c,var(--accent));color:#fff}
+.tw-stat-pill{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 16px;display:flex;flex-direction:column;align-items:center;min-width:80px}
+.tw-stat-val{font-size:1.4rem;font-weight:800;font-family:'Poppins',sans-serif;line-height:1}
+.tw-stat-lbl{font-size:0.68rem;color:var(--text-3);text-transform:uppercase;margin-top:2px}
+/* Grid view */
+.tw-grid{display:grid;grid-template-columns:160px repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
+.tw-grid-header{background:var(--surface-2,var(--surface));padding:10px 12px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
+.tw-grid-header.today-col{background:var(--accent-soft);color:var(--accent)}
+.tw-emp-label{background:var(--surface);padding:10px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-size:0.8rem;font-weight:700;color:var(--text);display:flex;align-items:flex-start;gap:6px}
+.tw-emp-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;flex-shrink:0}
+.tw-cell{background:var(--bg);padding:6px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);min-height:80px;display:flex;flex-direction:column;gap:4px}
+.tw-card{border-radius:8px;padding:6px 8px;font-size:0.72rem;cursor:pointer;position:relative;transition:all .15s;border-left:3px solid transparent}
+.tw-card:hover{filter:brightness(1.15);transform:translateY(-1px)}
+.tw-card.status-done{background:rgba(34,197,94,0.1);border-left-color:#22c55e}
+.tw-card.status-in_progress{background:rgba(59,130,246,0.1);border-left-color:#3b82f6}
+.tw-card.status-planned{background:rgba(255,255,255,0.04);border-left-color:var(--border)}
+.tw-card.status-pending{background:rgba(245,158,11,0.08);border-left-color:#f59e0b}
+.tw-card-client{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tw-card-type{color:var(--text-2);font-size:0.68rem}
+.tw-badge{display:inline-block;border-radius:4px;padding:1px 5px;font-size:0.6rem;font-weight:700;margin-top:3px;color:#fff}
+.tw-badge.sys-CC{background:#FF6B2B}
+.tw-badge.sys-SMM{background:#00b8cc}
+.tw-badge.sys-GD{background:#c4006e}
+.tw-badge.sys-VID{background:#7c3aed}
+.tw-status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;flex-shrink:0}
+.tw-status-dot.done{background:#22c55e}
+.tw-status-dot.in_progress{background:#3b82f6}
+.tw-status-dot.planned{background:var(--text-3)}
+.tw-status-dot.pending{background:#f59e0b}
+/* List view */
+.tw-table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.tw-table th{padding:8px 12px;text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+.tw-table th:hover{color:var(--text)}
+.tw-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:middle}
+.tw-table tr:hover td{background:var(--surface)}
+.tw-status-chip{border-radius:20px;padding:2px 10px;font-size:0.7rem;font-weight:700;display:inline-block}
+.tw-status-chip.done{background:rgba(34,197,94,0.15);color:#22c55e}
+.tw-status-chip.in_progress{background:rgba(59,130,246,0.15);color:#3b82f6}
+.tw-status-chip.planned{background:rgba(255,255,255,0.06);color:var(--text-3)}
+.tw-status-chip.pending{background:rgba(245,158,11,0.12);color:#f59e0b}
+.tw-emp-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+@media(max-width:900px){.tw-grid{grid-template-columns:120px repeat(5,140px);overflow-x:auto}.tw-grid-wrap{overflow-x:auto}}
 </style>
 </head>
 <body>
@@ -1369,6 +1414,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
       <div class="nav-item" id="nav-agents" onclick="showPage('agents')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>Agents <span class="sb-badge" id="agents-unread-badge" style="display:none"></span></div>
       <div class="nav-item" id="nav-weeklyplan" onclick="showPage('weeklyplan')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg></span>Weekly Plan</div>
+      <div class="nav-item ceo-only" id="nav-teamweekly" onclick="showPage('teamweekly')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>Team Weekly</div>
     </div>
     <div class="user-card">
       <div class="user-av th" id="user-av">TH</div>
@@ -2647,6 +2693,95 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
+<!-- ═══ TEAM WEEKLY VIEW PAGE ═══ -->
+<div id="page-teamweekly" class="page-section ceo-only" style="display:none">
+  <div class="content">
+    <!-- Top controls -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-ghost" onclick="twChangeWeek(-1)">&#9664;</button>
+        <h1 id="twWeekLabel" style="font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;margin:0;color:var(--text);white-space:nowrap"></h1>
+        <button class="btn btn-sm btn-ghost" onclick="twChangeWeek(1)">&#9654;</button>
+        <button class="btn btn-sm btn-ghost" onclick="twGoToday()">Today</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select id="twEmpFilter" class="form-select" style="width:150px;font-size:13px" onchange="twApplyFilters()">
+          <option value="">All Team</option>
+        </select>
+        <button class="btn btn-sm" id="twViewGrid" style="background:var(--accent);color:#fff" onclick="twSetView('grid')">Grid</button>
+        <button class="btn btn-sm btn-ghost" id="twViewList" onclick="twSetView('list')">List</button>
+        <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="twOpenAdd()">+ Add Task</button>
+      </div>
+    </div>
+    <!-- System filter chips -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="twSysChips">
+      <button class="tw-chip active" data-sys="" onclick="twSetSys(this,'')">All Systems</button>
+      <button class="tw-chip" data-sys="CC" onclick="twSetSys(this,'CC')" style="--chip-c:#FF6B2B">CC</button>
+      <button class="tw-chip" data-sys="SMM" onclick="twSetSys(this,'SMM')" style="--chip-c:#00E5FF">SMM</button>
+      <button class="tw-chip" data-sys="GD" onclick="twSetSys(this,'GD')" style="--chip-c:#FF1F8E">Graphic</button>
+      <button class="tw-chip" data-sys="VID" onclick="twSetSys(this,'VID')" style="--chip-c:#a855f7">Video</button>
+    </div>
+    <!-- Stats bar -->
+    <div id="twStatsBar" style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap"></div>
+    <!-- Employee summary (shown when emp filtered) -->
+    <div id="twEmpSummary" style="display:none;margin-bottom:20px"></div>
+    <!-- Board -->
+    <div id="twBoard"></div>
+  </div>
+</div>
+
+<!-- ═══ TEAM WEEKLY TASK MODAL ═══ -->
+<div class="modal-overlay hidden" id="modalTwTask">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hd" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <h2 id="twModalTitle" style="margin:0;font-size:16px;font-weight:700">Add Team Task</h2>
+      <button class="modal-close" onclick="closeModal('modalTwTask')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-2)">&times;</button>
+    </div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-field"><label class="form-label">System *</label>
+        <select class="form-select" id="twMSystem" onchange="twModalSysChange()">
+          <option value="CC">Command Centre (CC)</option>
+          <option value="SMM">SMM Workspace</option>
+          <option value="GD">Graphic Design</option>
+          <option value="VID">Video</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label">Assigned To *</label>
+        <select class="form-select" id="twMAssigned"></select>
+      </div>
+      <div class="form-field"><label class="form-label">Day *</label>
+        <select class="form-select" id="twMDay">
+          <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label">Client</label>
+        <input class="form-input" type="text" id="twMClient" placeholder="Client name">
+      </div>
+      <div class="form-field"><label class="form-label">Task Type</label>
+        <select class="form-select" id="twMType">
+          <option value="meeting">Meeting</option><option value="review">Review</option><option value="planning">Planning</option><option value="finance">Finance</option><option value="client_call">Client Call</option><option value="team_task">Team Task</option><option value="post">Post</option><option value="design">Design</option><option value="edit">Edit</option><option value="shoot">Shoot</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label" id="twMCountLabel">Count</label>
+        <input class="form-input" type="number" id="twMCount" min="1" value="1">
+      </div>
+      <div class="form-field"><label class="form-label">Status</label>
+        <select class="form-select" id="twMStatus">
+          <option value="planned">Planned</option><option value="in_progress">In Progress</option><option value="done">Done</option><option value="pending">Pending</option>
+        </select>
+      </div>
+      <div class="form-field"><label class="form-label">Notes</label>
+        <input class="form-input" type="text" id="twMNotes" placeholder="Optional notes">
+      </div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('modalTwTask')">Cancel</button>
+      <button class="btn btn-sm" style="background:#ef4444;color:#fff;display:none" id="twDeleteBtn" onclick="twDeleteTask()">Delete</button>
+      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="twSaveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ WEEKLY PLAN MODAL ═══ -->
 <div class="modal-overlay hidden" id="modalWpTask">
   <div class="modal" style="max-width:480px">
@@ -3906,6 +4041,9 @@ function showPage(page) {
   } else if (page === 'weeklyplan') {
     document.getElementById('topbar-title').textContent = 'Weekly Plan';
     wpLoadWeek();
+  } else if (page === 'teamweekly') {
+    document.getElementById('topbar-title').textContent = 'Team Weekly';
+    twLoadWeek();
   }
 }
 
@@ -9213,6 +9351,7 @@ async function deleteMission(id){
     {icon:'🚀',label:'Missions',     fn:'missions'},
     {icon:'🤖',label:'Agents',       fn:'agents'},
     {icon:'📆',label:'Weekly Plan',  fn:'weeklyplan'},
+    {icon:'👥',label:'Team Weekly',  fn:'teamweekly'},
   ];
   var ACTIONS=[
     {icon:'➕',label:'Add Task',          hint:'Quick-add a new task',          fn:function(){closeCmdBar();typeof openGlobalTaskModal!=='undefined'&&openGlobalTaskModal();}},
@@ -10324,6 +10463,416 @@ async function wpDeleteTask(){
   closeModal('modalWpTask');
   _sbCacheInvalidate('cc_weekly_plan');
   wpLoadWeek();
+}
+</script>
+
+<script>
+// ═══════════════════════════════════════
+// TEAM WEEKLY VIEW
+// ═══════════════════════════════════════
+const TW_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+const TW_SHORT = ['Mon','Tue','Wed','Thu','Fri'];
+const TW_SYS_TABLE = {CC:'cc_weekly_plan', SMM:'smm_weekly_plan', GD:'graphic_weekly_plan', VID:'video_weekly_plan'};
+const TW_SYS_COLOR = {CC:'#FF6B2B', SMM:'#00E5FF', GD:'#FF1F8E', VID:'#a855f7'};
+const TW_TYPES = {meeting:'Meeting',review:'Review',planning:'Planning',finance:'Finance',client_call:'Client Call',team_task:'Team Task',post:'Post',design:'Design',edit:'Edit',shoot:'Shoot',other:'Other'};
+
+let twWeekStart = null;
+let twAllTasks = [];   // all tasks with _sys tag
+let twFiltered = [];   // after filters applied
+let twSysFilter = '';
+let twEmpFilter = '';
+let twView = 'grid';
+let twEditId = null;
+let twEditSys = null;
+let twSortCol = 'day';
+let twSortDir = 1;
+
+function twGetMonday(d){
+  const dt = new Date(d);
+  const day = dt.getDay();
+  const diff = dt.getDate() - day + (day===0?-6:1);
+  dt.setDate(diff); dt.setHours(0,0,0,0);
+  return dt;
+}
+function twFmtDate(d){ return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}); }
+function twChangeWeek(dir){ const d=new Date(twWeekStart); d.setDate(d.getDate()+dir*7); twWeekStart=d; twLoadWeek(); }
+function twGoToday(){ twWeekStart=twGetMonday(new Date()); twLoadWeek(); }
+
+function twSetView(v){
+  twView = v;
+  document.getElementById('twViewGrid').style.background = v==='grid'?'var(--accent)':'';
+  document.getElementById('twViewGrid').style.color = v==='grid'?'#fff':'';
+  document.getElementById('twViewGrid').className = v==='grid'?'btn btn-sm':'btn btn-sm btn-ghost';
+  document.getElementById('twViewList').style.background = v==='list'?'var(--accent)':'';
+  document.getElementById('twViewList').style.color = v==='list'?'#fff':'';
+  document.getElementById('twViewList').className = v==='list'?'btn btn-sm':'btn btn-sm btn-ghost';
+  twRender();
+}
+
+function twSetSys(el, sys){
+  twSysFilter = sys;
+  document.querySelectorAll('.tw-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  twApplyFilters();
+}
+
+function twApplyFilters(){
+  twEmpFilter = document.getElementById('twEmpFilter')?.value||'';
+  twFiltered = twAllTasks.filter(t=>{
+    if(twSysFilter && t._sys!==twSysFilter) return false;
+    if(twEmpFilter && (t.assigned_to||'').toLowerCase()!==twEmpFilter.toLowerCase()) return false;
+    return true;
+  });
+  twRenderStats();
+  twRenderEmpSummary();
+  twRender();
+}
+
+async function twLoadWeek(){
+  if(!twWeekStart) twWeekStart = twGetMonday(new Date());
+  const ws = twWeekStart.toISOString().slice(0,10);
+  const fri = new Date(twWeekStart); fri.setDate(fri.getDate()+4);
+  const lbl = document.getElementById('twWeekLabel');
+  if(lbl) lbl.textContent = twFmtDate(twWeekStart)+' — '+twFmtDate(fri)+', '+twWeekStart.getFullYear();
+
+  const board = document.getElementById('twBoard');
+  if(board) board.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3)">Loading all systems…</div>';
+
+  try {
+    const q = '?week_start=eq.'+ws+'&order=created_at.asc';
+    const [cc, smm, gd, vid] = await Promise.all([
+      sb('cc_weekly_plan', q),
+      sb('smm_weekly_plan', q),
+      sb('graphic_weekly_plan', q),
+      sb('video_weekly_plan', q)
+    ]);
+    const tag = (arr, sys) => (arr||[]).map(t=>({
+      ...t,
+      _sys: sys,
+      task_count: t.task_count || t.design_count || 1
+    }));
+    twAllTasks = [
+      ...tag(cc,'CC'),
+      ...tag(smm,'SMM'),
+      ...tag(gd,'GD'),
+      ...tag(vid,'VID')
+    ];
+  } catch(e) {
+    console.error('twLoadWeek',e);
+    twAllTasks = [];
+  }
+
+  // Build employee filter dropdown
+  const empSel = document.getElementById('twEmpFilter');
+  if(empSel){
+    const names = [...new Set(twAllTasks.map(t=>t.assigned_to).filter(Boolean))].sort();
+    empSel.innerHTML = '<option value="">All Team</option>' + names.map(n=>`<option value="${esc(n)}"${twEmpFilter===n?' selected':''}>${esc(n)}</option>`).join('');
+  }
+
+  twApplyFilters();
+}
+
+function twRenderStats(){
+  const bar = document.getElementById('twStatsBar');
+  if(!bar) return;
+  const total = twFiltered.length;
+  const done = twFiltered.filter(t=>t.status==='done').length;
+  const inProg = twFiltered.filter(t=>t.status==='in_progress').length;
+  const pending = twFiltered.filter(t=>t.status==='pending').length;
+  const planned = twFiltered.filter(t=>t.status==='planned').length;
+  const pct = total>0?Math.round(done/total*100):0;
+  bar.innerHTML = `
+    <div class="tw-stat-pill"><div class="tw-stat-val">${total}</div><div class="tw-stat-lbl">Total</div></div>
+    <div class="tw-stat-pill"><div class="tw-stat-val" style="color:#22c55e">${done}</div><div class="tw-stat-lbl">Done</div></div>
+    <div class="tw-stat-pill"><div class="tw-stat-val" style="color:#3b82f6">${inProg}</div><div class="tw-stat-lbl">In Progress</div></div>
+    <div class="tw-stat-pill"><div class="tw-stat-val" style="color:#f59e0b">${pending}</div><div class="tw-stat-lbl">Pending</div></div>
+    <div class="tw-stat-pill"><div class="tw-stat-val" style="color:var(--text-3)">${planned}</div><div class="tw-stat-lbl">Planned</div></div>
+    <div class="tw-stat-pill"><div class="tw-stat-val" style="color:var(--accent)">${pct}%</div><div class="tw-stat-lbl">Complete</div></div>
+  `;
+}
+
+function twRenderEmpSummary(){
+  const el = document.getElementById('twEmpSummary');
+  if(!el) return;
+  if(!twEmpFilter){ el.style.display='none'; return; }
+  const tasks = twFiltered;
+  const total = tasks.length;
+  const done = tasks.filter(t=>t.status==='done').length;
+  const pct = total>0?Math.round(done/total*100):0;
+  // Busiest day
+  const dayCounts = [1,2,3,4,5].map(d=>({d,n:tasks.filter(t=>t.day_of_week===d).length}));
+  const busiest = dayCounts.sort((a,b)=>b.n-a.n)[0];
+  // By system
+  const sysCounts = Object.keys(TW_SYS_TABLE).map(s=>({s,n:tasks.filter(t=>t._sys===s).length})).filter(x=>x.n>0);
+  el.style.display = '';
+  el.innerHTML = `
+    <div class="tw-emp-summary-card">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="tw-emp-avatar" style="width:44px;height:44px;font-size:0.85rem;background:var(--accent)">${esc(twEmpFilter).slice(0,2).toUpperCase()}</div>
+        <div>
+          <div style="font-size:1rem;font-weight:800;color:var(--text)">${esc(twEmpFilter)}</div>
+          <div style="font-size:0.75rem;color:var(--text-3)">This week's overview</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <div class="tw-stat-pill"><div class="tw-stat-val">${total}</div><div class="tw-stat-lbl">Tasks</div></div>
+        <div class="tw-stat-pill"><div class="tw-stat-val" style="color:#22c55e">${done}</div><div class="tw-stat-lbl">Done</div></div>
+        <div class="tw-stat-pill"><div class="tw-stat-val" style="color:var(--accent)">${pct}%</div><div class="tw-stat-lbl">Rate</div></div>
+        ${busiest&&busiest.n>0?`<div class="tw-stat-pill"><div class="tw-stat-val" style="font-size:0.9rem">${TW_SHORT[busiest.d-1]}</div><div class="tw-stat-lbl">Busiest</div></div>`:''}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${sysCounts.map(x=>`<span class="tw-badge sys-${x.s}" style="font-size:0.72rem;padding:3px 8px">${x.s} · ${x.n}</span>`).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function twRender(){
+  if(twView==='grid') twRenderGrid();
+  else twRenderList();
+}
+
+function twRenderGrid(){
+  const board = document.getElementById('twBoard');
+  if(!board) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+
+  // Get unique employees in filtered set
+  const emps = twEmpFilter ? [twEmpFilter] : [...new Set(twFiltered.map(t=>t.assigned_to||'Unassigned'))].sort();
+
+  let html = '<div class="tw-grid-wrap"><div class="tw-grid" style="grid-template-columns:160px repeat(5,1fr)">';
+  // Header row
+  html += '<div class="tw-grid-header" style="border-top:none">Employee</div>';
+  for(let i=0;i<5;i++){
+    const dayDate = new Date(twWeekStart); dayDate.setDate(dayDate.getDate()+i);
+    const isToday = dayDate.getTime()===today.getTime();
+    html += `<div class="tw-grid-header${isToday?' today-col':''}">${TW_DAYS[i]}<br><span style="font-weight:400;font-size:0.68rem">${twFmtDate(dayDate)}</span></div>`;
+  }
+
+  // Employee rows
+  emps.forEach(emp=>{
+    const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const empTasks = twFiltered.filter(t=>(t.assigned_to||'Unassigned')===emp);
+    const empTotal = empTasks.length;
+    const empDone = empTasks.filter(t=>t.status==='done').length;
+    html += `<div class="tw-emp-label">
+      <div>
+        <div class="tw-emp-avatar">${initials}</div>
+      </div>
+      <div>
+        <div>${esc(emp)}</div>
+        <div style="font-size:0.65rem;color:var(--text-3);margin-top:2px">${empDone}/${empTotal} done</div>
+      </div>
+    </div>`;
+    for(let d=1;d<=5;d++){
+      const dayTasks = empTasks.filter(t=>t.day_of_week===d);
+      html += `<div class="tw-cell">`;
+      if(dayTasks.length===0){
+        html += `<div style="height:100%;display:flex;align-items:center;justify-content:center"><span style="font-size:1.2rem;opacity:0.15">·</span></div>`;
+      } else {
+        dayTasks.forEach(t=>{
+          html += `<div class="tw-card status-${t.status}" onclick="twOpenEdit(${t.id},'${t._sys}')">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+              <span class="tw-badge sys-${t._sys}">${t._sys}</span>
+              <span class="tw-status-dot ${t.status}"></span>
+            </div>
+            <div class="tw-card-client">${esc(t.client_name||'—')}</div>
+            <div class="tw-card-type">${TW_TYPES[t.task_type]||t.task_type||''}${t.task_count>1?' ×'+t.task_count:''}</div>
+            ${t.notes?`<div style="font-size:0.65rem;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.notes)}</div>`:''}
+            <select class="form-select" style="margin-top:5px;font-size:0.65rem;padding:2px 4px;height:auto;width:100%" onclick="event.stopPropagation()" onchange="twQuickStatus(${t.id},'${t._sys}',this.value)">
+              <option value="planned"${t.status==='planned'?' selected':''}>Planned</option>
+              <option value="in_progress"${t.status==='in_progress'?' selected':''}>In Progress</option>
+              <option value="done"${t.status==='done'?' selected':''}>Done</option>
+              <option value="pending"${t.status==='pending'?' selected':''}>Pending</option>
+            </select>
+          </div>`;
+        });
+      }
+      html += '</div>';
+    }
+  });
+
+  if(emps.length===0){
+    html += `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-3)">No tasks found for this week / filter.</div>`;
+  }
+
+  html += '</div></div>';
+  board.innerHTML = html;
+}
+
+function twRenderList(){
+  const board = document.getElementById('twBoard');
+  if(!board) return;
+  const DAY_NAMES = ['','Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const cols = ['assigned_to','day_of_week','client_name','task_type','task_count','status','_sys'];
+  const labels = ['Employee','Day','Client','Task Type','Count','Status','System'];
+
+  let sorted = [...twFiltered].sort((a,b)=>{
+    let av=a[twSortCol]||'', bv=b[twSortCol]||'';
+    if(typeof av==='string') return av.localeCompare(bv)*twSortDir;
+    return (av-bv)*twSortDir;
+  });
+
+  let html = `<div style="overflow-x:auto"><table class="tw-table">
+    <thead><tr>`;
+  cols.forEach((c,i)=>{
+    const arrow = twSortCol===c ? (twSortDir===1?' ↑':' ↓') : '';
+    html += `<th onclick="twSort('${c}')">${labels[i]}${arrow}</th>`;
+  });
+  html += '<th>Actions</th></tr></thead><tbody>';
+
+  if(sorted.length===0){
+    html += `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-3)">No tasks found.</td></tr>`;
+  }
+  sorted.forEach(t=>{
+    html += `<tr>
+      <td><strong>${esc(t.assigned_to||'—')}</strong></td>
+      <td>${DAY_NAMES[t.day_of_week]||t.day_of_week}</td>
+      <td>${esc(t.client_name||'—')}</td>
+      <td>${TW_TYPES[t.task_type]||t.task_type||'—'}</td>
+      <td>${t.task_count||1}</td>
+      <td><span class="tw-status-chip ${t.status}">${t.status?.replace('_',' ')}</span></td>
+      <td><span class="tw-badge sys-${t._sys}">${t._sys}</span></td>
+      <td>
+        <button class="btn btn-sm btn-ghost" style="padding:2px 8px;font-size:0.7rem" onclick="twOpenEdit(${t.id},'${t._sys}')">Edit</button>
+        <select class="form-select" style="font-size:0.7rem;padding:2px 6px;height:auto;display:inline-block;width:auto;margin-left:4px" onchange="twQuickStatus(${t.id},'${t._sys}',this.value)">
+          <option value="planned"${t.status==='planned'?' selected':''}>Planned</option>
+          <option value="in_progress"${t.status==='in_progress'?' selected':''}>In Progress</option>
+          <option value="done"${t.status==='done'?' selected':''}>Done</option>
+          <option value="pending"${t.status==='pending'?' selected':''}>Pending</option>
+        </select>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  board.innerHTML = html;
+}
+
+function twSort(col){
+  if(twSortCol===col) twSortDir*=-1;
+  else { twSortCol=col; twSortDir=1; }
+  twRenderList();
+}
+
+async function twQuickStatus(id, sys, status){
+  const table = TW_SYS_TABLE[sys];
+  if(!table) return;
+  try{
+    await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
+      method:'PATCH',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body: JSON.stringify({status, updated_at: new Date().toISOString()})
+    });
+    _sbCacheInvalidate(table);
+    // Update local data
+    const t = twAllTasks.find(x=>x.id===id&&x._sys===sys);
+    if(t) t.status = status;
+    twApplyFilters();
+  } catch(e){ console.error('twQuickStatus',e); }
+}
+
+function twModalSysChange(){
+  const sys = document.getElementById('twMSystem')?.value;
+  const lbl = document.getElementById('twMCountLabel');
+  if(lbl) lbl.textContent = sys==='GD'?'Design Count':'Task Count';
+}
+
+function twOpenAdd(){
+  twEditId = null; twEditSys = null;
+  document.getElementById('twModalTitle').textContent = 'Add Team Task';
+  document.getElementById('twDeleteBtn').style.display = 'none';
+  document.getElementById('twMSystem').value = 'CC';
+  document.getElementById('twMDay').value = new Date().getDay()||1;
+  document.getElementById('twMClient').value = '';
+  document.getElementById('twMType').value = 'meeting';
+  document.getElementById('twMCount').value = 1;
+  document.getElementById('twMStatus').value = 'planned';
+  document.getElementById('twMNotes').value = '';
+  // Populate assigned dropdown from known employees
+  twPopulateAssigned('');
+  twModalSysChange();
+  document.getElementById('modalTwTask').classList.remove('hidden');
+}
+
+function twOpenEdit(id, sys){
+  const t = twAllTasks.find(x=>x.id===id&&x._sys===sys);
+  if(!t) return;
+  twEditId = id; twEditSys = sys;
+  document.getElementById('twModalTitle').textContent = 'Edit Task';
+  document.getElementById('twDeleteBtn').style.display = '';
+  document.getElementById('twMSystem').value = sys;
+  document.getElementById('twMDay').value = t.day_of_week;
+  document.getElementById('twMClient').value = t.client_name||'';
+  document.getElementById('twMType').value = t.task_type||'meeting';
+  document.getElementById('twMCount').value = t.task_count||1;
+  document.getElementById('twMStatus').value = t.status||'planned';
+  document.getElementById('twMNotes').value = t.notes||'';
+  twPopulateAssigned(t.assigned_to||'');
+  twModalSysChange();
+  document.getElementById('modalTwTask').classList.remove('hidden');
+}
+
+function twPopulateAssigned(selected){
+  const sel = document.getElementById('twMAssigned');
+  const allNames = [...new Set(twAllTasks.map(t=>t.assigned_to).filter(Boolean))].sort();
+  const defaults = ['Thulaib','Shiara','Nirvana','Kenuli','Kaneesha','Rukshan','Suhana'];
+  const names = [...new Set([...defaults, ...allNames])].sort();
+  sel.innerHTML = '<option value="">Unassigned</option>' + names.map(n=>`<option value="${esc(n)}"${selected===n?' selected':''}>${esc(n)}</option>`).join('');
+}
+
+async function twSaveTask(){
+  const sys = document.getElementById('twMSystem').value;
+  const table = TW_SYS_TABLE[sys];
+  if(!table) return;
+  const clientName = document.getElementById('twMClient').value.trim();
+  if(!clientName){ alert('Enter a client name'); return; }
+  const isGD = sys==='GD';
+  const countKey = isGD ? 'design_count' : 'task_count';
+  const data = {
+    week_start: twWeekStart.toISOString().slice(0,10),
+    day_of_week: parseInt(document.getElementById('twMDay').value),
+    client_name: clientName,
+    task_type: document.getElementById('twMType').value,
+    [countKey]: parseInt(document.getElementById('twMCount').value)||1,
+    assigned_to: document.getElementById('twMAssigned').value||null,
+    status: document.getElementById('twMStatus').value,
+    notes: document.getElementById('twMNotes').value||null,
+    updated_at: new Date().toISOString()
+  };
+  try{
+    if(twEditId){
+      await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${twEditId}`, {
+        method:'PATCH',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify(data)
+      });
+    } else {
+      data.created_by = (typeof currentUser!=='undefined'&&currentUser&&currentUser.name)?currentUser.name:'CEO';
+      await fetch(`${SB_URL}/rest/v1/${table}`, {
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body: JSON.stringify(data)
+      });
+    }
+    _sbCacheInvalidate(table);
+    closeModal('modalTwTask');
+    twLoadWeek();
+  } catch(e){ console.error('twSaveTask',e); alert('Save failed'); }
+}
+
+async function twDeleteTask(){
+  if(!twEditId||!twEditSys) return;
+  if(!confirm('Delete this task?')) return;
+  const table = TW_SYS_TABLE[twEditSys];
+  try{
+    await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${twEditId}`, {
+      method:'DELETE',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'}
+    });
+    _sbCacheInvalidate(table);
+    closeModal('modalTwTask');
+    twLoadWeek();
+  } catch(e){ console.error('twDeleteTask',e); alert('Delete failed'); }
 }
 </script>
 
