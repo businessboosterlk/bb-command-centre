@@ -1283,33 +1283,52 @@ td:last-child{padding-right:18px;text-align:right}
 .tw-stat-pill{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 16px;display:flex;flex-direction:column;align-items:center;min-width:80px}
 .tw-stat-val{font-size:1.4rem;font-weight:800;font-family:'Poppins',sans-serif;line-height:1}
 .tw-stat-lbl{font-size:0.68rem;color:var(--text-3);text-transform:uppercase;margin-top:2px}
-/* Grid view */
-.tw-grid{display:grid;grid-template-columns:160px repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:24px}
-.tw-grid-header{background:var(--surface-2,var(--surface));padding:10px 12px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);border-bottom:1px solid var(--border);border-right:1px solid var(--border)}
-.tw-grid-header.today-col{background:var(--accent-soft);color:var(--accent)}
-.tw-emp-label{background:var(--surface);padding:10px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);font-size:0.8rem;font-weight:700;color:var(--text);display:flex;align-items:flex-start;gap:6px}
-.tw-emp-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;flex-shrink:0}
-.tw-cell{background:var(--bg);padding:6px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);min-height:80px;display:flex;flex-direction:column;gap:4px}
-.tw-card{border-radius:8px;padding:6px 8px;font-size:0.72rem;cursor:pointer;position:relative;transition:all .15s;border-left:3px solid transparent}
-.tw-card:hover{filter:brightness(1.15);transform:translateY(-1px)}
+/* Grid view — table-based for sticky headers */
+.tw-grid-wrap{overflow-x:auto;overflow-y:auto;max-height:72vh;border:1px solid var(--border);border-radius:var(--r);margin-bottom:24px;position:relative}
+.tw-gtable{width:100%;border-collapse:collapse;table-layout:fixed}
+.tw-gtable th{position:sticky;top:0;z-index:20;background:var(--surface);padding:10px 12px;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-2);border-bottom:2px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.tw-gtable th.emp-col{position:sticky;top:0;left:0;z-index:30;background:var(--surface);width:160px;min-width:160px}
+.tw-gtable th.today-col{background:var(--accent-soft);color:var(--accent)}
+.tw-gtable th .day-total{display:block;font-size:0.65rem;font-weight:500;color:var(--text-3);margin-top:2px;text-transform:none;letter-spacing:0}
+.tw-gtable th.today-col .day-total{color:var(--accent);opacity:0.8}
+.tw-emp-td{position:sticky;left:0;z-index:10;background:var(--surface);padding:10px 12px;border-bottom:1px solid var(--border);border-right:2px solid var(--border);width:160px;min-width:160px;vertical-align:top}
+.tw-emp-td-inner{display:flex;align-items:flex-start;gap:8px}
+.tw-emp-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:0.65rem;font-weight:800;flex-shrink:0;margin-top:1px}
+.tw-emp-name{font-size:0.8rem;font-weight:700;color:var(--text);line-height:1.2}
+.tw-emp-progress{height:3px;border-radius:2px;background:var(--border);margin-top:5px;overflow:hidden;width:100%}
+.tw-emp-progress-bar{height:100%;border-radius:2px;background:var(--accent);transition:width .3s}
+.tw-cell-td{padding:6px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:top;min-width:160px}
+.tw-cell-td.today-cell{background:rgba(255,107,43,0.03)}
+.tw-cell-td.heat-1{background:rgba(59,130,246,0.03)}
+.tw-cell-td.heat-2{background:rgba(59,130,246,0.05)}
+.tw-cell-td.heat-3{background:rgba(59,130,246,0.08)}
+.tw-cell-td.heat-4{background:rgba(245,158,11,0.08)}
+.tw-add-btn{width:100%;padding:4px;border:1px dashed var(--border);border-radius:6px;background:transparent;color:var(--text-3);font-size:0.75rem;cursor:pointer;margin-top:4px;transition:all .15s;display:none}
+.tw-cell-td:hover .tw-add-btn{display:block}
+.tw-add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tw-card{border-radius:8px;padding:6px 8px;font-size:0.72rem;cursor:pointer;position:relative;transition:all .15s;border-left:3px solid transparent;margin-bottom:4px}
+.tw-card:last-child{margin-bottom:0}
+.tw-card:hover{filter:brightness(1.2);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.2)}
 .tw-card.status-done{background:rgba(34,197,94,0.1);border-left-color:#22c55e}
-.tw-card.status-in_progress{background:rgba(59,130,246,0.1);border-left-color:#3b82f6}
-.tw-card.status-planned{background:rgba(255,255,255,0.04);border-left-color:var(--border)}
-.tw-card.status-pending{background:rgba(245,158,11,0.08);border-left-color:#f59e0b}
+.tw-card.status-in_progress{background:rgba(59,130,246,0.12);border-left-color:#3b82f6}
+.tw-card.status-planned{background:rgba(255,255,255,0.04);border-left-color:rgba(255,255,255,0.1)}
+.tw-card.status-pending{background:rgba(245,158,11,0.1);border-left-color:#f59e0b}
 .tw-card-client{font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tw-card-type{color:var(--text-2);font-size:0.68rem}
-.tw-badge{display:inline-block;border-radius:4px;padding:1px 5px;font-size:0.6rem;font-weight:700;margin-top:3px;color:#fff}
+.tw-badge{display:inline-block;border-radius:4px;padding:1px 5px;font-size:0.6rem;font-weight:700;color:#fff}
 .tw-badge.sys-CC{background:#FF6B2B}
 .tw-badge.sys-SMM{background:#00b8cc}
 .tw-badge.sys-GD{background:#c4006e}
 .tw-badge.sys-VID{background:#7c3aed}
-.tw-status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px;flex-shrink:0}
+.tw-status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:3px;flex-shrink:0}
 .tw-status-dot.done{background:#22c55e}
 .tw-status-dot.in_progress{background:#3b82f6}
 .tw-status-dot.planned{background:var(--text-3)}
 .tw-status-dot.pending{background:#f59e0b}
+.tw-empty-cell{display:flex;align-items:center;justify-content:center;min-height:60px;opacity:0.2;font-size:1rem}
 /* List view */
 .tw-table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.tw-table thead th{position:sticky;top:0;z-index:10;background:var(--surface);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
 .tw-table th{padding:8px 12px;text-align:left;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);border-bottom:1px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
 .tw-table th:hover{color:var(--text)}
 .tw-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text-2);vertical-align:middle}
@@ -1320,7 +1339,7 @@ td:last-child{padding-right:18px;text-align:right}
 .tw-status-chip.planned{background:rgba(255,255,255,0.06);color:var(--text-3)}
 .tw-status-chip.pending{background:rgba(245,158,11,0.12);color:#f59e0b}
 .tw-emp-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
-@media(max-width:900px){.tw-grid{grid-template-columns:120px repeat(5,140px);overflow-x:auto}.tw-grid-wrap{overflow-x:auto}}
+@media(max-width:900px){.tw-cell-td{min-width:130px}.tw-emp-td{min-width:120px;width:120px}}
 </style>
 </head>
 <body>
@@ -10637,48 +10656,69 @@ function twRenderGrid(){
   if(!board) return;
   const today = new Date(); today.setHours(0,0,0,0);
 
-  // Get unique employees in filtered set
   const emps = twEmpFilter ? [twEmpFilter] : [...new Set(twFiltered.map(t=>t.assigned_to||'Unassigned'))].sort();
 
-  let html = '<div class="tw-grid-wrap"><div class="tw-grid" style="grid-template-columns:160px repeat(5,1fr)">';
-  // Header row
-  html += '<div class="tw-grid-header" style="border-top:none">Employee</div>';
+  // Pre-compute day dates + totals per day
+  const dayDates = Array.from({length:5},(_,i)=>{ const d=new Date(twWeekStart); d.setDate(d.getDate()+i); return d; });
+  const dayTotals = dayDates.map((_,i)=>twFiltered.filter(t=>t.day_of_week===i+1).length);
+
+  // Avatar colour palette (cycles per employee)
+  const AVATARCOLS = ['#FF6B2B','#3b82f6','#22c55e','#a855f7','#f59e0b','#ec4899','#14b8a6','#f97316'];
+
+  let html = '<div class="tw-grid-wrap"><table class="tw-gtable"><thead><tr>';
+  html += '<th class="emp-col">Employee</th>';
   for(let i=0;i<5;i++){
-    const dayDate = new Date(twWeekStart); dayDate.setDate(dayDate.getDate()+i);
-    const isToday = dayDate.getTime()===today.getTime();
-    html += `<div class="tw-grid-header${isToday?' today-col':''}">${TW_DAYS[i]}<br><span style="font-weight:400;font-size:0.68rem">${twFmtDate(dayDate)}</span></div>`;
+    const isToday = dayDates[i].getTime()===today.getTime();
+    html += `<th class="${isToday?'today-col':''}">
+      ${isToday?'<span style="font-size:0.65rem;background:var(--accent);color:#fff;border-radius:4px;padding:1px 6px;margin-bottom:3px;display:inline-block">TODAY</span><br>':''}
+      ${TW_DAYS[i]} <span style="font-weight:400;font-size:0.68rem;opacity:0.7">${twFmtDate(dayDates[i])}</span>
+      <span class="day-total">${dayTotals[i]?dayTotals[i]+' task'+(dayTotals[i]>1?'s':''):''}</span>
+    </th>`;
+  }
+  html += '</tr></thead><tbody>';
+
+  if(emps.length===0){
+    html += `<tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-3)">No tasks found for this week / filter.</td></tr>`;
   }
 
-  // Employee rows
-  emps.forEach(emp=>{
+  emps.forEach((emp,ei)=>{
+    const avatarCol = AVATARCOLS[ei % AVATARCOLS.length];
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const empTasks = twFiltered.filter(t=>(t.assigned_to||'Unassigned')===emp);
     const empTotal = empTasks.length;
     const empDone = empTasks.filter(t=>t.status==='done').length;
-    html += `<div class="tw-emp-label">
-      <div>
-        <div class="tw-emp-avatar">${initials}</div>
+    const pct = empTotal>0?Math.round(empDone/empTotal*100):0;
+
+    html += '<tr>';
+    html += `<td class="tw-emp-td">
+      <div class="tw-emp-td-inner">
+        <div class="tw-emp-avatar" style="background:${avatarCol}">${initials}</div>
+        <div style="flex:1;min-width:0">
+          <div class="tw-emp-name">${esc(emp)}</div>
+          <div style="font-size:0.63rem;color:var(--text-3);margin-top:1px">${empDone}/${empTotal} done · ${pct}%</div>
+          <div class="tw-emp-progress"><div class="tw-emp-progress-bar" style="width:${pct}%;background:${avatarCol}"></div></div>
+        </div>
       </div>
-      <div>
-        <div>${esc(emp)}</div>
-        <div style="font-size:0.65rem;color:var(--text-3);margin-top:2px">${empDone}/${empTotal} done</div>
-      </div>
-    </div>`;
+    </td>`;
+
     for(let d=1;d<=5;d++){
       const dayTasks = empTasks.filter(t=>t.day_of_week===d);
-      html += `<div class="tw-cell">`;
+      const isToday = dayDates[d-1].getTime()===today.getTime();
+      const heatClass = dayTasks.length===0?'':dayTasks.length===1?'heat-1':dayTasks.length===2?'heat-2':dayTasks.length===3?'heat-3':'heat-4';
+      html += `<td class="tw-cell-td ${isToday?'today-cell':''} ${heatClass}">`;
       if(dayTasks.length===0){
-        html += `<div style="height:100%;display:flex;align-items:center;justify-content:center"><span style="font-size:1.2rem;opacity:0.15">·</span></div>`;
+        html += `<div class="tw-empty-cell">·</div>`;
       } else {
         dayTasks.forEach(t=>{
           html += `<div class="tw-card status-${t.status}" onclick="twOpenEdit(${t.id},'${t._sys}')">
-            <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:3px">
               <span class="tw-badge sys-${t._sys}">${t._sys}</span>
-              <span class="tw-status-dot ${t.status}"></span>
+              <span class="tw-status-dot ${t.status}" style="margin-left:2px"></span>
+              <span style="font-size:0.62rem;color:var(--text-3);margin-left:auto">${t.task_count>1?'×'+t.task_count:''}</span>
             </div>
             <div class="tw-card-client">${esc(t.client_name||'—')}</div>
-            <div class="tw-card-type">${TW_TYPES[t.task_type]||t.task_type||''}${t.task_count>1?' ×'+t.task_count:''}</div>
-            ${t.notes?`<div style="font-size:0.65rem;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.notes)}</div>`:''}
+            <div class="tw-card-type">${TW_TYPES[t.task_type]||t.task_type||''}</div>
+            ${t.notes?`<div style="font-size:0.62rem;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(t.notes)}">${esc(t.notes)}</div>`:''}
             <select class="form-select" style="margin-top:5px;font-size:0.65rem;padding:2px 4px;height:auto;width:100%" onclick="event.stopPropagation()" onchange="twQuickStatus(${t.id},'${t._sys}',this.value)">
               <option value="planned"${t.status==='planned'?' selected':''}>Planned</option>
               <option value="in_progress"${t.status==='in_progress'?' selected':''}>In Progress</option>
@@ -10688,16 +10728,30 @@ function twRenderGrid(){
           </div>`;
         });
       }
-      html += '</div>';
+      html += `<button class="tw-add-btn" onclick="twOpenAddForCell('${esc(emp)}',${d})">+ Add</button>`;
+      html += '</td>';
     }
+    html += '</tr>';
   });
 
-  if(emps.length===0){
-    html += `<div style="grid-column:1/-1;padding:40px;text-align:center;color:var(--text-3)">No tasks found for this week / filter.</div>`;
-  }
-
-  html += '</div></div>';
+  html += '</tbody></table></div>';
   board.innerHTML = html;
+}
+
+function twOpenAddForCell(emp, day){
+  twEditId = null; twEditSys = null;
+  document.getElementById('twModalTitle').textContent = 'Add Task';
+  document.getElementById('twDeleteBtn').style.display = 'none';
+  document.getElementById('twMSystem').value = 'CC';
+  document.getElementById('twMDay').value = day;
+  document.getElementById('twMClient').value = '';
+  document.getElementById('twMType').value = 'meeting';
+  document.getElementById('twMCount').value = 1;
+  document.getElementById('twMStatus').value = 'planned';
+  document.getElementById('twMNotes').value = '';
+  twPopulateAssigned(emp);
+  twModalSysChange();
+  document.getElementById('modalTwTask').classList.remove('hidden');
 }
 
 function twRenderList(){
@@ -10713,7 +10767,7 @@ function twRenderList(){
     return (av-bv)*twSortDir;
   });
 
-  let html = `<div style="overflow-x:auto"><table class="tw-table">
+  let html = `<div style="overflow-x:auto;max-height:72vh;border:1px solid var(--border);border-radius:var(--r)"><table class="tw-table">
     <thead><tr>`;
   cols.forEach((c,i)=>{
     const arrow = twSortCol===c ? (twSortDir===1?' ↑':' ↓') : '';
