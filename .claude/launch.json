@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bb-cc",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "4400", "-s", "."],
+      "port": 4400
+    }
+  ]
+}
