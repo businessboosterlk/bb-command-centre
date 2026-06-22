@@ -3217,7 +3217,58 @@ async function bbAuthEnsure(){
 }
 function bbBearer(){ return 'Bearer ' + (AUTH_TOKEN || SB_KEY); }
 
+/* ══════════════════════════════════════
+   DEMO MODE — fake sample data (touches no real records)
+   When the Demo card is used, the data layer serves this instead of Supabase.
+══════════════════════════════════════ */
+let DEMO_MODE = false;
+const DEMO_DATA = {
+  clients: [
+    {id:'d1',name:'Acme Cafe',health:'green',package:'Growth',mrr:0,industry:'F&B',contact:'Sam',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2026-12-01'},
+    {id:'d2',name:'Skyline Realty',health:'amber',package:'Pro',mrr:0,industry:'Real Estate',contact:'Dana',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:8,monthly_videos:2,client_type:'retainer',renewal:'2026-09-15'},
+    {id:'d3',name:'FitZone Gym',health:'red',package:'Starter',mrr:0,industry:'Fitness',contact:'Alex',plan_ready:false,assigned_smm:'NIRVANA',monthly_posts:8,monthly_videos:0,client_type:'retainer',renewal:'2026-07-30'},
+    {id:'d4',name:'Bloom Florist',health:'green',package:'Growth',mrr:0,industry:'Retail',contact:'Mia',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2027-01-10'},
+    {id:'d5',name:'Nova Tech',health:'green',package:'Pro',mrr:0,industry:'Technology',contact:'Ravi',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:10,monthly_videos:3,client_type:'retainer',renewal:'2026-11-05'}
+  ],
+  tasks: [
+    {id:'dt1',client_id:'d3',title:'Send June content plan',assign:'NIRVANA',due:'2026-06-19',priority:'high',category:'Content Creation',done:false},
+    {id:'dt2',client_id:'d2',title:'Approve ad creatives',assign:'KANEESHA',due:'2026-06-21',priority:'medium',category:'Ads',done:false},
+    {id:'dt3',client_id:'d1',title:'Monthly review call',assign:'Thulaib',due:'2026-06-23',priority:'medium',category:'Strategy & Planning',done:false},
+    {id:'dt4',client_id:'d5',title:'Publish launch reel',assign:'RAJEEWA',due:'2026-06-18',priority:'high',category:'Content Creation',done:true},
+    {id:'dt5',client_id:'d4',title:'Schedule shoot',assign:'RAMANI',due:'2026-06-25',priority:'low',category:'Production',done:false}
+  ],
+  invoices: [
+    {id:'di1',client_id:'d1',client_name:'Acme Cafe',amount:45000,due_date:'2026-06-30',month:'2026-06',status:'unpaid'},
+    {id:'di2',client_id:'d2',client_name:'Skyline Realty',amount:60000,due_date:'2026-06-10',month:'2026-06',status:'unpaid'},
+    {id:'di3',client_id:'d4',client_name:'Bloom Florist',amount:45000,due_date:'2026-06-05',month:'2026-06',status:'paid'}
+  ],
+  costs: [
+    {id:'dc1',amount:18000,category:'Ads spend',month:'2026-06',note:'Meta ads'},
+    {id:'dc2',amount:25000,category:'Salaries',month:'2026-06',note:'Team'}
+  ],
+  pipeline: [
+    {id:'dp1',name:'Greenleaf Spa',stage:'proposal',status:'open',temperature:'hot',is_hot:true,estimated_value:55000,next_action:'Send proposal',last_contact_at:'2026-06-20T08:00:00Z'},
+    {id:'dp2',name:'Urban Eats',stage:'contacted',status:'open',temperature:'warm',estimated_value:40000,next_action:'Follow up',last_contact_at:'2026-06-12T08:00:00Z'}
+  ],
+  content_plans: [
+    {id:'dcp1',client_id:'d1',client_name:'Acme Cafe',title:'Weekend special reel',type:'reel',status:'planned',due_date:'2026-06-24',posted:false,platform:'instagram'},
+    {id:'dcp2',client_id:'d3',client_name:'FitZone Gym',title:'Transformation carousel',type:'carousel',status:'designing',due_date:'2026-06-17',posted:false,platform:'instagram'}
+  ],
+  smm_shoots: [
+    {id:'ds1',client_id:'d4',title:'Bloom product shoot',shoot_date:'2026-06-24',status:'scheduled'}
+  ],
+  team_members: [
+    {id:'dm1',name:'NIRVANA',active:true},{id:'dm2',name:'KANEESHA',active:true},
+    {id:'dm3',name:'RAJEEWA',active:true},{id:'dm4',name:'RAMANI',active:true},
+    {id:'dm5',name:'SUHANA',active:true}
+  ],
+  missions: [{id:'dms1',title:'Hit 25 retainer clients',status:'active',progress:60}],
+  agent_alerts: []
+};
+function demoRows(table){ return (DEMO_DATA[table] ? DEMO_DATA[table].slice() : []); }
+
 async function sb(table,q=''){
+  if(DEMO_MODE) return demoRows(table);
   const ck=table+'|'+q;
   const hit=_sbCacheGet(ck);if(hit)return hit;
   try{
@@ -3303,6 +3354,7 @@ function selectRole(role){
 
 function activateRole(role,animate){
   ROLE=role;
+  DEMO_MODE = (role === 'demo');   // demo serves fake sample data, touches no real records
   document.body.setAttribute('data-role',role);
 
   // Update sidebar user card
@@ -4740,6 +4792,7 @@ async function saveCalEvent(){
 
 /* ── SUPABASE ── */
 async function sbC(table,method='GET',body=null,query='?order=id.asc'){
+  if(DEMO_MODE){ return method==='GET' ? demoRows(table) : { status:'demo-noop' }; }
   const ck=table+'|'+query;
   if(method==='GET'){const hit=_sbCacheGet(ck);if(hit)return hit;}
   try{
@@ -8445,6 +8498,7 @@ async function deleteMission(id){
   // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function sbQuery(table, opts) {
     opts = opts || {};
+    if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) return Promise.resolve([]);
     return new Promise(function (resolve) {
       try {
         var url = new URL(REST_URL + '/' + table);
@@ -9519,6 +9573,7 @@ async function deleteMission(id){
 
   /* ── helpers ───────────────────────────────────────────────── */
   function sbGet(table, qs) {
+    if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) return Promise.resolve([]);
     var auth = (typeof bbBearer === 'function') ? bbBearer() : 'Bearer ' + AK;
     return fetch(SB_URL + '/rest/v1/' + table + '?' + qs, {
       headers: { 'apikey': AK, 'Authorization': auth, 'Accept': 'application/json' }
@@ -10609,24 +10664,27 @@ async function twLoadWeek(){
 
   try {
     const q = '?week_start=eq.'+ws+'&order=created_at.asc';
-    const [cc, smm, gd, vid, team] = await Promise.all([
+    const [cc, smm, gd, vid, team, cl] = await Promise.all([
       sb('cc_weekly_plan', q),
       sb('smm_weekly_plan', q),
       sb('graphic_weekly_plan', q),
       sb('video_weekly_plan', q),
-      sb('team_members', '?select=name')
+      sb('team_members', '?select=name'),
+      sb('clients', '?select=name,assigned_smm')
     ]);
     // Full roster — every worker is shown each week (even with no tasks)
     twRoster = [...new Set((team||[]).map(m=>(m.name||'').trim()).filter(Boolean))].sort();
     const rosterLC = {}; twRoster.forEach(n=>rosterLC[n.toLowerCase()]=n);
     // Merge names case-insensitively (e.g. "Suhana" → "SUHANA") so one person = one row
     const canon = (n)=>{ if(!n) return null; const k=String(n).trim().toLowerCase(); return rosterLC[k]||String(n).trim(); };
-    const tag = (arr, sys) => (arr||[]).map(t=>({
-      ...t,
-      _sys: sys,
-      assigned_to: canon(t.assigned_to),
-      task_count: t.task_count || t.design_count || 1
-    }));
+    // SMM tasks often have no assignee — derive it from the client's assigned SMM person
+    const smmByClient = {};
+    (cl||[]).forEach(c=>{ if(c.assigned_smm) smmByClient[(c.name||'').trim().toLowerCase()] = c.assigned_smm; });
+    const tag = (arr, sys) => (arr||[]).map(t=>{
+      let who = t.assigned_to;
+      if(!who && sys==='SMM') who = smmByClient[(t.client_name||'').trim().toLowerCase()] || null;
+      return { ...t, _sys: sys, assigned_to: canon(who), task_count: t.task_count || t.design_count || 1 };
+    });
     twAllTasks = [
       ...tag(cc,'CC'),
       ...tag(smm,'SMM'),
