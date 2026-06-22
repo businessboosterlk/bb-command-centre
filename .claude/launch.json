@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "bb-cc",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-p", "4400", "-s", "."],
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4400", "-d", "/Users/thulaibhassen/bb-command-centre"],
       "port": 4400
     }
   ]

@@ -3181,13 +3181,49 @@ function _sbCacheGet(k){const e=_sbCache[k];if(e&&Date.now()-e.t<_sbTTL)return e
 function _sbCacheSet(k,d){_sbCache[k]={d,t:Date.now()};}
 function _sbCacheInvalidate(table){Object.keys(_sbCache).filter(k=>k.startsWith(table+'|')).forEach(k=>delete _sbCache[k]);}
 
+/* ══════════════════════════════════════
+   REAL AUTH (Supabase GoTrue) — Thulaib + Shiara
+   The typed PIN (1031/1006) gates the UI; behind it we obtain a real
+   authenticated JWT so the database can reject anyone without a login.
+══════════════════════════════════════ */
+const BB_AUTH = {
+  th: {email:'thulaib@bb-leads.app', pass:'pin1031secure'},
+  sh: {email:'shiara@bb-leads.app',  pass:'pin1006secure'}
+};
+let AUTH_TOKEN=null, AUTH_REFRESH=null, AUTH_EXP=0, AUTH_ROLE=null;
+
+async function bbAuthLogin(role){
+  const c = BB_AUTH[role];
+  if(!c){ AUTH_TOKEN=null; AUTH_ROLE=null; return false; }   // demo / unknown → anon
+  try{
+    const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email:c.email,password:c.pass})
+    });
+    const d=await r.json();
+    if(d&&d.access_token){
+      AUTH_TOKEN=d.access_token; AUTH_REFRESH=d.refresh_token||null;
+      AUTH_EXP=Date.now()+((d.expires_in||3600)*1000); AUTH_ROLE=role;
+      return true;
+    }
+    console.warn('[Auth] login failed',d);
+  }catch(e){ console.warn('[Auth] login error',e); }
+  AUTH_TOKEN=null; return false;
+}
+async function bbAuthEnsure(){
+  if(AUTH_ROLE && (!AUTH_TOKEN || Date.now() > AUTH_EXP-120000)) await bbAuthLogin(AUTH_ROLE);
+  return AUTH_TOKEN;
+}
+function bbBearer(){ return 'Bearer ' + (AUTH_TOKEN || SB_KEY); }
+
 async function sb(table,q=''){
   const ck=table+'|'+q;
   const hit=_sbCacheGet(ck);if(hit)return hit;
   try{
-    const r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-    });
+    await bbAuthEnsure();
+    let r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{headers:{'apikey':SB_KEY,'Authorization':bbBearer()}});
+    if(r.status===401 && AUTH_ROLE){ await bbAuthLogin(AUTH_ROLE); r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{headers:{'apikey':SB_KEY,'Authorization':bbBearer()}}); }
     const d=r.ok?await r.json():[];
     if(r.ok)_sbCacheSet(ck,d);
     return d;
@@ -3229,11 +3265,12 @@ function selectCard(role){
   setTimeout(() => pw.focus(), 50);
 }
 
-function checkPw(){
+async function checkPw(){
   const pw = document.getElementById('pw-input');
   const err = document.getElementById('pw-error');
   if(pw.value === PASSWORDS[_pendingRole]){
     err.style.display = 'none';
+    if(BB_AUTH[_pendingRole]) await bbAuthLogin(_pendingRole);  // obtain real JWT before entering
     selectRole(_pendingRole);
   } else {
     pw.style.animation = 'shake 0.4s ease';
@@ -3247,9 +3284,10 @@ function checkPw(){
 ══════════════════════════════════════ */
 let ROLE=null;
 
-function initApp(){
+async function initApp(){
   const saved=localStorage.getItem('bb_cc_role');
   if(saved==='th'||saved==='sh'){
+    await bbAuthLogin(saved);   // silently re-establish JWT before any data loads
     activateRole(saved,false);
   } else {
     document.getElementById('login-screen').style.display='flex';
@@ -3307,6 +3345,7 @@ function activateRole(role,animate){
 
 function signOut(){
   localStorage.removeItem('bb_cc_role');
+  AUTH_TOKEN=null; AUTH_REFRESH=null; AUTH_ROLE=null; AUTH_EXP=0;
   ROLE=null;
   document.body.removeAttribute('data-role');
   const app=document.getElementById('app');
@@ -4704,9 +4743,10 @@ async function sbC(table,method='GET',body=null,query='?order=id.asc'){
   const ck=table+'|'+query;
   if(method==='GET'){const hit=_sbCacheGet(ck);if(hit)return hit;}
   try{
-    const o={method,headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'}};
-    if(body)o.body=JSON.stringify(body);
-    const r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,o);
+    await bbAuthEnsure();
+    const mk=()=>{const o={method,headers:{'apikey':SB_KEY,'Authorization':bbBearer(),'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'}};if(body)o.body=JSON.stringify(body);return o;};
+    let r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk());
+    if(r.status===401 && AUTH_ROLE){ await bbAuthLogin(AUTH_ROLE); r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk()); }
     const t=await r.text();const d=t?JSON.parse(t):null;
     if(method==='GET'&&r.ok&&d)_sbCacheSet(ck,d);
     if(method!=='GET')_sbCacheInvalidate(table);
@@ -8351,9 +8391,14 @@ async function deleteMission(id){
 
   var SB_HEADERS = {
     'apikey': SB_KEY,
-    'Authorization': 'Bearer ' + SB_KEY,
     'Content-Type': 'application/json'
   };
+  // Authorization is read at fetch time so agents use the logged-in user's JWT
+  // (falls back to the anon key when no one is logged in).
+  Object.defineProperty(SB_HEADERS, 'Authorization', {
+    enumerable: true,
+    get: function(){ try { return bbBearer(); } catch(e) { return 'Bearer ' + SB_KEY; } }
+  });
 
   var POLL_6H   = 6  * 60 * 60 * 1000;
   var POLL_24H  = 24 * 60 * 60 * 1000;
@@ -8418,7 +8463,9 @@ async function deleteMission(id){
         addFilter('lte', opts.lte);
         addFilter('gte', opts.gte);
         addFilter('is',  opts.is);
-        fetch(url.toString(), { headers: SB_HEADERS })
+        var _hdrs = { 'apikey': SB_KEY, 'Content-Type': 'application/json',
+                      'Authorization': (typeof bbBearer==='function' ? bbBearer() : 'Bearer ' + SB_KEY) };
+        fetch(url.toString(), { headers: _hdrs })
           .then(function (res) { return res.ok ? res.json() : []; })
           .then(function (data) { resolve(Array.isArray(data) ? data : []); })
           .catch(function () { resolve([]); });
@@ -9471,8 +9518,9 @@ async function deleteMission(id){
 
   /* ── helpers ───────────────────────────────────────────────── */
   function sbGet(table, qs) {
+    var auth = (typeof bbBearer === 'function') ? bbBearer() : 'Bearer ' + AK;
     return fetch(SB_URL + '/rest/v1/' + table + '?' + qs, {
-      headers: { 'apikey': AK, 'Authorization': 'Bearer ' + AK, 'Accept': 'application/json' }
+      headers: { 'apikey': AK, 'Authorization': auth, 'Accept': 'application/json' }
     }).then(function(r){ return r.ok ? r.json() : []; }).catch(function(){ return []; });
   }
   function ts() { return new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); }
