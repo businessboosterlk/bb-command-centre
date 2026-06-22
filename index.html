@@ -8499,10 +8499,11 @@ async function deleteMission(id){
 
   // Scheduled wrapper — only fires inside the 9 AM / 1 PM / 6 PM windows
   function scheduledAlert(role, message) {
-    if (!inAlertWindow())   return Promise.resolve({ status: 'skipped-not-window' });
-    if (slotAlreadyFired()) return Promise.resolve({ status: 'skipped-slot-done' });
-    markSlotFired();
-    return sendAlert(role, message);
+    // EMAIL CONSOLIDATION: individual agent emails are disabled.
+    // The inbox is now driven entirely by bb-digest (3 consolidated emails/day:
+    // 7AM morning, 1PM midday, 6PM end-of-day) sent server-side via cron.
+    // Dashboard cards still update in-app; this just no longer emails.
+    return Promise.resolve({ status: 'digest-mode' });
   }
 
   // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
