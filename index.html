@@ -1433,7 +1433,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
       <div class="nav-item" id="nav-agents" onclick="showPage('agents')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>Agents <span class="sb-badge" id="agents-unread-badge" style="display:none"></span></div>
       <div class="nav-item" id="nav-weeklyplan" onclick="showPage('weeklyplan')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg></span>Weekly Plan</div>
-      <div class="nav-item ceo-only" id="nav-teamweekly" onclick="showPage('teamweekly')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>Team Weekly</div>
+      <div class="nav-item" id="nav-teamweekly" onclick="showPage('teamweekly')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>Team Weekly</div>
     </div>
     <div class="user-card">
       <div class="user-av th" id="user-av">TH</div>
@@ -2713,7 +2713,7 @@ td:last-child{padding-right:18px;text-align:right}
 </div>
 
 <!-- ═══ TEAM WEEKLY VIEW PAGE ═══ -->
-<div id="page-teamweekly" class="page-section ceo-only" style="display:none">
+<div id="page-teamweekly" class="page-section" style="display:none">
   <div class="content">
     <!-- Top controls -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
@@ -10546,6 +10546,7 @@ const TW_TYPES = {meeting:'Meeting',review:'Review',planning:'Planning',finance:
 
 let twWeekStart = null;
 let twAllTasks = [];   // all tasks with _sys tag
+let twRoster = [];     // full team roster (team_members) — shown every week
 let twFiltered = [];   // after filters applied
 let twSysFilter = '';
 let twEmpFilter = '';
@@ -10608,15 +10609,22 @@ async function twLoadWeek(){
 
   try {
     const q = '?week_start=eq.'+ws+'&order=created_at.asc';
-    const [cc, smm, gd, vid] = await Promise.all([
+    const [cc, smm, gd, vid, team] = await Promise.all([
       sb('cc_weekly_plan', q),
       sb('smm_weekly_plan', q),
       sb('graphic_weekly_plan', q),
-      sb('video_weekly_plan', q)
+      sb('video_weekly_plan', q),
+      sb('team_members', '?select=name')
     ]);
+    // Full roster — every worker is shown each week (even with no tasks)
+    twRoster = [...new Set((team||[]).map(m=>(m.name||'').trim()).filter(Boolean))].sort();
+    const rosterLC = {}; twRoster.forEach(n=>rosterLC[n.toLowerCase()]=n);
+    // Merge names case-insensitively (e.g. "Suhana" → "SUHANA") so one person = one row
+    const canon = (n)=>{ if(!n) return null; const k=String(n).trim().toLowerCase(); return rosterLC[k]||String(n).trim(); };
     const tag = (arr, sys) => (arr||[]).map(t=>({
       ...t,
       _sys: sys,
+      assigned_to: canon(t.assigned_to),
       task_count: t.task_count || t.design_count || 1
     }));
     twAllTasks = [
@@ -10630,10 +10638,10 @@ async function twLoadWeek(){
     twAllTasks = [];
   }
 
-  // Build employee filter dropdown
+  // Build employee filter dropdown = full roster + anyone with tasks this week
   const empSel = document.getElementById('twEmpFilter');
   if(empSel){
-    const names = [...new Set(twAllTasks.map(t=>t.assigned_to).filter(Boolean))].sort();
+    const names = [...new Set([...twRoster, ...twAllTasks.map(t=>t.assigned_to).filter(Boolean)])].sort();
     empSel.innerHTML = '<option value="">All Team</option>' + names.map(n=>`<option value="${esc(n)}"${twEmpFilter===n?' selected':''}>${esc(n)}</option>`).join('');
   }
 
@@ -10705,7 +10713,7 @@ function twRenderGrid(){
   if(!board) return;
   const today = new Date(); today.setHours(0,0,0,0);
 
-  const emps = twEmpFilter ? [twEmpFilter] : [...new Set(twFiltered.map(t=>t.assigned_to||'Unassigned'))].sort();
+  const emps = twEmpFilter ? [twEmpFilter] : [...new Set([...twRoster, ...twFiltered.map(t=>t.assigned_to||'Unassigned')])].sort();
 
   // Pre-compute day dates + totals per day
   const dayDates = Array.from({length:5},(_,i)=>{ const d=new Date(twWeekStart); d.setDate(d.getDate()+i); return d; });
@@ -10918,8 +10926,8 @@ function twOpenEdit(id, sys){
 function twPopulateAssigned(selected){
   const sel = document.getElementById('twMAssigned');
   const allNames = [...new Set(twAllTasks.map(t=>t.assigned_to).filter(Boolean))].sort();
-  const defaults = ['Thulaib','Shiara','Nirvana','Kenuli','Kaneesha','Rukshan','Suhana'];
-  const names = [...new Set([...defaults, ...allNames])].sort();
+  // Use the real roster (team_members) + anyone already in the data
+  const names = [...new Set([...twRoster, ...allNames])].sort();
   sel.innerHTML = '<option value="">Unassigned</option>' + names.map(n=>`<option value="${esc(n)}"${selected===n?' selected':''}>${esc(n)}</option>`).join('');
 }
 
