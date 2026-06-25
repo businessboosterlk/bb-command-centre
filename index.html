@@ -4081,7 +4081,7 @@ function toggleNav(){
 ══════════════════════════════════════ */
 updateClock();
 setInterval(updateClock,30000);
-setInterval(()=>{if(ROLE)loadAll();},60000);
+setInterval(()=>{if(ROLE&&!document.hidden)loadAll();},180000);
 
 /* ══════════════════════════════════════
    PAGE SWITCHER
@@ -6500,10 +6500,10 @@ function uploadLogo(){
 }
 (()=>{const saved=localStorage.getItem('bb-logo-url');if(saved){const img=document.getElementById('sb-logo-img');if(img)img.src=saved;}})();
 // init handled by showPage
-setInterval(loadAll,60000);
-// Video Pipeline auto-refresh every 20s when on that page
-setInterval(()=>{if(CURRENT_PAGE==='videopipeline')loadVideoPipeline();},20000);
-setInterval(()=>{if(CURRENT_PAGE==='shootpipeline')loadShootPipeline();},20000);
+setInterval(()=>{if(!document.hidden)loadAll();},180000);
+// Pipeline auto-refresh — only when on that page AND the tab is visible (bandwidth-safe)
+setInterval(()=>{if(CURRENT_PAGE==='videopipeline'&&!document.hidden)loadVideoPipeline();},120000);
+setInterval(()=>{if(CURRENT_PAGE==='shootpipeline'&&!document.hidden)loadShootPipeline();},120000);
 
 /* ══════════════════════════════════════
    TASK BOOK
