@@ -4273,7 +4273,11 @@ function pipeStatusPill(s){return {potential:'pill-amber',fifty:'pill-orange',li
 const PIPE_ORDER={potential:0,fifty:1,likely_leave:2,closed:3};
 
 function renderPipelinePage(){
-  const pipe=D.pipeline||[];
+  // Show ONLY leads managed from the Command Centre side
+  // (Potential / 50-50 / Likely to Leave / Closed Won). This hides leads synced
+  // from the Leads app (status 'active', owned by salespeople like Pavith).
+  const CC_LEAD_STATUSES=['potential','fifty','likely_leave','closed'];
+  const pipe=(D.pipeline||[]).filter(p=>CC_LEAD_STATUSES.includes(p.status));
   const tasks=D.tasks||[];
   const filtered=pipe.filter(p=>!pipeFilter||p.status===pipeFilter);
 
