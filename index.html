@@ -1427,6 +1427,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-contentplans" onclick="showPage('contentplans')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Content Plans</div>
       <div class="nav-item" id="nav-videopipeline" onclick="showPage('videopipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>Video Pipeline</div>
       <div class="nav-item" id="nav-shootpipeline" onclick="showPage('shootpipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Shoot Pipeline</div>
+      <div class="nav-item" id="nav-shootcalendar" onclick="showPage('shootcalendar')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="15" r="2.5"/></svg></span>Shoot Calendar</div>
       <div class="nav-sec">Operations</div>
       <div class="nav-item" id="nav-finance" onclick="showPage('finance')"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
       <div class="nav-item" id="nav-team" onclick="showPage('team')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
@@ -2709,6 +2710,54 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
     <div class="wp-board" id="wpBoard"></div>
     <div id="wpPendingSection"></div>
+  </div>
+</div>
+
+<!-- ═══ SHOOT CALENDAR PAGE ═══ -->
+<div id="page-shootcalendar" class="page-section" style="display:none">
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Shoot Calendar</h1>
+        <div style="color:var(--text-3);font-size:13px;margin-top:2px">Upcoming shoots, soonest first — anything in the next 48h is flagged.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="sc-filter" class="form-select" style="width:140px;font-size:13px" onchange="renderShootCalendar()">
+          <option value="upcoming">Upcoming</option>
+          <option value="all">All</option>
+          <option value="done">Done</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="scOpenAdd()">+ Add Shoot</button>
+      </div>
+    </div>
+    <div id="sc-stats" style="display:flex;gap:12px;margin:16px 0;flex-wrap:wrap"></div>
+    <div id="sc-list"></div>
+  </div>
+</div>
+
+<!-- ═══ SHOOT CALENDAR MODAL ═══ -->
+<div class="modal-overlay hidden" id="modalShoot">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-hd" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <h2 id="scModalTitle" style="margin:0;font-size:16px;font-weight:700">Add Shoot</h2>
+      <button class="modal-close" onclick="closeModal('modalShoot')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-2)">&times;</button>
+    </div>
+    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Client *</label><select class="form-select" id="sc-f-client"><option value="">Select client</option></select></div>
+      <div class="form-field"><label class="form-label">Shoot Date *</label><input class="form-input" type="date" id="sc-f-date"></div>
+      <div class="form-field"><label class="form-label">Time</label><input class="form-input" type="text" id="sc-f-time" placeholder="e.g. 10:00 AM"></div>
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Location</label><input class="form-input" type="text" id="sc-f-location" placeholder="e.g. Studio / client site"></div>
+      <div class="form-field"><label class="form-label">Type</label><select class="form-select" id="sc-f-type"><option value="video">Video</option><option value="photo">Photo</option><option value="both">Both</option></select></div>
+      <div class="form-field"><label class="form-label">Status</label><select class="form-select" id="sc-f-status"><option value="scheduled">Scheduled</option><option value="confirmed">Confirmed</option><option value="done">Done</option><option value="cancelled">Cancelled</option></select></div>
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Assigned Team</label><input class="form-input" type="text" id="sc-f-team" placeholder="e.g. Ushane, Rajeewa"></div>
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Notes</label><input class="form-input" type="text" id="sc-f-notes" placeholder="Optional"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('modalShoot')">Cancel</button>
+      <button class="btn btn-sm" style="background:#ef4444;color:#fff;display:none" id="sc-del-btn" onclick="scDelete()">Delete</button>
+      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="scSave()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -4133,6 +4182,9 @@ function showPage(page) {
   } else if (page === 'shootpipeline') {
     document.getElementById('topbar-title').textContent = 'Shoot Pipeline';
     loadShootPipeline();
+  } else if (page === 'shootcalendar') {
+    document.getElementById('topbar-title').textContent = 'Shoot Calendar';
+    loadShootCalendar();
   } else if (page === 'finance') {
     document.getElementById('topbar-title').textContent = 'Finance';
     loadFinancePage();
@@ -11046,6 +11098,153 @@ async function twDeleteTask(){
     closeModal('modalTwTask');
     twLoadWeek();
   } catch(e){ console.error('twDeleteTask',e); alert('Delete failed'); }
+}
+</script>
+
+<script>
+// ═══════════════════════════════════════
+// SHOOT CALENDAR
+// ═══════════════════════════════════════
+let SC_shoots = [];
+let scEditId = null;
+
+async function loadShootCalendar(){
+  const list = document.getElementById('sc-list');
+  if(list) list.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3)">Loading shoots…</div>';
+  try{ SC_shoots = await sb('shoot_schedule','?select=*&order=shoot_date.asc') || []; }
+  catch(e){ console.error('loadShootCalendar',e); SC_shoots = []; }
+  renderShootCalendar();
+}
+
+function scDaysUntil(dateStr){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr+'T00:00:00'); d.setHours(0,0,0,0);
+  return Math.round((d - today)/86400000);
+}
+function scCountdown(n){
+  if(n<0) return {txt:Math.abs(n)+'d ago', cls:'var(--text-3)'};
+  if(n===0) return {txt:'TODAY', cls:'var(--red)'};
+  if(n===1) return {txt:'tomorrow', cls:'var(--red)'};
+  if(n<=2) return {txt:'in '+n+' days', cls:'var(--red)'};
+  if(n<=3) return {txt:'in '+n+' days', cls:'var(--amber)'};
+  return {txt:'in '+n+' days', cls:'var(--text-2)'};
+}
+const SC_STATUS_PILL = {scheduled:'pill-neutral',confirmed:'pill-green',done:'pill-blue',cancelled:'pill-red'};
+function scStatusColor(s){ return {scheduled:'var(--text-2)',confirmed:'var(--green)',done:'var(--blue,#3b82f6)',cancelled:'var(--red)'}[s]||'var(--text-2)'; }
+
+function renderShootCalendar(){
+  const filter = document.getElementById('sc-filter')?.value || 'upcoming';
+  const today = new Date(); today.setHours(0,0,0,0);
+  let rows = [...SC_shoots];
+  if(filter==='upcoming') rows = rows.filter(s=>s.status!=='cancelled' && s.status!=='done' && scDaysUntil(s.shoot_date)>=0);
+  else if(filter==='done') rows = rows.filter(s=>s.status==='done');
+  else if(filter==='cancelled') rows = rows.filter(s=>s.status==='cancelled');
+  rows.sort((a,b)=>(a.shoot_date||'').localeCompare(b.shoot_date||''));
+
+  // Stats (from full active set)
+  const active = SC_shoots.filter(s=>s.status!=='cancelled'&&s.status!=='done');
+  const next48 = active.filter(s=>{const n=scDaysUntil(s.shoot_date);return n>=0&&n<=2;}).length;
+  const next7 = active.filter(s=>{const n=scDaysUntil(s.shoot_date);return n>=0&&n<=7;}).length;
+  const unconfirmed = active.filter(s=>s.status==='scheduled'&&scDaysUntil(s.shoot_date)>=0).length;
+  const statsEl = document.getElementById('sc-stats');
+  if(statsEl) statsEl.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--red);border-radius:10px;padding:10px 16px;min-width:90px"><div style="font-size:1.5rem;font-weight:800;font-family:Poppins,sans-serif;color:var(--red)">${next48}</div><div style="font-size:0.68rem;color:var(--text-3);text-transform:uppercase">Next 48h</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:10px;padding:10px 16px;min-width:90px"><div style="font-size:1.5rem;font-weight:800;font-family:Poppins,sans-serif;color:var(--accent)">${next7}</div><div style="font-size:0.68rem;color:var(--text-3);text-transform:uppercase">Next 7 days</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--amber);border-radius:10px;padding:10px 16px;min-width:90px"><div style="font-size:1.5rem;font-weight:800;font-family:Poppins,sans-serif;color:var(--amber)">${unconfirmed}</div><div style="font-size:0.68rem;color:var(--text-3);text-transform:uppercase">Unconfirmed</div></div>`;
+
+  const list = document.getElementById('sc-list');
+  if(!list) return;
+  if(!rows.length){ list.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);font-size:13px">No shoots here. Click <b>+ Add Shoot</b> to schedule one.</div>'; return; }
+  list.innerHTML = rows.map(s=>{
+    const n = scDaysUntil(s.shoot_date);
+    const cd = scCountdown(n);
+    const flag = (s.status!=='done'&&s.status!=='cancelled'&&n>=0&&n<=2);
+    const dObj = new Date(s.shoot_date+'T00:00:00');
+    const dateLabel = dObj.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'});
+    return `<div style="background:var(--surface);border:1px solid var(--border);${flag?'border-left:3px solid var(--red);':''}border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;cursor:pointer" onclick="scOpenEdit(${s.id})">
+      <div style="min-width:96px">
+        <div style="font-weight:800;font-size:0.95rem;color:var(--text)">${dateLabel}</div>
+        <div style="font-size:0.78rem;font-weight:700;color:${cd.cls}">${cd.txt}</div>
+        ${s.shoot_time?`<div style="font-size:0.72rem;color:var(--text-3)">${esc(s.shoot_time)}</div>`:''}
+      </div>
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:700;color:var(--text)">${esc(s.client_name)} ${flag?'<span style="color:var(--red);font-size:0.7rem;font-weight:800">⚠ SOON</span>':''}</div>
+        <div style="font-size:0.78rem;color:var(--text-2);margin-top:2px">${s.location?'📍 '+esc(s.location)+' · ':''}${s.type?esc(s.type):''}${s.assigned_team?' · 👥 '+esc(s.assigned_team):''}</div>
+        ${s.notes?`<div style="font-size:0.72rem;color:var(--text-3);margin-top:2px">${esc(s.notes)}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="pill ${SC_STATUS_PILL[s.status]||'pill-neutral'}" style="text-transform:capitalize">${esc(s.status)}</span>
+        ${s.status!=='done'?`<button class="btn btn-sm btn-ghost" style="font-size:0.7rem" onclick="event.stopPropagation();scMark(${s.id},'done')">Mark Done</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function scPopulateClients(sel){
+  sel.innerHTML='<option value="">Select client</option>'+(CLIENTS||[]).map(c=>`<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+}
+function scOpenAdd(){
+  scEditId=null;
+  document.getElementById('scModalTitle').textContent='Add Shoot';
+  document.getElementById('sc-del-btn').style.display='none';
+  scPopulateClients(document.getElementById('sc-f-client'));
+  document.getElementById('sc-f-client').value='';
+  document.getElementById('sc-f-date').value=todayStr();
+  document.getElementById('sc-f-time').value='';
+  document.getElementById('sc-f-location').value='';
+  document.getElementById('sc-f-type').value='video';
+  document.getElementById('sc-f-status').value='scheduled';
+  document.getElementById('sc-f-team').value='';
+  document.getElementById('sc-f-notes').value='';
+  document.getElementById('modalShoot').classList.remove('hidden');
+}
+function scOpenEdit(id){
+  const s = SC_shoots.find(x=>String(x.id)===String(id)); if(!s) return;
+  scEditId=id;
+  document.getElementById('scModalTitle').textContent='Edit Shoot';
+  document.getElementById('sc-del-btn').style.display='';
+  scPopulateClients(document.getElementById('sc-f-client'));
+  document.getElementById('sc-f-client').value=s.client_name||'';
+  document.getElementById('sc-f-date').value=s.shoot_date||'';
+  document.getElementById('sc-f-time').value=s.shoot_time||'';
+  document.getElementById('sc-f-location').value=s.location||'';
+  document.getElementById('sc-f-type').value=s.type||'video';
+  document.getElementById('sc-f-status').value=s.status||'scheduled';
+  document.getElementById('sc-f-team').value=s.assigned_team||'';
+  document.getElementById('sc-f-notes').value=s.notes||'';
+  document.getElementById('modalShoot').classList.remove('hidden');
+}
+async function scSave(){
+  const client=document.getElementById('sc-f-client').value;
+  const date=document.getElementById('sc-f-date').value;
+  if(!client){ alert('Select a client'); return; }
+  if(!date){ alert('Pick a shoot date'); return; }
+  const data={
+    client_name:client, shoot_date:date,
+    shoot_time:document.getElementById('sc-f-time').value||null,
+    location:document.getElementById('sc-f-location').value||null,
+    type:document.getElementById('sc-f-type').value,
+    status:document.getElementById('sc-f-status').value,
+    assigned_team:document.getElementById('sc-f-team').value||null,
+    notes:document.getElementById('sc-f-notes').value||null
+  };
+  try{
+    if(scEditId){ await SBpatch('shoot_schedule',scEditId,data); }
+    else { data.created_by=(typeof ROLE!=='undefined'?ROLE:'cc'); await SBpost('shoot_schedule',data); }
+    _sbCacheInvalidate('shoot_schedule');
+    closeModal('modalShoot');
+    loadShootCalendar();
+  }catch(e){ console.error('scSave',e); alert('Save failed'); }
+}
+async function scMark(id,status){
+  try{ await SBpatch('shoot_schedule',id,{status}); _sbCacheInvalidate('shoot_schedule'); loadShootCalendar(); }
+  catch(e){ console.error('scMark',e); }
+}
+async function scDelete(){
+  if(!scEditId) return;
+  if(!confirm('Delete this shoot?')) return;
+  try{ await SBdel('shoot_schedule',scEditId); _sbCacheInvalidate('shoot_schedule'); closeModal('modalShoot'); loadShootCalendar(); }
+  catch(e){ console.error('scDelete',e); alert('Delete failed'); }
 }
 </script>
 
