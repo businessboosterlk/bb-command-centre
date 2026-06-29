@@ -2046,6 +2046,15 @@ td:last-child{padding-right:18px;text-align:right}
           <option value="gd">GD</option>
           <option value="video">Video</option>
           <option value="both">Both</option>
+          <optgroup label="Team Members">
+            <option value="Ushane">Ushane</option>
+            <option value="Rajeewa">Rajeewa</option>
+            <option value="Ramani">Ramani</option>
+            <option value="Sandunu">Sandunu</option>
+            <option value="Rukshan">Rukshan</option>
+            <option value="Suhana">Suhana</option>
+            <option value="Nirvana">Nirvana</option>
+          </optgroup>
         </select>
         <select class="form-select" style="width:140px;font-size:12px;padding:6px 10px" id="tb-filter-status" onchange="renderTaskBook()">
           <option value="open">Open tasks</option>
@@ -2912,6 +2921,15 @@ td:last-child{padding-right:18px;text-align:right}
             <option value="smm">SMM</option>
             <option value="gd">GD</option>
             <option value="video">Video</option>
+            <optgroup label="Team Members">
+              <option value="Ushane">Ushane</option>
+              <option value="Rajeewa">Rajeewa</option>
+              <option value="Ramani">Ramani</option>
+              <option value="Sandunu">Sandunu</option>
+              <option value="Rukshan">Rukshan</option>
+              <option value="Suhana">Suhana</option>
+              <option value="Nirvana">Nirvana</option>
+            </optgroup>
           </select>
           <input class="form-input" type="date" id="bulk-new-due" style="width:140px;font-size:12px;padding:5px 8px" title="Push due date to…">
           <button class="btn-ghost btn-sm" style="border-color:var(--amber);color:var(--amber)" onclick="bulkReassign()">Reassign</button>
@@ -2929,6 +2947,15 @@ td:last-child{padding-right:18px;text-align:right}
           <option value="smm">SMM</option>
           <option value="gd">GD</option>
           <option value="video">Video</option>
+          <optgroup label="Team Members">
+            <option value="Ushane">Ushane</option>
+            <option value="Rajeewa">Rajeewa</option>
+            <option value="Ramani">Ramani</option>
+            <option value="Sandunu">Sandunu</option>
+            <option value="Rukshan">Rukshan</option>
+            <option value="Suhana">Suhana</option>
+            <option value="Nirvana">Nirvana</option>
+          </optgroup>
         </select>
         <input class="form-input" type="text" id="bulk-search" oninput="renderBulkList()" placeholder="Search tasks…" style="width:160px;font-size:11px;padding:5px 8px">
         <span style="font-size:10px;color:var(--text-3);margin-left:auto" id="bulk-total-label"></span>
@@ -3192,7 +3219,7 @@ td:last-child{padding-right:18px;text-align:right}
   <div class="modal"><div class="modal-head"><div class="modal-title">Add Task</div><button class="modal-close" onclick="closeModal('modal-task')">×</button></div>
   <div class="modal-body">
     <div class="form-field"><label class="form-label">Task *</label><input class="form-input" id="task-title" placeholder="What needs to be done?"></div>
-    <div class="field-row"><div class="form-field"><label class="form-label">Assign</label><select class="form-select" id="task-assign"><option value="th">Thulaib (CEO)</option><option value="sh">Shiara (COO)</option><option value="both">Both</option><option value="smm">SMM</option><option value="gd">GD</option><option value="video">Video</option></select></div><div class="form-field"><label class="form-label">Priority</label><select class="form-select" id="task-priority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div></div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Assign</label><select class="form-select" id="task-assign"><optgroup label="Roles"><option value="th">Thulaib (CEO)</option><option value="sh">Shiara (COO)</option><option value="both">Both</option><option value="smm">SMM (team)</option><option value="gd">GD (team)</option><option value="video">Video (team)</option></optgroup><optgroup label="Team Members"><option value="Ushane">Ushane (Video Head)</option><option value="Rajeewa">Rajeewa (Video)</option><option value="Ramani">Ramani (Video)</option><option value="Sandunu">Sandunu (Video)</option><option value="Rukshan">Rukshan (Graphic)</option><option value="Suhana">Suhana (Graphic)</option><option value="Nirvana">Nirvana (SMM)</option></optgroup></select></div><div class="form-field"><label class="form-label">Priority</label><select class="form-select" id="task-priority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select></div></div>
     <div class="field-row"><div class="form-field"><label class="form-label">Due Date</label><input class="form-input" id="task-due" type="date"></div><div class="form-field"><label class="form-label">Category</label><select class="form-select" id="task-cat"><option>Content Creation</option><option>Client Communication</option><option>Strategy &amp; Planning</option><option>Follow-Up</option><option>Payment</option><option>Production</option><option>Reporting</option><option>Other</option></select></div></div>
     <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="task-notes" placeholder="Optional context"></div>
   </div>
@@ -3488,6 +3515,8 @@ const SH_P=[
 const TEAM=[
   {id:'ushane',name:'Ushane',role:'Video Head'},
   {id:'rajeewa',name:'Rajeewa',role:'Senior Video Editor'},
+  {id:'ramani',name:'Ramani',role:'Video Editor'},
+  {id:'sandunu',name:'Sandunu',role:'Video Editor'},
   {id:'rukshan',name:'Rukshan',role:'Graphic Designer'},
   {id:'suhana',name:'Suhana',role:'Graphic Designer'},
   {id:'nirvana',name:'Nirvana',role:'SMM'}
@@ -6660,8 +6689,8 @@ function renderTaskBook(){
       const od=isOverdue(t);
       const dueTxt=t.due?fmtDate(t.due):'No date';
       const dueColor=od?'var(--red)':t.done?'var(--text-3)':'var(--text-2)';
-      const av=assignLabel[t.assign]||'?';
-      const avStyle=assignColor[t.assign]||'background:var(--text-3)';
+      const av=assignLabel[t.assign]||(t.assign?String(t.assign).slice(0,2).toUpperCase():'?');
+      const avStyle=assignColor[t.assign]||'background:var(--blue,#3b82f6)';
       const pri=t.priority||'medium';
       rows+=`<tr style="border-bottom:1px solid var(--border);${t.done?'opacity:.45':''}${od?';background:rgba(239,68,68,.03)':''}">
         <td style="padding:10px 12px;text-align:center">
