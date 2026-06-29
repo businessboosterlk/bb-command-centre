@@ -1420,6 +1420,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item active" id="nav-dashboard" onclick="showPage('dashboard')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>Dashboard</div>
       <div class="nav-item" id="nav-myday" onclick="showPage('myday')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></span>My Day</div>
       <div class="nav-item" id="nav-clients" onclick="showPage('clients')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Clients</div>
+      <div class="nav-item" id="nav-onboarding" onclick="showPage('onboarding')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>Onboarding</div>
       <div class="nav-item ceo-only" id="nav-pipeline" onclick="showPage('pipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Leads</div>
       <div class="nav-item" id="nav-calendar" onclick="showPage('calendar')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>Calendar</div>
       <div class="nav-item" id="nav-taskbook" onclick="showPage('taskbook')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Task Book</div>
@@ -2719,6 +2720,64 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
     <div class="wp-board" id="wpBoard"></div>
     <div id="wpPendingSection"></div>
+  </div>
+</div>
+
+<!-- ═══ ONBOARDING PAGE ═══ -->
+<div id="page-onboarding" class="page-section" style="display:none">
+  <div class="content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Onboarding &amp; Brand Kits</h1>
+        <div style="color:var(--text-3);font-size:13px;margin-top:2px">Every new client's checklist + brand assets in one place. Incomplete onboarding is flagged.</div>
+      </div>
+      <select id="ob-filter" class="form-select" style="width:160px;font-size:13px" onchange="renderOnboarding()">
+        <option value="active">In onboarding</option>
+        <option value="all">All clients</option>
+        <option value="haskit">Has brand kit</option>
+        <option value="nokit">No brand kit</option>
+      </select>
+    </div>
+    <div id="ob-stats" style="display:flex;gap:12px;margin:16px 0;flex-wrap:wrap"></div>
+    <div id="ob-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px"></div>
+  </div>
+</div>
+
+<!-- ═══ ONBOARDING / BRAND-KIT DETAIL MODAL ═══ -->
+<div class="modal-overlay hidden" id="modalOnboard">
+  <div class="modal" style="max-width:680px;max-height:90vh;display:flex;flex-direction:column">
+    <div class="modal-hd" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <h2 id="obModalTitle" style="margin:0;font-size:16px;font-weight:700">Client</h2>
+      <button class="modal-close" onclick="closeModal('modalOnboard')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-2)">&times;</button>
+    </div>
+    <div style="padding:20px;overflow-y:auto">
+      <!-- Checklist -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2)">Onboarding Checklist</div>
+        <button class="btn btn-sm btn-ghost" id="ob-seed-btn" onclick="obSeed()" style="display:none">Start Onboarding</button>
+      </div>
+      <div id="ob-checklist"></div>
+      <!-- Brand Kit -->
+      <div style="font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2);margin:22px 0 10px">Brand Kit</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div class="form-field"><label class="form-label">Primary</label><input class="form-input" type="text" id="bk-primary" placeholder="#FF6B2B" oninput="bkSwatch()"></div>
+        <div class="form-field"><label class="form-label">Secondary</label><input class="form-input" type="text" id="bk-secondary" placeholder="#1a1a26" oninput="bkSwatch()"></div>
+        <div class="form-field"><label class="form-label">Accent</label><input class="form-input" type="text" id="bk-accent" placeholder="#f59e0b" oninput="bkSwatch()"></div>
+      </div>
+      <div id="bk-swatches" style="display:flex;gap:8px;margin:8px 0 12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-field"><label class="form-label">Logo URL</label><input class="form-input" type="text" id="bk-logo" placeholder="https://…" oninput="bkLogoPreview()"></div>
+        <div class="form-field"><label class="form-label">Fonts</label><input class="form-input" type="text" id="bk-fonts" placeholder="Poppins, Inter"></div>
+        <div class="form-field"><label class="form-label">Guidelines URL</label><input class="form-input" type="text" id="bk-guidelines" placeholder="Drive / Figma link"></div>
+        <div class="form-field"><label class="form-label">Assets Folder</label><input class="form-input" type="text" id="bk-assets" placeholder="Drive folder link"></div>
+        <div class="form-field" style="grid-column:1/-1"><label class="form-label">Notes</label><input class="form-input" type="text" id="bk-notes" placeholder="Optional"></div>
+      </div>
+      <div id="bk-logo-preview" style="margin-top:8px"></div>
+    </div>
+    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;flex-shrink:0">
+      <button class="btn btn-sm btn-ghost" onclick="closeModal('modalOnboard')">Close</button>
+      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="bkSave()">Save Brand Kit</button>
+    </div>
   </div>
 </div>
 
@@ -4214,6 +4273,9 @@ function showPage(page) {
   } else if (page === 'shootcalendar') {
     document.getElementById('topbar-title').textContent = 'Shoot Calendar';
     loadShootCalendar();
+  } else if (page === 'onboarding') {
+    document.getElementById('topbar-title').textContent = 'Onboarding';
+    loadOnboarding();
   } else if (page === 'finance') {
     document.getElementById('topbar-title').textContent = 'Finance';
     loadFinancePage();
@@ -11274,6 +11336,181 @@ async function scDelete(){
   if(!confirm('Delete this shoot?')) return;
   try{ await SBdel('shoot_schedule',scEditId); _sbCacheInvalidate('shoot_schedule'); closeModal('modalShoot'); loadShootCalendar(); }
   catch(e){ console.error('scDelete',e); alert('Delete failed'); }
+}
+</script>
+
+<script>
+// ═══════════════════════════════════════
+// ONBOARDING + BRAND KITS
+// ═══════════════════════════════════════
+const OB_STEPS = [
+  'Signed contract',
+  'Deposit / payment received',
+  'Brand assets received (logo / colors / guidelines)',
+  'Social account access',
+  'Ad account access',
+  'Package targets confirmed',
+  'Kickoff call done',
+  'Added to all systems',
+  'First content plan started'
+];
+let OB_onboarding = [];   // all client_onboarding rows
+let OB_kits = [];         // all client_brand_kit rows
+let obCurrentClient = null;
+
+async function loadOnboarding(){
+  const grid = document.getElementById('ob-grid');
+  if(grid) grid.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);grid-column:1/-1">Loading…</div>';
+  try{
+    const [onb, kits] = await Promise.all([
+      sb('client_onboarding','?select=*&order=step_order.asc'),
+      sb('client_brand_kit','?select=*')
+    ]);
+    OB_onboarding = onb||[]; OB_kits = kits||[];
+  }catch(e){ console.error('loadOnboarding',e); OB_onboarding=[]; OB_kits=[]; }
+  renderOnboarding();
+}
+
+function obClientSteps(name){ return OB_onboarding.filter(s=>s.client_name===name).sort((a,b)=>(a.step_order||0)-(b.step_order||0)); }
+function obPct(name){ const st=obClientSteps(name); if(!st.length) return null; return Math.round(st.filter(s=>s.status==='done').length/st.length*100); }
+function obKit(name){ return OB_kits.find(k=>k.client_name===name); }
+
+function renderOnboarding(){
+  const filter = document.getElementById('ob-filter')?.value || 'active';
+  const clients = (CLIENTS||[]).map(c=>c.name);
+  let names = clients;
+  if(filter==='active') names = clients.filter(n=>{const p=obPct(n); return p!==null && p<100;});
+  else if(filter==='haskit') names = clients.filter(n=>obKit(n));
+  else if(filter==='nokit') names = clients.filter(n=>!obKit(n));
+
+  // Stats
+  const inProgress = clients.filter(n=>{const p=obPct(n);return p!==null&&p<100;}).length;
+  const withKit = clients.filter(n=>obKit(n)).length;
+  const noKit = clients.length - withKit;
+  const statsEl = document.getElementById('ob-stats');
+  if(statsEl) statsEl.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--amber);border-radius:10px;padding:10px 16px;min-width:110px"><div style="font-size:1.5rem;font-weight:800;font-family:Poppins,sans-serif;color:var(--amber)">${inProgress}</div><div style="font-size:0.68rem;color:var(--text-3);text-transform:uppercase">In onboarding</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--green);border-radius:10px;padding:10px 16px;min-width:110px"><div style="font-size:1.5rem;font-weight:800;font-family:Poppins,sans-serif;color:var(--green)">${withKit}</div><div style="font-size:0.68rem;color:var(--text-3);text-transform:uppercase">Brand kits</div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--red);border-radius:10px;padding:10px 16px;min-width:110px"><div style="font-size:1.5rem;font-weight:800;font-family:Poppins,sans-serif;color:var(--red)">${noKit}</div><div style="font-size:0.68rem;color:var(--text-3);text-transform:uppercase">No brand kit</div></div>`;
+
+  const grid = document.getElementById('ob-grid');
+  if(!grid) return;
+  if(!names.length){ grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);grid-column:1/-1;font-size:13px">No clients match this filter.</div>'; return; }
+  grid.innerHTML = names.map(n=>{
+    const p = obPct(n);
+    const kit = obKit(n);
+    const sw = (c)=>`<span style="display:inline-block;width:20px;height:20px;border-radius:5px;border:1px solid var(--border);background:${c&&/^#?[0-9a-fA-F]{3,8}$/.test(c)?(c[0]==='#'?c:'#'+c):'transparent'}" title="${esc(c||'—')}"></span>`;
+    const barColor = p===null?'var(--text-3)':p===100?'var(--green)':p>=50?'var(--amber)':'var(--red)';
+    const flag = (p!==null && p<100);
+    return `<div style="background:var(--surface);border:1px solid var(--border);${flag?'border-left:3px solid var(--amber);':''}border-radius:12px;padding:16px;cursor:pointer" onclick="obOpen('${esc(n).replace(/'/g,"\\'")}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-weight:800;color:var(--text)">${esc(n)}</div>
+        ${kit?'<span style="font-size:0.62rem;background:var(--green-soft,rgba(34,197,94,.1));color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700">BRAND KIT</span>':'<span style="font-size:0.62rem;background:var(--surface-2,#1a1a26);color:var(--text-3);padding:2px 8px;border-radius:10px">no kit</span>'}
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px">${kit?[kit.primary_color,kit.secondary_color,kit.accent_color].map(sw).join(''):'<span style="font-size:0.72rem;color:var(--text-3)">No colors yet</span>'}</div>
+      <div style="font-size:0.72rem;color:var(--text-3);margin-bottom:4px">${p===null?'Onboarding not started':p+'% onboarded'}</div>
+      <div style="height:6px;border-radius:3px;background:var(--border);overflow:hidden"><div style="height:100%;width:${p||0}%;background:${barColor}"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function obOpen(name){
+  obCurrentClient = name;
+  document.getElementById('obModalTitle').textContent = name + ' — Onboarding & Brand Kit';
+  obRenderChecklist();
+  obFillKit();
+  document.getElementById('modalOnboard').classList.remove('hidden');
+}
+
+function obRenderChecklist(){
+  const wrap = document.getElementById('ob-checklist');
+  const steps = obClientSteps(obCurrentClient);
+  const seedBtn = document.getElementById('ob-seed-btn');
+  if(!steps.length){
+    wrap.innerHTML = '<div style="color:var(--text-3);font-size:13px;padding:8px 0">No checklist yet for this client.</div>';
+    if(seedBtn) seedBtn.style.display='';
+    return;
+  }
+  if(seedBtn) seedBtn.style.display='none';
+  const done = steps.filter(s=>s.status==='done').length;
+  wrap.innerHTML = `<div style="font-size:0.78rem;color:var(--text-2);margin-bottom:8px">${done}/${steps.length} done · ${Math.round(done/steps.length*100)}%</div>` + steps.map(s=>{
+    const isDone = s.status==='done';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div onclick="obToggle(${s.id})" style="width:20px;height:20px;border-radius:5px;border:1.5px solid ${isDone?'var(--green)':'var(--border-strong,#3a3a4e)'};background:${isDone?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">${isDone?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+      <div style="flex:1;font-size:0.86rem;${isDone?'color:var(--text-3);text-decoration:line-through':'color:var(--text)'}">${esc(s.step)}</div>
+      ${s.owner?`<span style="font-size:0.68rem;background:var(--surface-2,#1a1a26);border:1px solid var(--border);border-radius:10px;padding:1px 8px;color:var(--text-2)">${esc(s.owner)}</span>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function obSeed(){
+  if(!obCurrentClient) return;
+  const cid = (CLIENTS||[]).find(c=>c.name===obCurrentClient)?.id || null;
+  const rows = OB_STEPS.map((step,i)=>({client_id:cid, client_name:obCurrentClient, step, step_order:i+1, status:'pending'}));
+  try{
+    await sbC('client_onboarding','POST',rows,'');
+    _sbCacheInvalidate('client_onboarding');
+    OB_onboarding = await sb('client_onboarding','?select=*&order=step_order.asc')||[];
+    obRenderChecklist(); renderOnboarding();
+  }catch(e){ console.error('obSeed',e); alert('Could not start onboarding'); }
+}
+
+async function obToggle(id){
+  const s = OB_onboarding.find(x=>String(x.id)===String(id)); if(!s) return;
+  const next = s.status==='done'?'pending':'done';
+  s.status = next; // optimistic
+  obRenderChecklist();
+  try{ await SBpatch('client_onboarding',id,{status:next}); _sbCacheInvalidate('client_onboarding'); renderOnboarding(); }
+  catch(e){ console.error('obToggle',e); s.status = next==='done'?'pending':'done'; obRenderChecklist(); }
+}
+
+function bkSwatch(){
+  const norm=c=>{ c=(c||'').trim(); if(!c) return null; if(!/^#/.test(c)&&/^[0-9a-fA-F]{3,8}$/.test(c)) c='#'+c; return /^#[0-9a-fA-F]{3,8}$/.test(c)?c:null; };
+  const cols = [['Primary','bk-primary'],['Secondary','bk-secondary'],['Accent','bk-accent']].map(([lbl,id])=>{
+    const c = norm(document.getElementById(id).value);
+    return `<div style="text-align:center"><div style="width:54px;height:40px;border-radius:8px;border:1px solid var(--border);background:${c||'transparent'}"></div><div style="font-size:0.6rem;color:var(--text-3);margin-top:2px">${lbl}</div></div>`;
+  }).join('');
+  document.getElementById('bk-swatches').innerHTML = cols;
+}
+function bkLogoPreview(){
+  const url = document.getElementById('bk-logo').value.trim();
+  document.getElementById('bk-logo-preview').innerHTML = url ? `<img src="${esc(url)}" alt="logo" style="max-height:60px;max-width:200px;border-radius:6px;background:#fff;padding:4px" onerror="this.style.display='none'">` : '';
+}
+function obFillKit(){
+  const k = obKit(obCurrentClient) || {};
+  document.getElementById('bk-primary').value = k.primary_color||'';
+  document.getElementById('bk-secondary').value = k.secondary_color||'';
+  document.getElementById('bk-accent').value = k.accent_color||'';
+  document.getElementById('bk-logo').value = k.logo_url||'';
+  document.getElementById('bk-fonts').value = k.fonts||'';
+  document.getElementById('bk-guidelines').value = k.guidelines_url||'';
+  document.getElementById('bk-assets').value = k.assets_link||'';
+  document.getElementById('bk-notes').value = k.notes||'';
+  bkSwatch(); bkLogoPreview();
+}
+async function bkSave(){
+  if(!obCurrentClient) return;
+  const cid = (CLIENTS||[]).find(c=>c.name===obCurrentClient)?.id || null;
+  const data = {
+    client_id:cid, client_name:obCurrentClient,
+    primary_color:document.getElementById('bk-primary').value.trim()||null,
+    secondary_color:document.getElementById('bk-secondary').value.trim()||null,
+    accent_color:document.getElementById('bk-accent').value.trim()||null,
+    logo_url:document.getElementById('bk-logo').value.trim()||null,
+    fonts:document.getElementById('bk-fonts').value.trim()||null,
+    guidelines_url:document.getElementById('bk-guidelines').value.trim()||null,
+    assets_link:document.getElementById('bk-assets').value.trim()||null,
+    notes:document.getElementById('bk-notes').value.trim()||null
+  };
+  const existing = obKit(obCurrentClient);
+  try{
+    if(existing){ await SBpatch('client_brand_kit',existing.id,data); }
+    else { await SBpost('client_brand_kit',data); }
+    _sbCacheInvalidate('client_brand_kit');
+    OB_kits = await sb('client_brand_kit','?select=*')||[];
+    renderOnboarding();
+    alert('Brand kit saved');
+  }catch(e){ console.error('bkSave',e); alert('Save failed'); }
 }
 </script>
 
