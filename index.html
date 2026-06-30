@@ -1829,6 +1829,7 @@ td:last-child{padding-right:18px;text-align:right}
           <div class="field-cell"><div class="field-cell-lbl">Start Date</div><input class="field-cell-input" id="cpf-start" type="date" onchange="saveField('start_date',this.value)"></div>
           <div class="field-cell"><div class="field-cell-lbl">Renewal Date</div><input class="field-cell-input" id="cpf-renewal" type="date" onchange="saveField('renewal',this.value)"></div>
           <div class="field-cell"><div class="field-cell-lbl">Posts/Month <span style="color:var(--accent);font-size:7.5px;font-weight:700;letter-spacing:.04em">EDIT</span></div><input class="field-cell-input" id="cpf-posts" type="number" placeholder="e.g. 12" onchange="saveField('monthly_posts',this.value)" title="Edit posts per month target"></div>
+          <div class="field-cell"><div class="field-cell-lbl">Stories/Month <span style="color:var(--accent);font-size:7.5px;font-weight:700;letter-spacing:.04em">EDIT</span></div><input class="field-cell-input" id="cpf-stories" type="number" placeholder="e.g. 15" onchange="saveField('monthly_stories',this.value)" title="Edit stories per month target"></div>
           <div class="field-cell" style="border-right:none"><div class="field-cell-lbl">Videos/Month <span style="color:var(--accent);font-size:7.5px;font-weight:700;letter-spacing:.04em">EDIT</span></div><input class="field-cell-input" id="cpf-videos" type="number" placeholder="e.g. 6" onchange="saveField('monthly_videos',this.value)" title="Edit videos per month target"></div>
         </div>
       </div>
@@ -5262,6 +5263,7 @@ function openProfile(id){
   document.getElementById('cpf-start').value=c.start_date||'';
   document.getElementById('cpf-renewal').value=c.renewal||'';
   document.getElementById('cpf-posts').value=c.monthly_posts||'';
+  document.getElementById('cpf-stories').value=c.monthly_stories||'';
   document.getElementById('cpf-videos').value=c.monthly_videos||'';
   document.getElementById('profile-notes').value=c.notes||'';
   const{y,m}=nowYM();cpMonth=m;cpYear=y;
@@ -5273,7 +5275,7 @@ function openProfile(id){
 async function saveField(field,value){
   if(!currentId)return;
   let v=value;
-  if(['month','mrr','monthly_posts','monthly_videos'].includes(field))v=parseInt(value)||0;
+  if(['month','mrr','monthly_posts','monthly_videos','monthly_stories'].includes(field))v=parseInt(value)||0;
   if(field==='plan_ready')v=value==='true';
   if((field==='start_date'||field==='renewal')&&!value)v=null;
   await SBpatch('clients',currentId,{[field]:v});
