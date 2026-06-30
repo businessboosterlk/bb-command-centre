@@ -5119,9 +5119,17 @@ async function autoScoreClientHealth(){
       const lastPosted    = clientContent.find(p => p.posted && p.scheduled_date);
       const daysSincePost = lastPosted ? Math.floor((Date.now()-new Date(lastPosted.scheduled_date).getTime())/86400000) : 999;
       const hasScheduled  = clientContent.some(p => !p.posted && p.scheduled_date >= today);
-      let score = 'green';
-      if(overdueTasks>=3 || overdueInvs>=2 || (daysSincePost>=21 && !hasScheduled)) score='red';
-      else if(overdueTasks>=1 || overdueInvs>=1 || daysSincePost>=14) score='amber';
+      // Gradient score from real signals. Content staleness only counts when the client
+      // actually HAS posted history — otherwise it's the systemic logging gap, not a
+      // client problem, so we don't auto-red the whole book on missing post data.
+      let points = 0;
+      points += Math.min(4, overdueInvs * 2);          // unpaid+overdue invoices (strong)
+      points += Math.min(3, overdueTasks);             // overdue tasks
+      if(lastPosted){                                  // only if there's real content history
+        if(daysSincePost>=21 && !hasScheduled) points += 2;
+        else if(daysSincePost>=14) points += 1;
+      }
+      let score = points>=5 ? 'red' : points>=2 ? 'amber' : 'green';
       if(score !== (c.health||'green')) updates.push({id:c.id, oldHealth:c.health, newHealth:score,
         reasons:[overdueTasks?overdueTasks+' overdue task'+(overdueTasks>1?'s':''):null,
                  overdueInvs?overdueInvs+' unpaid invoice'+(overdueInvs>1?'s':''):null,
