@@ -3376,7 +3376,7 @@ const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 
 /* ── EGRESS CACHE (5-min TTL, invalidated on writes) ── */
 const _sbCache={};
-const _sbTTL=5*60*1000;
+const _sbTTL=8*60*1000;
 function _sbCacheGet(k){const e=_sbCache[k];if(e&&Date.now()-e.t<_sbTTL)return e.d;return null;}
 function _sbCacheSet(k,d){_sbCache[k]={d,t:Date.now()};}
 function _sbCacheInvalidate(table){Object.keys(_sbCache).filter(k=>k.startsWith(table+'|')).forEach(k=>delete _sbCache[k]);}
@@ -4283,7 +4283,7 @@ function toggleNav(){
 ══════════════════════════════════════ */
 updateClock();
 setInterval(updateClock,30000);
-setInterval(()=>{if(ROLE&&!document.hidden)loadAll();},180000);
+setInterval(()=>{if(ROLE&&!document.hidden)loadAll();},420000);
 
 /* ══════════════════════════════════════
    PAGE SWITCHER
@@ -6719,10 +6719,10 @@ function uploadLogo(){
 }
 (()=>{const saved=localStorage.getItem('bb-logo-url');if(saved){const img=document.getElementById('sb-logo-img');if(img)img.src=saved;}})();
 // init handled by showPage
-setInterval(()=>{if(!document.hidden)loadAll();},180000);
+// (the full-reload interval is defined once above — this duplicate was doubling egress; removed)
 // Pipeline auto-refresh — only when on that page AND the tab is visible (bandwidth-safe)
-setInterval(()=>{if(CURRENT_PAGE==='videopipeline'&&!document.hidden)loadVideoPipeline();},120000);
-setInterval(()=>{if(CURRENT_PAGE==='shootpipeline'&&!document.hidden)loadShootPipeline();},120000);
+setInterval(()=>{if(CURRENT_PAGE==='videopipeline'&&!document.hidden)loadVideoPipeline();},240000);
+setInterval(()=>{if(CURRENT_PAGE==='shootpipeline'&&!document.hidden)loadShootPipeline();},240000);
 
 /* ══════════════════════════════════════
    TASK BOOK
@@ -9788,7 +9788,7 @@ async function deleteMission(id){
 
   var SB_URL = 'https://yyviiwnqgphyklcoijyd.supabase.co';
   var AK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
-  var POLL_MS = 5 * 60 * 1000;
+  var POLL_MS = 12 * 60 * 1000;
   var COOL_MS = 30 * 60 * 1000;
   var cooldowns = {};
   var detail = {};
