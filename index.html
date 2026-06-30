@@ -11968,7 +11968,7 @@ else buildNavGroups();
       _seen[key]=now;_issues.push(issue);
       console.error('[BB Sentinel]',issue.category,issue.table_name||'',issue.message,issue.detail||'');
       fetch(SB_URL+'/rest/v1/system_bug_log',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({app:APP,severity:issue.severity||'error',category:issue.category||null,table_name:issue.table_name||null,message:(issue.message||'').slice(0,500),detail:(issue.detail||'').slice(0,2000),user_name:who(),url:location.href.slice(0,300),user_agent:(navigator.userAgent||'').slice(0,300)})}).catch(function(){});
-      renderBanner();
+      if(!issue.quiet)renderBanner();
     }catch(e){}
   }
   window.bbReportDbError=function(table,op,err){if(!err)return;var msg=(err.message||err.msg||(typeof err==='string'?err:JSON.stringify(err))||'unknown');var code=err.code?(' ['+err.code+']'):'';report({severity:'error',category:'db_write',table_name:table,message:op+' failed'+code,detail:msg});};
@@ -11994,13 +11994,13 @@ else buildNavGroups();
   }
   function checkHealth(){
     TABLES.forEach(function(t){headCount(t.name).then(function(res){
-      if(!res.ok){var cat=res.status===404?'table_missing':(res.status===401||res.status===403?'db_permission':'network');report({severity:'error',category:cat,table_name:t.name,message:'read failed (HTTP '+res.status+')',detail:(res.body||'').slice(0,300)});return;}
+      if(!res.ok){if(res.status===0){report({severity:'info',category:'network',table_name:t.name,message:'read failed (network/offline)',detail:'Transient connectivity, not a bug.',quiet:true});return;}var cat=res.status===404?'table_missing':(res.status===401||res.status===403?'db_permission':'server_error');report({severity:'error',category:cat,table_name:t.name,message:'read failed (HTTP '+res.status+')',detail:(res.body||'').slice(0,300)});return;}
       if(t.core&&res.count===0){report({severity:'warning',category:'empty_core',table_name:t.name,message:'returned 0 rows — likely a permissions (RLS) block',detail:'Core table should never be empty. Check RLS policy for the anon role.'});}
     });});
   }
   window.bbSentinelCheck=checkHealth;
   window.addEventListener('error',function(e){if(!e)return;var msg=e.message||'script error';var detail=(e.filename?e.filename+':'+e.lineno+':'+e.colno:'')+(e.error&&e.error.stack?'\n'+e.error.stack:'');report({severity:'error',category:'js_error',message:msg.slice(0,200),detail:detail.slice(0,800)});});
-  window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(!r)return;var msg=(r.message||r.msg||(typeof r==='string'?r:JSON.stringify(r))||'unhandled promise rejection');var code=r.code?(' ['+r.code+']'):'';report({severity:'error',category:'promise_rejection',message:('unhandled: '+msg+code).slice(0,200),detail:(r.stack||'').slice(0,800)});});
+  window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;if(!r)return;var msg=(r.message||r.msg||(typeof r==='string'?r:JSON.stringify(r))||'unhandled promise rejection');var code=r.code?(' ['+r.code+']'):'';var isNet=/failed to fetch|networkerror|load failed|network request failed/i.test(String(msg));report({severity:isNet?'info':'error',category:isNet?'network':'promise_rejection',message:('unhandled: '+msg+code).slice(0,200),detail:(r.stack||'').slice(0,800),quiet:isNet});});
   var _tries=0;
   function waitAndRun(){_tries++;var r=role();if(r&&r!=='demo'){setTimeout(checkHealth,500);return;}if(_tries<40)setTimeout(waitAndRun,500);}
   if(document.readyState==='complete')waitAndRun();else window.addEventListener('load',waitAndRun);
