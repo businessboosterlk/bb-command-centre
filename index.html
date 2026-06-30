@@ -6488,7 +6488,7 @@ async function loadNotifications(){
   if(ROLE==='demo') return;
   try{
     const today=new Date().toISOString().split('T')[0];
-    NOTIFS=await SBget('cc_notifications','?select=*&order=created_at.desc&limit=20').catch(()=>[]);
+    NOTIFS=(await SBget('cc_notifications','?select=*&order=created_at.desc&limit=20').catch(()=>[]))||[];
     // Check pillar alerts (2 PM rule)
     await checkPillarAlert();
     // Check today's login events
@@ -6498,6 +6498,7 @@ async function loadNotifications(){
 }
 
 function updateNotifBadge(){
+  if(!Array.isArray(NOTIFS))NOTIFS=[];
   const unread=NOTIFS.filter(n=>!n.is_read).length;
   const badge=document.getElementById('notif-badge');
   if(badge){
