@@ -1785,7 +1785,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="table-card">
         <div class="table-wrap">
           <table>
-            <thead><tr><th>Client</th><th>Type</th><th>Package</th><th style="text-align:center">Month</th><th>MRR</th><th>Health</th><th style="text-align:center">Posts</th><th style="text-align:center">Videos</th><th>Open Tasks</th><th></th></tr></thead>
+            <thead><tr><th>Client</th><th>Type</th><th>Package</th><th style="text-align:center">Month</th><th>MRR</th><th>Health</th><th style="text-align:center">Posts</th><th style="text-align:center">Stories</th><th style="text-align:center">Videos</th><th>Open Tasks</th><th></th></tr></thead>
             <tbody id="clients-tbody"><tr><td colspan="10"><div class="skel" style="margin:12px"></div></td></tr></tbody>
           </table>
         </div>
@@ -5216,7 +5216,7 @@ function renderTable(){
   if(healthFilter)cs=cs.filter(c=>c.health===healthFilter);
   if(q)cs=cs.filter(c=>(c.name||'').toLowerCase().includes(q)||(c.industry||'').toLowerCase().includes(q)||(c.package||'').toLowerCase().includes(q));
   const tb=document.getElementById('clients-tbody');
-  if(!cs.length){tb.innerHTML=`<tr><td colspan="10"><div class="empty-state"><div class="empty-title">No clients found</div><div class="empty-sub">Try a different filter</div></div></td></tr>`;return;}
+  if(!cs.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty-state"><div class="empty-title">No clients found</div><div class="empty-sub">Try a different filter</div></div></td></tr>`;return;}
   tb.innerHTML=cs.map(c=>{
     const ct=TASKS.filter(t=>t.clientId===Number(c.id)),open=ct.filter(t=>!t.done).length,od=ct.filter(t=>isOD(t)).length;
     return `<tr onclick="openProfile(${c.id})">
@@ -5226,6 +5226,7 @@ function renderTable(){
       <td style="font-size:12.5px;font-weight:700">${getMRR(c)?fmtK(getMRR(c)):'—'}</td>
       <td><div class="health-cell"><span class="health-dot ${c.health||'green'}"></span><span class="health-label ${c.health||'green'}">${hlbl(c.health)}</span></div></td>
       <td style="text-align:center"><span class="content-num ${c.monthly_posts?'posts':'dash'}">${c.monthly_posts||'—'}</span></td>
+      <td style="text-align:center"><span class="content-num ${c.monthly_stories?'posts':'dash'}">${c.monthly_stories||'—'}</span></td>
       <td style="text-align:center"><span class="content-num ${c.monthly_videos?'videos':'dash'}">${c.monthly_videos||'—'}</span></td>
       <td><span class="task-cell ${od?'has-overdue':open?'has-tasks':'clear'}">${open?open+' open'+(od?' · '+od+' od':''):'—'}</span></td>
       <td onclick="event.stopPropagation()"><button class="del-row-btn" onclick="confirmDeleteClient(${c.id},'${esc(c.name)}')">×</button></td>
@@ -6848,7 +6849,7 @@ function closeModal(id){const el=document.getElementById(id);if(el)el.classList.
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hidden');}));
 
 /* ── EXPORT ── */
-function exportCSV(){const rows=[['Name','Type','Package','Month','MRR','Health','Posts/mo','Videos/mo','Open Tasks']];CLIENTS.forEach(c=>{const open=TASKS.filter(t=>t.clientId===Number(c.id)&&!t.done).length;rows.push([c.name,c.client_type||'sm',c.package,c.month||1,getMRR(c),c.health||'green',c.monthly_posts||0,c.monthly_videos||0,open]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bb-clients-'+todayStr()+'.csv';a.click();}
+function exportCSV(){const rows=[['Name','Type','Package','Month','MRR','Health','Posts/mo','Stories/mo','Videos/mo','Open Tasks']];CLIENTS.forEach(c=>{const open=TASKS.filter(t=>t.clientId===Number(c.id)&&!t.done).length;rows.push([c.name,c.client_type||'sm',c.package,c.month||1,getMRR(c),c.health||'green',c.monthly_posts||0,c.monthly_stories||0,c.monthly_videos||0,open]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bb-clients-'+todayStr()+'.csv';a.click();}
 
 /* ── INIT ── */
 function uploadLogo(){
