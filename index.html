@@ -8854,7 +8854,8 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
 .inv-terms-col{flex:1;max-width:420px}
 .inv-terms-txt{font-size:10.5px;color:#8a8a92;line-height:1.7;margin-top:8px}
 .inv-sign{text-align:center;min-width:180px}
-.inv-sign-line{border-top:1.5px solid #1a1a1a;padding-top:7px;margin-top:34px}
+.inv-sign-img{height:56px;width:auto;display:block;margin:0 auto -8px;object-fit:contain}
+.inv-sign-line{border-top:1.5px solid #1a1a1a;padding-top:7px;margin-top:6px}
 .inv-sign-name{font-size:11px;font-weight:800;color:#111214}
 .inv-sign-role{font-size:9.5px;color:#9a9aa2;margin-top:2px;letter-spacing:.02em}
 .inv-hint{font-size:9.5px;color:#b5651d;font-weight:600;margin-top:6px}
@@ -8986,6 +8987,7 @@ function renderInvoiceDoc(){
           <div class="inv-terms-txt" contenteditable="true">${inv.notes?escHtml(inv.notes):'Payment is due by the date stated above. Please use the invoice number as the payment reference. Late settlement may pause ongoing work.'}</div>
         </div>
         <div class="inv-sign">
+          <img class="inv-sign-img" src="assets/bb-signature.png" alt="Signature">
           <div class="inv-sign-line"></div>
           <div class="inv-sign-name" contenteditable="true">Business Booster</div>
           <div class="inv-sign-role" contenteditable="true">Account Manager</div>
