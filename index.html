@@ -8796,7 +8796,6 @@ async function deleteMission(id){
 #invgen-doc *{box-sizing:border-box}
 /* header band */
 .inv-band{background:#111214;color:#fff;padding:30px 52px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
-.inv-band::after{content:"";position:absolute;top:0;bottom:0;left:52%;width:120px;background:#000;transform:skewX(-20deg);opacity:.45}
 .inv-band-l{position:relative;z-index:2}
 .inv-logo-img{height:60px;width:auto;display:block;filter:brightness(0) invert(1)}
 .inv-tag{font-size:8.5px;letter-spacing:.32em;color:#b8b8c2;margin-top:9px;font-weight:600;text-transform:uppercase}
@@ -9011,14 +9010,8 @@ function renderInvItemRows(){
 }
 function renderInvTotals(){
   const sub=INVGEN.items.reduce((s,it)=>s+(parseInt(it.price)||0)*(parseInt(it.qty)||0),0);
-  const disc=Math.max(0,parseInt(INVGEN.discount)||0);
-  const taxPct=Math.max(0,parseFloat(INVGEN.taxPct)||0);
-  const taxAmt=Math.round((sub-disc)*taxPct/100);
-  const grand=Math.max(0,sub-disc+taxAmt);
   return `<div class="inv-tot-row"><span>Subtotal</span><span class="v">${invMoney(sub)}</span></div>
-    <div class="inv-tot-row"><span>Discount (LKR)</span><input class="inv-tot-in" type="text" inputmode="numeric" value="${invNum0(disc)}" onchange="invEditDiscount(this.value)"></div>
-    <div class="inv-tot-row"><span>Tax (<input class="inv-tot-in inv-taxpct" type="text" inputmode="numeric" value="${taxPct}" onchange="invEditTax(this.value)">%)</span><span class="v">${invMoney(taxAmt)}</span></div>
-    <div class="inv-tot-grand"><span class="k">Total</span><span class="v">${invMoney(grand)}</span></div>`;
+    <div class="inv-tot-grand"><span class="k">Total</span><span class="v">${invMoney(sub)}</span></div>`;
 }
 function invRefreshItems(){
   const b=document.getElementById('inv-items-body'); if(b)b.innerHTML=renderInvItemRows();
