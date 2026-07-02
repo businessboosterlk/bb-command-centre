@@ -8791,68 +8791,90 @@ async function deleteMission(id){
 .ig-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border)}
 .ig-btn.ghost:hover{color:var(--text);border-color:var(--text-3)}
 .invgen-scroll{flex:1;overflow:auto;padding:28px 16px 60px;display:flex;justify-content:center}
-/* A4 invoice document */
-#invgen-doc{width:794px;max-width:100%;min-height:1123px;background:#fff;color:#14141c;box-shadow:0 20px 70px rgba(0,0,0,.5);border-radius:2px;padding:56px 60px;box-sizing:border-box;font-family:'Inter','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased}
+/* A4 invoice document — Business Booster, black & white corporate */
+#invgen-doc{width:794px;max-width:100%;min-height:1123px;background:#fff;color:#1a1a1a;box-shadow:0 20px 70px rgba(0,0,0,.5);border-radius:2px;padding:0;box-sizing:border-box;font-family:'Inter','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;overflow:hidden;position:relative}
 #invgen-doc *{box-sizing:border-box}
-.inv-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:44px}
-.inv-brand{display:flex;align-items:center;gap:13px}
-.inv-logo{width:46px;height:46px;border-radius:12px;background:linear-gradient(140deg,#FF6B2B,#D94F0A);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 5px 16px rgba(217,79,10,.32)}
-.inv-logo svg{width:24px;height:24px;stroke:#fff;fill:none;stroke-width:2.4}
-.inv-bname{font-family:'Poppins',sans-serif;font-weight:800;font-size:19px;letter-spacing:-.01em;color:#14141c;line-height:1.05}
-.inv-btag{font-size:10.5px;color:#8a8a99;font-weight:500;margin-top:3px;letter-spacing:.02em}
-.inv-title-block{text-align:right}
-.inv-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:30px;letter-spacing:.16em;color:#14141c;line-height:1}
-.inv-num{font-size:12px;color:#8a8a99;margin-top:8px;font-weight:600;letter-spacing:.02em}
-.inv-status-chip{display:inline-block;margin-top:8px;font-size:9.5px;font-weight:800;letter-spacing:.09em;padding:3px 10px;border-radius:20px}
-.inv-meta{display:flex;justify-content:space-between;gap:32px;margin-bottom:38px}
-.inv-party-lbl{font-size:9.5px;font-weight:800;letter-spacing:.13em;color:#b0b0bd;text-transform:uppercase;margin-bottom:9px}
-.inv-party-name{font-size:15px;font-weight:700;color:#14141c;margin-bottom:3px}
-.inv-party-line{font-size:12px;color:#65656f;line-height:1.7}
-.inv-dates{text-align:right;min-width:210px}
-.inv-date-row{display:flex;justify-content:space-between;gap:24px;font-size:12px;padding:4px 0}
-.inv-date-row .k{color:#9a9aa6;font-weight:500}
-.inv-date-row .v{color:#14141c;font-weight:700;font-variant-numeric:tabular-nums}
-table.inv-items{width:100%;border-collapse:collapse;margin-bottom:8px}
-table.inv-items th{font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#b0b0bd;text-align:left;padding:0 0 11px;border-bottom:1.5px solid #ececf0;background:transparent!important}
+/* header band */
+.inv-band{background:#111214;color:#fff;padding:30px 52px;display:flex;justify-content:space-between;align-items:center;position:relative;overflow:hidden}
+.inv-band::after{content:"";position:absolute;top:0;bottom:0;left:52%;width:120px;background:#000;transform:skewX(-20deg);opacity:.45}
+.inv-band-l{position:relative;z-index:2}
+.inv-logo-img{height:42px;width:auto;display:block;filter:brightness(0) invert(1)}
+.inv-tag{font-size:8.5px;letter-spacing:.32em;color:#b8b8c2;margin-top:9px;font-weight:600;text-transform:uppercase}
+.inv-word{font-family:'Poppins',sans-serif;font-weight:800;font-size:42px;letter-spacing:.12em;color:#fff;line-height:1;position:relative;z-index:2}
+/* body */
+.inv-body{padding:34px 52px 0;flex:1;display:flex;flex-direction:column}
+.inv-meta{display:flex;justify-content:space-between;gap:32px;margin-bottom:30px;padding-bottom:22px;border-bottom:1px solid #ececee}
+.inv-to-lbl{font-size:10px;font-weight:800;letter-spacing:.14em;color:#111214;text-transform:uppercase;margin-bottom:8px}
+.inv-party-name{font-size:20px;font-weight:800;color:#111214;margin-bottom:6px;font-family:'Poppins',sans-serif;letter-spacing:-.01em}
+.inv-party-line{font-size:11.5px;color:#6b6b73;line-height:1.75}
+.inv-dates{min-width:250px}
+.inv-date-row{display:flex;justify-content:space-between;gap:20px;font-size:11px;padding:3px 0}
+.inv-date-row .k{color:#9a9aa2;font-weight:700;letter-spacing:.02em}
+.inv-date-row .v{color:#111214;font-weight:700;font-variant-numeric:tabular-nums}
+/* items table */
+table.inv-items{width:100%;border-collapse:separate;border-spacing:0;margin-bottom:6px}
+table.inv-items thead th{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8a8a92;padding:0 14px 12px;background:transparent!important}
+table.inv-items th.c,table.inv-items td.c{text-align:center}
 table.inv-items th.r,table.inv-items td.r{text-align:right}
-table.inv-items td{padding:13px 0;border-bottom:1px solid #f1f1f5;font-size:13px;color:#2a2a34;vertical-align:top;background:transparent!important}
-table.inv-items tr{background:transparent!important}
-.inv-item-desc{width:100%;border:none;background:transparent;font:inherit;font-size:13px;color:#2a2a34;padding:2px 4px;border-radius:5px}
-.inv-item-desc:focus{outline:none;background:#faf6f3;box-shadow:0 0 0 1.5px var(--accent,#E05000)}
-.inv-item-amt{width:120px;border:none;background:transparent;font:inherit;font-size:13px;font-weight:700;color:#14141c;text-align:right;padding:2px 4px;border-radius:5px;font-variant-numeric:tabular-nums}
-.inv-item-amt:focus{outline:none;background:#faf6f3;box-shadow:0 0 0 1.5px var(--accent,#E05000)}
-.inv-del{border:none;background:transparent;color:#cfcfd8;cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 10px}
-.inv-del:hover{color:#e5484d}
-.inv-additem{margin-top:14px;font-size:11.5px;font-weight:700;color:var(--accent,#E05000);background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px}
+table.inv-items th.l,table.inv-items td.l{text-align:left}
+table.inv-items tbody td{padding:11px 14px;font-size:12px;color:#33333a;vertical-align:middle;background:transparent!important}
+table.inv-items tbody tr:nth-child(odd) td{background:#f4f5f7!important}
+table.inv-items tbody tr td:first-child{border-radius:9px 0 0 9px}
+table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
+.inv-no{font-weight:700;color:#8a8a92;font-variant-numeric:tabular-nums}
+.inv-tot-cell{font-weight:800;color:#111214;font-variant-numeric:tabular-nums}
+.inv-in{border:none;background:transparent;font:inherit;color:#33333a;padding:3px 5px;border-radius:5px;width:100%}
+.inv-in.desc{font-size:12px}
+.inv-in.num{width:74px;text-align:center;font-variant-numeric:tabular-nums}
+.inv-in.price{width:96px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.inv-in:focus{outline:none;background:#fff;box-shadow:0 0 0 1.5px #111214}
+.inv-del{border:none;background:transparent;color:#c7c7cf;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 6px}
+.inv-del:hover{color:#1a1a1a}
+.inv-additem{margin:12px 0 0 14px;font-size:11px;font-weight:700;color:#111214;background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px}
 .inv-additem:hover{text-decoration:underline}
-.inv-totals{margin-top:26px;display:flex;justify-content:flex-end}
-.inv-totals-inner{width:290px}
-.inv-tot-row{display:flex;justify-content:space-between;font-size:12.5px;padding:7px 0;color:#65656f}
-.inv-tot-row .v{font-weight:700;color:#14141c;font-variant-numeric:tabular-nums}
-.inv-tot-grand{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:15px 18px;background:#14141c;color:#fff;border-radius:11px}
-.inv-tot-grand .k{font-size:12px;font-weight:600;letter-spacing:.04em;color:#c7c7d2}
-.inv-tot-grand .v{font-family:'Poppins',sans-serif;font-size:19px;font-weight:800;font-variant-numeric:tabular-nums}
-.inv-foot{margin-top:52px;padding-top:24px;border-top:1px solid #ececf0;display:flex;justify-content:space-between;gap:40px}
-.inv-foot-col{flex:1}
-.inv-foot-lbl{font-size:9.5px;font-weight:800;letter-spacing:.13em;color:#b0b0bd;text-transform:uppercase;margin-bottom:8px}
-.inv-foot-txt{font-size:11.5px;color:#65656f;line-height:1.85}
-.inv-thanks{margin-top:40px;text-align:center;font-size:11.5px;color:#9a9aa6}
-[contenteditable]{outline:none;border-radius:5px;transition:background .12s}
-[contenteditable]:hover{background:#faf6f3}
-[contenteditable]:focus{background:#faf6f3;box-shadow:0 0 0 1.5px var(--accent,#E05000)}
-.inv-hint{font-size:10px;color:#c0392b;font-weight:600;margin-top:4px}
+/* lower zone: payment + totals */
+.inv-lower{display:flex;justify-content:space-between;gap:36px;margin-top:26px}
+.inv-pay{flex:1;max-width:340px}
+.inv-sec-lbl{font-size:11px;font-weight:800;letter-spacing:.06em;color:#111214;text-transform:capitalize;margin-bottom:11px}
+.inv-pay-row{display:flex;font-size:11.5px;color:#5c5c64;padding:2.5px 0;line-height:1.6}
+.inv-pay-row .pk{width:112px;color:#9a9aa2;font-weight:600;flex-shrink:0}
+.inv-pay-row .pv{color:#33333a;font-weight:600}
+.inv-totals-inner{width:280px}
+.inv-tot-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;color:#6b6b73}
+.inv-tot-row .v{font-weight:700;color:#111214;font-variant-numeric:tabular-nums}
+.inv-tot-in{border:none;background:transparent;font:inherit;font-weight:700;color:#111214;text-align:right;width:110px;font-variant-numeric:tabular-nums;padding:2px 4px;border-radius:5px}
+.inv-tot-in:focus{outline:none;background:#f4f5f7;box-shadow:0 0 0 1.5px #111214}
+.inv-taxpct{width:44px;text-align:center}
+.inv-tot-grand{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding:14px 20px;background:#111214;color:#fff;border-radius:10px}
+.inv-tot-grand .k{font-size:12px;font-weight:700;letter-spacing:.04em;color:#e3e3e8}
+.inv-tot-grand .v{font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.inv-thanks{margin-top:26px;font-size:12px;font-weight:800;color:#111214;font-family:'Poppins',sans-serif}
+.inv-terms{margin-top:22px;display:flex;justify-content:space-between;gap:40px;align-items:flex-end}
+.inv-terms-col{flex:1;max-width:420px}
+.inv-terms-txt{font-size:10.5px;color:#8a8a92;line-height:1.7;margin-top:8px}
+.inv-sign{text-align:center;min-width:180px}
+.inv-sign-line{border-top:1.5px solid #1a1a1a;padding-top:7px;margin-top:34px}
+.inv-sign-name{font-size:11px;font-weight:800;color:#111214}
+.inv-sign-role{font-size:9.5px;color:#9a9aa2;margin-top:2px;letter-spacing:.02em}
+.inv-hint{font-size:9.5px;color:#b5651d;font-weight:600;margin-top:6px}
+.inv-footer-band{margin-top:28px;background:#111214;height:22px;flex-shrink:0}
+[contenteditable]{outline:none;border-radius:4px;transition:background .12s}
+[contenteditable]:hover{background:#f4f5f7}
+[contenteditable]:focus{background:#f4f5f7;box-shadow:0 0 0 1.5px #111214}
 @media print{
   body{background:#fff!important}
   body *{visibility:hidden!important}
   #invgen-doc,#invgen-doc *{visibility:visible!important}
-  #invgen-doc{position:absolute;left:0;top:0;width:210mm;min-height:auto;margin:0;padding:16mm 16mm;box-shadow:none;border-radius:0}
+  #invgen-doc{position:absolute;left:0;top:0;width:210mm;min-height:auto;margin:0;padding:0;box-shadow:none;border-radius:0}
+  .inv-band{padding:16mm 18mm}.inv-body{padding:10mm 18mm 0}
   .invgen-bar{display:none!important}
   .inv-del,.inv-additem,.inv-hint{display:none!important}
-  [contenteditable]:hover,[contenteditable]:focus{background:transparent!important;box-shadow:none!important}
-  .inv-item-desc:focus,.inv-item-amt:focus{background:transparent!important;box-shadow:none!important}
+  [contenteditable]:hover,[contenteditable]:focus,.inv-in:focus,.inv-tot-in:focus{background:transparent!important;box-shadow:none!important}
+  table.inv-items tbody tr:nth-child(odd) td{background:#f4f5f7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .inv-band,.inv-tot-grand,.inv-footer-band{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   @page{size:A4;margin:0}
 }
-@media(max-width:840px){#invgen-doc{padding:32px 24px}}
+@media(max-width:840px){.inv-band{padding:24px}.inv-body{padding:24px 24px 0}.inv-word{font-size:32px}}
 </style>
 <div id="invgen-overlay">
   <div class="invgen-bar">
@@ -8867,20 +8889,23 @@ table.inv-items tr{background:transparent!important}
   </div>
 </div>
 <script>
-/* ══ BB INVOICE GENERATOR — pulls REAL data from the invoices table, no fabrication ══ */
-let INVGEN={inv:null,items:[]};
+/* ══ BB INVOICE GENERATOR — B&W corporate. Pulls REAL data from the invoices table, no fabrication ══ */
+let INVGEN={inv:null,items:[],discount:0,taxPct:0};
 function invMoney(n){return 'LKR '+(Math.round(n)||0).toLocaleString('en-US');}
+function invNum0(n){return (Math.round(n)||0).toLocaleString('en-US');}
 function invPeriodLabel(m){ if(!m)return ''; const p=String(m).split('-'); if(p.length===2){ const d=new Date(Number(p[0]),Number(p[1])-1,1); if(!isNaN(d))return d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}); } return String(m); }
 function invToday(){ const d=new Date(); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
 function invFmtDate(s){ if(!s)return ''; const d=new Date(s); return isNaN(d)?String(s):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
 function invNumber(inv){ const yr=(String(inv.month||'').split('-')[0])||String(new Date().getFullYear()); return 'BB-'+yr+'-'+String(inv.id).padStart(4,'0'); }
+function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function invLogoSrc(){ const el=document.getElementById('login-logo')||document.getElementById('sidebar-logo')||document.getElementById('sb-logo-img'); return el&&el.src?el.src:''; }
 
 function openInvoiceGen(invId){
   const inv=(typeof FIN_INVOICES!=='undefined'?FIN_INVOICES:[]).find(i=>Number(i.id)===Number(invId))
          || (typeof INVOICES!=='undefined'?INVOICES:[]).find(i=>Number(i.id)===Number(invId));
   if(!inv){alert('Invoice not found');return;}
-  INVGEN.inv=inv;
-  // Build line items from REAL data: base retainer + any stored extras
+  INVGEN.inv=inv; INVGEN.discount=0; INVGEN.taxPct=0;
+  // Build line items from REAL data: base retainer + any stored extras. price×qty=total, defaults keep total = real amount.
   let extras=[]; try{extras=Array.isArray(inv.extras)?inv.extras:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
   const extrasSum=extras.reduce((s,e)=>s+(parseInt(e.amt)||0),0);
   const base=(inv.amount||0)-extrasSum;
@@ -8888,9 +8913,9 @@ function openInvoiceGen(invId){
   const pkg=cl&&cl.package?cl.package+' package': 'Marketing retainer';
   const period=invPeriodLabel(inv.month);
   INVGEN.items=[];
-  if(base>0) INVGEN.items.push({desc:pkg+(period?' — '+period:''),amt:base});
-  extras.forEach(e=>INVGEN.items.push({desc:e.desc||'Additional service',amt:parseInt(e.amt)||0}));
-  if(!INVGEN.items.length) INVGEN.items.push({desc:'Marketing retainer'+(period?' — '+period:''),amt:inv.amount||0});
+  if(base>0) INVGEN.items.push({desc:pkg+(period?' — '+period:''),price:base,qty:1});
+  extras.forEach(e=>INVGEN.items.push({desc:e.desc||'Additional service',price:parseInt(e.amt)||0,qty:1}));
+  if(!INVGEN.items.length) INVGEN.items.push({desc:'Marketing retainer'+(period?' — '+period:''),price:inv.amount||0,qty:1});
   document.getElementById('ig-subtitle').textContent=invNumber(inv)+' · '+(inv.client_name||(cl&&cl.name)||'');
   renderInvoiceDoc();
   document.getElementById('invgen-overlay').classList.add('open');
@@ -8904,84 +8929,104 @@ function renderInvoiceDoc(){
   const clientName=inv.client_name||(cl&&cl.name)||'Client';
   const period=invPeriodLabel(inv.month);
   const dueVal=inv.due_date?invFmtDate(inv.due_date):'';
-  const status=(inv.status||'').toLowerCase();
-  const chip={paid:['PAID','#e7f7ee','#1a7f47'],unpaid:['PENDING','#fdf3e2','#b56a09'],overdue:['OVERDUE','#fdecec','#c0392b']}[status]||['DUE','#f1f1f5','#65656f'];
   const industry=cl&&cl.industry?cl.industry:'';
   const contact=cl&&cl.contact?cl.contact:'';
+  const logo=invLogoSrc();
+  const logoHtml=logo?`<img class="inv-logo-img" src="${logo}" alt="Business Booster">`:`<div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:.02em">BUSINESS BOOSTER</div>`;
   const doc=document.getElementById('invgen-doc');
   doc.innerHTML=`
-    <div class="inv-top">
-      <div class="inv-brand">
-        <div class="inv-logo"><svg viewBox="0 0 24 24"><path d="M12 20V6"/><path d="M6 12l6-6 6 6"/></svg></div>
+    <div class="inv-band">
+      <div class="inv-band-l">
+        ${logoHtml}
+        <div class="inv-tag" contenteditable="true">Digital Marketing Agency</div>
+      </div>
+      <div class="inv-word">INVOICE</div>
+    </div>
+
+    <div class="inv-body">
+      <div class="inv-meta">
         <div>
-          <div class="inv-bname">BUSINESS BOOSTER</div>
-          <div class="inv-btag" contenteditable="true">Digital Marketing Agency</div>
+          <div class="inv-to-lbl">Invoice To:</div>
+          <div class="inv-party-name" contenteditable="true">${escHtml(clientName)}</div>
+          ${industry?`<div class="inv-party-line" contenteditable="true">${escHtml(industry)}</div>`:''}
+          <div class="inv-party-line" contenteditable="true">${contact?escHtml(contact):'Add contact / address'}</div>
+        </div>
+        <div class="inv-dates">
+          <div class="inv-date-row"><span class="k">Invoice Number:</span><span class="v">${invNumber(inv)}</span></div>
+          <div class="inv-date-row"><span class="k">Invoice Date:</span><span class="v" contenteditable="true">${invToday()}</span></div>
+          <div class="inv-date-row"><span class="k">Due Date:</span><span class="v" contenteditable="true">${dueVal||'On receipt'}</span></div>
+          ${period?`<div class="inv-date-row"><span class="k">Billing Period:</span><span class="v" contenteditable="true">${escHtml(period)}</span></div>`:''}
         </div>
       </div>
-      <div class="inv-title-block">
-        <div class="inv-title">INVOICE</div>
-        <div class="inv-num">${invNumber(inv)}</div>
-        <div class="inv-status-chip" style="background:${chip[1]};color:${chip[2]}">${chip[0]}</div>
+
+      <table class="inv-items">
+        <thead><tr><th class="c" style="width:44px">No.</th><th class="l">Product Description</th><th class="r" style="width:118px">Price</th><th class="c" style="width:80px">Qty</th><th class="r" style="width:130px">Total</th><th style="width:22px"></th></tr></thead>
+        <tbody id="inv-items-body">${renderInvItemRows()}</tbody>
+      </table>
+      <button class="inv-additem" onclick="invAddItem()">+ Add line item</button>
+
+      <div class="inv-lower">
+        <div class="inv-pay">
+          <div class="inv-sec-lbl">Payment Method</div>
+          <div class="inv-pay-row"><span class="pk">Account No:</span><span class="pv" contenteditable="true">—</span></div>
+          <div class="inv-pay-row"><span class="pk">Account Name:</span><span class="pv" contenteditable="true">Business Booster</span></div>
+          <div class="inv-pay-row"><span class="pk">Bank / Branch:</span><span class="pv" contenteditable="true">—</span></div>
+          <div class="inv-hint">Set your bank details once — they print on the invoice.</div>
+        </div>
+        <div class="inv-totals-inner" id="inv-totals-inner">${renderInvTotals()}</div>
+      </div>
+
+      <div class="inv-thanks">Thank You For Your Business</div>
+
+      <div class="inv-terms">
+        <div class="inv-terms-col">
+          <div class="inv-sec-lbl">Terms &amp; Conditions</div>
+          <div class="inv-terms-txt" contenteditable="true">${inv.notes?escHtml(inv.notes):'Payment is due by the date stated above. Please use the invoice number as the payment reference. Late settlement may pause ongoing work.'}</div>
+        </div>
+        <div class="inv-sign">
+          <div class="inv-sign-line"></div>
+          <div class="inv-sign-name" contenteditable="true">Business Booster</div>
+          <div class="inv-sign-role" contenteditable="true">Account Manager</div>
+        </div>
       </div>
     </div>
-
-    <div class="inv-meta">
-      <div>
-        <div class="inv-party-lbl">Billed To</div>
-        <div class="inv-party-name" contenteditable="true">${escHtml(clientName)}</div>
-        ${industry?`<div class="inv-party-line" contenteditable="true">${escHtml(industry)}</div>`:''}
-        <div class="inv-party-line" contenteditable="true">${contact?escHtml(contact):'Add contact / address'}</div>
-      </div>
-      <div class="inv-dates">
-        <div class="inv-date-row"><span class="k">Invoice date</span><span class="v" contenteditable="true">${invToday()}</span></div>
-        <div class="inv-date-row"><span class="k">Due date</span><span class="v" contenteditable="true">${dueVal||'On receipt'}</span></div>
-        ${period?`<div class="inv-date-row"><span class="k">Billing period</span><span class="v" contenteditable="true">${escHtml(period)}</span></div>`:''}
-      </div>
-    </div>
-
-    <table class="inv-items">
-      <thead><tr><th>Description</th><th class="r" style="width:150px">Amount</th><th style="width:24px"></th></tr></thead>
-      <tbody id="inv-items-body">${renderInvItemRows()}</tbody>
-    </table>
-    <button class="inv-additem" onclick="invAddItem()">+ Add line item</button>
-
-    <div class="inv-totals"><div class="inv-totals-inner" id="inv-totals-inner">${renderInvTotals()}</div></div>
-
-    <div class="inv-foot">
-      <div class="inv-foot-col">
-        <div class="inv-foot-lbl">Payment Details</div>
-        <div class="inv-foot-txt" contenteditable="true">Bank: —&nbsp;&nbsp;|&nbsp;&nbsp;Account name: Business Booster<br>Account no: —&nbsp;&nbsp;|&nbsp;&nbsp;Branch: —</div>
-        <div class="inv-hint">Set your bank details once — they'll print on the invoice.</div>
-      </div>
-      <div class="inv-foot-col">
-        <div class="inv-foot-lbl">Notes</div>
-        <div class="inv-foot-txt" contenteditable="true">${inv.notes?escHtml(inv.notes):'Thank you for your business. Please settle within the due date.'}</div>
-      </div>
-    </div>
-    <div class="inv-thanks">Business Booster &nbsp;·&nbsp; businessboosterlk@gmail.com &nbsp;·&nbsp; Sri Lanka</div>
+    <div class="inv-footer-band"></div>
   `;
 }
-function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function renderInvItemRows(){
-  return INVGEN.items.map((it,i)=>`<tr>
-    <td><input class="inv-item-desc" value="${escHtml(it.desc).replace(/"/g,'&quot;')}" onchange="invEditDesc(${i},this.value)"></td>
-    <td class="r"><input class="inv-item-amt" type="text" inputmode="numeric" value="${(Math.round(it.amt)||0).toLocaleString('en-US')}" onchange="invEditAmt(${i},this.value)"></td>
-    <td class="r"><button class="inv-del" onclick="invDelItem(${i})" title="Remove">×</button></td>
-  </tr>`).join('');
+  return INVGEN.items.map((it,i)=>{
+    const total=(parseInt(it.price)||0)*(parseInt(it.qty)||0);
+    return `<tr>
+      <td class="c inv-no">${String(i+1).padStart(2,'0')}</td>
+      <td class="l"><input class="inv-in desc" value="${escHtml(it.desc).replace(/"/g,'&quot;')}" onchange="invEditDesc(${i},this.value)"></td>
+      <td class="r"><input class="inv-in price" type="text" inputmode="numeric" value="${invNum0(it.price)}" onchange="invEditField(${i},'price',this.value)"></td>
+      <td class="c"><input class="inv-in num" type="text" inputmode="numeric" value="${parseInt(it.qty)||0}" onchange="invEditField(${i},'qty',this.value)"></td>
+      <td class="r inv-tot-cell">${invNum0(total)}</td>
+      <td class="r"><button class="inv-del" onclick="invDelItem(${i})" title="Remove">×</button></td>
+    </tr>`;
+  }).join('');
 }
 function renderInvTotals(){
-  const sub=INVGEN.items.reduce((s,it)=>s+(parseInt(it.amt)||0),0);
+  const sub=INVGEN.items.reduce((s,it)=>s+(parseInt(it.price)||0)*(parseInt(it.qty)||0),0);
+  const disc=Math.max(0,parseInt(INVGEN.discount)||0);
+  const taxPct=Math.max(0,parseFloat(INVGEN.taxPct)||0);
+  const taxAmt=Math.round((sub-disc)*taxPct/100);
+  const grand=Math.max(0,sub-disc+taxAmt);
   return `<div class="inv-tot-row"><span>Subtotal</span><span class="v">${invMoney(sub)}</span></div>
-    <div class="inv-tot-grand"><span class="k">Total Due</span><span class="v">${invMoney(sub)}</span></div>`;
+    <div class="inv-tot-row"><span>Discount (LKR)</span><input class="inv-tot-in" type="text" inputmode="numeric" value="${invNum0(disc)}" onchange="invEditDiscount(this.value)"></div>
+    <div class="inv-tot-row"><span>Tax (<input class="inv-tot-in inv-taxpct" type="text" inputmode="numeric" value="${taxPct}" onchange="invEditTax(this.value)">%)</span><span class="v">${invMoney(taxAmt)}</span></div>
+    <div class="inv-tot-grand"><span class="k">Total</span><span class="v">${invMoney(grand)}</span></div>`;
 }
 function invRefreshItems(){
   const b=document.getElementById('inv-items-body'); if(b)b.innerHTML=renderInvItemRows();
   const t=document.getElementById('inv-totals-inner'); if(t)t.innerHTML=renderInvTotals();
 }
 function invEditDesc(i,v){ if(INVGEN.items[i])INVGEN.items[i].desc=v; }
-function invEditAmt(i,v){ if(INVGEN.items[i])INVGEN.items[i].amt=Math.max(0,parseInt(String(v).replace(/[^0-9]/g,''))||0); invRefreshItems(); }
-function invAddItem(){ INVGEN.items.push({desc:'',amt:0}); invRefreshItems(); }
-function invDelItem(i){ INVGEN.items.splice(i,1); if(!INVGEN.items.length)INVGEN.items.push({desc:'',amt:0}); invRefreshItems(); }
+function invEditField(i,f,v){ if(INVGEN.items[i])INVGEN.items[i][f]=Math.max(0,parseInt(String(v).replace(/[^0-9]/g,''))||0); invRefreshItems(); }
+function invEditDiscount(v){ INVGEN.discount=Math.max(0,parseInt(String(v).replace(/[^0-9]/g,''))||0); invRefreshItems(); }
+function invEditTax(v){ INVGEN.taxPct=Math.max(0,parseFloat(String(v).replace(/[^0-9.]/g,''))||0); invRefreshItems(); }
+function invAddItem(){ INVGEN.items.push({desc:'',price:0,qty:1}); invRefreshItems(); }
+function invDelItem(i){ INVGEN.items.splice(i,1); if(!INVGEN.items.length)INVGEN.items.push({desc:'',price:0,qty:1}); invRefreshItems(); }
 function printInvoice(){ window.print(); }
 </script>
 </body>
