@@ -8827,11 +8827,13 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
 .inv-in.desc{font-size:12px}
 .inv-in.num{width:74px;text-align:center;font-variant-numeric:tabular-nums}
 .inv-in.price{width:96px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
-.inv-in:focus{outline:none;background:#fff;box-shadow:0 0 0 1.5px #111214}
+.inv-in{border-bottom:1px dashed #d3d5db}  /* editable cue on screen */
+.inv-in:hover{background:#f4f5f7}
+.inv-in:focus{outline:none;background:#fff;box-shadow:0 0 0 1.5px #111214;border-bottom-color:transparent}
 .inv-del{border:none;background:transparent;color:#c7c7cf;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 6px}
 .inv-del:hover{color:#1a1a1a}
-.inv-additem{margin:12px 0 0 14px;font-size:11px;font-weight:700;color:#111214;background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:4px}
-.inv-additem:hover{text-decoration:underline}
+.inv-additem{margin:14px 0 0 14px;font-size:11.5px;font-weight:700;color:#111214;background:#f4f5f7;border:1.5px dashed #b9bcc4;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px}
+.inv-additem:hover{background:#ececef;border-color:#111214}
 /* lower zone: payment + totals */
 .inv-lower{display:flex;justify-content:space-between;gap:36px;margin-top:26px}
 .inv-pay{flex:1;max-width:340px}
@@ -8868,7 +8870,8 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
   #invgen-doc{position:absolute;left:0;top:0;width:210mm;min-height:auto;margin:0;padding:0;box-shadow:none;border-radius:0}
   .inv-band{padding:16mm 18mm}.inv-body{padding:10mm 18mm 0}
   .invgen-bar{display:none!important}
-  .inv-del,.inv-additem,.inv-hint{display:none!important}
+  .inv-del,.inv-additem,.inv-hint,.inv-edit-note{display:none!important}
+  .inv-in{border-bottom:none!important}
   [contenteditable]:hover,[contenteditable]:focus,.inv-in:focus,.inv-tot-in:focus{background:transparent!important;box-shadow:none!important}
   table.inv-items tbody tr:nth-child(odd) td{background:#f4f5f7!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .inv-band,.inv-tot-grand,.inv-footer-band{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -8878,7 +8881,7 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
 </style>
 <div id="invgen-overlay">
   <div class="invgen-bar">
-    <div><span class="ig-ttl">Invoice</span><span class="ig-sub" id="ig-subtitle"></span></div>
+    <div><span class="ig-ttl">Invoice</span><span class="ig-sub" id="ig-subtitle"></span><span class="ig-sub" style="display:block;margin-left:0;margin-top:2px;color:var(--accent)">Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)</span></div>
     <div style="display:flex;gap:10px">
       <button class="ig-btn ghost" onclick="closeInvoiceGen()">Close</button>
       <button class="ig-btn print" onclick="printInvoice()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print / Save PDF</button>
