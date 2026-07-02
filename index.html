@@ -6261,6 +6261,7 @@ function renderTeamPage(){
               <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:${overdue>0?'var(--red)':'var(--amber)'}">${pending}</div><div class="tm-stat-mini-lbl">Pending</div></div>
             </div>`;
           })()}`}
+          <button class="tm-receipt-btn" onclick="event.stopPropagation();openReceiptGen(${m.id})">Salary Receipt</button>
         </div>`;
       }).join('')}</div>
     </div>`;
@@ -8791,6 +8792,8 @@ async function deleteMission(id){
 .ig-btn.ghost{background:transparent;color:var(--text-2);border-color:var(--border)}
 .ig-btn.ghost:hover{color:var(--text);border-color:var(--text-3)}
 .invgen-scroll{flex:1;overflow:auto;padding:28px 16px 60px;display:flex;justify-content:center}
+.tm-receipt-btn{margin-top:10px;width:100%;font-size:10.5px;font-weight:700;padding:6px 8px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:7px;cursor:pointer}
+.tm-receipt-btn:hover{background:var(--accent);color:#fff}
 /* A4 invoice document — Business Booster, black & white corporate */
 #invgen-doc{width:794px;max-width:100%;min-height:1123px;background:#fff;color:#1a1a1a;box-shadow:0 20px 70px rgba(0,0,0,.5);border-radius:2px;padding:0;box-sizing:border-box;font-family:'Inter','Helvetica Neue',Arial,sans-serif;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;overflow:hidden;position:relative}
 #invgen-doc *{box-sizing:border-box}
@@ -8881,7 +8884,7 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
 </style>
 <div id="invgen-overlay">
   <div class="invgen-bar">
-    <div><span class="ig-ttl">Invoice</span><span class="ig-sub" id="ig-subtitle"></span><span class="ig-sub" style="display:block;margin-left:0;margin-top:2px;color:var(--accent)">Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)</span></div>
+    <div><span class="ig-ttl" id="ig-ttl">Invoice</span><span class="ig-sub" id="ig-subtitle"></span><span class="ig-sub" id="ig-hint" style="display:block;margin-left:0;margin-top:2px;color:var(--accent)">Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)</span></div>
     <div style="display:flex;gap:10px">
       <button class="ig-btn ghost" onclick="closeInvoiceGen()">Close</button>
       <button class="ig-btn print" onclick="printInvoice()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print / Save PDF</button>
@@ -8920,6 +8923,8 @@ function openInvoiceGen(invId){
   extras.forEach(e=>INVGEN.items.push({desc:e.desc||'Additional service',price:parseInt(e.amt)||0,qty:1}));
   if(!INVGEN.items.length) INVGEN.items.push({desc:'Marketing retainer'+(period?' — '+period:''),price:inv.amount||0,qty:1});
   document.getElementById('ig-subtitle').textContent=invNumber(inv)+' · '+(inv.client_name||(cl&&cl.name)||'');
+  var _t=document.getElementById('ig-ttl'); if(_t)_t.textContent='Invoice';
+  var _h=document.getElementById('ig-hint'); if(_h)_h.textContent='Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)';
   renderInvoiceDoc();
   document.getElementById('invgen-overlay').classList.add('open');
   document.body.style.overflow='hidden';
@@ -9026,6 +9031,102 @@ function invEditTax(v){ INVGEN.taxPct=Math.max(0,parseFloat(String(v).replace(/[
 function invAddItem(){ INVGEN.items.push({desc:'',price:0,qty:1}); invRefreshItems(); }
 function invDelItem(i){ INVGEN.items.splice(i,1); if(!INVGEN.items.length)INVGEN.items.push({desc:'',price:0,qty:1}); invRefreshItems(); }
 function printInvoice(){ window.print(); }
+
+/* ══ SALARY PAYMENT RECEIPT — same overlay/print path, employee data from team_members, amount editable & remembered ══ */
+let RCPT={m:null,items:[],period:'',payDate:''};
+function rcMonthLabel(){ const d=new Date(); return d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}); }
+function rcNumber(m){ const d=new Date(); const ym=d.getFullYear()+String(d.getMonth()+1).padStart(2,'0'); return 'BB-SAL-'+ym+'-'+String(m.id).padStart(3,'0'); }
+function rcSaveAmt(){ try{ if(RCPT.m)localStorage.setItem('bb_salary_'+RCPT.m.id, JSON.stringify(RCPT.items)); }catch(e){} }
+function openReceiptGen(memberId){
+  const m=(typeof TM_MEMBERS!=='undefined'?TM_MEMBERS:[]).find(x=>Number(x.id)===Number(memberId));
+  if(!m){alert('Team member not found');return;}
+  RCPT.m=m; RCPT.period=rcMonthLabel(); RCPT.payDate=invToday();
+  let saved=null; try{saved=JSON.parse(localStorage.getItem('bb_salary_'+m.id)||'null');}catch(e){}
+  RCPT.items=(saved&&saved.length)?saved:[{desc:'Salary — '+RCPT.period,amt:0}];
+  document.getElementById('ig-subtitle').textContent=rcNumber(m)+' · '+m.name;
+  var _t=document.getElementById('ig-ttl'); if(_t)_t.textContent='Salary Receipt';
+  const hint=document.getElementById('ig-hint'); if(hint)hint.textContent='Enter the amount paid · click any field to edit · this employee’s amount is remembered for next time';
+  renderReceiptDoc();
+  document.getElementById('invgen-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function renderReceiptDoc(){
+  const m=RCPT.m; if(!m)return;
+  const role=m.role?m.role.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'';
+  const logo=invLogoSrc();
+  const logoHtml=logo?`<img class="inv-logo-img" src="${logo}" alt="Business Booster">`:`<div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;color:#fff">BUSINESS BOOSTER</div>`;
+  const doc=document.getElementById('invgen-doc');
+  doc.innerHTML=`
+    <div class="inv-band">
+      <div class="inv-band-l">${logoHtml}<div class="inv-tag" contenteditable="true">Digital Marketing Agency</div></div>
+      <div class="inv-word">RECEIPT</div>
+    </div>
+    <div class="inv-body">
+      <div class="inv-meta">
+        <div>
+          <div class="inv-to-lbl">Paid To:</div>
+          <div class="inv-party-name" contenteditable="true">${escHtml(m.name)}</div>
+          ${role?`<div class="inv-party-line" contenteditable="true">${escHtml(role)}</div>`:''}
+        </div>
+        <div class="inv-dates">
+          <div class="inv-date-row"><span class="k">Receipt No:</span><span class="v">${rcNumber(m)}</span></div>
+          <div class="inv-date-row"><span class="k">Payment Date:</span><span class="v" contenteditable="true">${RCPT.payDate}</span></div>
+          <div class="inv-date-row"><span class="k">Pay Period:</span><span class="v" contenteditable="true">${escHtml(RCPT.period)}</span></div>
+        </div>
+      </div>
+
+      <table class="inv-items">
+        <thead><tr><th class="c" style="width:44px">No.</th><th class="l">Description</th><th class="r" style="width:150px">Amount</th><th style="width:22px"></th></tr></thead>
+        <tbody id="rc-items-body">${renderRcItemRows()}</tbody>
+      </table>
+      <button class="inv-additem" onclick="rcAddItem()">+ Add line</button>
+
+      <div class="inv-lower">
+        <div class="inv-pay">
+          <div class="inv-sec-lbl">Payment Method</div>
+          <div class="inv-pay-row"><span class="pk">Paid via:</span><span class="pv" contenteditable="true">Bank transfer</span></div>
+          <div class="inv-pay-row"><span class="pk">From:</span><span class="pv" contenteditable="true">Business Booster · Commercial Bank</span></div>
+          <div class="inv-pay-row"><span class="pk">Reference:</span><span class="pv" contenteditable="true">${rcNumber(m)}</span></div>
+        </div>
+        <div class="inv-totals-inner" id="rc-totals-inner">${renderRcTotals()}</div>
+      </div>
+
+      <div class="inv-thanks">Received With Thanks</div>
+
+      <div class="inv-terms">
+        <div class="inv-terms-col">
+          <div class="inv-sec-lbl">Note</div>
+          <div class="inv-terms-txt" contenteditable="true">This receipt confirms the salary payment stated above has been made in full for the pay period shown.</div>
+        </div>
+        <div class="inv-sign">
+          <img class="inv-sign-img" src="assets/bb-signature.png" alt="Signature">
+          <div class="inv-sign-line"></div>
+          <div class="inv-sign-name" contenteditable="true">Business Booster</div>
+          <div class="inv-sign-role" contenteditable="true">Authorised Signatory</div>
+        </div>
+      </div>
+    </div>
+    <div class="inv-footer-band"></div>
+  `;
+}
+function renderRcItemRows(){
+  return RCPT.items.map((it,i)=>`<tr>
+    <td class="c inv-no">${String(i+1).padStart(2,'0')}</td>
+    <td class="l"><input class="inv-in desc" value="${escHtml(it.desc).replace(/"/g,'&quot;')}" onchange="rcEditDesc(${i},this.value)"></td>
+    <td class="r"><input class="inv-in price" style="width:120px" type="text" inputmode="numeric" value="${invNum0(it.amt)}" onchange="rcEditAmt(${i},this.value)"></td>
+    <td class="r"><button class="inv-del" onclick="rcDelItem(${i})" title="Remove">×</button></td>
+  </tr>`).join('');
+}
+function renderRcTotals(){
+  const sum=RCPT.items.reduce((s,it)=>s+(parseInt(it.amt)||0),0);
+  return `<div class="inv-tot-row"><span>Subtotal</span><span class="v">${invMoney(sum)}</span></div>
+    <div class="inv-tot-grand"><span class="k">Amount Paid</span><span class="v">${invMoney(sum)}</span></div>`;
+}
+function rcRefresh(){ const b=document.getElementById('rc-items-body'); if(b)b.innerHTML=renderRcItemRows(); const t=document.getElementById('rc-totals-inner'); if(t)t.innerHTML=renderRcTotals(); rcSaveAmt(); }
+function rcEditDesc(i,v){ if(RCPT.items[i])RCPT.items[i].desc=v; rcSaveAmt(); }
+function rcEditAmt(i,v){ if(RCPT.items[i])RCPT.items[i].amt=Math.max(0,parseInt(String(v).replace(/[^0-9]/g,''))||0); rcRefresh(); }
+function rcAddItem(){ RCPT.items.push({desc:'',amt:0}); rcRefresh(); }
+function rcDelItem(i){ RCPT.items.splice(i,1); if(!RCPT.items.length)RCPT.items.push({desc:'',amt:0}); rcRefresh(); }
 </script>
 </body>
 </html>
