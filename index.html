@@ -8902,6 +8902,7 @@ function invMoney(n){return 'LKR '+(Math.round(n)||0).toLocaleString('en-US');}
 function invNum0(n){return (Math.round(n)||0).toLocaleString('en-US');}
 function invPeriodLabel(m){ if(!m)return ''; const p=String(m).split('-'); if(p.length===2){ const d=new Date(Number(p[0]),Number(p[1])-1,1); if(!isNaN(d))return d.toLocaleDateString('en-GB',{month:'long',year:'numeric'}); } return String(m); }
 function invToday(){ const d=new Date(); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+function invDuePlus30(){ const d=new Date(); d.setDate(d.getDate()+30); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
 function invFmtDate(s){ if(!s)return ''; const d=new Date(s); return isNaN(d)?String(s):d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
 function invNumber(inv){ const yr=(String(inv.month||'').split('-')[0])||String(new Date().getFullYear()); return 'BB-'+yr+'-'+String(inv.id).padStart(4,'0'); }
 function escHtml(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -8937,9 +8938,7 @@ function renderInvoiceDoc(){
   const cl=(typeof CLIENTS!=='undefined'?CLIENTS:[]).find(c=>Number(c.id)===Number(inv.client_id));
   const clientName=inv.client_name||(cl&&cl.name)||'Client';
   const period=invPeriodLabel(inv.month);
-  const dueVal=inv.due_date?invFmtDate(inv.due_date):'';
-  const industry=cl&&cl.industry?cl.industry:'';
-  const contact=cl&&cl.contact?cl.contact:'';
+  const dueVal=inv.due_date?invFmtDate(inv.due_date):invDuePlus30();
   const logo=invLogoSrc();
   const logoHtml=logo?`<img class="inv-logo-img" src="${logo}" alt="Business Booster">`:`<div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:.02em">BUSINESS BOOSTER</div>`;
   const doc=document.getElementById('invgen-doc');
@@ -8957,8 +8956,6 @@ function renderInvoiceDoc(){
         <div>
           <div class="inv-to-lbl">Invoice To:</div>
           <div class="inv-party-name" contenteditable="true">${escHtml(clientName)}</div>
-          ${industry?`<div class="inv-party-line" contenteditable="true">${escHtml(industry)}</div>`:''}
-          <div class="inv-party-line" contenteditable="true">${contact?escHtml(contact):'Add contact / address'}</div>
         </div>
         <div class="inv-dates">
           <div class="inv-date-row"><span class="k">Invoice Number:</span><span class="v">${invNumber(inv)}</span></div>
@@ -8990,7 +8987,7 @@ function renderInvoiceDoc(){
       <div class="inv-terms">
         <div class="inv-terms-col">
           <div class="inv-sec-lbl">Terms &amp; Conditions</div>
-          <div class="inv-terms-txt" contenteditable="true">${inv.notes?escHtml(inv.notes):'Payment is due by the date stated above. Please use the invoice number as the payment reference. Late settlement may pause ongoing work.'}</div>
+          <div class="inv-terms-txt" contenteditable="true">${inv.notes?escHtml(inv.notes):'Payment must be made within 30 days from the date this invoice is sent. Please use the invoice number as the payment reference. Late settlement may pause ongoing work.'}</div>
         </div>
         <div class="inv-sign">
           <img class="inv-sign-img" src="assets/bb-signature.png" alt="Signature">
