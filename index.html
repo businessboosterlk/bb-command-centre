@@ -8918,12 +8918,12 @@ function openInvoiceGen(invId){
   const extrasSum=extras.reduce((s,e)=>s+(parseInt(e.amt)||0),0);
   const base=(inv.amount||0)-extrasSum;
   const cl=(typeof CLIENTS!=='undefined'?CLIENTS:[]).find(c=>Number(c.id)===Number(inv.client_id));
-  const pkg=cl&&cl.package?cl.package+' package': 'Marketing retainer';
+  const pkg='Social Media Package';
   const period=invPeriodLabel(inv.month);
   INVGEN.items=[];
   if(base>0) INVGEN.items.push({desc:pkg+(period?' — '+period:''),price:base,qty:1});
   extras.forEach(e=>INVGEN.items.push({desc:e.desc||'Additional service',price:parseInt(e.amt)||0,qty:1}));
-  if(!INVGEN.items.length) INVGEN.items.push({desc:'Marketing retainer'+(period?' — '+period:''),price:inv.amount||0,qty:1});
+  if(!INVGEN.items.length) INVGEN.items.push({desc:'Social Media Package'+(period?' — '+period:''),price:inv.amount||0,qty:1});
   document.getElementById('ig-subtitle').textContent=invNumber(inv)+' · '+(inv.client_name||(cl&&cl.name)||'');
   var _t=document.getElementById('ig-ttl'); if(_t)_t.textContent='Invoice';
   var _h=document.getElementById('ig-hint'); if(_h)_h.textContent='Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)';
@@ -8938,7 +8938,7 @@ function renderInvoiceDoc(){
   const cl=(typeof CLIENTS!=='undefined'?CLIENTS:[]).find(c=>Number(c.id)===Number(inv.client_id));
   const clientName=inv.client_name||(cl&&cl.name)||'Client';
   const period=invPeriodLabel(inv.month);
-  const dueVal=inv.due_date?invFmtDate(inv.due_date):invDuePlus30();
+  const dueVal=invDuePlus30();
   const logo=invLogoSrc();
   const logoHtml=logo?`<img class="inv-logo-img" src="${logo}" alt="Business Booster">`:`<div style="font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;color:#fff;letter-spacing:.02em">BUSINESS BOOSTER</div>`;
   const doc=document.getElementById('invgen-doc');
