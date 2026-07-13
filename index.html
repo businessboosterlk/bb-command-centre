@@ -16,21 +16,21 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 html,body{margin:0;padding:0;height:100%}
 body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
-/* ── TOKENS ── */
+/* ── TOKENS — v2, skeleton dark ramp (HD/BSWL), accent stays BB orange ── */
 :root{
-  --bg:#09090f;
-  --surface:#13131c;
-  --surface-2:#1c1c28;
-  --surface-3:#252535;
-  --border:rgba(255,255,255,0.055);
-  --border-strong:rgba(255,255,255,0.11);
+  --bg:#0c0d10;
+  --surface:#16171c;
+  --surface-2:#1c1d23;
+  --surface-3:#24252d;
+  --border:rgba(255,255,255,0.07);
+  --border-strong:rgba(255,255,255,0.13);
   --accent:#FF6B2B;
   --accent-2:#D94F0A;
-  --accent-glow:rgba(255,107,43,0.14);
-  --accent-soft:rgba(255,107,43,0.09);
-  --text:#eef0f6;
-  --text-2:#8892a4;
-  --text-3:#525e72;
+  --accent-glow:rgba(255,107,43,0.22);
+  --accent-soft:rgba(255,107,43,0.10);
+  --text:#f4f5f7;
+  --text-2:#aeb0ba;
+  --text-3:#7c7e8a;
   --green:#22c55e;
   --green-soft:rgba(34,197,94,0.11);
   --amber:#f59e0b;
@@ -43,10 +43,16 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   --pink-soft:rgba(236,72,153,0.11);
   --sidebar-w:232px;
   --topbar-h:60px;
-  --r:10px;
-  --r-sm:7px;
-  --shadow:0 8px 28px rgba(0,0,0,0.32);
-  --shadow-lg:0 20px 60px rgba(0,0,0,0.5);
+  --r:16px;
+  --r-md:12px;
+  --r-sm:9px;
+  --shadow-xs:0 1px 2px rgba(0,0,0,.4);
+  --shadow:0 4px 14px rgba(0,0,0,.45);
+  --shadow-md:0 10px 30px rgba(0,0,0,.5);
+  --shadow-lg:0 24px 60px rgba(0,0,0,.6);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --t-fast:.15s;
+  --t:.25s;
 }
 [data-theme="light"]{
   --bg:#f4f4f8;
@@ -72,8 +78,10 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
   --blue-soft:rgba(37,99,235,0.09);
   --pink:#db2777;
   --pink-soft:rgba(219,39,119,0.09);
-  --shadow:0 4px 16px rgba(10,10,30,0.08);
-  --shadow-lg:0 16px 48px rgba(10,10,30,0.16);
+  --shadow-xs:0 1px 2px rgba(20,20,30,.05),0 1px 1px rgba(20,20,30,.04);
+  --shadow:0 2px 6px rgba(20,20,30,.06),0 6px 16px rgba(20,20,30,.06);
+  --shadow-md:0 6px 14px rgba(20,20,30,.08),0 14px 34px rgba(20,20,30,.10);
+  --shadow-lg:0 18px 40px rgba(20,20,30,.14),0 30px 70px rgba(20,20,30,.12);
 }
 
 body{
@@ -805,7 +813,10 @@ body[data-role="demo"] #finance-demo-overlay{display:flex!important}
   --red:#dc2626;--red-soft:rgba(220,38,38,0.09);
   --blue:#2563eb;--blue-soft:rgba(37,99,235,0.09);
   --pink:#db2777;--pink-soft:rgba(219,39,119,0.09);
-  --shadow:0 4px 16px rgba(10,10,30,0.08);--shadow-lg:0 16px 48px rgba(10,10,30,0.16);
+  --shadow-xs:0 1px 2px rgba(20,20,30,.05),0 1px 1px rgba(20,20,30,.04);
+  --shadow:0 2px 6px rgba(20,20,30,.06),0 6px 16px rgba(20,20,30,.06);
+  --shadow-md:0 6px 14px rgba(20,20,30,.08),0 14px 34px rgba(20,20,30,.10);
+  --shadow-lg:0 18px 40px rgba(20,20,30,.14),0 30px 70px rgba(20,20,30,.12);
 }
 body{background:var(--bg);color:var(--text);font-family:'Inter',-apple-system,sans-serif;font-size:13.5px;line-height:1.5;transition:background .25s,color .25s}
 .sidebar{width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;overflow-x:hidden;position:fixed;top:0;bottom:0;z-index:200;pointer-events:all}
@@ -1615,6 +1626,17 @@ td:last-child{padding-right:18px;text-align:right}
         </div>
       </div>
 
+      <!-- RENEWALS RADAR — client renewals + team contract expiries in the next 60 days -->
+      <div class="card" id="renewals-card" style="display:none">
+        <div class="card-hd">
+          <div class="card-ttl">
+            <span class="card-ttl-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>
+            Renewals Radar <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text-3);font-size:10px">— next 60 days</span>
+          </div>
+        </div>
+        <div id="renewals-list"></div>
+      </div>
+
       <!-- CEO SECTIONS -->
       <div class="ceo-only">
         <div class="g2">
@@ -1961,6 +1983,7 @@ td:last-child{padding-right:18px;text-align:right}
         <div style="font-size:12.5px;color:var(--text-2)">Lead tracking. Yellow = potential · Orange = 50/50 · Red = likely to leave · Grey = closed won.</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);cursor:pointer;user-select:none"><input type="checkbox" id="pipe-show-synced" onchange="renderPipelinePage()" style="accent-color:var(--accent)">Show synced leads</label>
         <select id="pipe-filter" class="form-input" style="width:auto;padding:8px 12px;font-size:12.5px" onchange="filterPipeline(this.value)">
           <option value="">All</option>
           <option value="fifty">50 / 50</option>
@@ -2320,10 +2343,6 @@ td:last-child{padding-right:18px;text-align:right}
 ══════════════════════════════ -->
 <div id="page-shootpipeline" class="page-section" style="display:none">
   <div class="content" style="overflow:hidden;height:calc(100vh - 56px);display:flex;flex-direction:column">
-    <div style="display:flex;gap:6px;margin-bottom:12px;flex-shrink:0">
-      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="showPage('shootpipeline')">🎬 Pipeline</button>
-      <button class="btn btn-sm btn-ghost" onclick="showPage('shootcalendar')">📅 Calendar</button>
-    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       <div>
         <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Shoot Pipeline</h1>
@@ -2750,23 +2769,6 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
-<!-- ═══ WEEKLY PLAN PAGE ═══ -->
-<div id="page-weeklyplan" class="page-section" style="display:none">
-  <div class="content">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
-      <div style="display:flex;align-items:center;gap:12px">
-        <button class="btn btn-sm btn-ghost" onclick="wpChangeWeek(-1)">&#9664;</button>
-        <h1 id="wpWeekLabel" style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;margin:0;color:var(--text);white-space:nowrap"></h1>
-        <button class="btn btn-sm btn-ghost" onclick="wpChangeWeek(1)">&#9654;</button>
-        <button class="btn btn-sm btn-ghost" onclick="wpGoToday()">Today</button>
-      </div>
-      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="wpOpenAdd()">+ Add Task</button>
-    </div>
-    <div class="wp-board" id="wpBoard"></div>
-    <div id="wpPendingSection"></div>
-  </div>
-</div>
-
 <!-- ═══ CHURN RISK PAGE ═══ -->
 <div id="page-churn" class="page-section ceo-only" style="display:none">
   <div class="content">
@@ -2889,10 +2891,6 @@ td:last-child{padding-right:18px;text-align:right}
 <!-- ═══ SHOOT CALENDAR PAGE ═══ -->
 <div id="page-shootcalendar" class="page-section" style="display:none">
   <div class="content">
-    <div style="display:flex;gap:6px;margin-bottom:12px">
-      <button class="btn btn-sm btn-ghost" onclick="showPage('shootpipeline')">🎬 Pipeline</button>
-      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="showPage('shootcalendar')">📅 Calendar</button>
-    </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px">
       <div>
         <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Shoot Calendar</h1>
@@ -3028,49 +3026,6 @@ td:last-child{padding-right:18px;text-align:right}
 </div>
 
 <!-- ═══ WEEKLY PLAN MODAL ═══ -->
-<div class="modal-overlay hidden" id="modalWpTask">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-hd" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
-      <h2 id="wpModalTitle" style="margin:0;font-size:16px;font-weight:700">Add Task</h2>
-      <button class="modal-close" onclick="closeModal('modalWpTask')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-2)">&times;</button>
-    </div>
-    <div style="padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="form-field"><label class="form-label">Day *</label>
-        <select class="form-select" id="wpDay"><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option></select>
-      </div>
-      <div class="form-field"><label class="form-label">Client *</label>
-        <select class="form-select" id="wpClient"></select>
-      </div>
-      <div class="form-field"><label class="form-label">Task Type</label>
-        <select class="form-select" id="wpTaskType">
-          <option value="meeting">Meeting</option><option value="review">Review</option><option value="planning">Planning</option><option value="finance">Finance</option><option value="client_call">Client Call</option><option value="team_task">Team Task</option><option value="other">Other</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-label">Task Count</label>
-        <input class="form-input" type="number" id="wpCount" min="1" value="1">
-      </div>
-      <div class="form-field"><label class="form-label">Assigned To</label>
-        <select class="form-select" id="wpAssigned">
-          <option value="">Unassigned</option><option value="Thulaib">Thulaib (CEO)</option><option value="Shiara">Shiara (COO)</option><option value="SMM">SMM</option><option value="GD">GD</option><option value="Video">Video</option>
-        </select>
-      </div>
-      <div class="form-field"><label class="form-label">Status</label>
-        <select class="form-select" id="wpStatus">
-          <option value="planned">Planned</option><option value="in_progress">In Progress</option><option value="done">Done</option><option value="pending">Pending</option>
-        </select>
-      </div>
-      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Notes</label>
-        <input class="form-input" type="text" id="wpNotes" placeholder="e.g. Monthly review, urgent follow-up...">
-      </div>
-    </div>
-    <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn btn-sm btn-ghost" onclick="closeModal('modalWpTask')">Cancel</button>
-      <button class="btn btn-sm" style="background:#ef4444;color:#fff;display:none" id="wpDeleteBtn" onclick="wpDeleteTask()">Delete</button>
-      <button class="btn btn-sm" style="background:var(--accent);color:#fff" onclick="wpSaveTask()">Save</button>
-    </div>
-  </div>
-</div>
-
 <!-- ══ BULK OVERDUE TASK TOOL ══ -->
 <div class="modal-overlay hidden" id="modal-bulk-tasks">
   <div class="modal" style="max-width:660px;max-height:90vh;display:flex;flex-direction:column">
@@ -3752,13 +3707,43 @@ async function loadAll(){
     sb('video_projects','?select=id,current_stage,deadline,completed_at,is_archived,assigned_editor_id,target_month,target_year&is_archived=eq.false'),
     sb('invoices',`?select=*&month=eq.${monthStr()}`),
     sb('smm_shoots',`?select=*,clients(name)&shoot_date=gte.${todayStr()}&shoot_date=lte.${addDays(30)}&order=shoot_date`),
-    sb('team_members','?select=id,name')
+    sb('team_members','?select=id,name,role,contract_expiry,active')
   ]);
   D={clients:clients||[],tasks:tasks||[],pipeline:pipeline||[],
      events:events||[],pillars:pillars||[],
      videos:videos||[],invoices:invoices||[],
      shoots:shoots||[],editors:editors||[]};
   renderAll();
+}
+
+/* ── RENEWALS RADAR — client renewals + team contract expiries within 60 days (read-only) ── */
+function renderRenewalsRadar(){
+  const card=document.getElementById('renewals-card'); if(!card)return;
+  const now=new Date(); now.setHours(0,0,0,0);
+  const limit=new Date(now.getTime()+60*86400000);
+  const items=[];
+  (D.clients||[]).forEach(c=>{
+    if(!c.renewal)return; const d=new Date(c.renewal); if(isNaN(d)||d<now||d>limit)return;
+    items.push({d, name:c.name, kind:'Client renewal', sub:(c.package||'')+(getMRR&&getMRR(c)?' · '+fmtK(getMRR(c))+'/mo':''), color:'var(--accent)'});
+  });
+  (D.editors||[]).forEach(m=>{
+    if(m.active===false||!m.contract_expiry)return; const d=new Date(m.contract_expiry); if(isNaN(d)||d<now||d>limit)return;
+    items.push({d, name:m.name, kind:'Contract expiry', sub:m.role||'', color:'var(--pink)'});
+  });
+  if(!items.length){ card.style.display='none'; return; }
+  card.style.display='';
+  items.sort((a,b)=>a.d-b.d);
+  document.getElementById('renewals-list').innerHTML=items.map(it=>{
+    const days=Math.ceil((it.d-now)/86400000);
+    const urg=days<=14?'var(--red)':days<=30?'var(--amber)':'var(--text-2)';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 18px;border-top:1px solid var(--border)">
+      <span style="width:8px;height:8px;border-radius:50%;background:${it.color};flex-shrink:0"></span>
+      <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700;color:var(--text)">${esc(it.name)}</div>
+        <div style="font-size:10.5px;color:var(--text-3)">${it.kind}${it.sub?' · '+esc(it.sub):''}</div></div>
+      <div style="text-align:right"><div style="font-size:12px;font-weight:800;color:${urg};font-variant-numeric:tabular-nums">${days}d</div>
+        <div style="font-size:10px;color:var(--text-3)">${it.d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</div></div>
+    </div>`;
+  }).join('');
 }
 
 function manualRefresh(){
@@ -3780,6 +3765,7 @@ function renderAll(){
   if(ROLE==='th') renderPipelinePanel();
   renderShootStrip();
   renderWeekStrip();
+  renderRenewalsRadar();
   if(ROLE==='th'){
     renderPillars('th',TH_P,'th-list','th-prog','th-bar');
     renderTaskAlerts('th','th-tasks');
@@ -4348,10 +4334,9 @@ function showPage(page) {
   if (pageEl) pageEl.style.display = 'block';
   
   // Activate nav item (shoot calendar + pipeline both live under the merged "Shoots" item)
-  const _navMap = { shootcalendar:'shoots', shootpipeline:'shoots' };
-  const navEl = document.getElementById('nav-' + (_navMap[page] || page));
+  const navEl = document.getElementById('nav-' + ((typeof NAV_PARENT!=='undefined'&&NAV_PARENT[page]) || page));
   if (navEl) navEl.classList.add('active');
-  if (typeof navExpandActive === 'function') navExpandActive();
+  if (typeof v2Tabs === 'function') v2Tabs(page);
   
   CURRENT_PAGE = page;
   window._bbCurrentPage = page; // tracked by bug detector
@@ -4414,9 +4399,6 @@ function showPage(page) {
   } else if (page === 'agents') {
     document.getElementById('topbar-title').textContent = 'Agents';
     loadAgentsPage();
-  } else if (page === 'weeklyplan') {
-    document.getElementById('topbar-title').textContent = 'Weekly Plan';
-    wpLoadWeek();
   } else if (page === 'teamweekly') {
     document.getElementById('topbar-title').textContent = 'Team Weekly';
     twLoadWeek();
@@ -4539,11 +4521,18 @@ function pipeStatusPill(s){return {potential:'pill-amber',fifty:'pill-orange',li
 const PIPE_ORDER={potential:0,fifty:1,likely_leave:2,closed:3};
 
 function renderPipelinePage(){
-  // Show ONLY leads managed from the Command Centre side
-  // (Potential / 50-50 / Likely to Leave / Closed Won). This hides leads synced
-  // from the Leads app (status 'active', owned by salespeople like Pavith).
+  // NORMALIZE ON READ so no lead can ever silently vanish (shared table: CC uses
+  // `status`, the Leads app uses `stage`).
+  //  - blank/unknown status + NO Leads-app stage  → treat as 'potential' (was invisible before)
+  //  - Leads-app rows (have a stage, non-CC status) → hidden by default per Thulaib's
+  //    instruction, shown read-only via the "Show synced leads" toggle with a SYNCED tag.
   const CC_LEAD_STATUSES=['potential','fifty','likely_leave','closed'];
-  const pipe=(D.pipeline||[]).filter(p=>CC_LEAD_STATUSES.includes(p.status));
+  const showSynced=document.getElementById('pipe-show-synced')?.checked;
+  const pipe=(D.pipeline||[]).map(p=>{
+    if(CC_LEAD_STATUSES.includes(p.status)) return p;
+    if(!p.stage){ return {...p,status:'potential',_normalized:true}; }   // orphan row rescued
+    return showSynced?{...p,status:'potential',_synced:true}:null;        // Leads-app row
+  }).filter(Boolean);
   const tasks=D.tasks||[];
   const filtered=pipe.filter(p=>!pipeFilter||p.status===pipeFilter);
 
@@ -4601,8 +4590,9 @@ function pipeCardHTML(p){
     <div class="pipe-top">
       <span class="pipe-name">${esc(p.name)}</span>
       <div style="display:flex;gap:5px;align-items:center">
+        ${p._synced?`<span class="pill pill-blue" title="Owned by the Leads app (stage: ${esc(p.stage||'')}) — manage it there">SYNCED</span>`:''}
         <span class="pill pill-neutral" style="font-size:8.5px;padding:2px 7px">${typeBadge}</span>
-        <span class="pill ${pipeStatusPill(p.status)}">${pipeStatusLabel(p.status)}</span>
+        <span class="pill ${p._synced?'pill-neutral':pipeStatusPill(p.status)}">${p._synced?esc(p.stage||'—'):pipeStatusLabel(p.status)}</span>
       </div>
     </div>
     <div class="pipe-meta">
@@ -5810,6 +5800,24 @@ function renderFinancePage(){
     delWrap.style.display='block';
     const delSum=allDelayed.reduce((s,i)=>s+(i.amount||0),0);
     document.getElementById('fin-delayed-total').textContent='LKR '+delSum.toLocaleString();
+    // ── receivables AGING buckets (days outstanding: due_date if set, else end of billed month) ──
+    (function(){
+      const now=Date.now();
+      const age=i=>{let ref=null;
+        if(i.due_date){const d=new Date(i.due_date);if(!isNaN(d))ref=d.getTime();}
+        if(ref===null&&i.month){const p=String(i.month).split('-');if(p.length===2){ref=new Date(Number(p[0]),Number(p[1]),0).getTime();}}
+        return ref===null?0:Math.max(0,Math.floor((now-ref)/86400000));};
+      const B={'0-30':0,'31-60':0,'61-90':0,'90+':0};
+      allDelayed.forEach(i=>{const a=age(i);const k=a<=30?'0-30':a<=60?'31-60':a<=90?'61-90':'90+';B[k]+=(i.amount||0);});
+      let strip=document.getElementById('fin-aging-strip');
+      if(!strip){strip=document.createElement('div');strip.id='fin-aging-strip';
+        strip.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)';
+        const list=document.getElementById('fin-delayed-list');list.parentNode.insertBefore(strip,list);}
+      const col={'0-30':'var(--text-2)','31-60':'var(--amber)','61-90':'var(--accent)','90+':'var(--red)'};
+      strip.innerHTML=Object.keys(B).map(k=>`<div style="background:var(--surface);padding:9px 12px;text-align:center">
+        <div style="font-size:8.5px;font-weight:800;letter-spacing:.1em;color:var(--text-3);text-transform:uppercase">${k} days</div>
+        <div style="font-family:'Poppins',sans-serif;font-size:13px;font-weight:800;color:${B[k]?col[k]:'var(--text-3)'};font-variant-numeric:tabular-nums">${B[k]?'LKR '+B[k].toLocaleString():'—'}</div></div>`).join('');
+    })();
     const byM={};
     allDelayed.forEach(i=>{const mk=i.month||'—';(byM[mk]=byM[mk]||[]).push(i);});
     document.getElementById('fin-delayed-list').innerHTML=
@@ -6180,6 +6188,16 @@ function renderFinByClient(){
    TEAM PAGE
 ══════════════════════════════════════ */
 let TM_MEMBERS=[];
+/* ── task-assignment identity: values may be a dept CODE (th/sh/both/smm/gd/video)
+      or a PERSON's name (Nirvana, Ushane…). Filters accept both. ── */
+const TASK_ROLE_CODE={'Social Media Manager':'smm','Graphic Designer':'gd','Video Head':'video','Video Editor':'video','video_head':'video','editor':'video'};
+function taskIsFor(t,m){
+  if(!t||!t.assign||!m)return false;
+  const a=String(t.assign);
+  if(a.toUpperCase()===String(m.name||'').toUpperCase())return true;          // assigned to the person
+  const code=TASK_ROLE_CODE[m.role]||String(m.role||'').substring(0,2).toLowerCase();
+  return a===code;                                                            // assigned to their department
+}
 let TM_TASKS=[];
 let TM_VIDEOS=[];
 let TM_TIMELOGS=[];
@@ -6256,9 +6274,9 @@ function renderTeamPage(){
             <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:${inProg>0?'var(--amber)':'var(--text-3)'}">${inProg}</div><div class="tm-stat-mini-lbl">In Progress</div></div>
           </div>`:`
           ${(()=>{
-            const ROLE_ASSIGN={'Social Media Manager':'smm','Graphic Designer':'gd'};
-            const assignCode=ROLE_ASSIGN[m.role]||m.role.substring(0,2).toLowerCase();
-            const mTasks=TM_TASKS.filter(t=>t.assign===assignCode);
+            // Per-person accountability: a member's tasks = tasks assigned to their NAME
+            // (e.g. "Nirvana") plus tasks assigned to their department code (e.g. "smm").
+            const mTasks=TM_TASKS.filter(t=>taskIsFor(t,m));
             const done=mTasks.filter(t=>t.done).length;
             const pending=mTasks.filter(t=>!t.done).length;
             const overdue=mTasks.filter(t=>!t.done&&t.due&&t.due<new Date().toISOString().split('T')[0]).length;
@@ -6869,14 +6887,14 @@ function uploadLogo(){
     r.onload=ev=>{
       const url=ev.target.result;
       localStorage.setItem('bb-logo-url',url);
-      const img=document.getElementById('sb-logo-img');
+      const img=document.getElementById('sidebar-logo');
       if(img)img.src=url;
     };
     r.readAsDataURL(file);
   };
   inp.click();
 }
-(()=>{const saved=localStorage.getItem('bb-logo-url');if(saved){const img=document.getElementById('sb-logo-img');if(img)img.src=saved;}})();
+(()=>{const saved=localStorage.getItem('bb-logo-url');if(saved){const img=document.getElementById('sidebar-logo');if(img)img.src=saved;}})();
 // init handled by showPage
 // (the full-reload interval is defined once above — this duplicate was doubling egress; removed)
 // Pipeline auto-refresh — only when on that page AND the tab is visible (bandwidth-safe)
@@ -7192,7 +7210,7 @@ async function loadVideoPipeline(){
     const [videos,links,comments,history]=await Promise.all([
       sb('video_projects','?select=*,clients(name,assigned_smm),team_members(name)&is_archived=eq.false&order=id.desc'),
       sb('video_project_links','?select=*&order=created_at.desc'),
-      sb('video_project_comments','?select=*&order=created_at.desc'),
+      sb('video_project_comments','?select=id,video_project_id,body,author,created_at,is_done&order=created_at.desc'), /* image_url (base64) lazy-loads per project — keeps list open fast */
       sb('video_stage_history','?select=*&order=entered_at.desc')
     ]);
     VP_videos=videos||[];VP_links=links||[];VP_comments=comments||[];VP_history=history||[];
@@ -7365,14 +7383,12 @@ function openVideoDetail(id){
     ${finalLinks.length?finalLinks.map(l=>linkRowDel(l)).join(''):'<div style="font-size:11px;color:var(--text-3);padding:10px;text-align:center;background:var(--surface-2);border-radius:var(--r-sm)">No final video links yet</div>'}
     <div id="vp-add-final-form" style="display:none;margin-top:8px"><div class="field-row"><div class="form-field"><input class="form-input" id="vp-final-label" placeholder="Label (e.g. V2 Final)" style="font-size:11px"></div><div class="form-field"><input class="form-input" id="vp-final-url" placeholder="Paste Dropbox/Drive URL" style="font-size:11px"></div><button class="btn-primary btn-sm" onclick="vpSaveLink(${id},'final_cut')">Add</button></div></div></div>`;
 
-  // TEAM DISCUSSION
-  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Team Discussion</div>`;
+  // TEAM DISCUSSION (comment list has its own wrapper so lazy image loads can re-render it without touching the compose box)
+  html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Team Discussion</div><div id="vp-comments-list">`;
   if(comments.length){
-    html+=comments.map(c=>{
-      const dt=c.created_at?relTime(c.created_at):'';
-      return `<div class="vp-comment"><div style="display:flex;justify-content:space-between;align-items:center"><span class="vp-comment-author">${esc(c.author||'?')}</span><span class="vp-comment-time">${dt}</span></div>${c.body?`<div class="vp-comment-body">${esc(c.body)}</div>`:''}${c.image_url?`<img class="vp-comment-img" src="${c.image_url}" onclick="window.open(this.src)">`:''}</div>`;
-    }).join('');
+    html+=comments.map(c=>vpCommentHTML(c)).join('');
   } else { html+='<div style="font-size:11px;color:var(--text-3);padding:10px;text-align:center;font-style:italic">No comments yet</div>'; }
+  html+='</div>';
   html+=`<div style="margin-top:10px">
     <textarea class="form-input" id="vp-comment-input" rows="3" placeholder="Add a comment... (you can paste an image with Cmd+V)" style="font-size:12px;resize:vertical" onpaste="vpHandlePaste(event)"></textarea>
     <div class="vp-img-drop" id="vp-img-drop" onclick="document.getElementById('vp-img-file').click()" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="vpHandleImgDrop(event)">
@@ -7385,6 +7401,31 @@ function openVideoDetail(id){
 
   document.getElementById('vd-body').innerHTML=html;
   document.getElementById('modal-video-detail').classList.remove('hidden');
+  vpLoadCommentImages(id); // lazy: pull base64 images for THIS project only
+}
+
+/* one comment card (shared by the modal build + lazy image refresh) */
+function vpCommentHTML(c){
+  const rel=d=>{if(!d)return'';const days=Math.floor((Date.now()-new Date(d).getTime())/86400000);return days<1?'today':days===1?'1d ago':days+'d ago';};
+  return `<div class="vp-comment"><div style="display:flex;justify-content:space-between;align-items:center"><span class="vp-comment-author">${esc(c.author||'?')}</span><span class="vp-comment-time">${c.created_at?rel(c.created_at):''}</span></div>${c.body?`<div class="vp-comment-body">${esc(c.body)}</div>`:''}${c.image_url?`<img class="vp-comment-img" src="${c.image_url}" onclick="window.open(this.src)">`:''}</div>`;
+}
+/* fetch image_url only for the opened project's comments, then refresh just the list */
+const VP_imgFetched={};
+async function vpLoadCommentImages(id){
+  try{
+    if(VP_imgFetched[id]){return;}
+    const rows=await sb('video_project_comments',`?select=id,image_url&video_project_id=eq.${id}&image_url=not.is.null`).catch(()=>[]);
+    VP_imgFetched[id]=true;
+    if(!rows||!rows.length)return;
+    rows.forEach(r=>{const c=VP_comments.find(x=>x.id===r.id);if(c)c.image_url=r.image_url;});
+    if(VP_detailId===id){
+      const list=document.getElementById('vp-comments-list');
+      if(list){
+        const cs=VP_comments.filter(c=>c.video_project_id===id).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+        list.innerHTML=cs.length?cs.map(c=>vpCommentHTML(c)).join(''):list.innerHTML;
+      }
+    }
+  }catch(e){console.warn('vpLoadCommentImages',e);}
 }
 
 async function changeVideoPriority(id,pri){
@@ -9129,6 +9170,81 @@ function rcEditAmt(i,v){ if(RCPT.items[i])RCPT.items[i].amt=Math.max(0,parseInt(
 function rcAddItem(){ RCPT.items.push({desc:'',amt:0}); rcRefresh(); }
 function rcDelItem(i){ RCPT.items.splice(i,1); if(!RCPT.items.length)RCPT.items.push({desc:'',amt:0}); rcRefresh(); }
 </script>
+
+<!-- ═══════════ V2 SKIN — skeleton (HD/BSWL) elevation, radius, shell. Cascade-final on purpose. ═══════════ -->
+<style id="v2skin">
+/* ── base polish ── */
+::selection{background:var(--accent);color:#fff}
+*:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow);border-radius:var(--r-sm)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:99px;border:2px solid var(--bg)}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ── sidebar ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);box-shadow:var(--shadow-xs)}
+.sidebar-head{padding:18px 16px 16px;border-bottom:1px solid var(--border)}
+.nav{padding:10px 10px 16px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;margin:2px 0;border-radius:var(--r-md);
+  font-size:13px;font-weight:600;color:var(--text-2);cursor:pointer;position:relative;
+  transition:background var(--t-fast) var(--ease),color var(--t-fast) var(--ease)}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.nav-item.active::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:99px;background:var(--accent)}
+.nav-item .nav-ico{width:17px;height:17px;flex-shrink:0;display:flex;align-items:center}
+.nav-item .nav-ico svg{width:17px;height:17px;stroke-width:1.8}
+.nav-grp-hd{padding:12px 12px 5px;font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+
+/* ── topbar ── */
+.topbar{height:var(--topbar-h);background:color-mix(in srgb,var(--bg) 78%,transparent);backdrop-filter:saturate(160%) blur(14px);
+  -webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--border)}
+#topbar-title{font-family:'Poppins',sans-serif;font-weight:800;letter-spacing:-.02em}
+
+/* ── cards & KPIs ── */
+.card{border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-xs)}
+.stat-card,.kpi-card{border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-xs);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t) var(--ease)}
+.stat-card:hover,.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-val,.kpi-val{font-family:'Poppins',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+/* ── buttons (skeleton §3.1 recipe) ── */
+.btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 82%,#fff),var(--accent) 55%,var(--accent-2));
+  border:none;color:#fff;font-weight:700;border-radius:var(--r-sm);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 6px 18px var(--accent-glow);
+  transition:transform var(--t-fast) var(--ease),box-shadow var(--t) var(--ease),filter var(--t-fast)}
+.btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 10px 26px var(--accent-glow)}
+.btn-primary:active{transform:scale(.97)}
+.btn-ghost{border-radius:var(--r-sm);box-shadow:var(--shadow-xs);transition:transform var(--t-fast) var(--ease),border-color var(--t-fast)}
+.btn-ghost:hover{border-color:var(--border-strong);transform:translateY(-1px)}
+.btn-ghost:active{transform:scale(.97)}
+
+/* ── segmented switches (tab-group doubles as the skeleton .seg) ── */
+.tab-group{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:3px;gap:3px;box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+.tab-btn{border-radius:7px;font-weight:600;color:var(--text-2);transition:background var(--t-fast) var(--ease),color var(--t-fast)}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{background:var(--surface);color:var(--text);font-weight:700;box-shadow:var(--shadow-xs)}
+
+/* ── v2 in-page segmented switch bar ── */
+.v2-seg-bar{margin:0 0 16px;display:flex}
+.v2-seg-bar .v2-seg{display:inline-flex;flex-wrap:wrap}
+.v2-seg-bar .tab-btn{padding:7px 16px;font-size:12px}
+@media(max-width:640px){.v2-seg-bar{overflow-x:auto;-webkit-overflow-scrolling:touch}.v2-seg-bar .tab-btn{white-space:nowrap}}
+
+/* ── forms ── */
+.form-input,.form-select,textarea.form-input{border-radius:var(--r-sm);background:var(--surface-2);
+  transition:border-color var(--t-fast),box-shadow var(--t-fast)}
+.form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);outline:none}
+
+/* ── modals ── */
+.modal{border-radius:var(--r);border:1px solid var(--border);box-shadow:var(--shadow-lg)}
+.modal-overlay{backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* ── tables ── */
+table th{letter-spacing:.08em}
+
+/* ── reduced motion ── */
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.06s!important}}
+</style>
 </body>
 </html>
 
@@ -11142,180 +11258,6 @@ console.log('[BB CC Agent] v1.0 loaded — chat + error monitor active');
 
 <script>
 // ═══════════════════════════════════════
-// WEEKLY PLAN
-// ═══════════════════════════════════════
-const WP_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
-const WP_TYPES = {meeting:'Meeting',review:'Review',planning:'Planning',finance:'Finance',client_call:'Client Call',team_task:'Team Task',other:'Other'};
-let wpWeekStart = null;
-let wpTasks = [];
-let wpEditId = null;
-
-function wpGetMonday(d){
-  const dt = new Date(d);
-  const day = dt.getDay();
-  const diff = dt.getDate() - day + (day===0?-6:1);
-  dt.setDate(diff); dt.setHours(0,0,0,0);
-  return dt;
-}
-
-function wpFmtDate(d){
-  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
-}
-
-function wpChangeWeek(dir){
-  const d = new Date(wpWeekStart);
-  d.setDate(d.getDate() + dir*7);
-  wpWeekStart = d;
-  wpLoadWeek();
-}
-
-function wpGoToday(){
-  wpWeekStart = wpGetMonday(new Date());
-  wpLoadWeek();
-}
-
-async function wpLoadWeek(){
-  if(!wpWeekStart) wpWeekStart = wpGetMonday(new Date());
-  const ws = wpWeekStart.toISOString().slice(0,10);
-  const label = document.getElementById('wpWeekLabel');
-  const fri = new Date(wpWeekStart); fri.setDate(fri.getDate()+4);
-  label.textContent = wpFmtDate(wpWeekStart) + ' — ' + wpFmtDate(fri) + ', ' + wpWeekStart.getFullYear();
-
-  wpTasks = await sb('cc_weekly_plan','?week_start=eq.'+ws+'&order=created_at.asc') || [];
-  wpRender();
-}
-
-function wpRender(){
-  const board = document.getElementById('wpBoard');
-  const today = new Date(); today.setHours(0,0,0,0);
-  const pending = wpTasks.filter(t=>t.status==='pending');
-  const nonPending = wpTasks.filter(t=>t.status!=='pending');
-
-  board.innerHTML = WP_DAYS.map((name,i)=>{
-    const dayNum = i+1;
-    const dayDate = new Date(wpWeekStart); dayDate.setDate(dayDate.getDate()+i);
-    const isToday = dayDate.getTime()===today.getTime();
-    const tasks = nonPending.filter(t=>t.day_of_week===dayNum);
-    const totalTasks = tasks.reduce((s,t)=>s+(t.task_count||0),0);
-    return `
-      <div class="wp-day">
-        <div class="wp-day-header ${isToday?'today':''}">
-          <h4>${name}</h4>
-          <span class="wp-date">${wpFmtDate(dayDate)}${totalTasks?' &middot; '+totalTasks+' tasks':''}</span>
-        </div>
-        <div class="wp-day-body">
-          ${tasks.map(t=>wpRenderTask(t)).join('')}
-          ${tasks.length===0?'<div style="padding:16px;text-align:center;color:var(--text-3);font-size:0.78rem">No tasks</div>':''}
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  const pendSec = document.getElementById('wpPendingSection');
-  if(pending.length>0){
-    pendSec.innerHTML = `
-      <div class="wp-pending-bar">
-        <h3><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Pending (${pending.length})</h3>
-        <div class="wp-pending-list">
-          ${pending.map(t=>`<div class="wp-pending-chip" onclick="wpOpenEdit(${t.id})">${esc(t.client_name)} — ${WP_TYPES[t.task_type]||t.task_type}${t.task_count>1?' &times;'+t.task_count:''}${t.notes?' ('+esc(t.notes)+')':''}</div>`).join('')}
-        </div>
-      </div>
-    `;
-  } else { pendSec.innerHTML=''; }
-}
-
-function wpRenderTask(t){
-  return `
-    <div class="wp-task" onclick="wpOpenEdit(${t.id})">
-      <div class="wp-task-status ${t.status}"></div>
-      <div class="wp-task-client">${esc(t.client_name)}</div>
-      <div class="wp-task-type">
-        ${WP_TYPES[t.task_type]||t.task_type}
-        <span class="wp-task-count">${t.task_count} task${t.task_count>1?'s':''}</span>
-        ${t.assigned_to?'<span style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1px 8px;font-size:0.68rem">'+esc(t.assigned_to)+'</span>':''}
-      </div>
-      ${t.notes?'<div style="font-size:0.72rem;color:var(--text-3);margin-top:4px">'+esc(t.notes)+'</div>':''}
-    </div>
-  `;
-}
-
-function wpPopulateClients(){
-  const sel = document.getElementById('wpClient');
-  sel.innerHTML = '<option value="">Select Client</option>';
-  if(Array.isArray(D.clients)){
-    D.clients.forEach(c=>{ sel.innerHTML+=`<option value="${esc(c.name)}">${esc(c.name)}</option>`; });
-  }
-}
-
-function wpOpenAdd(prefillDay){
-  wpEditId = null;
-  document.getElementById('wpModalTitle').textContent = 'Add Task';
-  document.getElementById('wpDeleteBtn').style.display = 'none';
-  wpPopulateClients();
-  document.getElementById('wpDay').value = prefillDay || new Date().getDay() || 1;
-  document.getElementById('wpClient').value = '';
-  document.getElementById('wpTaskType').value = 'meeting';
-  document.getElementById('wpCount').value = 1;
-  document.getElementById('wpAssigned').value = '';
-  document.getElementById('wpStatus').value = 'planned';
-  document.getElementById('wpNotes').value = '';
-  document.getElementById('modalWpTask').classList.remove('hidden');
-}
-
-function wpOpenEdit(id){
-  const t = wpTasks.find(x=>x.id===id);
-  if(!t) return;
-  wpEditId = id;
-  document.getElementById('wpModalTitle').textContent = 'Edit Task';
-  document.getElementById('wpDeleteBtn').style.display = '';
-  wpPopulateClients();
-  document.getElementById('wpDay').value = t.day_of_week;
-  document.getElementById('wpClient').value = t.client_name||'';
-  document.getElementById('wpTaskType').value = t.task_type||'meeting';
-  document.getElementById('wpCount').value = t.task_count||1;
-  document.getElementById('wpAssigned').value = t.assigned_to||'';
-  document.getElementById('wpStatus').value = t.status||'planned';
-  document.getElementById('wpNotes').value = t.notes||'';
-  document.getElementById('modalWpTask').classList.remove('hidden');
-}
-
-async function wpSaveTask(){
-  const clientName = document.getElementById('wpClient').value;
-  if(!clientName){ alert('Select a client'); return; }
-  const data = {
-    week_start: wpWeekStart.toISOString().slice(0,10),
-    day_of_week: parseInt(document.getElementById('wpDay').value),
-    client_name: clientName,
-    task_type: document.getElementById('wpTaskType').value,
-    task_count: parseInt(document.getElementById('wpCount').value)||1,
-    assigned_to: document.getElementById('wpAssigned').value||null,
-    status: document.getElementById('wpStatus').value,
-    notes: document.getElementById('wpNotes').value||null,
-    updated_at: new Date().toISOString()
-  };
-  if(wpEditId){
-    await SBpatch('cc_weekly_plan', wpEditId, data);
-  } else {
-    data.created_by = (typeof currentUser!=='undefined' && currentUser && currentUser.name) ? currentUser.name : 'unknown';
-    await SBpost('cc_weekly_plan', data);
-  }
-  closeModal('modalWpTask');
-  _sbCacheInvalidate('cc_weekly_plan');
-  wpLoadWeek();
-}
-
-async function wpDeleteTask(){
-  if(!wpEditId) return;
-  if(!confirm('Delete this task?')) return;
-  await SBdel('cc_weekly_plan', wpEditId);
-  closeModal('modalWpTask');
-  _sbCacheInvalidate('cc_weekly_plan');
-  wpLoadWeek();
-}
-</script>
-
-<script>
-// ═══════════════════════════════════════
 // TEAM WEEKLY VIEW
 // ═══════════════════════════════════════
 const TW_DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
@@ -12366,49 +12308,84 @@ function renderChurn(){
 // ═══════════════════════════════════════
 // COLLAPSIBLE NAV GROUPS (pure UI — no pages deleted, fully reversible)
 // ═══════════════════════════════════════
-const NAV_GROUPS = [
-  { id:'daily',      label:'Daily',      items:['dashboard','myday','taskbook'], openByDefault:true },
-  { id:'clients',    label:'Clients',    items:['clients','onboarding','pipeline','churn','finance'] },
-  { id:'production', label:'Production',  items:['production','videopipeline','approvals','readiness','contentplans'] },
-  { id:'schedule',   label:'Schedule',   items:['shoots','calendar'] },
-  { id:'team',       label:'Team',       items:['team','teamweekly'] },
-  { id:'system',     label:'System',     items:['agents','missions'] },
+/* ══ V2 NAV — 9 flat items; sub-views live as in-page segmented switches ══ */
+const NAV9 = [
+  { nav:'dashboard',  label:'Dashboard' },
+  { nav:'myday',      label:'My Work' },
+  { nav:'clients',    label:'Clients' },
+  { nav:'pipeline',   label:'Leads' },
+  { nav:'production', label:'Production' },
+  { nav:'shoots',     label:'Schedule' },
+  { nav:'finance',    label:'Finance' },
+  { nav:'team',       label:'Team' },
+  { nav:'agents',     label:'System' },
 ];
-function navSavedState(){ try{ return JSON.parse(localStorage.getItem('bb_nav_groups')||'{}'); }catch(e){ return {}; } }
-function navSaveState(s){ try{ localStorage.setItem('bb_nav_groups', JSON.stringify(s)); }catch(e){} }
-function toggleNavGroup(id){
-  const g = document.querySelector('.nav-group[data-group="'+id+'"]'); if(!g) return;
-  g.classList.toggle('collapsed');
-  const s = navSavedState(); s[id] = g.classList.contains('collapsed'); navSaveState(s);
-}
-function navExpandActive(){
-  const act = document.querySelector('.nav-item.active');
-  if(act){ const g = act.closest('.nav-group'); if(g) g.classList.remove('collapsed'); }
-}
+/* which page lights which nav item */
+const NAV_PARENT = {
+  dashboard:'dashboard',
+  myday:'myday', taskbook:'myday',
+  clients:'clients', onboarding:'clients', readiness:'clients', churn:'clients',
+  pipeline:'pipeline',
+  production:'production', videopipeline:'production', approvals:'production', contentplans:'production',
+  shootpipeline:'shoots', shootcalendar:'shoots', calendar:'shoots',
+  finance:'finance',
+  team:'team', teamweekly:'team',
+  agents:'agents', missions:'agents',
+};
+/* in-page segmented switches per group (page → [label, targetPage]) */
+const PAGE_TABS = {
+  myday:      [['My Day','myday'],['Task Book','taskbook']],
+  taskbook:   [['My Day','myday'],['Task Book','taskbook']],
+  clients:    [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
+  onboarding: [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
+  readiness:  [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
+  churn:      [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
+  production:    [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  videopipeline: [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  approvals:     [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  contentplans:  [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  shootpipeline: [['Shoots','shootpipeline'],['Shoot Calendar','shootcalendar'],['Calendar','calendar']],
+  shootcalendar: [['Shoots','shootpipeline'],['Shoot Calendar','shootcalendar'],['Calendar','calendar']],
+  calendar:      [['Shoots','shootpipeline'],['Shoot Calendar','shootcalendar'],['Calendar','calendar']],
+  team:       [['Members','team'],['Weekly','teamweekly']],
+  teamweekly: [['Members','team'],['Weekly','teamweekly']],
+  agents:     [['Agents','agents'],['Missions','missions']],
+  missions:   [['Agents','agents'],['Missions','missions']],
+};
+function navExpandActive(){} /* groups are gone; kept as a no-op for old callers */
 function buildNavGroups(){
   const nav = document.querySelector('.nav');
   if(!nav || nav.dataset.grouped) return;
-  nav.querySelectorAll('.nav-sec').forEach(e=>e.remove()); // drop old flat dividers
-  const saved = navSavedState();
-  const chev = '<svg class="nav-grp-chev" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>';
-  NAV_GROUPS.forEach(grp=>{
-    const items = grp.items.map(id=>document.getElementById('nav-'+id)).filter(Boolean);
-    if(!items.length) return;
-    const wrap = document.createElement('div');
-    wrap.className = 'nav-group'; wrap.dataset.group = grp.id;
-    const collapsed = (grp.id in saved) ? saved[grp.id] : !grp.openByDefault;
-    if(collapsed) wrap.classList.add('collapsed');
-    const hd = document.createElement('div');
-    hd.className = 'nav-grp-hd'; hd.setAttribute('onclick', "toggleNavGroup('"+grp.id+"')");
-    hd.innerHTML = '<span>'+grp.label+'</span>'+chev;
-    const bodyEl = document.createElement('div');
-    bodyEl.className = 'nav-grp-body';
-    items.forEach(it=>bodyEl.appendChild(it)); // move existing nodes (handlers intact)
-    wrap.appendChild(hd); wrap.appendChild(bodyEl);
-    nav.appendChild(wrap);
+  nav.querySelectorAll('.nav-sec,.nav-grp-hd').forEach(e=>e.remove());
+  // hide every nav item, then re-append the chosen 9 in order with new labels
+  nav.querySelectorAll('.nav-item').forEach(it=>{ it.style.display='none'; });
+  NAV9.forEach(cfg=>{
+    const it = document.getElementById('nav-'+cfg.nav);
+    if(!it) return;
+    it.style.display='';
+    // relabel: replace the text node after the icon
+    [...it.childNodes].forEach(n=>{ if(n.nodeType===3 && n.textContent.trim()) n.textContent=cfg.label; });
+    nav.appendChild(it);
   });
-  nav.dataset.grouped = '1';
-  navExpandActive();
+  nav.dataset.grouped='1';
+}
+/* inject / refresh the segmented switch at the top of a grouped page */
+function v2Tabs(page){
+  const tabs = PAGE_TABS[page];
+  const pageEl = document.getElementById('page-'+page);
+  if(!pageEl) return;
+  let bar = pageEl.querySelector(':scope > .content > .v2-seg-bar, :scope > .v2-seg-bar');
+  if(!tabs){ if(bar) bar.style.display='none'; return; }
+  const host = pageEl.querySelector(':scope > .content') || pageEl;
+  if(!bar){
+    bar = document.createElement('div');
+    bar.className='v2-seg-bar';
+    host.insertBefore(bar, host.firstChild);
+  }
+  bar.style.display='';
+  bar.innerHTML = '<div class="tab-group v2-seg">'+tabs.map(t=>
+    `<button class="tab-btn${t[1]===page?' active':''}${t[2]?' '+t[2]:''}" onclick="showPage('${t[1]}')">${t[0]}</button>`
+  ).join('')+'</div>';
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', buildNavGroups);
 else buildNavGroups();
