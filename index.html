@@ -2339,6 +2339,44 @@ td:last-child{padding-right:18px;text-align:right}
 </div>
 
 <!-- ══════════════════════════════
+   GRAPHIC PIPELINE PAGE
+══════════════════════════════ -->
+<div id="page-graphicpipeline" class="page-section" style="display:none">
+  <div class="content" style="overflow:hidden;height:calc(100vh - 56px);display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div>
+        <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Graphic Pipeline</h1>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px" id="gp-sub">All graphic projects across all clients</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <select class="form-select" style="width:148px;font-size:11px;padding:5px 8px" id="gp-filter-client" onchange="renderGraphicPipeline()"><option value="">All clients</option></select>
+        <select class="form-select" style="width:130px;font-size:11px;padding:5px 8px" id="gp-filter-designer" onchange="renderGraphicPipeline()"><option value="">All designers</option></select>
+        <select class="form-select" style="width:105px;font-size:11px;padding:5px 8px" id="gp-filter-type" onchange="renderGraphicPipeline()"><option value="">All types</option><option value="post">Post</option><option value="story">Story</option></select>
+        <button class="btn-primary btn-sm" onclick="openNewGraphicModal()">+ New Project</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;align-items:stretch">
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--accent);height:100%;box-sizing:border-box"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Active</div><div id="gp-s-active" class="stat-val" style="font-size:24px;font-weight:800;color:var(--accent);line-height:1.1;margin-top:4px">0</div></div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--amber);height:100%;box-sizing:border-box"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">In Production</div><div id="gp-s-prod" class="stat-val" style="font-size:24px;font-weight:800;color:var(--amber);line-height:1.1;margin-top:4px">0</div></div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--red);height:100%;box-sizing:border-box"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Needs Review</div><div id="gp-s-review" class="stat-val" style="font-size:24px;font-weight:800;color:var(--red);line-height:1.1;margin-top:4px">0</div></div>
+      <div class="card" style="padding:12px 14px;border-left:3px solid var(--green);height:100%;box-sizing:border-box"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Approved</div><div id="gp-s-done" class="stat-val" style="font-size:24px;font-weight:800;color:var(--green);line-height:1.1;margin-top:4px">0</div></div>
+    </div>
+    <div class="pipeline-board" id="gp-board" style="flex:1"></div>
+  </div>
+</div>
+
+<!-- GRAPHIC DETAIL / EDIT MODAL -->
+<div class="modal-overlay hidden" id="modal-graphic-detail">
+  <div class="modal" style="max-width:640px;max-height:92vh;display:flex;flex-direction:column">
+    <div class="modal-hd" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div class="modal-title" id="gd-title" style="font-family:'Poppins',sans-serif;font-weight:800;font-size:15px">Graphic Project</div>
+      <button class="modal-close" onclick="closeModal('modal-graphic-detail')" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text-2)">&times;</button>
+    </div>
+    <div id="gd-body" style="padding:18px 20px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
    SHOOT PIPELINE PAGE
 ══════════════════════════════ -->
 <div id="page-shootpipeline" class="page-section" style="display:none">
@@ -4363,6 +4401,9 @@ function showPage(page) {
   } else if (page === 'videopipeline') {
     document.getElementById('topbar-title').textContent = 'Video Pipeline';
     loadVideoPipeline();
+  } else if (page === 'graphicpipeline') {
+    document.getElementById('topbar-title').textContent = 'Graphic Pipeline';
+    loadGraphicPipeline();
   } else if (page === 'shootpipeline') {
     document.getElementById('topbar-title').textContent = 'Shoot Pipeline';
     loadShootPipeline();
@@ -6899,6 +6940,7 @@ function uploadLogo(){
 // (the full-reload interval is defined once above — this duplicate was doubling egress; removed)
 // Pipeline auto-refresh — only when on that page AND the tab is visible (bandwidth-safe)
 setInterval(()=>{if(CURRENT_PAGE==='videopipeline'&&!document.hidden)loadVideoPipeline();},240000);
+setInterval(()=>{if(CURRENT_PAGE==='graphicpipeline'&&!document.hidden)loadGraphicPipeline();},240000);
 setInterval(()=>{if(CURRENT_PAGE==='shootpipeline'&&!document.hidden)loadShootPipeline();},240000);
 
 /* ══════════════════════════════════════
@@ -9170,6 +9212,236 @@ function rcEditAmt(i,v){ if(RCPT.items[i])RCPT.items[i].amt=Math.max(0,parseInt(
 function rcAddItem(){ RCPT.items.push({desc:'',amt:0}); rcRefresh(); }
 function rcDelItem(i){ RCPT.items.splice(i,1); if(!RCPT.items.length)RCPT.items.push({desc:'',amt:0}); rcRefresh(); }
 </script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   GRAPHIC PIPELINE (CC) — full board mirroring the Video Pipeline.
+   Reads graphic_projects (base64 image_url EXCLUDED from the list query —
+   lazy-loaded per project) + graphic_stage_history. Writes stage moves the
+   same way the Graphic System does: PATCH current_stage + POST history.
+══════════════════════════════════════════════════════════════ */
+const GP_STAGES=['brief','in_progress','first_draft','revisions','head_review','sent_to_client','client_changes','approved'];
+const GP_LABEL={brief:'Brief',in_progress:'In Progress',first_draft:'First Draft',revisions:'Revisions',head_review:'Head Review',sent_to_client:'Sent to Client',client_changes:'Client Changes',approved:'Approved'};
+const GP_PROD=['in_progress','first_draft','revisions'];
+const GP_REV=['head_review','sent_to_client','client_changes'];
+let GP_projects=[], GP_history=[], GP_detailId=null, GP_imgCache={};
+function gpUser(){return ROLE==='th'?'THULAIB':'SHIARA';}
+
+async function loadGraphicPipeline(){
+  try{
+    const cols='id,title,type,client_id,client_name,assigned_designer_id,assigned_designer,current_stage,priority,deadline,brief_notes,drive_link,dimensions,target_month,target_year,is_archived,created_at,updated_at';
+    const [projs,hist]=await Promise.all([
+      sb('graphic_projects','?select='+cols+'&is_archived=eq.false&order=id.desc'),
+      sb('graphic_stage_history','?select=*&order=entered_at.desc&limit=400')
+    ]);
+    GP_projects=projs||[]; GP_history=hist||[];
+  }catch(e){console.error('loadGraphicPipeline',e);}
+  renderGraphicPipeline();
+}
+
+function renderGraphicPipeline(){
+  const cf=document.getElementById('gp-filter-client')?.value||'';
+  const df=document.getElementById('gp-filter-designer')?.value||'';
+  const tf=document.getElementById('gp-filter-type')?.value||'';
+  let ps=[...GP_projects];
+  if(cf)ps=ps.filter(p=>String(p.client_id)===cf);
+  if(df)ps=ps.filter(p=>String(p.assigned_designer||'')===df);
+  if(tf)ps=ps.filter(p=>(p.type||'post')===tf);
+
+  const all=GP_projects, S=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  S('gp-s-active',all.length);
+  S('gp-s-prod',all.filter(p=>GP_PROD.includes(p.current_stage)).length);
+  S('gp-s-review',all.filter(p=>GP_REV.includes(p.current_stage)).length);
+  S('gp-s-done',all.filter(p=>p.current_stage==='approved').length);
+  S('gp-sub',`${all.length} active graphic projects across all clients`);
+
+  // filters (preserve selection)
+  const cSel=document.getElementById('gp-filter-client');
+  if(cSel){const prev=cSel.value;const cs=[...new Map(all.map(p=>[String(p.client_id),p.client_name||'?'])).entries()].sort((a,b)=>a[1].localeCompare(b[1]));cSel.innerHTML='<option value="">All clients</option>'+cs.map(([id,nm])=>`<option value="${id}">${esc(nm)}</option>`).join('');cSel.value=prev;}
+  const dSel=document.getElementById('gp-filter-designer');
+  if(dSel){const prev=dSel.value;const ds=[...new Set(all.map(p=>p.assigned_designer).filter(Boolean))].sort();dSel.innerHTML='<option value="">All designers</option>'+ds.map(nm=>`<option value="${esc(nm)}">${esc(nm)}</option>`).join('');dSel.value=prev;}
+
+  const board=document.getElementById('gp-board');if(!board)return;
+  const bl=board.scrollLeft;const cols=Array.from(board.querySelectorAll('.stage-cards')).map(c=>c.scrollTop);
+  board.innerHTML=GP_STAGES.map(stage=>{
+    const sv=ps.filter(p=>p.current_stage===stage);
+    return `<div class="stage-col">
+      <div class="stage-header">
+        <div class="stage-title"><span class="stage-dot s-${stage}"></span>${GP_LABEL[stage]}</div>
+        <div class="stage-count">${sv.length}</div>
+      </div>
+      <div class="stage-cards" data-drop-stage="${stage}" ondragover="gpDragOver(event)" ondragleave="gpDragLeave(event)" ondrop="gpDrop(event,'${stage}')">
+        ${sv.length?sv.map(p=>gpCard(p)).join(''):'<div class="stage-empty">No projects</div>'}
+      </div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(()=>{board.scrollLeft=bl;board.querySelectorAll('.stage-cards').forEach((c,i)=>{if(cols[i])c.scrollTop=cols[i];});});
+}
+
+function gpCard(p){
+  const pri=p.priority||'low';
+  const dl=p.deadline?new Date(p.deadline):null;
+  const overdue=dl&&dl<new Date()&&p.current_stage!=='approved';
+  const typeTag=p.type?`<span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3)">${esc(p.type)}</span>`:'';
+  return `<div class="vp-card pr-${pri}" draggable="true" ondragstart="gpDragStart(event,${p.id})" data-gp-id="${p.id}" onclick="openGraphicDetail(${p.id})">
+    <div class="vp-card-title">${esc(p.title||'Untitled')}</div>
+    <div class="vp-card-client">${esc(p.client_name||'')}</div>
+    <div class="vp-card-meta">
+      <span class="vp-card-editor">${esc(p.assigned_designer||'UNASSIGNED')}</span>
+      <span style="display:flex;align-items:center;gap:6px">${typeTag}${dl?`<span style="font-size:10px;color:${overdue?'var(--red)':'var(--text-3)'};font-weight:${overdue?'700':'500'}">${dl.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})}</span>`:''}</span>
+    </div>
+  </div>`;
+}
+
+let gpDragId=null;
+function gpDragStart(e,id){gpDragId=id;e.dataTransfer.effectAllowed='move';const el=e.target.closest('.vp-card');if(el){el.classList.add('dragging');setTimeout(()=>{el.style.opacity='0.4';},0);}}
+function gpDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.currentTarget.classList.add('drop-target');}
+function gpDragLeave(e){e.currentTarget.classList.remove('drop-target');}
+function gpDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('drop-target');if(gpDragId)moveGraphicStage(gpDragId,stage);gpDragId=null;}
+
+async function moveGraphicStage(id,newStage){
+  const p=GP_projects.find(x=>x.id===id);
+  if(!p||p.current_stage===newStage)return;
+  const oldStage=p.current_stage; const now=new Date().toISOString();
+  p.current_stage=newStage; p.updated_at=now;               // optimistic
+  renderGraphicPipeline();
+  try{
+    const upd={current_stage:newStage,updated_at:now};
+    if(newStage==='approved')upd.completed_at=now;
+    await sbC('graphic_projects','PATCH',upd,'?id=eq.'+id);
+    const row=await sbC('graphic_stage_history','POST',{graphic_project_id:id,stage:newStage,entered_by:gpUser(),notes:'Moved from '+GP_LABEL[oldStage]},'');
+    if(row&&row[0])GP_history.unshift(row[0]);
+  }catch(e){console.error('moveGraphicStage',e); p.current_stage=oldStage; renderGraphicPipeline(); alert('Could not move project — check connection.');}
+  if(GP_detailId===id)openGraphicDetail(id);
+}
+
+function gpDesignerOptions(sel){
+  // real designers from team_members (role Graphic Designer) + whoever is already assigned
+  const names=new Set();
+  (typeof TM_MEMBERS!=='undefined'?TM_MEMBERS:[]).filter(m=>/graphic/i.test(m.role||'')).forEach(m=>names.add(m.name));
+  GP_projects.forEach(p=>{if(p.assigned_designer)names.add(p.assigned_designer);});
+  if(sel)names.add(sel);
+  return '<option value="">Unassigned</option>'+[...names].sort().map(n=>`<option value="${esc(n)}" ${n===sel?'selected':''}>${esc(n)}</option>`).join('');
+}
+
+function openGraphicDetail(id){
+  const p=GP_projects.find(x=>x.id===id);if(!p)return;
+  GP_detailId=id;
+  document.getElementById('gd-title').textContent=p.title||'Graphic Project';
+  const hist=GP_history.filter(h=>h.graphic_project_id===id).slice(0,12);
+  const rel=d=>{if(!d)return'';const days=Math.floor((Date.now()-new Date(d).getTime())/86400000);return days<1?'today':days===1?'1d ago':days+'d ago';};
+  document.getElementById('gd-body').innerHTML=`
+    <div class="field-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Title</label><input class="form-input" id="gd-f-title" value="${esc(p.title||'').replace(/"/g,'&quot;')}"></div>
+      <div class="form-field"><label class="form-label">Client</label><input class="form-input" value="${esc(p.client_name||'')}" disabled style="opacity:.7"></div>
+      <div class="form-field"><label class="form-label">Type</label><select class="form-select" id="gd-f-type"><option value="post" ${p.type==='post'||!p.type?'selected':''}>Post</option><option value="story" ${p.type==='story'?'selected':''}>Story</option></select></div>
+      <div class="form-field"><label class="form-label">Designer</label><select class="form-select" id="gd-f-designer">${gpDesignerOptions(p.assigned_designer)}</select></div>
+      <div class="form-field"><label class="form-label">Stage</label><select class="form-select" id="gd-f-stage">${GP_STAGES.map(s=>`<option value="${s}" ${p.current_stage===s?'selected':''}>${GP_LABEL[s]}</option>`).join('')}</select></div>
+      <div class="form-field"><label class="form-label">Priority</label><select class="form-select" id="gd-f-priority">${['low','medium','high','urgent'].map(pr=>`<option value="${pr}" ${p.priority===pr?'selected':''}>${pr.charAt(0).toUpperCase()+pr.slice(1)}</option>`).join('')}</select></div>
+      <div class="form-field"><label class="form-label">Deadline</label><input class="form-input" type="date" id="gd-f-deadline" value="${p.deadline||''}"></div>
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Brief / Notes</label><textarea class="form-input" id="gd-f-notes" rows="3" style="resize:vertical">${esc(p.brief_notes||'')}</textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;margin:6px 0 14px;flex-wrap:wrap">
+      ${p.drive_link?`<a class="btn-ghost btn-sm" href="${esc(p.drive_link)}" target="_blank" rel="noopener" style="text-decoration:none">Open Drive</a>`:''}
+      <button class="btn-ghost btn-sm" id="gd-img-btn" onclick="gpLoadImage(${id})">View design</button>
+    </div>
+    <div id="gd-img-wrap" style="margin-bottom:14px"></div>
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);margin-bottom:8px">Stage History</div>
+      ${hist.length?hist.map(h=>`<div style="display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--border);font-size:11.5px"><span style="color:var(--text-2)"><b style="color:var(--text)">${GP_LABEL[h.stage]||esc(h.stage)}</b>${h.entered_by?' · '+esc(h.entered_by):''}</span><span style="color:var(--text-3)">${rel(h.entered_at)}</span></div>`).join(''):'<div style="font-size:11px;color:var(--text-3);font-style:italic">No history yet</div>'}
+    </div>
+    <div style="display:flex;gap:8px;justify-content:space-between;border-top:1px solid var(--border);padding-top:14px">
+      <div style="display:flex;gap:8px">
+        <button class="btn-ghost btn-sm" onclick="gpArchive(${id})" style="color:var(--text-3)">Archive</button>
+        <button class="btn-ghost btn-sm" onclick="gpDelete(${id})" style="color:var(--red)">Delete</button>
+      </div>
+      <button class="btn-primary btn-sm" onclick="gpSaveDetail(${id})">Save changes</button>
+    </div>`;
+  openModal('modal-graphic-detail');
+}
+
+async function gpLoadImage(id){
+  const wrap=document.getElementById('gd-img-wrap');const btn=document.getElementById('gd-img-btn');
+  if(!wrap)return;
+  if(GP_imgCache[id]!==undefined){ wrap.innerHTML=gpImgHTML(GP_imgCache[id]); if(btn)btn.style.display='none'; return; }
+  if(btn){btn.textContent='Loading…';btn.disabled=true;}
+  try{
+    const rows=await sb('graphic_projects','?select=image_url&id=eq.'+id);
+    const url=(rows&&rows[0])?rows[0].image_url:null;
+    GP_imgCache[id]=url||null;
+    wrap.innerHTML=gpImgHTML(url); if(btn)btn.style.display='none';
+  }catch(e){ if(btn){btn.textContent='View design';btn.disabled=false;} console.warn('gpLoadImage',e); }
+}
+function gpImgHTML(url){ return url?`<img src="${url}" style="max-width:100%;border-radius:10px;border:1px solid var(--border);cursor:pointer" onclick="window.open(this.src)">`:'<div style="font-size:11px;color:var(--text-3);font-style:italic">No design uploaded yet</div>'; }
+
+async function gpSaveDetail(id){
+  const p=GP_projects.find(x=>x.id===id);if(!p)return;
+  const g=x=>document.getElementById(x)?.value;
+  const newStage=g('gd-f-stage');
+  const data={title:g('gd-f-title')||p.title,type:g('gd-f-type'),assigned_designer:g('gd-f-designer')||null,priority:g('gd-f-priority'),deadline:g('gd-f-deadline')||null,brief_notes:g('gd-f-notes')||null,updated_at:new Date().toISOString()};
+  const stageChanged=newStage&&newStage!==p.current_stage;
+  try{
+    if(stageChanged){ data.current_stage=newStage; if(newStage==='approved')data.completed_at=new Date().toISOString(); }
+    await sbC('graphic_projects','PATCH',data,'?id=eq.'+id);
+    Object.assign(p,data);
+    if(stageChanged){ const row=await sbC('graphic_stage_history','POST',{graphic_project_id:id,stage:newStage,entered_by:gpUser(),notes:'Updated in CC'},''); if(row&&row[0])GP_history.unshift(row[0]); }
+    closeModal('modal-graphic-detail'); renderGraphicPipeline();
+  }catch(e){console.error('gpSaveDetail',e);alert('Save failed — check connection.');}
+}
+async function gpArchive(id){
+  if(!confirm('Archive this project? It will leave the board.'))return;
+  try{ await sbC('graphic_projects','PATCH',{is_archived:true,updated_at:new Date().toISOString()},'?id=eq.'+id);
+    GP_projects=GP_projects.filter(p=>p.id!==id); closeModal('modal-graphic-detail'); renderGraphicPipeline();
+  }catch(e){alert('Archive failed.');}
+}
+async function gpDelete(id){
+  if(!confirm('Delete this project permanently? This cannot be undone.'))return;
+  try{ await sbC('graphic_projects','DELETE',null,'?id=eq.'+id);
+    GP_projects=GP_projects.filter(p=>p.id!==id); closeModal('modal-graphic-detail'); renderGraphicPipeline();
+  }catch(e){alert('Delete failed.');}
+}
+
+function openNewGraphicModal(){
+  GP_detailId=null;
+  document.getElementById('gd-title').textContent='New Graphic Project';
+  const clientOpts='<option value="">Select client…</option>'+(CLIENTS||[]).slice().sort((a,b)=>(a.name||'').localeCompare(b.name||'')).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  document.getElementById('gd-body').innerHTML=`
+    <div class="field-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Title *</label><input class="form-input" id="gn-title" placeholder="e.g. July promo carousel"></div>
+      <div class="form-field"><label class="form-label">Client *</label><select class="form-select" id="gn-client">${clientOpts}</select></div>
+      <div class="form-field"><label class="form-label">Type</label><select class="form-select" id="gn-type"><option value="post">Post</option><option value="story">Story</option></select></div>
+      <div class="form-field"><label class="form-label">Designer</label><select class="form-select" id="gn-designer">${gpDesignerOptions('')}</select></div>
+      <div class="form-field"><label class="form-label">Priority</label><select class="form-select" id="gn-priority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+      <div class="form-field"><label class="form-label">Deadline</label><input class="form-input" type="date" id="gn-deadline"></div>
+      <div class="form-field"><label class="form-label">Dimensions</label><input class="form-input" id="gn-dims" placeholder="e.g. 1080x1080"></div>
+      <div class="form-field" style="grid-column:1/-1"><label class="form-label">Brief / Notes</label><textarea class="form-input" id="gn-notes" rows="3" style="resize:vertical"></textarea></div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border);padding-top:14px;margin-top:6px">
+      <button class="btn-ghost btn-sm" onclick="closeModal('modal-graphic-detail')">Cancel</button>
+      <button class="btn-primary btn-sm" onclick="gpSaveNew()">Create Project</button>
+    </div>`;
+  openModal('modal-graphic-detail');
+}
+async function gpSaveNew(){
+  const g=x=>document.getElementById(x)?.value;
+  const title=g('gn-title')?.trim(); const cid=g('gn-client');
+  if(!title)return alert('Enter a title');
+  if(!cid)return alert('Select a client');
+  const cl=(CLIENTS||[]).find(c=>String(c.id)===cid);
+  const now=new Date().toISOString();
+  const data={title,client_id:parseInt(cid),client_name:cl?.name||'',type:g('gn-type'),assigned_designer:g('gn-designer')||null,priority:g('gn-priority'),deadline:g('gn-deadline')||null,dimensions:g('gn-dims')||null,brief_notes:g('gn-notes')||null,current_stage:'brief',is_archived:false,created_by:gpUser(),created_at:now,updated_at:now};
+  try{
+    const res=await sbC('graphic_projects','POST',data,'');
+    if(res&&res[0]){ GP_projects.unshift(res[0]); await sbC('graphic_stage_history','POST',{graphic_project_id:res[0].id,stage:'brief',entered_by:gpUser(),notes:'Created in CC'},''); }
+    closeModal('modal-graphic-detail'); renderGraphicPipeline();
+  }catch(e){console.error('gpSaveNew',e);alert('Create failed — check connection.');}
+}
+</script>
+
+<style>
+/* graphic pipeline stage-dot colours (reuses all .vp-card / .stage-* classes) */
+.stage-dot.s-brief{background:#3b82f6}.stage-dot.s-in_progress{background:#f59e0b}.stage-dot.s-first_draft{background:#8b5cf6}.stage-dot.s-revisions{background:#ef4444}.stage-dot.s-head_review{background:#7c3aed}.stage-dot.s-sent_to_client{background:#06b6d4}.stage-dot.s-client_changes{background:#f97316}.stage-dot.s-approved{background:#22c55e}
+</style>
 
 <!-- ═══════════ V2 SKIN — skeleton (HD/BSWL) elevation, radius, shell. Cascade-final on purpose. ═══════════ -->
 <style id="v2skin">
@@ -12326,7 +12598,7 @@ const NAV_PARENT = {
   myday:'myday', taskbook:'myday',
   clients:'clients', onboarding:'clients', readiness:'clients', churn:'clients',
   pipeline:'pipeline',
-  production:'production', videopipeline:'production', approvals:'production', contentplans:'production',
+  production:'production', videopipeline:'production', graphicpipeline:'production', approvals:'production', contentplans:'production',
   shootpipeline:'shoots', shootcalendar:'shoots', calendar:'shoots',
   finance:'finance',
   team:'team', teamweekly:'team',
@@ -12340,10 +12612,11 @@ const PAGE_TABS = {
   onboarding: [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   readiness:  [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   churn:      [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
-  production:    [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
-  videopipeline: [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
-  approvals:     [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
-  contentplans:  [['Overview','production'],['Video Pipeline','videopipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  production:    [['Overview','production'],['Video Pipeline','videopipeline'],['Graphic Pipeline','graphicpipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  videopipeline: [['Overview','production'],['Video Pipeline','videopipeline'],['Graphic Pipeline','graphicpipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  graphicpipeline:[['Overview','production'],['Video Pipeline','videopipeline'],['Graphic Pipeline','graphicpipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  approvals:     [['Overview','production'],['Video Pipeline','videopipeline'],['Graphic Pipeline','graphicpipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
+  contentplans:  [['Overview','production'],['Video Pipeline','videopipeline'],['Graphic Pipeline','graphicpipeline'],['Approvals','approvals'],['Content Plans','contentplans']],
   shootpipeline: [['Shoots','shootpipeline'],['Shoot Calendar','shootcalendar'],['Calendar','calendar']],
   shootcalendar: [['Shoots','shootpipeline'],['Shoot Calendar','shootcalendar'],['Calendar','calendar']],
   calendar:      [['Shoots','shootpipeline'],['Shoot Calendar','shootcalendar'],['Calendar','calendar']],
