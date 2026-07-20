@@ -365,7 +365,7 @@ async function loadAll(){
     const [links,plays,clients]=await Promise.all([
       sb('inspo_links?select=*&order=date_added.desc'),
       sb('inspo_plays?select=*&order=created_at.desc'),
-      sb('clients?select=id,name,industry&order=name.asc')
+      sb('clients?select=id,name,industry&order=name.asc').catch(()=>[])
     ]);
     STATE.links=links||[];
     STATE.plays=plays||[];
