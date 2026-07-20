@@ -8758,6 +8758,8 @@ async function deleteMission(id){
   window.addEventListener('unhandledrejection', function(e){
     const reason = e.reason;
     const msg   = reason instanceof Error ? reason.message : String(reason);
+    // L-006: transient connectivity is not a bug — never report network blips
+    if(/failed to fetch|networkerror|network request failed|load failed|offline|net::/i.test(msg)) return;
     const stack = reason instanceof Error ? reason.stack   : '';
     _handle('UnhandledRejection: ' + msg, 'promise', null, null, stack, 'rejection');
   });
@@ -9523,7 +9525,7 @@ table th{letter-spacing:.08em}
 
 <!-- âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
      BB COMMAND CENTRE â AI AGENTS LAYER v1.0
-     Append this entire <script> block to the END of index.html
+     Append this entire SCRIPT-TAG block to the END of index.html
      (paste just before the closing </body> tag, or at the very end)
 
      DO NOT touch anything above this block.
@@ -12313,7 +12315,7 @@ async function bkSave(){
 // PRODUCTION (cross-role: Video + Graphic + SMM, read-only)
 // ═══════════════════════════════════════
 // GP_STAGES is already declared globally by the Graphic Pipeline block (same 8
-// stages) — redeclaring a global const in a later <script> block throws
+// stages) — redeclaring a global const in a later SCRIPT-TAG block throws
 // "already declared" and silently kills THIS ENTIRE BLOCK in the browser
 // (loadProduction/prodTab undefined — bugs #42-45). Reuse the existing global.
 const GP_LABELS = {brief:'Brief',in_progress:'In Progress',first_draft:'First Draft',revisions:'Revisions',head_review:'Head Review',sent_to_client:'Sent to Client',client_changes:'Client Changes',approved:'Approved'};
