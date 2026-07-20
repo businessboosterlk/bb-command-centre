@@ -12312,7 +12312,10 @@ async function bkSave(){
 // ═══════════════════════════════════════
 // PRODUCTION (cross-role: Video + Graphic + SMM, read-only)
 // ═══════════════════════════════════════
-const GP_STAGES = ['brief','in_progress','first_draft','revisions','head_review','sent_to_client','client_changes','approved'];
+// GP_STAGES is already declared globally by the Graphic Pipeline block (same 8
+// stages) — redeclaring a global const in a later <script> block throws
+// "already declared" and silently kills THIS ENTIRE BLOCK in the browser
+// (loadProduction/prodTab undefined — bugs #42-45). Reuse the existing global.
 const GP_LABELS = {brief:'Brief',in_progress:'In Progress',first_draft:'First Draft',revisions:'Revisions',head_review:'Head Review',sent_to_client:'Sent to Client',client_changes:'Client Changes',approved:'Approved'};
 const SMM_STATUS_ORDER = ['brief','content-plan','in_progress','editing','scheduled','posted','done'];
 let PROD_graphic = [];
