@@ -1451,6 +1451,7 @@ td:last-child{padding-right:18px;text-align:right}
       <div class="nav-item" id="nav-taskbook" onclick="showPage('taskbook')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>Task Book</div>
       <div class="nav-sec">Content</div>
       <div class="nav-item" id="nav-contentplans" onclick="showPage('contentplans')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>Content Plans</div>
+      <div class="nav-item" id="nav-delivery" onclick="showPage('delivery')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 20 6"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span>Delivery</div>
       <div class="nav-item" id="nav-videopipeline" onclick="showPage('videopipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></span>Video Pipeline</div>
       <div class="nav-item" id="nav-production" onclick="showPage('production')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h7v7h-7z"/></svg></span>Production</div>
       <div class="nav-item" id="nav-approvals" onclick="showPage('approvals')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg></span>Approvals</div>
@@ -2869,6 +2870,10 @@ td:last-child{padding-right:18px;text-align:right}
 </div>
 
 <!-- ═══ ONBOARDING PAGE ═══ -->
+<div id="page-delivery" class="page-section" style="display:none">
+  <div class="content"><div id="cc-dl-root"></div></div>
+</div>
+
 <div id="page-onboarding" class="page-section" style="display:none">
   <div class="content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px">
@@ -4411,6 +4416,9 @@ function showPage(page) {
   } else if (page === 'shootcalendar') {
     document.getElementById('topbar-title').textContent = 'Shoot Calendar';
     loadShootCalendar();
+  } else if (page === 'delivery') {
+    document.getElementById('topbar-title').textContent = 'Delivery';
+    renderCcDelivery();
   } else if (page === 'onboarding') {
     document.getElementById('topbar-title').textContent = 'Onboarding';
     loadOnboarding();
@@ -12152,6 +12160,147 @@ const OB_STEPS = [
 let OB_onboarding = [];   // all client_onboarding rows
 let OB_kits = [];         // all client_brand_kit rows
 let obCurrentClient = null;
+
+// ============ DELIVERY BOARD (shared bb_delivery table) ============
+// Same rows the standalone Delivery Tracker (bb-delivery) writes, so all three
+// views are one board. Group headers use the REAL month name taken from the
+// period label, not "this month"/"next month".
+var BBD_COLS=[
+ {k:'posts',   g:'this', t:'Posts'},
+ {k:'shorts',  g:'this', t:'Short videos'},
+ {k:'vids',    g:'this', t:'Published videos'},
+ {k:'stories', g:'this', t:'Stories'},
+ {k:'scripts', g:'this', t:'Scripts sent'},
+ {k:'ads',     g:'this', t:'Ads live'},
+ {k:'report',  g:'this', t:'Report sent'},
+ {k:'plan',    g:'next', t:'Content plan'},
+ {k:'approved',g:'next', t:'Plan approved'},
+ {k:'nposts',  g:'next', t:'Posts made'},
+ {k:'bio',     g:'bio',  t:'BIOTHIS'},
+ {k:'nbio',    g:'bio',  t:'BIONEXT'},
+ {k:'fb',      g:'one',  t:'FB cover'},
+ {k:'ig',      g:'one',  t:'IG highlights'}
+];
+var BBD_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var BBD_ROWS=[], BBD_PERIODS=[], BBD_PERIOD='';
+// One-time tasks are the brand jobs - done once, not every month.
+function bbdIsOneTime(c){ return c.g==='one'; }
+function bbdThisMonthName(p){ var m=String(p||'').split(' ')[0]; return BBD_MONTHS.indexOf(m)>=0?m:'This month'; }
+function bbdNextMonthName(p){
+  var parts=String(p||'').split(' '); var i=BBD_MONTHS.indexOf(parts[0]);
+  if(i<0) return 'Next month';
+  var y=parseInt(parts[1]||'0',10); i++; if(i>11){i=0;y++;}
+  return BBD_MONTHS[i];
+}
+function bbdColLabel(c,period){
+  if(c.t==='BIOTHIS') return bbdThisMonthName(period);
+  if(c.t==='BIONEXT') return bbdNextMonthName(period);
+  return c.t;
+}
+function bbdGroupLabel(g,period){
+  if(g==='this') return bbdThisMonthName(period).toUpperCase();
+  if(g==='next') return bbdNextMonthName(period).toUpperCase();
+  if(g==='bio')  return 'BIO';
+  return 'ONE-TIME';
+}
+function bbdPct(r){ var v=r.vals||{}; return Math.round(BBD_COLS.filter(function(c){return v[c.k];}).length/BBD_COLS.length*100); }
+
+async function renderCcDelivery(){
+  var root=document.getElementById('cc-dl-root'); if(!root) return;
+  if(!BBD_ROWS.length) root.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3)">Loading…</div>';
+  try{
+    if(!BBD_PERIODS.length){
+      var all=await sb('bb_delivery','?select=period')||[];
+      var seen={}; all.forEach(function(x){seen[x.period]=1;});
+      BBD_PERIODS=Object.keys(seen).sort().reverse();
+      if(!BBD_PERIOD||BBD_PERIODS.indexOf(BBD_PERIOD)<0) BBD_PERIOD=BBD_PERIODS[0]||'';
+    }
+    BBD_ROWS=await sb('bb_delivery','?period=eq.'+encodeURIComponent(BBD_PERIOD)+'&select=*&order=pos.asc')||[];
+  }catch(e){
+    console.error('renderCcDelivery',e);
+    root.innerHTML='<div style="padding:40px;text-align:center;color:var(--red)">Could not load the delivery board.</div>';
+    return;
+  }
+
+  var html='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">'
+    +'<div><h1 style="font-family:\'Poppins\',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">Delivery</h1>'
+    +'<div style="color:var(--text-3);font-size:13px;margin-top:2px">Shared board. Anyone ticks, everyone sees it.</div></div>'
+    +'<select class="form-select" style="width:150px;font-size:13px" onchange="BBD_PERIOD=this.value;BBD_ROWS=[];renderCcDelivery()">'
+      +BBD_PERIODS.map(function(p){return '<option'+(p===BBD_PERIOD?' selected':'')+'>'+esc(p)+'</option>';}).join('')
+    +'</select></div>';
+
+  var known=['NIRVANA','TIANA'], extras=[];
+  BBD_ROWS.forEach(function(x){var o=String(x.owner||'').toUpperCase(); if(o&&known.indexOf(o)<0&&extras.indexOf(o)<0)extras.push(o);});
+  var groups=known.concat(extras.sort()).map(function(o){return {label:o,list:BBD_ROWS.filter(function(x){return String(x.owner||'').toUpperCase()===o;})};});
+  var orphans=BBD_ROWS.filter(function(x){return !String(x.owner||'').trim();});
+  if(orphans.length) groups.push({label:'UNASSIGNED',list:orphans});
+
+  var ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)'};
+  var any=false;
+  groups.forEach(function(g){
+    if(!g.list.length) return; any=true;
+    var accent=ACC[g.label]||'var(--text-3)';
+    var tot=g.list.length*BBD_COLS.length, don=0, full=0;
+    g.list.forEach(function(r){var v=r.vals||{};var d=BBD_COLS.filter(function(c){return v[c.k];}).length;don+=d;if(d===BBD_COLS.length)full++;});
+    var pct=tot?Math.round(don/tot*100):0;
+
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:24px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border)">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+        +'<div style="width:3px;height:18px;border-radius:2px;background:'+accent+'"></div>'
+        +'<div style="font-family:\'Poppins\',sans-serif;font-size:15px;font-weight:800;letter-spacing:.04em;color:var(--text)">'+esc(g.label)+'</div>'
+        +'<div style="font-size:0.72rem;color:var(--text-3)">'+g.list.length+' client'+(g.list.length===1?'':'s')+' &middot; '+full+' fully done</div>'
+      +'</div>'
+      +'<div style="font-size:0.72rem;color:var(--text-3)">Complete <b style="color:'+accent+';font-size:0.98rem">'+pct+'%</b> <span style="opacity:.65">('+don+'/'+tot+')</span></div>'
+    +'</div>';
+
+    var head='<tr><th style="text-align:left;padding:8px 10px;position:sticky;left:0;background:var(--surface-2,#1a1a26);z-index:2;min-width:165px;font-size:9px;color:var(--text-2)">CLIENT</th>';
+    var lastG=null;
+    BBD_COLS.forEach(function(c){
+      var isNew=c.g!==lastG; lastG=c.g;
+      head+='<th style="padding:6px 3px;font-size:8.5px;font-weight:700;letter-spacing:.4px;color:var(--text-2);'+(isNew?'border-left:2px solid var(--border-strong,#3a3a4e);':'')+'">'
+        +(isNew?'<div style="font-size:7.5px;opacity:.6;margin-bottom:2px">'+bbdGroupLabel(c.g,BBD_PERIOD)+'</div>':'<div style="height:11px"></div>')
+        +bbdColLabel(c,BBD_PERIOD).toUpperCase()+'</th>';
+    });
+    head+='<th style="padding:6px 6px;font-size:8.5px;color:var(--text-2)">DONE</th></tr>';
+
+    var body=g.list.map(function(r){
+      var v=r.vals||{}; var pc=bbdPct(r);
+      var col=pc===100?'var(--green)':pc>0?'var(--amber)':'var(--text-3)';
+      var tds=''; var lg=null;
+      BBD_COLS.forEach(function(c){
+        var isNew=c.g!==lg; lg=c.g; var on=!!v[c.k];
+        tds+='<td style="text-align:center;padding:6px 3px;'+(isNew?'border-left:2px solid var(--border);':'')+'">'
+          +'<span onclick="ccBbdTog(\''+r.id+'\',\''+c.k+'\')" title="'+esc(bbdColLabel(c,BBD_PERIOD))+'" '
+          +'style="display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:5px;cursor:pointer;'
+          +(on?'background:var(--green);border:2px solid var(--green)':'background:transparent;border:2px solid var(--border-strong,#3a3a4e)')+'">'
+          +(on?'<svg width="9" height="7" viewBox="0 0 11 9" fill="none"><path d="M1 4L4 7.5L10 1" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>':'')
+          +'</span></td>';
+      });
+      return '<tr style="border-top:1px solid var(--border)">'
+        +'<td style="text-align:left;padding:7px 10px;font-size:12.5px;font-weight:600;color:var(--text);position:sticky;left:0;background:var(--surface);z-index:1">'+esc(r.client)+'</td>'
+        +tds+'<td style="text-align:center;padding:7px 6px;font-size:11px;font-weight:800;color:'+col+'">'+pc+'%</td></tr>';
+    }).join('');
+
+    html+='<div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:11px">'
+      +'<table style="border-collapse:collapse;width:100%;min-width:1080px"><thead style="background:var(--surface-2,#1a1a26)">'+head+'</thead><tbody>'+body+'</tbody></table></div>';
+  });
+
+  if(!any) html+='<div style="padding:40px;text-align:center;color:var(--text-3)">No rows on the board for this period.</div>';
+  root.innerHTML=html;
+}
+
+async function ccBbdTog(id,k){
+  var r=BBD_ROWS.filter(function(x){return String(x.id)===String(id);})[0]; if(!r) return;
+  r.vals=r.vals||{}; r.vals[k]=!r.vals[k];
+  renderCcDelivery();                                   // optimistic
+  try{
+    await SBpatch('bb_delivery',id,{vals:r.vals,updated_at:new Date().toISOString()});
+    _sbCacheInvalidate('bb_delivery');
+  }catch(e){
+    console.error('ccBbdTog',e); r.vals[k]=!r.vals[k]; renderCcDelivery();
+    alert('Could not save that tick');
+  }
+}
 
 async function loadOnboarding(){
   const grid = document.getElementById('ob-grid');
