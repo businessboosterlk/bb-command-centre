@@ -12166,9 +12166,48 @@ async function loadOnboarding(){
   renderOnboarding();
 }
 
-function obClientSteps(name){ return OB_onboarding.filter(s=>s.client_name===name).sort((a,b)=>(a.step_order||0)-(b.step_order||0)); }
+// BIO rows live in client_onboarding too, tagged "BIO: <Month> <Year>". They are a
+// RECURRING monthly job, not an onboarding step, so obClientSteps filters them out —
+// otherwise a client's onboarding % would drop every time a new month appeared.
+const OB_BIO_PREFIX = 'BIO: ';
+const OB_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+function obIsBio(s){ return String(s.step||'').indexOf(OB_BIO_PREFIX)===0; }
+function obBioLabel(m,y){ return OB_BIO_PREFIX + OB_MONTHS[m-1] + ' ' + y; }
+function obBioRow(name,m,y){ return OB_onboarding.find(s=>s.client_name===name && s.step===obBioLabel(m,y)) || null; }
+function obBioDone(name,m,y){ const r=obBioRow(name,m,y); return !!(r && r.status==='done'); }
+// This month and next, by real name.
+function obThisMonth(){ const d=new Date(); return {m:d.getMonth()+1,y:d.getFullYear()}; }
+function obNextMonth(){ const t=obThisMonth(); return t.m===12?{m:1,y:t.y+1}:{m:t.m+1,y:t.y}; }
+
+function obClientSteps(name){ return OB_onboarding.filter(s=>s.client_name===name && !obIsBio(s)).sort((a,b)=>(a.step_order||0)-(b.step_order||0)); }
 function obPct(name){ const st=obClientSteps(name); if(!st.length) return null; return Math.round(st.filter(s=>s.status==='done').length/st.length*100); }
 function obKit(name){ return OB_kits.find(k=>k.client_name===name); }
+
+// Toggle a client's BIO job for one month. Creates the row on first click.
+async function obToggleBio(name,m,y){
+  const existing = obBioRow(name,m,y);
+  try{
+    if(existing){
+      const next = existing.status==='done' ? 'pending' : 'done';
+      existing.status = next;                 // optimistic
+      renderOnboarding();
+      await SBpatch('client_onboarding', existing.id, {status:next});
+    }else{
+      const cid = (CLIENTS||[]).find(c=>c.name===name)?.id || null;
+      // step_order 900+month keeps BIO rows sorted after the real onboarding steps.
+      const row = {client_id:cid, client_name:name, step:obBioLabel(m,y), step_order:900+m, status:'done'};
+      await sbC('client_onboarding','POST',[row],'');
+    }
+    _sbCacheInvalidate('client_onboarding');
+    OB_onboarding = await sb('client_onboarding','?select=*&order=step_order.asc')||[];
+    renderOnboarding();
+  }catch(e){
+    console.error('obToggleBio',e);
+    if(existing) existing.status = existing.status==='done'?'pending':'done';
+    renderOnboarding();
+    alert('Could not update the bio for '+name);
+  }
+}
 
 function renderOnboarding(){
   const filter = document.getElementById('ob-filter')?.value || 'active';
@@ -12190,21 +12229,94 @@ function renderOnboarding(){
 
   const grid = document.getElementById('ob-grid');
   if(!grid) return;
-  if(!names.length){ grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);grid-column:1/-1;font-size:13px">No clients match this filter.</div>'; return; }
-  grid.innerHTML = names.map(n=>{
+  if(!names.length){ grid.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3);font-size:13px">No clients match this filter.</div>'; return; }
+
+  const TM = obThisMonth(), NM = obNextMonth();
+  const tmLbl = OB_MONTHS[TM.m-1], nmLbl = OB_MONTHS[NM.m-1];
+
+  function obSmmOf(n){ const c=(CLIENTS||[]).find(x=>x.name===n); return ((c&&c.assigned_smm)||'').toUpperCase(); }
+
+  function bioChip(n,mo,lbl){
+    const done = obBioDone(n,mo.m,mo.y);
+    return `<span onclick="event.stopPropagation();obToggleBio('${esc(n).replace(/'/g,"\\'")}',${mo.m},${mo.y})"
+      title="${lbl} ${mo.y} bio — click to mark ${done?'not done':'done'}"
+      style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:7px;cursor:pointer;user-select:none;font-size:0.66rem;font-weight:700;
+      ${done?'background:rgba(34,197,94,.13);border:1px solid var(--green);color:var(--green)'
+            :'background:var(--surface-2,#1a1a26);border:1px solid var(--border);color:var(--text-3)'}">
+      ${done?'&#10003;':'&#9675;'} ${lbl}</span>`;
+  }
+
+  function card(n){
     const p = obPct(n);
     const kit = obKit(n);
     const sw = (c)=>`<span style="display:inline-block;width:20px;height:20px;border-radius:5px;border:1px solid var(--border);background:${c&&/^#?[0-9a-fA-F]{3,8}$/.test(c)?(c[0]==='#'?c:'#'+c):'transparent'}" title="${esc(c||'—')}"></span>`;
     const barColor = p===null?'var(--text-3)':p===100?'var(--green)':p>=50?'var(--amber)':'var(--red)';
     const flag = (p!==null && p<100);
+    const steps = obClientSteps(n);
+    const doneN = steps.filter(s=>s.status==='done').length;
+    // Done / not-done at a glance: one pip per one-time task.
+    const pips = steps.length
+      ? steps.map(s=>`<span title="${esc(s.step)}" style="width:9px;height:9px;border-radius:2px;flex-shrink:0;background:${s.status==='done'?'var(--green)':'var(--border)'};border:1px solid ${s.status==='done'?'var(--green)':'var(--border-strong,#3a3a4e)'}"></span>`).join('')
+      : '<span style="font-size:0.68rem;color:var(--text-3)">no checklist yet</span>';
+
     return `<div style="background:var(--surface);border:1px solid var(--border);${flag?'border-left:3px solid var(--amber);':''}border-radius:12px;padding:16px;cursor:pointer" onclick="obOpen('${esc(n).replace(/'/g,"\\'")}')">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
         <div style="font-weight:800;color:var(--text)">${esc(n)}</div>
         ${kit?'<span style="font-size:0.62rem;background:var(--green-soft,rgba(34,197,94,.1));color:var(--green);padding:2px 8px;border-radius:10px;font-weight:700">BRAND KIT</span>':'<span style="font-size:0.62rem;background:var(--surface-2,#1a1a26);color:var(--text-3);padding:2px 8px;border-radius:10px">no kit</span>'}
       </div>
       <div style="display:flex;gap:6px;margin-bottom:10px">${kit?[kit.primary_color,kit.secondary_color,kit.accent_color].map(sw).join(''):'<span style="font-size:0.72rem;color:var(--text-3)">No colors yet</span>'}</div>
-      <div style="font-size:0.72rem;color:var(--text-3);margin-bottom:4px">${p===null?'Onboarding not started':p+'% onboarded'}</div>
+
+      <div style="background:var(--surface-2,#14141e);border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:11px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="font-size:0.6rem;font-weight:800;letter-spacing:.09em;color:var(--text-3)">BIO</div>
+          <div style="display:flex;gap:6px">${bioChip(n,TM,tmLbl)}${bioChip(n,NM,nmLbl)}</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:7px">${pips}</div>
+      <div style="font-size:0.72rem;color:var(--text-3);margin-bottom:4px">${p===null?'Onboarding not started':doneN+'/'+steps.length+' one-time tasks done · '+p+'%'}</div>
       <div style="height:6px;border-radius:3px;background:var(--border);overflow:hidden"><div style="height:100%;width:${p||0}%;background:${barColor}"></div></div>
+    </div>`;
+  }
+
+  // ── Split by SMM: Nirvana first, then Tiana, then anyone else, then unassigned.
+  // Unassigned is always shown when non-empty so no client can quietly disappear.
+  const known = ['NIRVANA','TIANA'];
+  const extras = [];
+  names.forEach(n=>{ const s=obSmmOf(n); if(s && known.indexOf(s)<0 && extras.indexOf(s)<0) extras.push(s); });
+  const sections = known.concat(extras.sort()).map(s=>({key:s,label:s,names:names.filter(n=>obSmmOf(n)===s)}));
+  const orphans = names.filter(n=>!obSmmOf(n));
+  if(orphans.length) sections.push({key:'',label:'UNASSIGNED',names:orphans});
+
+  const ACCENT = {NIRVANA:'var(--cyan,#00E5FF)', TIANA:'var(--pink,#FF1F8E)'};
+
+  grid.style.display = 'block';
+  grid.innerHTML = sections.filter(sec=>sec.names.length).map(sec=>{
+    const accent = ACCENT[sec.key] || 'var(--text-3)';
+    // Each SMM gets its OWN 100%, summed across that SMM's clients only.
+    let tot=0, don=0;
+    sec.names.forEach(n=>{ const st=obClientSteps(n); tot+=st.length; don+=st.filter(s=>s.status==='done').length; });
+    const secPct = tot>0 ? Math.round(don/tot*100) : 0;
+    const fullyDone = sec.names.filter(n=>obPct(n)===100).length;
+    const bioT = sec.names.filter(n=>obBioDone(n,TM.m,TM.y)).length;
+    const bioN = sec.names.filter(n=>obBioDone(n,NM.m,NM.y)).length;
+
+    return `<div style="margin-bottom:26px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding-bottom:9px;margin-bottom:14px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:3px;height:18px;border-radius:2px;background:${accent}"></div>
+          <div style="font-family:'Poppins',sans-serif;font-size:15px;font-weight:800;letter-spacing:.04em;color:var(--text)">${esc(sec.label)}</div>
+          <div style="font-size:0.72rem;color:var(--text-3)">${sec.names.length} client${sec.names.length===1?'':'s'} · ${fullyDone} fully onboarded</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:16px;font-size:0.72rem;color:var(--text-3)">
+          <span>One-time tasks <b style="color:${accent};font-size:0.95rem">${secPct}%</b> <span style="opacity:.65">(${don}/${tot})</span></span>
+          <span>Bio ${tmLbl} <b style="color:${bioT===sec.names.length?'var(--green)':'var(--text)'}">${bioT}/${sec.names.length}</b></span>
+          <span>Bio ${nmLbl} <b style="color:${bioN===sec.names.length?'var(--green)':'var(--text)'}">${bioN}/${sec.names.length}</b></span>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+        ${sec.names.map(card).join('')}
+      </div>
     </div>`;
   }).join('');
 }
