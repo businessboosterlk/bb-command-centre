@@ -5965,7 +5965,10 @@ function renderFinancePage(){
           ${cost.category?`<div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(cost.category)}${cost.notes?' · '+esc(cost.notes):''}</div>`:''}
         </div>
         <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--red);flex-shrink:0">LKR ${(cost.amount||0).toLocaleString()}</div>
-        <div style="display:flex;gap:4px;flex-shrink:0">
+        <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">
+          ${cost.paid===true
+            ? `<button title="Paid${cost.paid_at?' on '+String(cost.paid_at).slice(0,10):''}. Click to undo." style="font-size:10px;padding:3px 9px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:700" onclick="finMarkCostPaid(${cost.id},false)">PAID ✓</button>`
+            : `<button title="Mark this cost as paid" style="font-size:10px;padding:3px 9px;background:transparent;border:1px solid var(--border-strong);color:var(--text-3);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkCostPaid(${cost.id},true)">Mark paid</button>`}
           <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px" onclick="openFinCostModal(${cost.id})">Edit</button>
           <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteCost(${cost.id})">×</button>
         </div>
@@ -6029,6 +6032,14 @@ async function finDeleteInvoice(id){
   await SBdel('invoices',id);
   FIN_INVOICES=FIN_INVOICES.filter(i=>i.id!==id);
   INVOICES=FIN_INVOICES;
+  renderFinancePage();
+}
+/* Costs paid toggle. costs.paid is NULLABLE on purpose: NULL means "not
+   recorded", so historical rows assert nothing. Only an explicit click sets it. */
+async function finMarkCostPaid(id,val){
+  await SBpatch('costs',id,{paid:val,paid_at:val?new Date().toISOString():null});
+  const c=FIN_COSTS.find(x=>x.id===id);
+  if(c){c.paid=val;c.paid_at=val?new Date().toISOString():null;}
   renderFinancePage();
 }
 async function finDeleteCost(id){
