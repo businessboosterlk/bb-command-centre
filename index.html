@@ -1133,7 +1133,7 @@ td:last-child{padding-right:18px;text-align:right}
 .vp-card-dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .vp-card-editor{font-size:11px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .vp-bulk-chk{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:4px;border:2px solid var(--accent);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
-.vp-bulk-chk.checked{background:var(--accent)}.vp-bulk-chk.checked::after{content:'\u2713';color:white;font-size:11px;font-weight:700}
+.vp-bulk-chk.checked{background:var(--accent)}.vp-bulk-chk.checked::after{content:'✓';color:white;font-size:11px;font-weight:700}
 @media(max-width:768px){.pipeline-board{gap:10px;min-height:auto;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:8px}.stage-col{width:82vw;max-width:330px;flex-shrink:0;scroll-snap-align:start;max-height:calc(100dvh - 208px)}}
 
 /* ── SHOOT PIPELINE ── */
@@ -1501,7 +1501,7 @@ td:last-child{padding-right:18px;text-align:right}
       </div>
     </header>
 
-    <div id="demo-banner" style="background:linear-gradient(90deg,#8b5cf6,#6d28d9);color:white;padding:7px 20px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-align:center;flex-shrink:0">\uD83D\uDD12 DEMO MODE · BB Command Centre Preview · Contact Business Booster to build this for your business</div>
+    <div id="demo-banner" style="background:linear-gradient(90deg,#8b5cf6,#6d28d9);color:white;padding:7px 20px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;text-align:center;flex-shrink:0">🔒 DEMO MODE · BB Command Centre Preview · Contact Business Booster to build this for your business</div>
 
     <div class="content"><div id="page-dashboard" class="page-section" style="display:block">
 
@@ -1848,7 +1848,7 @@ td:last-child{padding-right:18px;text-align:right}
           <div class="field-cell"><div class="field-cell-lbl">Retainer (LKR)</div><input class="field-cell-input" id="cpf-mrr" type="number" placeholder="—" onchange="saveField('mrr',this.value)"></div>
           <div class="field-cell"><div class="field-cell-lbl">Package</div><select class="field-cell-input" id="cpf-package" onchange="saveField('package',this.value)"><option value="Spark">Spark</option><option value="Ignite">Ignite</option><option value="Blaze">Blaze</option><option value="SEO Essential">SEO Essential</option><option value="SEO+Maintenance">SEO+Maint.</option><option value="Custom">Custom</option></select></div>
           <div class="field-cell"><div class="field-cell-lbl">Health</div><select class="field-cell-input" id="cpf-health" onchange="saveField('health',this.value)"><option value="green">Green ●</option><option value="amber">Amber ●</option><option value="red">Red ●</option></select></div>
-          <div class="field-cell"><div class="field-cell-lbl">Plan Ready</div><select class="field-cell-input" id="cpf-plan-ready" onchange="saveField('plan_ready',this.value)"><option value="false">Pending</option><option value="true">Ready \u2713</option></select></div>
+          <div class="field-cell"><div class="field-cell-lbl">Plan Ready</div><select class="field-cell-input" id="cpf-plan-ready" onchange="saveField('plan_ready',this.value)"><option value="false">Pending</option><option value="true">Ready ✓</option></select></div>
           <div class="field-cell" style="border-right:none"><div class="field-cell-lbl">Owner (SMM)</div><input class="field-cell-input" id="cpf-owner" placeholder="e.g. KENULI" onchange="saveField('owner',this.value)"></div>
         </div>
         <div class="fields-bar-row">
@@ -2298,7 +2298,7 @@ td:last-child{padding-right:18px;text-align:right}
         <select class="form-select" style="width:150px;font-size:11px;padding:5px 8px" id="vp-filter-client" onchange="renderVideoPipeline()"><option value="">All clients</option></select>
         <select class="form-select" style="width:120px;font-size:11px;padding:5px 8px" id="vp-filter-editor" onchange="renderVideoPipeline()"><option value="">All editors</option></select>
         <button class="btn-ghost btn-sm" id="vp-bulk-btn" onclick="vpToggleBulk()" style="font-size:10px">☐ Bulk Select</button>
-        <button class="btn-ghost btn-sm" id="vp-archive-btn" onclick="vpToggleArchive()" style="font-size:10px">\uD83D\uDDC4 Archive</button>
+        <button class="btn-ghost btn-sm" id="vp-archive-btn" onclick="vpToggleArchive()" style="font-size:10px">🗄 Archive</button>
         <button class="btn-primary btn-sm" onclick="openNewVideoModal()">+ New Project</button>
       </div>
     </div>
@@ -2414,7 +2414,7 @@ td:last-child{padding-right:18px;text-align:right}
 <!-- ══════════════ FINANCE PAGE ══════════════ -->
 <div id="page-finance" class="page-section" style="display:none;position:relative">
   <div id="finance-demo-overlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:40px">
-    <div style="font-size:56px">\uD83D\uDD12</div>
+    <div style="font-size:56px">🔒</div>
     <div style="font-family:'Poppins',sans-serif;font-size:20px;font-weight:800;color:var(--text)">Financial data is private</div>
     <div style="font-size:13px;color:var(--text-2);max-width:400px;line-height:1.6">This module tracks all BB revenue, costs and profit in real time. Contact Business Booster to see a full walkthrough of this and the complete system.</div>
     <div style="margin-top:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;padding:10px 24px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em">businessboosterlk@gmail.com</div>
@@ -2747,8 +2747,8 @@ td:last-child{padding-right:18px;text-align:right}
         <div class="form-row">
           <label class="form-label">Priority</label>
           <select class="form-input" id="ms-f-priority">
-            <option value="critical">\uD83D\uDD34 Critical</option><option value="high" selected>\uD83D\uDFE0 High</option>
-            <option value="medium">\uD83D\uDFE1 Medium</option><option value="low">\uD83D\uDFE2 Low</option>
+            <option value="critical">🔴 Critical</option><option value="high" selected>🟠 High</option>
+            <option value="medium">🟡 Medium</option><option value="low">🟢 Low</option>
           </select>
         </div>
       </div>
@@ -2757,7 +2757,7 @@ td:last-child{padding-right:18px;text-align:right}
           <label class="form-label">Status</label>
           <select class="form-input" id="ms-f-status">
             <option value="not_started">Not Started</option><option value="in_progress">In Progress</option>
-            <option value="done">Done \u2713</option><option value="dropped">Dropped</option>
+            <option value="done">Done ✓</option><option value="dropped">Dropped</option>
           </select>
         </div>
         <div class="form-row">
@@ -5340,12 +5340,18 @@ function renderKPIs(c){
   document.getElementById('kpi-open').textContent=open;
   const odEl=document.getElementById('kpi-overdue');odEl.textContent=od;odEl.className='kpi-val'+(od>0?' red':'');
   const ml=MS[m-1];
-  document.getElementById('kpi-m1').textContent=ml;
-  document.getElementById('kpi-m2').textContent=ml;
   const mp=PLANS.filter(p=>Number(p.client_id)===id&&Number(p.month)===m&&Number(p.year)===y);
   const posts=mp.filter(p=>p.type==='post'),vids=mp.filter(p=>p.type==='video');
-  document.getElementById('kpi-posts').textContent=`${posts.filter(p=>p.posted).length}/${posts.length||c.monthly_posts||'?'}`;
-  document.getElementById('kpi-videos').textContent=`${vids.filter(p=>p.posted).length}/${vids.length||c.monthly_videos||'?'}`;
+  /* L-CC-003: a denominator with no plan behind it is a CONTRACT TARGET, never
+     measured progress. Use the real planned count when a plan exists; otherwise
+     fall back to the contracted volume and LABEL it "target", so the tile cannot
+     read as "behind on 12 posts" when nothing has been planned yet. */
+  const pPlan=posts.length,vPlan=vids.length;
+  const pTgt=!pPlan&&Number(c.monthly_posts)>0,vTgt=!vPlan&&Number(c.monthly_videos)>0;
+  document.getElementById('kpi-posts').textContent=pPlan?`${posts.filter(p=>p.posted).length}/${pPlan}`:(pTgt?`0/${c.monthly_posts}`:'—');
+  document.getElementById('kpi-videos').textContent=vPlan?`${vids.filter(p=>p.posted).length}/${vPlan}`:(vTgt?`0/${c.monthly_videos}`:'—');
+  document.getElementById('kpi-m1').textContent=ml+(pTgt?' · target':'');
+  document.getElementById('kpi-m2').textContent=ml+(vTgt?' · target':'');
   const ki=document.getElementById('kpi-invoice'),kin=document.getElementById('kpi-invoice-note');
   const allInv=INVOICES.filter(i=>Number(i.client_id)===id);
   const overdueInv=allInv.filter(i=>i.status==='overdue');
@@ -5412,15 +5418,30 @@ function renderOverviewTab(c){
     const ps=PLANS.filter(p=>Number(p.client_id)===id&&Number(p.month)===mo.m&&Number(p.year)===mo.y);
     const posts=ps.filter(p=>p.type==='post'),stories=ps.filter(p=>p.type==='story'),vids=ps.filter(p=>p.type==='video');
     const pp=posts.filter(p=>p.posted).length,sp=stories.filter(p=>p.posted).length,vp=vids.filter(p=>p.posted).length;
-    const pt=posts.length||c.monthly_posts||0,st=stories.length||c.monthly_stories||0,vt=vids.length||c.monthly_videos||0;
+    const pt=posts.length,st=stories.length,vt=vids.length;
     const isCurr=mo.m===m&&mo.y===y;
+    /* L-CC-003: zero plan items means there is nothing to measure. Render a real
+       empty state and state the contract AS a contract, instead of 0/12 with three
+       empty bars sitting beside the caption "No plan items". */
+    if(!ps.length){
+      const ctr=[[c.monthly_posts,'posts'],[c.monthly_stories,'stories'],[c.monthly_videos,'videos']]
+        .filter(x=>Number(x[0])>0).map(x=>Number(x[0])+' '+x[1]);
+      const ctrTxt=ctr.length>1?ctr.slice(0,-1).join(', ')+' and '+ctr[ctr.length-1]:(ctr[0]||'');
+      return `<div class="month-col${isCurr?' current':''}">
+      <div class="month-col-hd">${mo.name}${isCurr?' — NOW':''}</div>
+      <div style="padding:18px 4px;text-align:center">
+        <div style="font-size:11px;font-weight:600;color:var(--text-2)">No plan built yet</div>
+        <div style="font-size:9px;color:var(--text-3);margin-top:6px;line-height:1.6">${ctrTxt?'Contracted: '+ctrTxt:'No monthly volumes set'}</div>
+      </div>
+    </div>`;
+    }
     return `<div class="month-col${isCurr?' current':''}">
       <div class="month-col-hd">${mo.name}${isCurr?' — NOW':''}</div>
-      <div class="month-stat-row"><span class="month-stat-label">Posts</span><span class="month-stat-val" style="color:var(--blue)">${pp}/${pt||'?'}</span></div>
+      <div class="month-stat-row"><span class="month-stat-label">Posts</span><span class="month-stat-val" style="color:var(--blue)">${pp}/${pt}</span></div>
       <div class="prog-bar"><div class="prog-fill posts" style="width:${pt?Math.round(pp/pt*100):0}%"></div></div>
-      <div class="month-stat-row" style="margin-top:8px"><span class="month-stat-label">Stories</span><span class="month-stat-val" style="color:var(--amber)">${sp}/${st||'?'}</span></div>
+      <div class="month-stat-row" style="margin-top:8px"><span class="month-stat-label">Stories</span><span class="month-stat-val" style="color:var(--amber)">${sp}/${st}</span></div>
       <div class="prog-bar"><div class="prog-fill stories" style="width:${st?Math.round(sp/st*100):0}%"></div></div>
-      <div class="month-stat-row" style="margin-top:8px"><span class="month-stat-label">Videos</span><span class="month-stat-val" style="color:var(--pink)">${vp}/${vt||'?'}</span></div>
+      <div class="month-stat-row" style="margin-top:8px"><span class="month-stat-label">Videos</span><span class="month-stat-val" style="color:var(--pink)">${vp}/${vt}</span></div>
       <div class="prog-bar"><div class="prog-fill videos" style="width:${vt?Math.round(vp/vt*100):0}%"></div></div>
       <div style="font-size:9px;color:var(--text-3);margin-top:8px;font-style:italic">${ps.length?ps.filter(p=>p.posted).length+'/'+ps.length+' posted':'No plan items'}</div>
     </div>`;
