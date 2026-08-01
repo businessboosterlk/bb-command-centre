@@ -2480,7 +2480,7 @@ td:last-child{padding-right:18px;text-align:right}
         <div class="fin-stat-note">All expenses this month</div>
       </div>
       <div class="fin-stat" style="border-top:2px solid var(--accent)">
-        <div class="fin-stat-lbl">Net Profit</div>
+        <div class="fin-stat-lbl" id="fst-profit-lbl">Invoiced minus costs recorded</div>
         <div class="fin-stat-val" id="fst-profit">LKR 0</div>
         <div class="fin-stat-note" id="fst-margin">Revenue minus costs</div>
       </div>
@@ -5871,8 +5871,24 @@ function renderFinancePage(){
   document.getElementById('fst-costs').textContent='LKR '+totalCosts.toLocaleString();
   const profEl=document.getElementById('fst-profit');
   profEl.textContent='LKR '+profit.toLocaleString();
-  profEl.style.color=profit>=0?'var(--green)':'var(--red)';
-  document.getElementById('fst-margin').textContent=margin+'% margin';
+  /* HONESTY GUARD. BB-METRICS.md VERIFIED monthly cost base = payroll 1,755,000
+     plus non-payroll 309,000. The costs table currently captures under half of
+     that, so invoiced-minus-recorded is NOT profit and must never be coloured or
+     labelled as if it were. It only becomes profit when the table is complete.
+     Standing rule: no profit figure may be published until that gap closes. */
+  const COST_BASE=2064000;
+  const complete=COST_BASE>0?Math.round(totalCosts/COST_BASE*100):0;
+  const trustworthy=complete>=90;
+  const lblEl=document.getElementById('fst-profit-lbl');
+  if(trustworthy){
+    if(lblEl)lblEl.textContent='Net Profit';
+    profEl.style.color=profit>=0?'var(--green)':'var(--red)';
+    document.getElementById('fst-margin').textContent=margin+'% margin';
+  }else{
+    if(lblEl)lblEl.textContent='Invoiced minus costs recorded';
+    profEl.style.color='var(--text-2)';
+    document.getElementById('fst-margin').innerHTML='<span style="color:var(--amber)">Not profit \u00b7 only '+complete+'% of costs recorded</span>';
+  }
   document.getElementById('fin-inv-total').textContent='LKR '+invTotal.toLocaleString();
   document.getElementById('fin-cost-total').textContent='LKR '+totalCosts.toLocaleString();
 
