@@ -2876,6 +2876,7 @@ td:last-child{padding-right:18px;text-align:right}
         <button class="btn btn-sm" data-tab="overview" onclick="prodTab('overview')" style="background:var(--accent);color:#fff">Overview</button>
         <button class="btn btn-sm btn-ghost" data-tab="graphic" onclick="prodTab('graphic')">Graphic</button>
         <button class="btn btn-sm btn-ghost" data-tab="smm" onclick="prodTab('smm')">SMM</button>
+        <button class="btn btn-sm btn-ghost" data-tab="delivery" onclick="prodTab('delivery')">Delivery</button>
       </div>
     </div>
     <div id="prod-body"></div>
@@ -12483,7 +12484,7 @@ var BBD_COLS=[
  {k:'ig',      g:'one',  t:'IG highlights'}
 ];
 var BBD_MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-var BBD_ROWS=[], BBD_PERIODS=[], BBD_PERIOD='';
+var BBD_ROWS=[], BBD_PERIODS=[], BBD_PERIOD='', BBD_ROOT_ID='cc-dl-root';
 // One-time tasks are the brand jobs - done once, not every month.
 function bbdIsOneTime(c){ return c.g==='one'; }
 function bbdThisMonthName(p){ var m=String(p||'').split(' ')[0]; return BBD_MONTHS.indexOf(m)>=0?m:'This month'; }
@@ -12506,8 +12507,9 @@ function bbdGroupLabel(g,period){
 }
 function bbdPct(r){ var v=r.vals||{}; return Math.round(BBD_COLS.filter(function(c){return v[c.k];}).length/BBD_COLS.length*100); }
 
-async function renderCcDelivery(){
-  var root=document.getElementById('cc-dl-root'); if(!root) return;
+async function renderCcDelivery(rootId){
+  if(rootId) BBD_ROOT_ID=rootId;
+  var root=document.getElementById(BBD_ROOT_ID||'cc-dl-root'); if(!root) return;
   if(!BBD_ROWS.length) root.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-3)">Loading…</div>';
   try{
     if(!BBD_PERIODS.length){
@@ -12811,6 +12813,13 @@ function prodRender(){
   const body=document.getElementById('prod-body'); if(!body) return;
   if(prodCurrentTab==='overview') body.innerHTML=prodOverviewHTML();
   else if(prodCurrentTab==='graphic') body.innerHTML=prodGraphicHTML();
+  else if(prodCurrentTab==='delivery'){
+    /* The all-clients delivery matrix (bb_delivery) already existed and worked,
+       but only on the hidden page-delivery route, so nobody could reach it.
+       Render it here instead of duplicating a second board. */
+    body.innerHTML='<div id="prod-dl-root"></div>';
+    renderCcDelivery('prod-dl-root');
+  }
   else body.innerHTML=prodSmmHTML();
 }
 
