@@ -2501,6 +2501,17 @@ td:last-child{padding-right:18px;text-align:right}
     </div>
 
     <!-- Smart Flag -->
+    <div id="fin-recon-wrap" style="display:none;margin-bottom:14px">
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:11px 18px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Finance Agent · Reconciliation</span>
+          </div>
+          <span id="fin-recon-when" style="font-size:11px;color:var(--text-3)"></span>
+        </div>
+        <div id="fin-recon-body" style="padding:14px 18px"></div>
+      </div>
+    </div>
     <div id="fin-smartflag-wrap" style="display:none;margin-bottom:14px">
       <div class="card" style="padding:0;overflow:hidden;border-color:rgba(251,191,36,0.3)">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--amber-soft);border-bottom:1px solid var(--border)">
@@ -5677,6 +5688,7 @@ async function loadFinancePage(){
     INVOICES=FIN_INVOICES;
     if(needClients&&clients&&clients.length)CLIENTS=clients;
   }catch(e){console.error('loadFinancePage',e);}
+  loadFinRecon();
   const{y,m}=nowYM();
   const cur=`${y}-${String(m).padStart(2,'0')}`;
   const sel=document.getElementById('fin-month-sel');
@@ -5977,6 +5989,53 @@ function renderFinancePage(){
   }
 }
 
+/* FINANCE AGENT Layer 2: read-and-display only. Reads the newest
+   bb_finance_runs row written by the Layer 1 pg_cron job. Ships DARK:
+   stays hidden until that table exists and holds a run. Never writes. */
+async function loadFinRecon(){
+  let run=null;
+  try{
+    const r=await SBget('bb_finance_runs','?select=ran_at,anomaly_count,worksheet&order=ran_at.desc&limit=1');
+    run=r&&r[0];
+  }catch(e){ /* table not created yet: stay hidden, no error */ }
+  renderFinRecon(run);
+}
+function renderFinRecon(run){
+  const wrap=document.getElementById('fin-recon-wrap');
+  if(!wrap)return;
+  if(!run){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  document.getElementById('fin-recon-when').textContent='last run '+String(run.ran_at).slice(0,16).replace('T',' ');
+  const ws=run.worksheet||{};
+  const unpaid=Array.isArray(ws.unpaid_invoices)?ws.unpaid_invoices:[];
+  const misses=Array.isArray(ws.billing_misses)?ws.billing_misses:[];
+  const nullc=Array.isArray(ws.null_client_invoices)?ws.null_client_invoices:[];
+  const comp=Array.isArray(ws.cost_completeness)?ws.cost_completeness:[];
+  const cur=ws.current_month||'';
+  const prev=(()=>{const p=cur.split('-');if(p.length!==2)return '';const d=new Date(+p[0],+p[1]-2,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})();
+  const older=unpaid.filter(u=>u.month<prev), recent=unpaid.filter(u=>u.month>=prev&&u.month<cur), notdue=unpaid.filter(u=>u.month>=cur);
+  const sum=a=>a.reduce((s,x)=>s+(x.amount||0),0);
+  const curComp=comp.find(c=>c.month===cur);
+  const chip=(label,val,color)=>`<div style="flex:1;min-width:130px;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm)"><div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)">${label}</div><div style="font-size:15px;font-weight:800;font-family:'Poppins',sans-serif;color:${color};margin-top:2px">${val}</div></div>`;
+  let html='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  html+=chip('Real debt (aged)','LKR '+sum(older).toLocaleString()+' \u00b7 '+older.length,'var(--red)');
+  html+=chip('Collecting (recent)','LKR '+sum(recent).toLocaleString()+' \u00b7 '+recent.length,'var(--amber)');
+  html+=chip('Not yet due','LKR '+sum(notdue).toLocaleString()+' \u00b7 '+notdue.length,'var(--text-3)');
+  if(curComp)html+=chip('Costs recorded, '+cur,curComp.pct+'% of base','var(--blue)');
+  html+='</div>';
+  const fixes=[];
+  nullc.forEach(x=>fixes.push(`Invoice #${x.id} (${esc(x.client_name||'?')}, LKR ${(x.amount||0).toLocaleString()}, ${x.month}) has no client link`));
+  misses.forEach(x=>fixes.push(`${esc(x.name)} has mrr LKR ${(x.mrr||0).toLocaleString()} but no ${cur} invoice`));
+  if(Array.isArray(ws.orphan_invoices))ws.orphan_invoices.forEach(x=>fixes.push(`Invoice #${x.id} points at missing client ${x.client_id}`));
+  if(Array.isArray(ws.duplicate_invoices))ws.duplicate_invoices.forEach(x=>fixes.push(`Duplicate invoices ${(x.ids||[]).join(', ')} for client ${x.client_id} in ${x.month}`));
+  if(fixes.length){
+    html+='<div style="margin-top:12px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)">Fix list \u2014 '+fixes.length+' item'+(fixes.length>1?'s':'')+'</div>';
+    html+=fixes.map(f=>`<div style="font-size:11px;color:var(--text-2);padding:6px 0;border-bottom:1px solid var(--border)">${f}</div>`).join('');
+  }else{
+    html+='<div style="margin-top:12px;font-size:12px;color:var(--green)">No structural anomalies \u2713</div>';
+  }
+  document.getElementById('fin-recon-body').innerHTML=html;
+}
 function renderFinSmartFlag(month){
   const clientCosts=FIN_COSTS.filter(c=>String(c.month)===month&&c.client_id);
   const wrap=document.getElementById('fin-smartflag-wrap');
