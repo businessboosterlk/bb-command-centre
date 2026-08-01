@@ -10456,6 +10456,14 @@ table th{letter-spacing:.08em}
   // UI PANEL â \uD83E\uDD16 FAB button â agent status panel (bottom-right)
   // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   function injectPanel() {
+    /* Robot FAB REMOVED 2026-08-01 at Thulaib's request. The floating
+       bottom-right button was redundant: the full Agents page is reachable
+       from the "System" nav entry (#nav-agents) and the Cmd-K palette, and
+       an emoji in a glowing floating circle is the exact bb-anti-ai-tells
+       pattern we ban elsewhere. Returning here injects no FAB, no panel and
+       no CSS; renderPanel() already null-guards, so every caller no-ops.
+       To restore: delete the next line. */
+    return;
     if (document.getElementById('bba-fab')) return;
 
     var style = document.createElement('style');
