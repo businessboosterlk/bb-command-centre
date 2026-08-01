@@ -2441,6 +2441,7 @@ td:last-child{padding-right:18px;text-align:right}
           <button class="fin-vtab active" id="fvt-month" onclick="setFinView('month')">Monthly</button>
           <button class="fin-vtab" id="fvt-year" onclick="setFinView('year')">Yearly</button>
           <button class="fin-vtab" id="fvt-client" onclick="setFinView('client')">By Client</button>
+          <button class="fin-vtab" id="fvt-reports" onclick="setFinView('reports')">Reports</button>
         </div>
         <select class="form-select" id="fin-month-sel" style="width:150px;font-size:12px" onchange="renderFinancePage()">
           <option value="2025-12">Dec 2025</option>
@@ -2563,6 +2564,7 @@ td:last-child{padding-right:18px;text-align:right}
 
     <!-- By Client View -->
     <div id="fin-client-view" style="display:none"></div>
+    <div id="fin-reports-view" style="display:none"></div>
   </div>
 </div>
 <!-- ══════════════ TEAM PAGE ══════════════ -->
@@ -5841,7 +5843,7 @@ async function updateAgentsUnreadBadge(){
 
 function setFinView(v){
   finView=v;
-  ['month','year','client'].forEach(x=>{
+  ['month','year','client','reports'].forEach(x=>{
     const btn=document.getElementById('fvt-'+x);
     if(btn)btn.classList.toggle('active',x===v);
   });
@@ -5850,9 +5852,193 @@ function setFinView(v){
   document.getElementById('fin-monthly-view').style.display=v==='month'?'':'none';
   document.getElementById('fin-yearly-view').style.display=v==='year'?'block':'none';
   document.getElementById('fin-client-view').style.display=v==='client'?'block':'none';
+  const rv=document.getElementById('fin-reports-view');
+  if(rv)rv.style.display=v==='reports'?'block':'none';
   document.getElementById('fin-stat-wrap').style.display=v==='month'?'':'none';
   if(v==='year')renderFinYearly();
   if(v==='client')renderFinByClient();
+  if(v==='reports')renderFinReports();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   FINANCE REPORTS  (Finance > Reports segment)
+   Reads invoices + clients only. Deterministic, no new tables, no agent
+   change. DELIBERATELY EXCLUDES PROFIT AND MARGIN: the costs table
+   captures under half the BB-METRICS.md base, so any margin here would
+   be fiction. Profit arrives with Finance Agent Mode 2, gated on the
+   cost table being complete. Every number below comes from `invoices`,
+   which Mode 1 proved trustworthy (mature months collect at ~92%).
+══════════════════════════════════════════════════════════════════ */
+function finMonthShift(m,delta){
+  const p=String(m).split('-'); if(p.length!==2)return m;
+  const d=new Date(+p[0],+p[1]-1+delta,1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function finMonthStats(m){
+  const rows=FIN_INVOICES.filter(i=>String(i.month)===m);
+  const billed=rows.reduce((s,i)=>s+(i.amount||0),0);
+  const collected=rows.filter(i=>i.status==='paid').reduce((s,i)=>s+(i.amount||0),0);
+  return {month:m,rows:rows.length,billed:billed,collected:collected,
+          rate:billed>0?Math.round(collected/billed*100):null};
+}
+function renderFinReports(){
+  const el=document.getElementById('fin-reports-view');
+  if(!el)return;
+  const cur=getFinMonth();
+  const prev=finMonthShift(cur,-1), lastYr=finMonthShift(cur,-12);
+  const C=finMonthStats(cur), P=finMonthStats(prev), Y=finMonthStats(lastYr);
+  const money=n=>'LKR '+(n||0).toLocaleString();
+  const dash='—';
+
+  /* ── A. compare ── */
+  const cmpRow=(lbl,a)=>`<tr>
+    <td style="padding:7px 10px;font-size:11px;color:var(--text-2)">${lbl}</td>
+    <td style="padding:7px 10px;font-size:12px;font-weight:700;text-align:right">${money(a.billed)}</td>
+    <td style="padding:7px 10px;font-size:12px;font-weight:700;text-align:right;color:var(--green)">${money(a.collected)}</td>
+    <td style="padding:7px 10px;font-size:12px;font-weight:800;text-align:right;color:${a.rate===null?'var(--text-3)':(a.rate>=85?'var(--green)':a.rate>=50?'var(--amber)':'var(--red)')}">${a.rate===null?dash:a.rate+'%'}</td></tr>`;
+  let html=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:11px 18px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Compare months</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 9px" onclick="finReportsCSV()">Export CSV</button>
+        <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 9px" onclick="window.print()">Print / PDF</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:420px">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="padding:7px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:left">Period</th>
+        <th style="padding:7px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Billed</th>
+        <th style="padding:7px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Collected</th>
+        <th style="padding:7px 10px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Rate</th>
+      </tr></thead><tbody>
+      ${cmpRow('This month ('+cur+')',C)}
+      ${cmpRow('Previous month ('+prev+')',P)}
+      ${cmpRow('Same month last year ('+lastYr+')',Y)}
+    </tbody></table></div></div>`;
+
+  /* ── B. trend, last 12 months, billed vs collected ── */
+  const months=[]; for(let k=11;k>=0;k--)months.push(finMonthShift(cur,-k));
+  const stats=months.map(finMonthStats);
+  const peak=Math.max(1,...stats.map(x=>x.billed));
+  html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">
+    <div style="padding:11px 18px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Revenue trend</span>
+      <span style="font-size:10px;color:var(--text-3);margin-left:8px">billed vs collected, last 12 months</span>
+    </div>
+    <div style="padding:14px 18px;overflow-x:auto"><div style="display:flex;gap:6px;align-items:flex-end;min-width:520px;height:120px">
+    ${stats.map(x=>{
+      const bh=Math.round((x.billed/peak)*100), ch=Math.round((x.collected/peak)*100);
+      return `<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px" title="${x.month}: billed ${money(x.billed)}, collected ${money(x.collected)}">
+        <div style="width:100%;position:relative;height:100px;display:flex;align-items:flex-end;justify-content:center;gap:2px">
+          <div style="width:42%;height:${bh}%;background:var(--border-strong);border-radius:3px 3px 0 0"></div>
+          <div style="width:42%;height:${ch}%;background:var(--green);border-radius:3px 3px 0 0"></div>
+        </div>
+        <div style="font-size:8px;color:var(--text-3);white-space:nowrap">${x.month.slice(5)}</div>
+      </div>`;}).join('')}
+    </div>
+    <div style="display:flex;gap:14px;margin-top:10px;font-size:10px;color:var(--text-3)">
+      <span><span style="display:inline-block;width:9px;height:9px;background:var(--border-strong);border-radius:2px;margin-right:4px"></span>Billed</span>
+      <span><span style="display:inline-block;width:9px;height:9px;background:var(--green);border-radius:2px;margin-right:4px"></span>Collected</span>
+    </div></div></div>`;
+
+  /* ── C. collection rate by client, worst first ── */
+  const byCl={};
+  FIN_INVOICES.forEach(i=>{
+    const key=i.client_id!=null?('id'+i.client_id):('nm'+(i.client_name||'?'));
+    if(!byCl[key])byCl[key]={name:i.client_name||'(unnamed)',billed:0,collected:0,unpaidMonths:[]};
+    byCl[key].billed+=(i.amount||0);
+    if(i.status==='paid')byCl[key].collected+=(i.amount||0);
+    else byCl[key].unpaidMonths.push(i.month);
+  });
+  const clRows=Object.values(byCl).filter(c=>c.billed>0)
+    .map(c=>({...c,rate:Math.round(c.collected/c.billed*100),owed:c.billed-c.collected}))
+    .sort((a,b)=>a.rate-b.rate||b.owed-a.owed);
+  html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">
+    <div style="padding:11px 18px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Who actually pays</span>
+      <span style="font-size:10px;color:var(--text-3);margin-left:8px">all time, worst first</span>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:480px">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:left">Client</th>
+        <th style="padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Billed</th>
+        <th style="padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Still owed</th>
+        <th style="padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Unpaid months</th>
+        <th style="padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:right">Rate</th>
+      </tr></thead><tbody>
+      ${clRows.map(c=>`<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text)">${esc(c.name)}</td>
+        <td style="padding:8px 12px;font-size:11px;text-align:right;color:var(--text-2)">${money(c.billed)}</td>
+        <td style="padding:8px 12px;font-size:11px;text-align:right;font-weight:700;color:${c.owed>0?'var(--red)':'var(--text-3)'}">${c.owed>0?money(c.owed):dash}</td>
+        <td style="padding:8px 12px;font-size:11px;text-align:right;color:${c.unpaidMonths.length>2?'var(--red)':'var(--text-3)'}">${c.unpaidMonths.length||dash}</td>
+        <td style="padding:8px 12px;font-size:12px;text-align:right;font-weight:800;color:${c.rate>=85?'var(--green)':c.rate>=50?'var(--amber)':'var(--red)'}">${c.rate}%</td>
+      </tr>`).join('')}
+    </tbody></table></div></div>`;
+
+  /* ── D. renewals inside 60 days ── */
+  const today=new Date(); today.setHours(0,0,0,0);
+  const soon=(CLIENTS||[]).map(c=>{
+    if(!c.renewal)return null;
+    const d=new Date(c.renewal); if(isNaN(d))return null;
+    const days=Math.round((d-today)/86400000);
+    return (days>=0&&days<=60)?{name:c.name,renewal:c.renewal,days:days,mrr:c.mrr||0}:null;
+  }).filter(Boolean).sort((a,b)=>a.days-b.days);
+  html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">
+    <div style="padding:11px 18px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Renewals inside 60 days</span>
+    </div>
+    <div style="padding:${soon.length?'0':'14px 18px'}">
+    ${soon.length?soon.map(r=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 18px;border-bottom:1px solid var(--border)">
+        <span style="font-size:12px;font-weight:600;color:var(--text)">${esc(r.name)}</span>
+        <span style="font-size:11px;color:var(--text-3)">${r.renewal}</span>
+        <span style="font-size:11px;font-weight:700;color:${r.days<=14?'var(--red)':r.days<=30?'var(--amber)':'var(--text-2)'}">${r.days} day${r.days===1?'':'s'}</span>
+        <span style="font-size:11px;font-weight:700;color:var(--text-2)">${r.mrr?money(r.mrr):dash}</span>
+      </div>`).join(''):'<span style="font-size:12px;color:var(--text-3)">No renewals in the next 60 days</span>'}
+    </div></div>`;
+
+  /* ── E. what the numbers say, deterministic ── */
+  const mature=stats.filter(x=>x.billed>0&&x.month<prev);
+  const matureRate=mature.length?Math.round(mature.reduce((s,x)=>s+x.collected,0)/mature.reduce((s,x)=>s+x.billed,0)*100):null;
+  const chronic=clRows.filter(c=>c.unpaidMonths.length>=3);
+  const worst=clRows.filter(c=>c.owed>0)[0];
+  const totalOwed=clRows.reduce((s,c)=>s+c.owed,0);
+  const lines=[];
+  if(matureRate!==null)lines.push(`Mature months collect at <b>${matureRate}%</b>. A recent month sitting below that is usually lag, not loss.`);
+  if(C.rate!==null)lines.push(`${cur} has collected <b>${C.rate}%</b> of ${money(C.billed)} billed.`);
+  if(worst&&worst.owed>0)lines.push(`Largest outstanding balance: <b>${esc(worst.name)}</b> at ${money(worst.owed)} across ${worst.unpaidMonths.length} unpaid month${worst.unpaidMonths.length===1?'':'s'}.`);
+  if(chronic.length)lines.push(`<b>${chronic.length}</b> client${chronic.length===1?' has':'s have'} three or more unpaid months: ${chronic.map(c=>esc(c.name)).join(', ')}. That is a collection conversation, not a lag.`);
+  lines.push(`Total still owed across every month: <b>${money(totalOwed)}</b>.`);
+  if(soon.length)lines.push(`<b>${soon.length}</b> renewal${soon.length===1?'':'s'} inside 60 days.`);
+  lines.push(`Profit and margin are deliberately absent: the costs table records under half the verified base, so any margin shown here would be fiction.`);
+  html+=`<div class="card" style="padding:0;overflow:hidden">
+    <div style="padding:11px 18px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">What the numbers say</span>
+    </div>
+    <div style="padding:12px 18px">
+      ${lines.map(l=>`<div style="font-size:12px;color:var(--text-2);line-height:1.7;padding:5px 0">${l}</div>`).join('')}
+    </div></div>`;
+  el.innerHTML=html;
+}
+function finReportsCSV(){
+  const rows=[['Client','Billed','Collected','Still owed','Unpaid months','Collection rate %']];
+  const byCl={};
+  FIN_INVOICES.forEach(i=>{
+    const key=i.client_id!=null?('id'+i.client_id):('nm'+(i.client_name||'?'));
+    if(!byCl[key])byCl[key]={name:i.client_name||'(unnamed)',billed:0,collected:0,unpaid:0};
+    byCl[key].billed+=(i.amount||0);
+    if(i.status==='paid')byCl[key].collected+=(i.amount||0); else byCl[key].unpaid++;
+  });
+  Object.values(byCl).filter(c=>c.billed>0)
+    .sort((a,b)=>(a.collected/a.billed)-(b.collected/b.billed))
+    .forEach(c=>rows.push([c.name,c.billed,c.collected,c.billed-c.collected,c.unpaid,
+                           Math.round(c.collected/c.billed*100)]));
+  const csv=rows.map(r=>r.map(v=>{
+    const t=String(v); return /[",\n]/.test(t)?'"'+t.replace(/"/g,'""')+'"':t;
+  }).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='bb-collections-'+getFinMonth()+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
 }
 
 function renderFinancePage(){
