@@ -2888,6 +2888,16 @@ td:last-child{padding-right:18px;text-align:right}
   <div class="content"><div id="cc-dl-root"></div></div>
 </div>
 
+<div id="page-week" class="page-section" style="display:none">
+  <div class="content">
+    <div style="margin-bottom:16px">
+      <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">The Week</h1>
+      <div style="font-size:12.5px;color:var(--text-2)">Every client, every team, one week. Set it Monday, check it Friday.</div>
+    </div>
+    <div id="mw-week-view"></div>
+  </div>
+</div>
+
 <div id="page-onboarding" class="page-section" style="display:none">
   <div class="content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px">
@@ -4400,7 +4410,10 @@ function showPage(page) {
   window._bbCurrentPage = page; // tracked by bug detector
 
   // Load data for the page
-  if (page === 'dashboard') {
+  if (page === 'week') {
+    document.getElementById('topbar-title').textContent = 'The Week';
+    loadBbWeek();
+  } else if (page === 'dashboard') {
     document.getElementById('topbar-title').textContent = 'Dashboard';
     loadAll();
   } else if (page === 'clients') {
@@ -6040,6 +6053,131 @@ function finReportsCSV(){
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='bb-collections-'+getFinMonth()+'.csv';
   document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE WEEK — the operating spine (bb_week)
+   One grid: every client down the side, Monday to Sunday across, every
+   department in one place. Replaces having to open five different
+   weekly boards to see what the business is doing.
+   READ-ONLY for now: editing and the contract pre-fill are the next steps.
+══════════════════════════════════════════════════════════════════ */
+var BBW_ROWS=[], BBW_MONDAY=null, BBW_WEEK=null;
+var BBW_DEPTS={smm:{t:'SMM',c:'var(--blue)'},graphic:{t:'Graphic',c:'var(--amber)'},
+               video:{t:'Video',c:'var(--pink)'},editor:{t:'Editing',c:'var(--purple,#8b5cf6)'},
+               dev:{t:'Dev',c:'var(--green)'},ceo:{t:'CEO',c:'var(--accent)'}};
+var BBW_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+function bbwMonday(d){
+  var x=new Date(d); var day=x.getDay();
+  x.setDate(x.getDate()-day+(day===0?-6:1)); x.setHours(0,0,0,0); return x;
+}
+function bbwISO(d){var p=function(n){return String(n).padStart(2,'0');};
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+function bbwShift(n){ var d=new Date(BBW_MONDAY); d.setDate(d.getDate()+n*7); BBW_MONDAY=d; loadBbWeek(); }
+/* The teams do not agree on when a week starts: SMM, Graphic and Editing store
+   week_start on a SUNDAY, Dev stores it on a MONDAY. So we do NOT compute a
+   Monday and hope. We page through the week buckets that actually exist, and
+   label the columns from whatever weekday that bucket begins on. Normalising
+   the convention is a business decision, not something to guess at. */
+var BBW_WEEKS=[];
+async function loadBbWeek(){
+  var el=document.getElementById('mw-week-view'); if(!el) return;
+  el.innerHTML='<div style="padding:30px;text-align:center;color:var(--text-3);font-size:13px">Loading the week...</div>';
+  try{
+    if(!BBW_WEEKS.length){
+      var all=await SBget('bb_week','?select=week_start&order=week_start.desc')||[];
+      BBW_WEEKS=[]; all.forEach(function(r){ if(BBW_WEEKS.indexOf(r.week_start)<0)BBW_WEEKS.push(r.week_start); });
+    }
+    if(!BBW_WEEK && BBW_WEEKS.length) BBW_WEEK=BBW_WEEKS[0];
+    BBW_ROWS=BBW_WEEK?(await SBget('bb_week','?week_start=eq.'+BBW_WEEK+'&select=*&order=day_of_week.asc')||[]):[];
+  }catch(e){ BBW_ROWS=[]; }
+  renderBbWeek();
+}
+function bbwGo(dir){
+  var i=BBW_WEEKS.indexOf(BBW_WEEK);
+  if(i<0)return; var j=i+dir;
+  if(j<0||j>=BBW_WEEKS.length)return;
+  BBW_WEEK=BBW_WEEKS[j]; loadBbWeek();
+}
+function renderBbWeek(){
+  var el=document.getElementById('mw-week-view'); if(!el) return;
+  var start=BBW_WEEK?new Date(BBW_WEEK+'T00:00:00'):new Date();
+  var sun=new Date(start); sun.setDate(sun.getDate()+6);
+  var DNAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var dayLabels=[]; for(var q=0;q<7;q++){ dayLabels.push(DNAMES[(start.getDay()+q)%7]); }
+  var fmt=function(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});};
+  var total=BBW_ROWS.length;
+  var done=BBW_ROWS.filter(function(r){return r.status==='done';}).length;
+  var blocked=BBW_ROWS.filter(function(r){return r.status==='blocked';}).length;
+  var pct=total?Math.round(done/total*100):0;
+
+  var html='<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">'
+   +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border)">'
+     +'<div style="display:flex;align-items:center;gap:10px">'
+       +'<button class="btn-ghost btn-sm" style="font-size:11px;padding:3px 10px" onclick="bbwGo(1)">Previous</button>'
+       +'<div style="font-family:\'Poppins\',sans-serif;font-size:14px;font-weight:800;color:var(--text)">'+fmt(start)+' to '+fmt(sun)+'</div>'
+       +'<button class="btn-ghost btn-sm" style="font-size:11px;padding:3px 10px" onclick="bbwGo(-1)">Next</button>'
+       +'<button class="btn-ghost btn-sm" style="font-size:11px;padding:3px 10px" onclick="BBW_WEEK=BBW_WEEKS[0];loadBbWeek()">Latest</button>'
+     +'</div>'
+     +'<div style="font-size:11px;color:var(--text-3)">'+total+' item'+(total===1?'':'s')
+       +' &middot; <b style="color:var(--green)">'+pct+'% done</b>'
+       +(blocked?' &middot; <b style="color:var(--red)">'+blocked+' blocked</b>':'')+'</div>'
+   +'</div>';
+
+  if(!total){
+    html+='<div style="padding:34px 18px;text-align:center">'
+      +'<div style="font-size:13px;font-weight:600;color:var(--text-2)">Nothing planned for this week yet</div>'
+      +'<div style="font-size:11px;color:var(--text-3);margin-top:6px">Monday is where the week gets set. Contract pre-fill is the next step.</div></div></div>';
+    el.innerHTML=html; return;
+  }
+
+  var keyOf=function(r){ return r.client_name?r.client_name:'Internal'; };
+  var names=[]; BBW_ROWS.forEach(function(r){var k=keyOf(r); if(names.indexOf(k)<0)names.push(k);});
+  names.sort(function(a,b){ if(a==='Internal')return 1; if(b==='Internal')return -1; return a.localeCompare(b); });
+
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:820px">'
+   +'<thead><tr style="border-bottom:1px solid var(--border)">'
+   +'<th style="text-align:left;padding:8px 12px;position:sticky;left:0;background:var(--surface-2);z-index:2;min-width:150px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3)">Client</th>';
+  dayLabels.forEach(function(d,i){
+    var dd=new Date(start); dd.setDate(dd.getDate()+i);
+    var isToday=bbwISO(dd)===bbwISO(new Date());
+    html+='<th style="padding:8px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:'+(isToday?'var(--accent)':'var(--text-3)')+';min-width:96px">'+d+'<div style="font-size:8px;opacity:.7">'+dd.getDate()+'</div></th>';
+  });
+  html+='</tr></thead><tbody>';
+
+  names.forEach(function(n){
+    html+='<tr style="border-bottom:1px solid var(--border)">'
+     +'<td style="padding:8px 12px;position:sticky;left:0;background:var(--surface);z-index:1;font-size:12px;font-weight:600;color:var(--text)">'+esc(n)+'</td>';
+    for(var day=1; day<=7; day++){
+      var cell=BBW_ROWS.filter(function(r){ return keyOf(r)===n && Number(r.day_of_week)===day; });
+      html+='<td style="padding:5px 4px;vertical-align:top">';
+      cell.forEach(function(r){
+        var dp=BBW_DEPTS[r.dept]||{t:r.dept,c:'var(--text-3)'};
+        var label=r.title||r.task_type||dp.t;
+        var strike=r.status==='done'?'text-decoration:line-through;opacity:.55;':'';
+        var ring=r.status==='blocked'?'border-color:var(--red);':'';
+        html+='<div title="'+esc(dp.t+' · '+(r.notes||label)+' · '+r.status)+'" style="'+strike+ring
+          +'margin-bottom:3px;padding:3px 6px;border-radius:5px;border:1px solid var(--border);'
+          +'border-left:3px solid '+dp.c+';background:var(--surface-2);font-size:10px;color:var(--text-2);'
+          +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px">'
+          +esc(String(label).slice(0,22))+(r.qty>1?' x'+r.qty:'')+'</div>';
+      });
+      html+='</td>';
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table></div></div>';
+
+  var byDept={};
+  BBW_ROWS.forEach(function(r){ byDept[r.dept]=byDept[r.dept]||{n:0,d:0}; byDept[r.dept].n++; if(r.status==='done')byDept[r.dept].d++; });
+  html+='<div class="card" style="padding:12px 18px"><div style="display:flex;gap:8px;flex-wrap:wrap">'
+   +Object.keys(byDept).map(function(k){
+      var dp=BBW_DEPTS[k]||{t:k,c:'var(--text-3)'}; var v=byDept[k];
+      return '<div style="flex:1;min-width:120px;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-left:3px solid '+dp.c+';border-radius:var(--r-sm)">'
+        +'<div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)">'+dp.t+'</div>'
+        +'<div style="font-size:14px;font-weight:800;font-family:\'Poppins\',sans-serif;color:var(--text)">'+v.d+'/'+v.n+'</div></div>';
+   }).join('')+'</div></div>';
+  el.innerHTML=html;
 }
 
 function renderFinancePage(){
@@ -13066,14 +13204,16 @@ const NAV_PARENT = {
   pipeline:'pipeline',
   production:'production', videopipeline:'production', graphicpipeline:'production', approvals:'production', contentplans:'production',
   shootpipeline:'shoots', shootcalendar:'shoots', calendar:'shoots',
+  week:'myday',
   finance:'finance',
   team:'team', teamweekly:'team',
   agents:'agents', missions:'agents',
 };
 /* in-page segmented switches per group (page → [label, targetPage]) */
 const PAGE_TABS = {
-  myday:      [['My Day','myday'],['Task Book','taskbook']],
-  taskbook:   [['My Day','myday'],['Task Book','taskbook']],
+  myday:      [['My Day','myday'],['The Week','week'],['Task Book','taskbook']],
+  week:       [['My Day','myday'],['The Week','week'],['Task Book','taskbook']],
+  taskbook:   [['My Day','myday'],['The Week','week'],['Task Book','taskbook']],
   clients:    [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   onboarding: [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   readiness:  [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
