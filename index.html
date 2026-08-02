@@ -6066,7 +6066,7 @@ var BBW_ROWS=[], BBW_MONDAY=null, BBW_WEEK=null;
 var BBW_DEPTS={smm:{t:'SMM',c:'var(--blue)'},graphic:{t:'Graphic',c:'var(--amber)'},
                video:{t:'Video',c:'var(--pink)'},editor:{t:'Editing',c:'var(--purple,#8b5cf6)'},
                dev:{t:'Dev',c:'var(--green)'},ceo:{t:'CEO',c:'var(--accent)'}};
-var BBW_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+var BBW_DAYS=['Mon','Tue','Wed','Thu','Fri'];
 function bbwMonday(d){
   var x=new Date(d); var day=x.getDay();
   x.setDate(x.getDate()-day+(day===0?-6:1)); x.setHours(0,0,0,0); return x;
@@ -6102,9 +6102,8 @@ function bbwGo(dir){
 function renderBbWeek(){
   var el=document.getElementById('mw-week-view'); if(!el) return;
   var start=BBW_WEEK?new Date(BBW_WEEK+'T00:00:00'):new Date();
-  var sun=new Date(start); sun.setDate(sun.getDate()+6);
-  var DNAMES=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var dayLabels=[]; for(var q=0;q<7;q++){ dayLabels.push(DNAMES[(start.getDay()+q)%7]); }
+  var sun=new Date(start); sun.setDate(sun.getDate()+4);   // Mon + 4 = Fri
+  var dayLabels=['Mon','Tue','Wed','Thu','Fri'];           // BB works Mon to Fri
   var fmt=function(d){return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});};
   var total=BBW_ROWS.length;
   var done=BBW_ROWS.filter(function(r){return r.status==='done';}).length;
@@ -6135,7 +6134,7 @@ function renderBbWeek(){
   var names=[]; BBW_ROWS.forEach(function(r){var k=keyOf(r); if(names.indexOf(k)<0)names.push(k);});
   names.sort(function(a,b){ if(a==='Internal')return 1; if(b==='Internal')return -1; return a.localeCompare(b); });
 
-  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:820px">'
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:660px">'
    +'<thead><tr style="border-bottom:1px solid var(--border)">'
    +'<th style="text-align:left;padding:8px 12px;position:sticky;left:0;background:var(--surface-2);z-index:2;min-width:150px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3)">Client</th>';
   dayLabels.forEach(function(d,i){
@@ -6148,7 +6147,7 @@ function renderBbWeek(){
   names.forEach(function(n){
     html+='<tr style="border-bottom:1px solid var(--border)">'
      +'<td style="padding:8px 12px;position:sticky;left:0;background:var(--surface);z-index:1;font-size:12px;font-weight:600;color:var(--text)">'+esc(n)+'</td>';
-    for(var day=1; day<=7; day++){
+    for(var day=1; day<=5; day++){
       var cell=BBW_ROWS.filter(function(r){ return keyOf(r)===n && Number(r.day_of_week)===day; });
       html+='<td style="padding:5px 4px;vertical-align:top">';
       cell.forEach(function(r){
