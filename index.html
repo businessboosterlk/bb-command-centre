@@ -2,7 +2,12 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F1014">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -18,6 +23,9 @@ body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 /* ── TOKENS — v2, skeleton dark ramp (HD/BSWL), accent stays BB orange ── */
 :root{
+/* ── BB APP SHELL: the phone reports its own insets, we never guess a model ── */
+--sat:env(safe-area-inset-top,0px);
+--sab:env(safe-area-inset-bottom,0px);
   --bg:#0c0d10;
   --surface:#16171c;
   --surface-2:#1c1d23;
@@ -99,6 +107,9 @@ body{
 /* ══════════════════════════════
    LOGIN SCREEN
 ══════════════════════════════ */
+/* the strip behind the clock and the battery. In standalone the page owns it,
+   so the page has to paint it or the content shows through. */
+.statusfill{position:fixed;top:0;left:0;right:0;height:var(--sat);z-index:60;pointer-events:none;background:#0F1014}
 .login-screen{
   position:fixed;inset:0;
   background:var(--bg);
@@ -1368,6 +1379,7 @@ td:last-child{padding-right:18px;text-align:right}
 </style>
 </head>
 <body>
+<div class="statusfill" aria-hidden="true"></div>
 
 <!-- ══════════════ LOGIN SCREEN ══════════════ -->
 <div class="login-screen" id="login-screen">
@@ -9971,6 +9983,146 @@ table th{letter-spacing:.08em}
 /* ── reduced motion ── */
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.06s!important}}
 </style>
+<style id="bb-app-shell-insets">
+/* ══ SAFE-AREA INSETS, cascade-final ══
+   The shell gives us --sat/--sab; every element that TOUCHES an edge must use
+   them. This block sits after all 63 media queries on purpose: the documented
+   trap is a later @media resetting .topbar and silently killing the inset on the
+   ONLY screen that has a notch. Written once here so no breakpoint can undo it. */
+.topbar{height:calc(var(--topbar-h) + var(--sat));padding-top:var(--sat);box-sizing:border-box}
+.sidebar{padding-top:var(--sat);box-sizing:border-box}
+.login-screen{padding-top:var(--sat);padding-bottom:var(--sab);box-sizing:border-box}
+#bba3-checkin-fab{bottom:calc(24px + var(--sab))}
+#bbcc-bubble{bottom:calc(24px + var(--sab))}
+#bba-fab{bottom:calc(24px + var(--sab))}
+.content{padding-bottom:calc(24px + var(--sab))}
+.modal-foot{padding-bottom:calc(14px + var(--sab))}
+@media (max-width:768px){
+  /* repeated deliberately: the narrow screen is the one with the notch */
+  .topbar{height:calc(var(--topbar-h) + var(--sat));padding-top:var(--sat)}
+  .sidebar{padding-top:var(--sat)}
+}
+</style>
+<style id="bb-app-foundations">
+/* ══ BB APP FOUNDATIONS ══ faults 1,2,3,7,9. Behaviour half is the script below. */
+html{touch-action:manipulation}                 /* 1. kills double-tap zoom, KEEPS pinch */
+html,body{overscroll-behavior-y:none}           /* 3. kills pull-to-refresh */
+.modal-overlay,.sheet,.modal,.panel,.drawer,#bba3-checkin,#bba3-drawer{overscroll-behavior:contain}
+*{-webkit-tap-highlight-color:transparent}      /* 7. no blue flash */
+button,label,.nav-item,.btn,.btn-sm,.btn-ghost,.btn-primary,.fin-vtab,[role="button"]{
+  -webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+input,textarea,.a-reason,.stat-val,.fin-stat-val,td{-webkit-user-select:text;user-select:text}
+@media (pointer:coarse){
+  input,select,textarea{font-size:16px!important} /* 2. under 16px = iOS zooms and never returns */
+  .modal-box,.modal-overlay>div{max-height:88dvh;overflow-y:auto} /* 9. vh overflows, dvh does not */
+}
+body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
+</style>
+<script>
+/* ══ BB APP FOUNDATIONS, behaviour ══ faults 4,5,6,8.
+   Two design rules from the skill, both deliberate:
+   - an overlay is OPEN WHEN IT IS VISIBLE, never when it carries a class (modals
+     use .hidden, the check-in uses .show, the drawer flips display; the next one
+     will invent a fourth), so detect via getComputedStyle + rect.
+   - ONE MutationObserver, never N edited open() functions. */
+(function(){
+  if (window.__bbAppFoundations) return; window.__bbAppFoundations = true;
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  var lockedY=0, isLocked=false, closing=false, pushed=false;
+
+  /* The CANDIDATE SET is a cheap net, nothing more: overlays here are nested
+     several levels deep, not direct children of body, so scanning body.children
+     misses every one. What decides OPEN is still the computed style and the rect,
+     never the class. Opacity is deliberately NOT tested: .modal-overlay runs an
+     animation:fadeIn, so it reads 0 for the first frames and a naive opacity gate
+     rejects the overlay exactly when it is opening. display:none is the real
+     signal here (.modal-overlay.hidden{display:none}). */
+  var OVERLAY_NET='.modal-overlay,.sheet,.drawer,.panel,.login-screen,#bba3-checkin,#bba3-drawer,[class*="overlay"]';
+  function isOpenOverlay(el){
+    if(!el||el.nodeType!==1) return false;
+    var cs=getComputedStyle(el);
+    if(cs.position!=='fixed'||cs.display==='none'||cs.visibility==='hidden') return false;
+    /* Measure how much of the VIEWPORT it actually covers, not how big it is.
+       #bba3-drawer is permanently display:flex and full height, hidden only by a
+       transform that parks it off-screen. A size-only test calls that "open"
+       forever and the page never unlocks. Intersection is the honest question:
+       is this thing in front of the person right now. */
+    var r=el.getBoundingClientRect();
+    var iw=Math.max(0,Math.min(r.right,innerWidth)-Math.max(r.left,0));
+    var ih=Math.max(0,Math.min(r.bottom,innerHeight)-Math.max(r.top,0));
+    return (iw*ih) >= (innerWidth*innerHeight*0.6);
+  }
+  function openOverlays(){
+    var out=[],n=document.querySelectorAll(OVERLAY_NET);
+    for(var i=0;i<n.length;i++) if(isOpenOverlay(n[i])) out.push(n[i]);
+    return out;
+  }
+  function topLevelHolding(el){
+    while(el&&el.parentElement&&el.parentElement!==document.body) el=el.parentElement;
+    return el;
+  }
+  function lock(ov){
+    if(isLocked) return;
+    lockedY=window.scrollY||0;
+    document.body.style.top=(-lockedY)+'px';
+    document.body.classList.add('bb-locked'); isLocked=true;
+    /* 5. cover is not enough: a thumb still reaches a button beside the sheet.
+       Inert every top-level branch EXCEPT the one holding the overlay. */
+    var keep=topLevelHolding(ov), c=document.body.children;
+    for(var i=0;i<c.length;i++){
+      if(c[i]!==keep&&c[i].tagName!=='SCRIPT'&&c[i].tagName!=='STYLE'){
+        c[i].setAttribute('inert',''); c[i].setAttribute('aria-hidden','true'); } }
+    if(!pushed){ try{ history.pushState({bbOverlay:1},''); pushed=true; }catch(e){} }
+  }
+  function unlock(){
+    if(!isLocked) return;
+    isLocked=false;
+    document.body.classList.remove('bb-locked'); document.body.style.top='';
+    var c=document.body.children;
+    for(var i=0;i<c.length;i++){ c[i].removeAttribute('inert'); c[i].removeAttribute('aria-hidden'); }
+    window.scrollTo(0,lockedY);                      /* 4. the restore is the point */
+    if(pushed&&!closing){ closing=true; try{history.back();}catch(e){}
+      setTimeout(function(){closing=false;},60); }
+    pushed=false;
+  }
+  function sync(){ var o=openOverlays(); if(o.length) lock(o[o.length-1]); else unlock(); }
+
+  window.addEventListener('popstate',function(){    /* 6. back closes the sheet */
+    if(closing) return;
+    var open=openOverlays();
+    if(open.length){
+      closing=true; pushed=false;
+      open.forEach(function(o){
+        var b=o.querySelector('.modal-close,[onclick*="closeModal"],[data-close]');
+        if(b) b.click(); else o.classList.add('hidden');
+      });
+      setTimeout(function(){ closing=false; sync(); },30);
+    }
+  });
+
+  var mo=new MutationObserver(function(){ sync(); });
+  function start(){
+    mo.observe(document.body,{attributes:true,attributeFilter:['class','style'],
+                              childList:true,subtree:true});
+    sync();
+  }
+  if(document.body) start(); else document.addEventListener('DOMContentLoaded',start);
+
+  document.addEventListener('focusin',function(e){   /* 8. Go, not "return" */
+    var el=e.target;
+    if(!el||!/^(INPUT|TEXTAREA)$/.test(el.tagName)) return;
+    if(el.hasAttribute('enterkeyhint')) return;
+    var form=el.closest('form,.modal-box,.modal-overlay')||document;
+    var f=[].slice.call(form.querySelectorAll('input,textarea,select'))
+             .filter(function(x){return x.offsetParent!==null;});
+    el.setAttribute('enterkeyhint', (f.length&&f[f.length-1]===el)?'go':'next');
+    var t=(el.type||'').toLowerCase();
+    if(t==='email'||t==='number'||t==='tel'||t==='url'){
+      el.setAttribute('autocapitalize','off'); el.setAttribute('autocorrect','off');
+      el.setAttribute('spellcheck','false'); }
+  },true);
+})();
+</script>
 </body>
 </html>
 
@@ -11206,7 +11358,12 @@ table th{letter-spacing:.08em}
     s.textContent = [
       /* section wrapper */
       '#bba3-section{padding:0 20px;margin:4px 0 20px;}',
-      '#bba3-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}',
+      '#bba3-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px;}',
+      '#bba3-title-wrap{min-width:0;flex:1 1 auto;}',
+      '#bba3-hdr button{white-space:nowrap;flex:0 0 auto;}',
+      /* 375px is the real phone: the title, the roll-up and two buttons cannot
+         share one row. Title and count take the first line, buttons the second. */
+      '@media (max-width:520px){#bba3-hdr{flex-direction:column;align-items:stretch;}\n        #bba3-title-wrap{flex-wrap:wrap;gap:6px;}\n        #bba3-subtitle{margin-left:0;flex-basis:100%;}\n        #bba3-hdr>button,#bba3-hdr #bba3-toggle{flex:1 1 0;justify-content:center;}\n        #bba3-hdr .bba3-btnrow{display:flex;gap:8px;}}',
       '#bba3-title-wrap{display:flex;align-items:center;gap:10px;}',
       '#bba3-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2);animation:bba3pulse 2s infinite;}',
       '@keyframes bba3pulse{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.2)}50%{box-shadow:0 0 0 6px rgba(34,197,94,.05)}}',
@@ -11318,11 +11475,13 @@ table th{letter-spacing:.08em}
           '<span id="bba3-title">AI Agent Alerts</span>' +
           '<span id="bba3-subtitle">Live monitoring · 11 signals</span>' +
         '</div>' +
+        '<div class="bba3-btnrow">' +
         '<button id="bba3-toggle" onclick="window.BBA3&&window.BBA3.toggleGrid()" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-3);font-size:11px;font-weight:600;padding:4px 11px;border-radius:var(--r-sm);cursor:pointer;margin-right:6px">Show all signals</button>' +
         '<button id="bba3-run-btn" onclick="window.BBA3&&window.BBA3.runAll()">' +
           '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>' +
           'Refresh' +
         '</button>' +
+        '</div>' +
       '</div>' +
       '<div id="bba3-grid" style="display:none">'+cards+'</div>' +
     '</div>';
