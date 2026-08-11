@@ -13583,3 +13583,33 @@ else buildNavGroups();
   .login-card{padding:11px 14px}
 }
 </style>
+<style id="bb-app-layout-fix">
+/* ══ LAYOUT, TAKEN FROM THE PROVEN APPS ══
+   gym-skeleton and bswl (Leon) both carry:
+       .main{overflow-x:clip;max-width:100%}
+       .content{max-width:100%}
+   The Command Centre had ZERO of that and used overflow-x:HIDDEN instead. That
+   one word caused BOTH faults Thulaib photographed:
+
+   1. `hidden` makes .main a SCROLL CONTAINER. The topbar is position:sticky
+      inside it, so it sticks to .main's scrollport, but .main never scrolls,
+      the WINDOW does. So the topbar rode away to -600px. `clip` clips without
+      creating a scroll container, which is why the same sticky rule works in
+      the gym app.
+   2. `hidden` also CLIPPED the week cards instead of fitting them, so Wed, Fri
+      and Sun were cut off at the right edge with no way to reach them.
+
+   Fixing the container is not enough on its own: content that does not fit must
+   be made to fit, not clipped. Hence the week strip below. */
+.main{overflow-x:clip!important;overflow-y:visible!important;max-width:100%}
+.content{max-width:100%}
+.topbar{position:sticky;top:0;z-index:50}
+
+@media (max-width:600px){
+  /* one day per row on a phone. Two columns forced each card to ~46vw and the
+     client names inside them ("CHERRY KITCHEN: SIGN CONTRACT") never fit. */
+  .week-strip{grid-template-columns:1fr;gap:8px}
+  .week-strip>*{min-width:0}
+  .week-strip *{overflow-wrap:anywhere}
+}
+</style>
