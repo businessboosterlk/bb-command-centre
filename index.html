@@ -9991,7 +9991,10 @@ table th{letter-spacing:.08em}
    ONLY screen that has a notch. Written once here so no breakpoint can undo it. */
 .topbar{height:calc(var(--topbar-h) + var(--sat));padding-top:var(--sat);box-sizing:border-box}
 .sidebar{padding-top:var(--sat);box-sizing:border-box}
-.login-screen{padding-top:var(--sat);padding-bottom:var(--sab);box-sizing:border-box}
+.login-screen{padding-top:calc(24px + var(--sat));padding-bottom:calc(24px + var(--sab));box-sizing:border-box;
+  /* above the floating buttons: they are z-9970/9990 and otherwise sit on top of
+     the login cards. The screen is display:none once you are in, so this is safe. */
+  z-index:9995}
 #bba3-checkin-fab{bottom:calc(24px + var(--sab))}
 #bbcc-bubble{bottom:calc(24px + var(--sab))}
 #bba-fab{bottom:calc(24px + var(--sab))}
@@ -13540,3 +13543,43 @@ else buildNavGroups();
   if(document.readyState==='complete')waitAndRun();else window.addEventListener('load',waitAndRun);
 })();
 </script>
+<style id="bb-login-mobile">
+/* ══ LOGIN SCREEN ON A PHONE ══
+   The fault: .login-screen is position:fixed inset:0 with justify-content:center
+   and NO scroll. Three stacked cards are taller than the screen, so centring
+   pushed the logo up under the Dynamic Island and "Enter your password" off the
+   bottom, with no way to reach either.
+   The reference apps (gym-skeleton, bswl/Leon) use ONE compact card. The CC needs
+   three, so on a phone they become a proper account LIST: avatar, name, chevron.
+   Same shape every real app uses for "who is signing in". */
+@media (max-width:600px){
+  .login-screen{
+    justify-content:flex-start;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    padding:calc(16px + var(--sat)) 16px calc(16px + var(--sab));
+  }
+  #login-logo{max-width:180px;height:auto}
+  .login-sub-tag{margin:2px 0 12px;font-size:8.5px}
+  .login-heading{font-size:14px;margin-bottom:14px}
+  /* the existing 540px rule sets align-items:center, which shrink-wraps each card
+     in a COLUMN flex container and is why width:100% never took effect */
+  .login-cards{flex-direction:column;flex-wrap:nowrap;align-items:stretch;
+               width:100%;max-width:420px;gap:10px}
+  .login-card{
+    width:auto;box-sizing:border-box;
+    flex-direction:row;align-items:center;text-align:left;
+    padding:13px 15px;gap:13px;border-radius:14px;
+  }
+  .login-card:hover{transform:none}           /* no hover lift on a touch screen */
+  .login-av{width:44px;height:44px;font-size:14px;flex-shrink:0}
+  .login-person-name{font-size:16px}
+  .login-role-lbl{font-size:9.5px;line-height:1.35}
+  .login-enter{margin-left:auto;flex-shrink:0}
+}
+@media (max-width:600px) and (max-height:700px){
+  /* short phones and landscape: shrink the header, never the tap targets */
+  #login-logo{max-width:140px}
+  .login-heading{margin-bottom:10px}
+  .login-card{padding:11px 14px}
+}
+</style>

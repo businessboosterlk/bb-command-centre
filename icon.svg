@@ -1,1 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><rect width="1000" height="1000" rx="220" fill="#0F1014"/><g transform="translate(500,500) scale(0.74) translate(-500,-500)"><path d="M 335.0,203.0 A 132.0,132.0 0 1 0 203.0,335.0 L 797.0,335.0 A 132.0,132.0 0 1 0 665.0,203.0 L 665.0,797.0 A 132.0,132.0 0 1 0 797.0,665.0 L 203.0,665.0 A 132.0,132.0 0 1 0 335.0,797.0 Z" fill="none" stroke="#FF6B2B" stroke-width="68.0" stroke-linejoin="round" stroke-linecap="round"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><rect width="1000" height="1000" rx="220" fill="#0F1014"/><g transform="translate(500,500) scale(0.82) translate(-500,-500)">
+      <defs><clipPath id="board">
+        <rect x="240" y="280" width="520" height="440" rx="115"/>
+      </clipPath></defs>
+      <rect x="240" y="280" width="520" height="440" rx="115" fill="#FF6B2B"/>
+      <g clip-path="url(#board)" fill="#0F1014">
+        <polygon points="286,270 356,270 250,412 180,412"/>
+        <polygon points="406,270 476,270 370,412 300,412"/>
+        <polygon points="526,270 596,270 490,412 420,412"/>
+        <polygon points="646,270 716,270 610,412 540,412"/>
+        <polygon points="766,270 836,270 730,412 660,412"/>
+        <rect x="230" y="392" width="540" height="26"/>
+      </g>
+      <polygon points="452,492 452,652 604,572" fill="#0F1014"/></g></svg>
