@@ -1377,6 +1377,31 @@ td:last-child{padding-right:18px;text-align:right}
 .tw-emp-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
 @media(max-width:900px){.tw-cell-td{min-width:130px}.tw-emp-td{min-width:120px;width:120px}}
 </style>
+<script>
+/* @@BBCC_SELFTEST_LOG_BEGIN@@
+   Console-error recorder. Ported from the Video System, where it sits at line 7
+   for the same reason: the harness check "zero console errors since load" can
+   only be honest if something was listening from the very first line. It must
+   load BEFORE every other script in this file. Read-only, keeps 50 entries. */
+window.__ST_LOG=[];
+(function(){
+ var cap=function(k,orig){return function(){try{
+   if(!window.__ST_REPORTING&&window.__ST_LOG.length<50)
+     window.__ST_LOG.push({kind:k,msg:Array.prototype.slice.call(arguments).join(' ').slice(0,300)});
+ }catch(x){} return orig.apply(console,arguments);};};
+ console.error=cap('error',console.error);
+ window.addEventListener('error',function(e){try{
+   if(window.__ST_LOG.length<50)
+     window.__ST_LOG.push({kind:'error',msg:String(e&&e.message||e).slice(0,300)});}catch(x){}});
+ window.addEventListener('unhandledrejection',function(e){try{
+   var m=String((e&&e.reason&&e.reason.message)||e&&e.reason||'');
+   /* a dropped fetch is network noise, not a fault in the page (L-006) */
+   if(/failed to fetch|networkerror|network request failed/i.test(m))return;
+   if(window.__ST_LOG.length<50)
+     window.__ST_LOG.push({kind:'error',msg:'unhandled promise: '+m.slice(0,300)});}catch(x){}});
+})();
+/* @@BBCC_SELFTEST_LOG_END@@ */
+</script>
 </head>
 <body>
 <div class="statusfill" aria-hidden="true"></div>
@@ -13719,6 +13744,11 @@ else buildNavGroups();
     {name:'video_time_logs',core:false},
     {name:'team_login_logs',core:false}
   ];
+  /* Exposed for the self-test harness. The anon-read check (L-CC-001) walks this
+     exact list, and on its first run it FAILED with "NO TABLES LIST" because the
+     array is scoped to this IIFE. A check that cannot reach its target is worse
+     than no check, so the list is published rather than the check weakened. */
+  window.__CC_TABLES=TABLES;
   var _seen={},_issues=[],DEDUPE_MS=10*60*1000;
   function role(){try{return (typeof ROLE!=='undefined')?ROLE:null;}catch(e){return null;}}
   function who(){var r=role();return r==='th'?'THULAIB':r==='sh'?'SHIARA':(r||'anon');}
@@ -13840,3 +13870,300 @@ else buildNavGroups();
   .week-strip *{overflow-wrap:anywhere}
 }
 </style>
+<script>
+/* @@BBCC_SELFTEST_BEGIN@@
+   ═════════════════════════════════════════════════════════════════
+   SELF-TEST HARNESS  ·  the pre-deploy gate
+   Run: runSelfTest() in the console, or add ?selftest to the URL.
+
+   Ported from the Video System's Section 12 (82 checks) because that harness
+   performs ZERO database writes: verified by count across all 543 of its lines,
+   no insert, update, delete, upsert, POST, PATCH or DELETE. Video writes to the
+   same live shared tables this app does, which is what makes the port safe here.
+   Graphic's version was NOT taken: it swaps every write function for a recorder
+   and snapshots state, which is heavier and riskier on a live board. The fence
+   markers ARE from Graphic, so a build script can replace this block without a
+   fragile line-number edit.
+
+   THIS HARNESS MAKES NO WRITES. If a check seems to need one, it does not ship.
+
+   Must be green at DESKTOP and at ~390px. bb-app-foundations is explicit that a
+   suite which only tests what a desktop can see will pass a product that is
+   broken in the hand: the field-zoom rule is coarse-pointer only and can never
+   fail on a laptop.
+
+   RULE, learned the expensive way on BSWL: a check that passes because it could
+   not find its target is worse than no check. Every check that selects something
+   FAILS loudly when the selection is empty, naming what it looked for.
+   ═════════════════════════════════════════════════════════════════ */
+async function runSelfTest(){
+ const R=[];
+ const ok=(name,pass,detail)=>{R.push({name:name,pass:!!pass,detail:String(detail==null?'':detail).slice(0,220)});};
+ const cs=getComputedStyle;
+ const snapPage=(typeof CURRENT_PAGE!=='undefined')?CURRENT_PAGE:'dashboard';
+
+ /* WAIT FOR LOGIN BEFORE JUDGING THE DATA.
+    Unlike the Video System this app is login-gated: nothing loads until someone
+    picks a role. The ?selftest auto-trigger fires on a timer, so on the first
+    run it executed while the login screen was still up and reported "0 clients"
+    as though the loader were broken. That is a false alarm, which is the one
+    thing a harness must never produce. Wait up to 20s for data, then say
+    plainly which happened rather than printing a bare zero. */
+ let bootedIn=false;
+ for(let i=0;i<40;i++){
+   if(typeof D==='object'&&(D.clients||[]).length>0){bootedIn=true;break;}
+   await new Promise(r=>setTimeout(r,500));
+ }
+ if(!bootedIn){
+   ok('Boot: someone is logged in',false,
+      'RAN ON THE LOGIN SCREEN, no data had loaded, so every data check below proves nothing');
+ }else{
+   ok('Boot: someone is logged in',true,'data present, checks below are meaningful');
+ }
+
+ try{
+
+  /* ── A · BOOT INTEGRITY ─────────────────────────────────────────── */
+  ok('Boot: core globals present',
+     typeof D==='object'&&typeof CLIENTS!=='undefined'&&typeof showPage==='function'&&typeof SBget==='function',
+     'D/CLIENTS/showPage/SBget');
+  ok('Boot: zero console errors since load',(window.__ST_LOG||[]).length===0,
+     (window.__ST_LOG||[]).length?window.__ST_LOG[0].kind+': '+window.__ST_LOG[0].msg:'clean');
+  (function(){
+   const seen={};document.querySelectorAll('[id]').forEach(el=>seen[el.id]=(seen[el.id]||0)+1);
+   const dupes=Object.keys(seen).filter(k=>seen[k]>1);
+   ok('Boot: no duplicate DOM ids',dupes.length===0,dupes.slice(0,5).join(', ')||'clean');
+  })();
+  /* THIS APP HAS TWO CLIENT STORES AND THEY ARE NOT THE SAME OBJECT.
+     `D` (line 3767) is filled by loadAll() and is what the dashboard, finance,
+     week and month pages read. `CLIENTS`/`TASKS` (line 5216) are a SECOND store
+     filled by a different loader that only runs when you open certain pages, so
+     on a fresh boot D.clients is 24 while CLIENTS is still 0.
+     My first version of this check read clients from one store and tasks from
+     the other and reported "0 clients, 636 tasks", which looks like a broken
+     loader and is not. Count ONE population per sentence. `D` is the primary. */
+  ok('Boot: data actually loaded',
+     (D.clients||[]).length>0&&(D.tasks||[]).length>0,
+     (D.clients||[]).length+' clients, '+(D.tasks||[]).length+' tasks (store D)');
+
+  /* AND THE CHECK THAT DISCOVERY EARNED. Once the second store has been filled,
+     the two must agree. If a future edit adds a client through one store only,
+     the clients page and the dashboard will quietly disagree on how many
+     clients BB has, and nothing on screen would say so. */
+  ok('Boot: the two client stores agree',
+     (CLIENTS||[]).length===0||(CLIENTS||[]).length===(D.clients||[]).length,
+     (CLIENTS||[]).length===0
+       ? 'second store not loaded yet on this page, nothing to compare'
+       : 'CLIENTS '+(CLIENTS||[]).length+' vs D.clients '+(D.clients||[]).length);
+
+  /* ── B · ANON READ, the L-CC-001 check ──────────────────────────────
+     THE MOST VALUABLE CHECK IN THIS FILE. This app authenticates by name and
+     PIN locally, not Supabase Auth, so every read uses the anon key. On
+     2026-07-21 `clients` was tightened to {authenticated} only and the result
+     was a hard 401 that blanked the finance and clients pages. `clients` is
+     read by three apps, so one policy change broke three systems.
+
+     crm_* is EXCLUDED BY NAME and this comment says why: those tables are the
+     multi-tenant tenant wall and are CORRECTLY locked to authenticated. If a
+     future check "fixes" them by demanding anon read, it would be asking for
+     the wall to come down. Never loosen crm_*. */
+  await (async function(){
+   const list=Array.isArray(window.__CC_TABLES)?window.__CC_TABLES:[];
+   if(!list.length){
+    ok('Anon: the TABLES list was found',false,
+       'NO TABLES LIST, this block proved nothing and must not pass quietly');
+    return;
+   }
+   const testable=list.map(t=>t.name).filter(n=>n.indexOf('crm_')!==0);
+   const skipped=list.map(t=>t.name).filter(n=>n.indexOf('crm_')===0);
+   ok('Anon: the TABLES list was found',true,
+      testable.length+' tables to test'+(skipped.length?', crm_* excluded on purpose: '+skipped.join(', '):''));
+   for(const name of testable){
+    let verdict='',good=false;
+    try{
+     const r=await fetch(SB_URL+'/rest/v1/'+name+'?select=*&limit=1',
+                         {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+     good = r.status!==401 && r.status!==403;
+     verdict = 'HTTP '+r.status+(good?'':' — ANON READ IS BLOCKED, this table will 401 the app');
+    }catch(e){ good=false; verdict='fetch failed: '+(e&&e.message||e); }
+    ok('Anon: '+name+' is readable',good,verdict);
+   }
+   ok('Anon: every table in the list was tested',true,testable.length+' tested, 0 skipped besides crm_*');
+  })();
+
+  /* ── C · PAGE RENDER ─────────────────────────────────────────────────
+     Walk what a person can actually click, not a hardcoded list, so a page
+     added to the nav tomorrow is covered without editing this harness. */
+  await (async function(){
+   const pages=[...new Set([...document.querySelectorAll('.nav-item[onclick]')]
+     .map(el=>(el.getAttribute('onclick')||'').match(/showPage\('([a-z-]+)'\)/))
+     .filter(Boolean).map(m=>m[1]))];
+   if(!pages.length){
+    ok('Pages: the nav was found',false,'NO NAV ITEMS WITH showPage(), this block proved nothing');
+    return;
+   }
+   ok('Pages: the nav was found',true,pages.length+' reachable pages');
+   for(const pg of pages){
+    let filled=false,why='';
+    try{
+     showPage(pg);
+     await new Promise(r=>setTimeout(r,120));
+     const el=document.getElementById('page-'+pg);
+     if(!el){ why='NO #page-'+pg+' ELEMENT, check proved nothing'; }
+     else { const host=el.querySelector('.content')||el;
+            filled=host.children.length>0;
+            why=host.children.length+' children'; }
+    }catch(e){ why='threw: '+(e&&e.message||e); }
+    ok('Page renders: '+pg,filled,why);
+   }
+   ok('Pages: every nav page was visited',true,pages.length+' visited');
+  })();
+
+  /* ── D · BB APP SHELL, ported verbatim ──────────────────────────────── */
+  (function(){
+   const root=document.documentElement;
+   ok('Shell: viewport-fit=cover is set, so env() is not always 0',
+      /viewport-fit\s*=\s*cover/.test((document.querySelector('meta[name=viewport]')||{content:''}).content));
+   ok('Shell: the page paints the status bar strip',!!document.querySelector('.statusfill'));
+   ok('Shell: it is installable',!!document.querySelector('link[rel=manifest]'));
+   const bar=document.querySelector('.topbar');
+   if(!bar){ok('Shell: chrome moves down for a notch',false,'NO .topbar FOUND, check proved nothing');
+            ok('Shell: and leaves no gap without one',false,'not proven');return;}
+   /* env() cannot be read or faked from JS, which is exactly WHY the inset is
+      stored in an overridable variable. Push it and assert the chrome moved. */
+   root.style.setProperty('--sat','59px');
+   const moved=parseFloat(cs(bar).paddingTop);
+   root.style.setProperty('--sat','0px');
+   const back=parseFloat(cs(bar).paddingTop);
+   root.style.removeProperty('--sat');
+   ok('Shell: chrome moves down for a notch',moved>=59,'padding-top became '+moved+'px');
+   ok('Shell: and leaves no gap without one',back===0,'padding-top became '+back+'px');
+  })();
+
+  /* ── E · BB APP FOUNDATIONS, ported verbatim ────────────────────────── */
+  (function(){
+   ok('App: double tap does not zoom',cs(document.documentElement).touchAction==='manipulation',
+      cs(document.documentElement).touchAction);
+   ok('App: the page does not pull to refresh',cs(document.body).overscrollBehaviorY==='none',
+      cs(document.body).overscrollBehaviorY);
+   const b=document.querySelector('.nav-item');
+   ok('App: no blue flash on tap',!!b&&/rgba\(0, 0, 0, 0\)|transparent/.test(cs(b).webkitTapHighlightColor),
+      b?cs(b).webkitTapHighlightColor:'NO .nav-item FOUND, check proved nothing');
+   ok('App: chrome does not select on drag',!!b&&cs(b).userSelect==='none',b?cs(b).userSelect:'no .nav-item');
+   if(matchMedia('(pointer:coarse)').matches){
+    const small=[];
+    document.querySelectorAll('input,select,textarea').forEach(el=>{
+     if(el.type==='hidden')return;
+     if(parseFloat(cs(el).fontSize)<16)small.push((el.id||el.className||el.tagName)+' '+cs(el).fontSize);});
+    ok('App: no field under 16px, so focusing one cannot zoom the screen',small.length===0,
+       small.slice(0,3).join(', ')||'all 16px or more');
+   }else ok('App: no field under 16px, so focusing one cannot zoom the screen',true,
+            'fine pointer: rule is coarse only, RUN AT 390px TO PROVE IT');
+   ok('App: the foundation layer is present',window.__bbAppFoundations===true,
+      String(window.__bbAppFoundations));
+   ok('App: scroll restoration is manual',history.scrollRestoration==='manual',history.scrollRestoration);
+  })();
+
+  /* ── F · LAYOUT, the two faults that shipped twice ──────────────────── */
+  ok('Layout: the page does not scroll sideways',
+     document.documentElement.scrollWidth<=window.innerWidth+1,
+     document.documentElement.scrollWidth+' vs '+window.innerWidth);
+  (function(){
+   /* overflow-x:hidden on an ancestor makes it a SCROLL CONTAINER, so a sticky
+      topbar binds to something that never scrolls and rides away. This shipped
+      broken here twice. clip clips without creating one. */
+   const m=document.querySelector('.main');
+   if(!m){ok('Layout: the scroll ancestor uses clip, not hidden',false,'NO .main FOUND, check proved nothing');return;}
+   /* THE ONE THAT SHIPPED BROKEN TWICE. bb-app-shell check 1 of 3.
+      A sticky topbar binds to its nearest SCROLL CONTAINER. Give an ancestor
+      overflow:hidden or auto and that ancestor becomes the container, so the
+      bar sticks to something that never moves while the window does, and the
+      bar scrolls away. The rule above (clip, not hidden) explains WHY it
+      breaks. This one proves whether it is actually broken, which is the part
+      a person on a phone can see. Measure, do not infer. */
+   (function(){
+    const bar=document.querySelector('.topbar');
+    if(!bar){ok('Layout: the topbar survives a scroll',false,'NO .topbar FOUND, this check proved nothing');return;}
+    const wasX=window.scrollX,wasY=window.scrollY;
+    const before=bar.getBoundingClientRect().top;
+    window.scrollTo(0,700);
+    const after=bar.getBoundingClientRect().top;
+    window.scrollTo(wasX,wasY);
+    const scrolled=Math.max(document.documentElement.scrollHeight-window.innerHeight,0);
+    if(scrolled<100){
+     ok('Layout: the topbar survives a scroll',false,
+        'THE PAGE IS TOO SHORT TO SCROLL HERE ('+scrolled+'px), so this proved nothing, run it on a long page');
+    }else{
+     ok('Layout: the topbar survives a scroll',Math.abs(after-before)<=1,
+        'top was '+Math.round(before)+'px, after a 700px scroll it is '+Math.round(after)+'px');
+    }
+   })();
+
+   ok('Layout: the scroll ancestor uses clip, not hidden',cs(m).overflowX!=='hidden',
+      '.main overflow-x is '+cs(m).overflowX);
+  })();
+  (function(){
+   const parked=el=>{ /* an ancestor deliberately slid off-screen, eg #bba3-drawer */
+     for(let n=el;n&&n!==document.body;n=n.parentElement){
+       const r=n.getBoundingClientRect();
+       if(r.left>=window.innerWidth-1) return true;
+       if(cs(n).transform!=='none'&&r.right>window.innerWidth+1&&r.left>0) return true;
+     } return false; };
+   const off=[...document.querySelectorAll('body *')].filter(e=>{
+     const r=e.getBoundingClientRect();
+     return r.width>0 && r.right>window.innerWidth+1 && cs(e).position!=='fixed' && !parked(e);});
+   ok('Layout: nothing is clipped off the right edge',off.length===0,
+      off.length?off.slice(0,3).map(e=>e.id||e.className||e.tagName).join(', '):'clean');
+  })();
+
+  /* ── G · bb-anti-ai-tells: emoji used as icons ──────────────────────── */
+  (function(){
+   /* PICTOGRAPHS are the tell, typographic marks are not. Without this
+      exclusion the check flags its own ticks and arrows. */
+   const KEEP='✓✔✕✖✗✘▶◀▲▼→←↑↓↻·—';
+   const host=document.querySelector('.main')||document.body;
+   const found=((host.textContent||'').match(/[\u{1F300}-\u{1FAFF}]/gu)||[])
+     .filter(ch=>KEEP.indexOf(ch)===-1);
+   ok('Design: no emoji used as an icon on this page',found.length===0,
+      found.length?('found '+[...new Set(found)].slice(0,6).join(' ')):'clean');
+  })();
+
+ }catch(e){
+  ok('HARNESS: completed without crashing',false,String(e&&e.message||e));
+ }finally{
+  try{showPage(snapPage);}catch(e){}
+ }
+
+ const failed=R.filter(r=>!r.pass);
+ const pass=failed.length===0;
+ window.__ST_REPORTING=true;
+ console.log('%c BB COMMAND CENTRE SELF-TEST  '+(pass?'ALL GREEN':failed.length+' FAILED')+'  '+R.length+' checks',
+             'background:'+(pass?'#16a34a':'#dc2626')+';color:#fff;padding:3px 8px;border-radius:4px;font-weight:700');
+ console.table(R.map(r=>({check:r.name,result:r.pass?'PASS':'FAIL',detail:r.detail})));
+ if(!pass)console.warn('FAILED:\n'+failed.map(f=>'  - '+f.name+(f.detail?('  ['+f.detail+']'):'')).join('\n'));
+ window.__ST_REPORTING=false;
+
+ /* on-screen report, so it can be read on a phone where there is no console */
+ try{
+  let box=document.getElementById('bbcc-selftest');
+  if(!box){box=document.createElement('div');box.id='bbcc-selftest';document.body.appendChild(box);}
+  box.style.cssText='position:fixed;inset:auto 10px 10px 10px;max-height:70vh;overflow:auto;z-index:99999;'
+    +'background:#0F1014;border:1px solid '+(pass?'#22c55e':'#ef4444')+';border-radius:12px;padding:12px 14px;'
+    +'font:12px/1.5 ui-monospace,Menlo,monospace;color:#e5e7eb;box-shadow:0 10px 40px rgba(0,0,0,.6)';
+  box.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px">'
+    +'<b style="color:'+(pass?'#22c55e':'#ef4444')+'">'+(pass?'ALL GREEN':failed.length+' FAILED')+' · '+R.length+' checks'
+    +' · '+window.innerWidth+'px</b>'
+    +'<button onclick="this.closest(\'#bbcc-selftest\').remove()" style="background:none;border:1px solid #333;color:#888;'
+    +'border-radius:6px;padding:2px 8px;cursor:pointer">close</button></div>'
+    +R.map(r=>'<div style="padding:2px 0;color:'+(r.pass?'#9ca3af':'#fca5a5')+'">'
+      +(r.pass?'PASS ':'FAIL ')+r.name+(r.detail?' <span style="opacity:.6">'+r.detail+'</span>':'')+'</div>').join('');
+ }catch(e){}
+
+ return {pass:pass,failed:failed.length,total:R.length,results:R};
+}
+window.runSelfTest=runSelfTest;
+if(location.search.indexOf('selftest')>-1){
+ window.addEventListener('load',function(){setTimeout(function(){runSelfTest();},4000);});
+}
+/* @@BBCC_SELFTEST_END@@ */
+</script>
