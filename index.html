@@ -2910,6 +2910,16 @@ td:last-child{padding-right:18px;text-align:right}
   </div>
 </div>
 
+<div id="page-month" class="page-section" style="display:none">
+  <div class="content">
+    <div style="margin-bottom:16px">
+      <h1 style="font-family:'Poppins',sans-serif;font-size:24px;font-weight:800;margin:0 0 4px;color:var(--text)">The Month</h1>
+      <div style="font-size:12.5px;color:var(--text-2)">Every client, every department, one month. Every number shows what it was measured on.</div>
+    </div>
+    <div id="mr-view"></div>
+  </div>
+</div>
+
 <div id="page-onboarding" class="page-section" style="display:none">
   <div class="content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:10px">
@@ -4433,6 +4443,10 @@ function showPage(page) {
   window._bbCurrentPage = page; // tracked by bug detector
 
   // Load data for the page
+  if (page === 'month') {
+    document.getElementById('topbar-title').textContent = 'The Month';
+    loadMonthlyRecap();
+  }
   if (page === 'week') {
     document.getElementById('topbar-title').textContent = 'The Week';
     loadBbWeek();
@@ -6207,6 +6221,198 @@ function renderBbWeek(){
         +'<div style="font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--text-3)">'+dp.t+'</div>'
         +'<div style="font-size:14px;font-weight:800;font-family:\'Poppins\',sans-serif;color:var(--text)">'+v.d+'/'+v.n+'</div></div>';
    }).join('')+'</div></div>';
+  el.innerHTML=html;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   THE MONTH — agency recap, one month, every client, every department.
+   Built from the same shape as the Finance > Reports segment cast on
+   2026-08-01, which itself came from gym-skeleton's Reports page.
+
+   THE RULE THIS PAGE EXISTS TO OBEY: never show a figure nobody can
+   reproduce. Every derived number carries the denominator it was
+   measured on. A turnaround needs BOTH created_at and completed_at;
+   308 of 529 finished tasks have no completed_at (the writers only
+   stamped `done` until 2026-08-22), so those tasks are counted as
+   finished-but-unmeasured and are NEVER averaged in.
+════════════════════════════════════════════════════════════════════ */
+var MR_MONTH=null, MR_DATA=null;
+function mrMonthKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+function mrShiftMonth(n){
+  var p=(MR_MONTH||mrMonthKey(new Date())).split('-');
+  var d=new Date(+p[0],+p[1]-1+n,1); MR_MONTH=mrMonthKey(d); loadMonthlyRecap();
+}
+function mrMedian(a){
+  if(!a.length) return null;
+  var v=a.slice().sort(function(x,y){return x-y;}), m=Math.floor(v.length/2);
+  return v.length%2 ? v[m] : (v[m-1]+v[m])/2;
+}
+function mrDays(a,b){ return (new Date(b)-new Date(a))/86400000; }
+function mrIn(ts,s,e){ if(!ts) return false; var t=new Date(ts); return t>=s&&t<e; }
+
+async function loadMonthlyRecap(){
+  var el=document.getElementById('mr-view'); if(!el) return;
+  if(!MR_MONTH) MR_MONTH=mrMonthKey(new Date());
+  el.innerHTML='<div style="padding:30px;text-align:center;color:var(--text-3);font-size:13px">Reading the month...</div>';
+  var p=MR_MONTH.split('-'), s=new Date(+p[0],+p[1]-1,1), e=new Date(+p[0],+p[1],1);
+  var tasks=[],vids=[],deliv=[],cls=CLIENTS||[];
+  try{
+    var r=await Promise.all([
+      SBget('tasks','?select=id,client_id,done,created_at,completed_at,assign,title'),
+      SBget('video_projects','?select=id,client_id,created_at,completed_at,current_stage,is_archived'),
+      SBget('bb_delivery','?select=period,client,owner,vals'),
+      (CLIENTS&&CLIENTS.length)?Promise.resolve(CLIENTS):SBget('clients','?select=*&order=name')
+    ]);
+    tasks=r[0]||[]; vids=r[1]||[]; deliv=r[2]||[]; if(r[3]&&r[3].length) cls=r[3];
+  }catch(err){ el.innerHTML='<div style="padding:30px;color:var(--red)">Could not read the month.</div>'; return; }
+  MR_DATA={tasks:tasks,vids:vids,deliv:deliv,cls:cls,s:s,e:e};
+  renderMonthlyRecap();
+}
+
+function renderMonthlyRecap(){
+  var el=document.getElementById('mr-view'); if(!el||!MR_DATA) return;
+  var D=MR_DATA, s=D.s, e=D.e;
+  var monthLabel=s.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  var byId={}; D.cls.forEach(function(c){byId[c.id]=c;});
+
+  /* ── per client ── */
+  var rows=D.cls.map(function(c){
+    var ct=D.tasks.filter(function(t){return Number(t.client_id)===Number(c.id);});
+    var opened=ct.filter(function(t){return mrIn(t.created_at,s,e);}).length;
+    var fin=ct.filter(function(t){return mrIn(t.completed_at,s,e);});
+    var turns=fin.filter(function(t){return t.created_at;}).map(function(t){return mrDays(t.created_at,t.completed_at);});
+    /* finished but never stamped: real work, unmeasurable, never averaged */
+    var unstamped=ct.filter(function(t){return t.done===true && !t.completed_at;}).length;
+    var cv=D.vids.filter(function(v){return Number(v.client_id)===Number(c.id);});
+    var vOpen=cv.filter(function(v){return mrIn(v.created_at,s,e);}).length;
+    var vFinArr=cv.filter(function(v){return mrIn(v.completed_at,s,e);});
+    var vTurns=vFinArr.filter(function(v){return v.created_at;}).map(function(v){return mrDays(v.created_at,v.completed_at);});
+    var open=ct.filter(function(t){return t.done!==true;}).length;
+    return {c:c,opened:opened,finished:fin.length,unstamped:unstamped,stillOpen:open,
+            med:mrMedian(turns),max:turns.length?Math.max.apply(null,turns):null,
+            nTurns:turns.length,vOpen:vOpen,vFin:vFinArr.length,
+            vMed:mrMedian(vTurns),nVTurns:vTurns.length};
+  }).filter(function(r){return r.opened||r.finished||r.vOpen||r.vFin||r.unstamped;});
+
+  /* ── agency totals ── */
+  /* NUMERATOR AND DENOMINATOR MUST COME FROM THE SAME POPULATION.
+     The first cut of this page read "measured on 32 of 286", where 32 was a
+     GLOBAL count and 286 was a per-client sum, so two of the tasks in the
+     numerator were not in the denominator at all. On this page of all pages
+     that cannot stand. Everything below is counted globally over D.tasks. */
+  var finThisMonth=D.tasks.filter(function(t){return mrIn(t.completed_at,s,e);});
+  var flatTurns=finThisMonth.filter(function(t){return t.created_at;})
+                            .map(function(t){return mrDays(t.created_at,t.completed_at);});
+  var tOpened=D.tasks.filter(function(t){return mrIn(t.created_at,s,e);}).length;
+  var tFin=finThisMonth.length;
+  /* finished-but-never-stamped cannot be placed in ANY month, so it is reported
+     as a standing total, never folded into this month's denominator */
+  var tUnstamped=D.tasks.filter(function(t){return t.done===true && !t.completed_at;}).length;
+  var agMed=mrMedian(flatTurns), agMax=flatTurns.length?Math.max.apply(null,flatTurns):null;
+  var fullyDone=rows.filter(function(r){return r.opened>0&&r.stillOpen===0;}).length;
+  var vOpenT=rows.reduce(function(a,r){return a+r.vOpen;},0);
+  var vFinT=rows.reduce(function(a,r){return a+r.vFin;},0);
+
+  var fmtD=function(n){return n===null?'&mdash;':(Math.round(n*10)/10)+'d';};
+  var chip=function(lbl,val,sub,col){
+    return '<div style="flex:1;min-width:140px;padding:11px 13px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm)">'
+      +'<div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)">'+lbl+'</div>'
+      +'<div style="font-size:17px;font-weight:800;font-family:\'Poppins\',sans-serif;color:'+(col||'var(--text)')+';margin-top:2px">'+val+'</div>'
+      +(sub?'<div style="font-size:9.5px;color:var(--text-3);margin-top:2px">'+sub+'</div>':'')+'</div>';
+  };
+
+  var html='<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">'
+   +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 18px;border-bottom:1px solid var(--border)">'
+     +'<div style="display:flex;align-items:center;gap:10px">'
+       +'<button class="btn-ghost btn-sm" style="font-size:11px;padding:3px 10px" onclick="mrShiftMonth(-1)">Previous</button>'
+       +'<div style="font-family:\'Poppins\',sans-serif;font-size:15px;font-weight:800;color:var(--text)">'+monthLabel+'</div>'
+       +'<button class="btn-ghost btn-sm" style="font-size:11px;padding:3px 10px" onclick="mrShiftMonth(1)">Next</button>'
+     +'</div>'
+     +'<button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 9px" onclick="window.print()">Print / PDF</button>'
+   +'</div><div style="padding:14px 18px"><div style="display:flex;gap:8px;flex-wrap:wrap">'
+   +chip('Tasks opened',tOpened,rows.length+' clients active')
+   +chip('Tasks finished',tFin,'with a finish time','var(--green)')
+   +chip('Clients fully clear',fullyDone+' of '+rows.length,'no open tasks left')
+   +chip('Median turnaround',fmtD(agMed),'measured on '+flatTurns.length+' of the '+tFin+' finished this month','var(--blue)')
+   +chip('Longest',fmtD(agMax),flatTurns.length?'same '+flatTurns.length+' tasks':'nothing measurable')
+   +chip('Video finished',vFinT,vOpenT+' opened this month','var(--pink)')
+   +'</div>';
+
+  if(tUnstamped){
+    html+='<div style="margin-top:10px;font-size:11px;color:var(--amber);line-height:1.6">'
+      +'<b>'+tUnstamped+' finished tasks carry no finish time at all</b>, so they cannot be placed in this or any month '
+      +'and are excluded from every figure above rather than counted as zero. Both writers stamped only `done` until '
+      +'2026-08-22. History cannot be recovered and has not been guessed. Work finished from that date forward is measurable.</div>';
+  }
+  html+='</div></div>';
+
+  /* ── needs attention, by a rule stated on the page ── */
+  var flags=rows.map(function(r){
+    var why=[];
+    if(r.stillOpen>=5&&r.finished===0) why.push(r.stillOpen+' open, none finished');
+    if(r.med!==null&&r.med>21) why.push('median '+fmtD(r.med).replace('&mdash;','')+' to finish');
+    if(r.vOpen>=4&&r.vFin===0) why.push(r.vOpen+' videos opened, none finished');
+    return {r:r,why:why};
+  }).filter(function(x){return x.why.length;})
+    .sort(function(a,b){return b.r.stillOpen-a.r.stillOpen;}).slice(0,3);
+
+  html+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">'
+   +'<div style="padding:11px 18px;border-bottom:1px solid var(--border)">'
+   +'<span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Needs attention</span>'
+   +'<span style="font-size:10px;color:var(--text-3);margin-left:8px">rule: five or more open with nothing finished, or a median over 21 days, or four or more videos opened with none finished</span></div>';
+  html+= flags.length
+    ? flags.map(function(x){return '<div style="padding:10px 18px;border-bottom:1px solid var(--border)">'
+        +'<span style="font-size:12.5px;font-weight:700;color:var(--text)">'+esc(x.r.c.name)+'</span>'
+        +'<span style="font-size:11px;color:var(--amber);margin-left:10px">'+x.why.join(' · ')+'</span></div>';}).join('')
+    : '<div style="padding:16px 18px;font-size:12px;color:var(--green)">Nothing meets the rule this month</div>';
+  html+='</div>';
+
+  /* ── the per-client table ── */
+  html+='<div class="card" style="padding:0;overflow:hidden;margin-bottom:14px">'
+   +'<div style="padding:11px 18px;border-bottom:1px solid var(--border)">'
+   +'<span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Every client</span></div>'
+   +'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:720px"><thead><tr style="border-bottom:1px solid var(--border)">'
+   +['Client','Opened','Finished','Median','Longest','Video','Where they stand'].map(function(h,i){
+      return '<th style="padding:7px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);text-align:'+(i===0||i===6?'left':'right')+'">'+h+'</th>';}).join('')
+   +'</tr></thead><tbody>';
+  rows.sort(function(a,b){return (b.opened+b.finished)-(a.opened+a.finished);}).forEach(function(r){
+    var sentence;
+    if(!r.opened&&!r.finished&&!r.vOpen&&!r.vFin) sentence='No activity recorded this month';
+    else if(r.finished===0&&r.stillOpen>0) sentence='Nothing closed this month, '+r.stillOpen+' still open';
+    else if(r.stillOpen===0&&r.opened>0) sentence='All caught up, nothing open';
+    else sentence=r.finished+' closed, '+r.stillOpen+' still open';
+    if(r.unstamped) sentence+=' · '+r.unstamped+' finished without a time';
+    html+='<tr style="border-bottom:1px solid var(--border)">'
+      +'<td style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text)">'+esc(r.c.name)+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+(r.opened||'—')+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:'+(r.finished?'var(--green)':'var(--text-3)')+'">'+(r.finished||'—')+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)" title="'+(r.nTurns?'measured on '+r.nTurns+' tasks':'nothing measurable')+'">'
+        +(r.med===null?'<span style="color:var(--text-3)">not measurable</span>':fmtD(r.med)+'<span style="color:var(--text-3);font-size:9.5px"> /'+r.nTurns+'</span>')+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+(r.max===null?'—':fmtD(r.max))+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+r.vFin+'/'+r.vOpen+'</td>'
+      +'<td style="padding:8px 12px;font-size:11px;color:var(--text-3)">'+sentence+'</td></tr>';
+  });
+  html+='</tbody></table></div></div>';
+
+  /* ── the two sections that are EMPTY, and why ── */
+  var periods=[].concat.apply([],[Array.from(new Set(D.deliv.map(function(d){return d.period;})))]);
+  var wantPeriod=s.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+  var hasPeriod=periods.indexOf(wantPeriod)>=0;
+  html+='<div class="card" style="padding:14px 18px;margin-bottom:14px">'
+   +'<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Delivery board</div>'
+   +(hasPeriod
+     ? '<div style="font-size:12px;color:var(--text-2)">Period found. Scores are on Production &rsaquo; Delivery.</div>'
+     : '<div style="font-size:12px;color:var(--amber);line-height:1.6">No board exists for '+esc(wantPeriod)+'. '
+       +'Only periods on record: '+(periods.length?esc(periods.join(', ')):'none')+'. '
+       +'A period can only be created in the standalone tracker at businessboosterlk.github.io/bb-delivery/, and nobody has made one. '
+       +'This is not a score of zero, it is an absent board.</div>')
+   +'</div>';
+
+  html+='<div class="card" style="padding:14px 18px">'
+   +'<div style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Graphic work</div>'
+   +'<div style="font-size:12px;color:var(--amber);line-height:1.6">The graphic board holds no rows at all. It was cleared on 20 August to fix a database size problem, '
+   +'so there is nothing to report for any month. <b>This is missing data, not a month with no design work.</b></div></div>';
+
   el.innerHTML=html;
 }
 
@@ -13415,7 +13621,7 @@ const NAV9 = [
   { nav:'brain',      label:'Digital Brain' },
 ];
 /* which page lights which nav item */
-const NAV_PARENT = {
+const NAV_PARENT = {month:'myday',
   dashboard:'dashboard',
   myday:'myday', taskbook:'myday',
   clients:'clients', onboarding:'clients', readiness:'clients', churn:'clients',
@@ -13429,9 +13635,10 @@ const NAV_PARENT = {
 };
 /* in-page segmented switches per group (page → [label, targetPage]) */
 const PAGE_TABS = {
-  myday:      [['My Day','myday'],['The Week','week'],['Task Book','taskbook']],
-  week:       [['My Day','myday'],['The Week','week'],['Task Book','taskbook']],
-  taskbook:   [['My Day','myday'],['The Week','week'],['Task Book','taskbook']],
+  myday:      [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  week:       [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  month:      [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  taskbook:   [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
   clients:    [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   onboarding: [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   readiness:  [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
