@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0F1014">
+<meta name="theme-color" content="#0c0d10">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -4845,7 +4845,9 @@ async function completePipeTask(id){
   if(!t)return;
   t.done=true;
   renderPipelinePage();
-  try{ await SBpatch('tasks',id,{done:true}); }catch(e){console.error('completePipeTask',e);}
+  try{ const _n=new Date().toISOString();
+       await SBpatch('tasks',id,{done:true,completed_at:_n,updated_at:_n}); }
+  catch(e){console.error('completePipeTask',e);}
 }
 
 function openPipelineModal(id){
@@ -5594,7 +5596,12 @@ function taskHTML(t,compact){
     ${!compact?`<button class="item-btn" style="font-size:9px;color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;padding:2px 4px" onclick="editTaskBook(${t.id})">Edit</button><button class="item-btn" style="font-size:9px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;padding:2px 4px" onclick="openDuplicateTask(${t.id})">Dup</button><button class="item-btn del" onclick="deleteTask(${t.id})">×</button>`:''}
   </div>`;
 }
-async function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(!t)return;t.done=!t.done;await SBpatch('tasks',id,{done:t.done});const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);}
+async function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(!t)return;t.done=!t.done;/* STAMP WHEN IT WAS FINISHED, not just that it was. This wrote only `done`, so 308 of 529
+   completed tasks have no finish time and "how long did that take" cannot be answered for
+   them. The column existed the whole time; nothing filled it. Same fault was fixed in the
+   SMM Workspace on 2026-08-22; this is the other writer. Un-ticking clears it so a reopened
+   task never carries a stale completion date. */
+const _now=new Date().toISOString();t.completed_at=t.done?_now:null;await SBpatch('tasks',id,{done:t.done,completed_at:t.completed_at,updated_at:_now});const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);}
 async function deleteTask(id){if(!confirm('Delete task?'))return;await SBdel('tasks',id);TASKS=TASKS.filter(t=>t.id!==id);const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);renderTable();}
 function openAddTaskModal(){document.getElementById('task-title').value='';document.getElementById('task-due').value='';document.getElementById('task-notes').value='';document.getElementById('modal-task').classList.remove('hidden');document.getElementById('task-title').focus();}
 async function saveTask(){
@@ -8861,7 +8868,8 @@ async function bulkClose(){
   let done=0;
   for(const id of ids){
     try{
-      await SBpatch('tasks',id,{done:true,updated_at:new Date().toISOString()});
+      const _bn=new Date().toISOString();
+      await SBpatch('tasks',id,{done:true,completed_at:_bn,updated_at:_bn});
       const idx=D.tasks.findIndex(t=>t.id===id);
       if(idx>=0)D.tasks[idx].done=true;
       BULK_overdue=BULK_overdue.filter(t=>t.id!==id);
@@ -10132,7 +10140,19 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 <!-- âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
      BB COMMAND CENTRE â AI AGENTS LAYER v1.0
      Append this entire SCRIPT-TAG block to the END of index.html
-     (paste just before the closing </body> tag, or at the very end)
+     (paste just before the closing 
+<script>
+/* The shell tool copies a service worker and never registers it, so the app
+   installs and the worker never runs. Register it here. Network-first, and it
+   never caches the database: a stale board is worse than no board, because
+   somebody acts on work that has already moved on. */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js').catch(function(){});
+  });
+}
+</script>
+</body> tag, or at the very end)
 
      DO NOT touch anything above this block.
      DO NOT modify the Video Pipeline section (lines ~2117â2168 / ~6161â6240).
