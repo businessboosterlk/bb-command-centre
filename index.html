@@ -3906,15 +3906,24 @@ function renderAll(){
   renderStats();
   renderAttention();
   renderVideoStrip();
-  if(ROLE==='th') renderPipelinePanel();
+  /* DEMO SHOWS BOTH CARD SETS, SO DEMO MUST RENDER BOTH.
+     This used to be a plain th/else pair, which meant the demo role fell into
+     the COO branch and filled only her panels. But in demo the CEO cards are
+     visible too, so "Today's Top Priorities" sat on its loading skeleton for
+     ever on the public preview. Measured 2026-08-23: top3-list VISIBLE and
+     still holding .skel divs while top3-sh-list beside it was populated.
+     A role that sees both surfaces has to paint both. */
+  const _isTH=(ROLE==='th'), _isDemo=(ROLE==='demo');
+  if(_isTH||_isDemo) renderPipelinePanel();
   renderShootStrip();
   renderWeekStrip();
   renderRenewalsRadar();
-  if(ROLE==='th'){
+  if(_isTH||_isDemo){
     renderPillars('th',TH_P,'th-list','th-prog','th-bar');
     renderTaskAlerts('th','th-tasks');
     renderTop3();
-  } else {
+  }
+  if(!_isTH||_isDemo){
     renderPillars('sh',SH_P,'sh-list','sh-prog','sh-bar');
     renderTeamCheck();
     renderTop3SH();
@@ -3932,14 +3941,16 @@ function renderStats(){
   if(_mn)_mn.innerHTML=_mrrGap?'LKR / month <span style="color:var(--amber)">\u00b7 '+_mrrGap+' fee'+(_mrrGap===1?'':'s')+' not recorded</span>':'LKR / month';
   document.getElementById('s-overdue').textContent=D.tasks.filter(t=>isOverdue(t)).length;
 
-  if(ROLE==='th'){
+  /* same reason as renderAll: demo sees the CEO stat AND the COO stat. */
+  if(ROLE==='th'||ROLE==='demo'){
     const p=D.pipeline;
     document.getElementById('s-pipe').textContent=p.length;
     const pot=p.filter(x=>x.status==='potential').length;
     const hn=document.getElementById('s-pipe-hot');
     hn.textContent=pot?pot+' potential lead'+(pot===1?'':'s'):'no potential leads';
     hn.style.color=pot?'var(--amber)':'';
-  } else {
+  }
+  if(ROLE!=='th'){
     // COO stat: team check progress
     const checked=getChecked();
     document.getElementById('s-team-checked').textContent=`${checked.length}/5`;
@@ -14094,6 +14105,26 @@ async function runSelfTest(){
       broken here twice. clip clips without creating one. */
    const m=document.querySelector('.main');
    if(!m){ok('Layout: the scroll ancestor uses clip, not hidden',false,'NO .main FOUND, check proved nothing');return;}
+   /* NOTHING IS STILL SHOWING ITS LOADING SKELETON.
+      A skeleton is a promise that data is coming. When a panel never gets
+      rendered, that promise is never kept and the card sits there grey for
+      ever, which reads as "loading" and not as "broken", so nobody reports it.
+      That is exactly how the public demo preview showed an empty priorities
+      card: renderAll had a th/else pair and the demo role fell into the other
+      branch. Boot has finished by the time this runs, so any VISIBLE skeleton
+      left on screen is a panel that never resolved. */
+   (function(){
+    const stuck=[...document.querySelectorAll('.skel')].filter(function(e){
+     const r=e.getBoundingClientRect();
+     return r.width>0&&r.height>0&&getComputedStyle(e).visibility!=='hidden';
+    });
+    const where=stuck.slice(0,3).map(function(e){
+     const host=e.closest('[id]'); return host? '#'+host.id : e.className;
+    });
+    ok('Boot: no panel is still showing its loading skeleton',stuck.length===0,
+       stuck.length? stuck.length+' still loading, in '+where.join(', ') : 'every panel resolved');
+   })();
+
    /* NO EM DASH IN ANYTHING A PERSON READS. A hard BB rule with checks that
       live elsewhere (house_style.py, gate.js) and were never wired into this
       app, so 271 of them reached a public page and one sat in the demo hero,
