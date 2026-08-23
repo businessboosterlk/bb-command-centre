@@ -243,6 +243,10 @@ body{
 .login-card.selected-demo{
   border-color:rgba(139,92,246,0.7);
   background:rgba(139,92,246,0.09);
+  /* the other two lift when chosen and this one did not, so the third card
+     answered a click differently from its neighbours */
+  transform:translateY(-3px);
+  box-shadow:0 0 0 2px rgba(139,92,246,0.25);
 }
 .login-av.demo{background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
 #demo-banner{display:none}
@@ -3648,12 +3652,19 @@ function bbBearer(){ return 'Bearer ' + (AUTH_TOKEN || SB_KEY); }
 ══════════════════════════════════════ */
 let DEMO_MODE = false;
 const DEMO_DATA = {
+  /* THE DEMO CLIENTS CARRY A FEE, and they have to.
+     Every one was mrr:0, so the preview a prospect sees reported "LKR 0" next
+     to "5 fees not recorded" on the one page that asks them to buy this. That
+     reads as a system which cannot track money. These are invented companies
+     on a screen stamped DEMO MODE, so a fee here is fixture data and not a BB
+     number: the no-untrackable-numbers rule protects BB's real metrics, and
+     showing zero was the more misleading of the two. Totals 345,000. */
   clients: [
-    {id:'d1',name:'Acme Cafe',health:'green',package:'Growth',mrr:0,industry:'F&B',contact:'Sam',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2026-12-01'},
-    {id:'d2',name:'Skyline Realty',health:'amber',package:'Pro',mrr:0,industry:'Real Estate',contact:'Dana',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:8,monthly_videos:2,client_type:'retainer',renewal:'2026-09-15'},
-    {id:'d3',name:'FitZone Gym',health:'red',package:'Starter',mrr:0,industry:'Fitness',contact:'Alex',plan_ready:false,assigned_smm:'NIRVANA',monthly_posts:8,monthly_videos:0,client_type:'retainer',renewal:'2026-07-30'},
-    {id:'d4',name:'Bloom Florist',health:'green',package:'Growth',mrr:0,industry:'Retail',contact:'Mia',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2027-01-10'},
-    {id:'d5',name:'Nova Tech',health:'green',package:'Pro',mrr:0,industry:'Technology',contact:'Ravi',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:10,monthly_videos:3,client_type:'retainer',renewal:'2026-11-05'}
+    {id:'d1',name:'Acme Cafe',health:'green',package:'Growth',mrr:65000,industry:'F&B',contact:'Sam',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2026-12-01'},
+    {id:'d2',name:'Skyline Realty',health:'amber',package:'Pro',mrr:85000,industry:'Real Estate',contact:'Dana',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:8,monthly_videos:2,client_type:'retainer',renewal:'2026-09-15'},
+    {id:'d3',name:'FitZone Gym',health:'red',package:'Starter',mrr:45000,industry:'Fitness',contact:'Alex',plan_ready:false,assigned_smm:'NIRVANA',monthly_posts:8,monthly_videos:0,client_type:'retainer',renewal:'2026-07-30'},
+    {id:'d4',name:'Bloom Florist',health:'green',package:'Growth',mrr:65000,industry:'Retail',contact:'Mia',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2027-01-10'},
+    {id:'d5',name:'Nova Tech',health:'green',package:'Pro',mrr:85000,industry:'Technology',contact:'Ravi',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:10,monthly_videos:3,client_type:'retainer',renewal:'2026-11-05'}
   ],
   tasks: [
     {id:'dt1',client_id:'d3',title:'Send June content plan',assign:'NIRVANA',due:'2026-06-19',priority:'high',category:'Content Creation',done:false},
@@ -3719,6 +3730,23 @@ let _pendingRole = null;
 
 function selectCard(role){
   _pendingRole = role;
+
+  /* DEMO HAS NO PASSWORD, SO DO NOT ASK FOR ONE.
+     Demo is not a Supabase user: checkPw already short-circuits it and signs
+     straight in. But the card still opened the password box first, so choosing
+     Preview put a password field in front of someone who has no password and
+     cannot get one. Reported 2026-08-23: "demo starts alright but after that
+     it gets messed up". A field that cannot be filled is a dead end, not a
+     step. Go straight in. */
+  if(role === 'demo'){
+    document.getElementById('card-demo').className = 'login-card demo selected-demo';
+    document.getElementById('card-th').className   = 'login-card th dimmed';
+    document.getElementById('card-sh').className   = 'login-card sh dimmed';
+    const a = document.getElementById('pw-area'); if(a) a.style.display = 'none';
+    selectRole('demo');
+    return;
+  }
+
   const th = document.getElementById('card-th');
   const sh = document.getElementById('card-sh');
   const demo = document.getElementById('card-demo');
@@ -3814,6 +3842,9 @@ function activateRole(role,animate){
   ['top3-sugg','bba3-ci-body'].forEach(function(id){
     var el=document.getElementById(id); if(el) el.innerHTML='';
   });
+  /* repaint the agent panel for the role we are ENTERING. Doing this on a timer
+     from the click handler raced the role assignment and read the old value. */
+  try{ window.BBA3 && window.BBA3.clearCards && window.BBA3.clearCards(); }catch(e){}
   document.body.setAttribute('data-role',role);
 
   // Update sidebar user card
@@ -3960,7 +3991,10 @@ function updateClock(){
   const h12=((h+11)%12+1).toString().padStart(2,'0');
   document.getElementById('clk-time').textContent=`${h12}:${String(m).padStart(2,'0')} ${ampm}`;
   document.getElementById('clk-date').textContent=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
-  document.getElementById('hero-sub').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+' · live data';
+  /* do not tell a prospect they are looking at live data when they are looking
+     at five invented companies */
+  var _live=(typeof DEMO_MODE!=='undefined'&&DEMO_MODE)?' \u00b7 sample data':' \u00b7 live data';
+  document.getElementById('hero-sub').textContent=d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+_live;
 }
 
 /* ══════════════════════════════════════
@@ -11724,8 +11758,20 @@ if('serviceWorker' in navigator){
   var detail = {};
 
   /* ── helpers ───────────────────────────────────────────────── */
+  /* NOBODY SIGNED IN MEANS NOBODY READS. Added 2026-08-23 after this was found
+     live: the agents fire 1.2s after boot whatever the login state, and this
+     guard only covered DEMO_MODE, which is false while the login screen is up.
+     So on the PUBLIC page, before anyone signed in, the panel queried the real
+     database and one tap on Client Health listed every real client by name with
+     their health beside it. Demo was never the hole. The login screen was.
+     The counts and the names both come through here, so this is the choke
+     point: no real role, no request. */
+  function agentsAllowed(){
+    if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) return false;
+    return typeof ROLE !== 'undefined' && (ROLE === 'th' || ROLE === 'sh');
+  }
   function sbGet(table, qs) {
-    if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) return Promise.resolve([]);
+    if (!agentsAllowed()) return Promise.resolve([]);
     var auth = (typeof bbBearer === 'function') ? bbBearer() : 'Bearer ' + AK;
     return fetch(SB_URL + '/rest/v1/' + table + '?' + qs, {
       headers: { 'apikey': AK, 'Authorization': auth, 'Accept': 'application/json' }
@@ -11742,6 +11788,21 @@ if('serviceWorker' in navigator){
     g.style.display=open?'grid':'none';
     b.textContent=open?'Hide signals':'Show all signals';
   }
+  /* Blank every card and shut the drawer. A panel that keeps the previous
+     role's numbers is the same fault as the login screen keeping the previous
+     role's client names (L-CC-006). */
+  function clearCards(){
+    AGENTS.forEach(function(a){ STATE[a.key] = {}; });
+    var g=document.getElementById('bba3-grid');
+    if(g) g.querySelectorAll('.bba3-card-val').forEach(function(e){ e.textContent=''; });
+    var d=document.getElementById('bba3-drawer'); if(d) d.classList.remove('show');
+    var sub=document.getElementById('bba3-subtitle');
+    if(sub) sub.innerHTML = (typeof DEMO_MODE!=='undefined' && DEMO_MODE)
+      ? 'Off in preview \u00b7 these checks read live client records'
+      : 'Live monitoring \u00b7 sign in to run the checks';
+    try{ if(typeof render==='function') render(); }catch(e){}
+  }
+
   function rollUp(){
     var sub=document.getElementById('bba3-subtitle'); if(!sub) return;
     var tot=0, live=0;
@@ -11898,7 +11959,7 @@ if('serviceWorker' in navigator){
         '<div id="bba3-title-wrap">' +
           '<div id="bba3-dot"></div>' +
           '<span id="bba3-title">AI Agent Alerts</span>' +
-          '<span id="bba3-subtitle">Live monitoring · 11 signals</span>' +
+          '<span id="bba3-subtitle">Live monitoring</span>' +
         '</div>' +
         '<div class="bba3-btnrow">' +
         '<button id="bba3-toggle" onclick="window.BBA3&&window.BBA3.toggleGrid()" style="background:transparent;border:1px solid var(--border-strong);color:var(--text-3);font-size:11px;font-weight:600;padding:4px 11px;border-radius:var(--r-sm);cursor:pointer;margin-right:6px">Show all signals</button>' +
@@ -11992,6 +12053,23 @@ if('serviceWorker' in navigator){
 
   /* ── OPEN / CLOSE DRAWER ───────────────────────────────────── */
   function openDrawer(key) {
+    /* "Scanning..." on a drawer that will never scan is a spinner that lies.
+       If nobody is signed in there is nothing to show and nothing coming. */
+    if (!agentsAllowed()) {
+      var d0=document.getElementById('bba3-drawer'), b0=document.getElementById('bba3-drawer-body'),
+          c0=document.getElementById('bba3-drawer-count'), t0=document.getElementById('bba3-drawer-title'),
+          o0=document.getElementById('bba3-overlay');
+      if(t0) t0.textContent='Agent checks';
+      if(c0) c0.textContent='';
+      if(b0) b0.innerHTML='<div style="padding:28px;text-align:center;color:var(--text-3);font-size:13px">'
+        + (typeof DEMO_MODE!=='undefined' && DEMO_MODE
+            ? 'The agent checks read live client records, so they stay off in preview mode.'
+            : 'Sign in to run the agent checks.')
+        + '</div>';
+      if(o0) o0.classList.add('show');
+      if(d0) d0.classList.add('show');
+      return;
+    }
     var overlay = document.getElementById('bba3-overlay');
     var drawer  = document.getElementById('bba3-drawer');
     var title   = document.getElementById('bba3-drawer-title');
@@ -12158,6 +12236,9 @@ if('serviceWorker' in navigator){
 
   /* ── RUN QUERIES ───────────────────────────────────────────── */
   function runAll() {
+    /* and do not even start the sweep, so nothing is in flight when a role
+       changes underneath it */
+    if (!agentsAllowed()) { clearCards(); return; }
     var btn = document.getElementById('bba3-run-btn');
     if (btn) btn.classList.add('scanning');
 
@@ -12279,8 +12360,16 @@ if('serviceWorker' in navigator){
       if (ap || dp || attempts > 40) {
         clearInterval(check);
         buildSection();
+        /* say the true thing immediately, rather than a placeholder count that
+           was hardcoded and therefore always a lie */
+        if (!agentsAllowed()) clearCards();
         setTimeout(function(){
-          runAll();
+          /* wait for a real sign-in before the first sweep, then poll. The old
+             code ran immediately, which is how real client names reached a page
+             nobody had logged into. */
+          var wait = setInterval(function(){
+            if (agentsAllowed()) { clearInterval(wait); runAll(); }
+          }, 500);
           setInterval(runAll, POLL_MS);
           updateFab();
           // show daily check-in after 4s if due
@@ -12294,6 +12383,7 @@ if('serviceWorker' in navigator){
 
   /* ── PUBLIC API ────────────────────────────────────────────── */
   window.BBA3 = {
+    clearCards: clearCards,
     open: openDrawer,
     close: closeDrawer,
     runAll: runAll,
