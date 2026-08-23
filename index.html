@@ -134,6 +134,11 @@ body{
 }
 .login-cards{
   display:flex;gap:16px;flex-wrap:wrap;justify-content:center;
+  /* THE MECHANISM. Depth does not come from the tilt, it comes from the card's
+     children sitting on different Z planes, so one rotation moves them by
+     different amounts and the eye reads parallax. Tilt alone looks like a
+     rotating photograph. Measured from the reference: perspective 1000px. */
+  perspective:1000px;
 }
 .login-card{
   background:var(--surface);
@@ -142,11 +147,64 @@ body{
   padding:32px 36px;
   width:220px;
   cursor:pointer;
-  transition:all 0.2s ease;
+  /* NOT `all`. The tilt drives transform from a spring every frame, and a CSS
+     transition on transform would fight it and smear the tracking. Name the
+     properties that may animate and leave transform to the script. */
+  transition:transform 120ms cubic-bezier(.22,.61,.36,1),
+             border-color .3s ease, box-shadow .5s ease, background .3s ease;
   text-align:center;
   display:flex;flex-direction:column;
   align-items:center;gap:14px;
   user-select:none;
+  transform-style:preserve-3d;
+  will-change:transform;
+}
+/* THE THREE PLANES. Reference used 50 / 40 / 80. Same spread, mapped onto BB's
+   card: the disc stands furthest forward, the label sits just off the surface,
+   and the enter row floats highest so it separates as the card turns. */
+.login-card .login-av{transform:translateZ(50px)}
+.login-card .login-person-name,
+.login-card .login-role-lbl{transform:translateZ(26px)}
+.login-card .login-enter{transform:translateZ(60px)}
+
+.login-card:hover{
+  border-color:rgba(255,107,43,.45);
+  box-shadow:0 0 50px -12px rgba(255,107,43,.28);
+}
+.login-card:hover .login-av{transform:translateZ(50px) scale(1.06)}
+
+/* ENTRANCE. The reference springs each card in at stiffness 100 / damping 20,
+   which is exactly critically damped, so it settles with NO bounce. An
+   overshooting ease here would be a louder copy, not a truer one. */
+.login-card{
+  opacity:0;
+  animation:bbCardIn .55s cubic-bezier(.16,1,.3,1) forwards;
+}
+.login-card:nth-child(1){animation-delay:.10s}
+.login-card:nth-child(2){animation-delay:.25s}   /* 150ms stagger, measured */
+.login-card:nth-child(3){animation-delay:.40s}
+@keyframes bbCardIn{
+  from{opacity:0;transform:translateY(50px) scale(.8)}
+  to  {opacity:1;transform:none}
+}
+
+/* A FINGER HAS NO CURSOR. The reference's own code switches its spotlight off
+   below md, and a tilt driven by pointer position simply never fires on a
+   phone. So on touch the card gets a real press state instead, and the
+   entrance is kept because that one works everywhere. */
+@media (hover:none),(pointer:coarse){
+  .login-cards{perspective:none}
+  .login-card{transform-style:flat}
+  .login-card .login-av,
+  .login-card .login-person-name,
+  .login-card .login-role-lbl,
+  .login-card .login-enter{transform:none}
+  .login-card:active{transform:scale(.97);transition:transform .12s ease}
+}
+@media (prefers-reduced-motion:reduce){
+  .login-card{animation:none;opacity:1}
+  .login-cards{perspective:none}
+  .login-card,.login-card .login-av{transition:none}
 }
 .login-card:hover{
   transform:translateY(-4px);
@@ -13955,6 +14013,58 @@ else buildNavGroups();
   .week-strip *{overflow-wrap:anywhere}
 }
 </style>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   LOGIN CARD TILT
+   Rebuilt from behaviour, not ported. The reference is React plus
+   framer-motion; this app is one vanilla file, so the numbers were read out of
+   the reference's own compiled bundle and re-implemented here.
+
+   THE MECHANISM, in one sentence: the card's children sit on three different Z
+   planes, so one rotation moves them by different amounts and the eye reads
+   parallax. Copy the tilt without the planes and you get a rotating photograph.
+
+   READ FROM SOURCE, not estimated from a video:
+     perspective   1000px
+     tilt range    rotateX  +15deg to -15deg   (pointer top to bottom)
+                   rotateY  -15deg to +15deg   (pointer left to right)
+     spring        stiffness 200, damping 30, mass 1
+     Z planes      50 / 40 / 80
+     on leave      both angles return to 0
+
+   WHY THIS IS A CSS TRANSITION AND NOT A SPRING LOOP. Those spring constants
+   give a damping ratio of about 1.06, which is past critical, so the reference
+   never oscillates: it eases out and settles in roughly 300ms. An overdamped
+   spring IS an ease-out curve. Re-implementing it as a per-frame integrator
+   would burn a rAF loop on every pointer move to reproduce a shape the
+   compositor already draws for free, and it would stall whenever the tab is
+   backgrounded. So the tilt tracks on a short transition and homes on a longer
+   one, which is the same motion with none of the cost.
+═══════════════════════════════════════════════════════════════ */
+(function(){
+  const fine  = matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const still = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  if(!fine || still) return;      // a finger has no cursor, and reduced motion means reduced
+
+  const MAX=15;                   // degrees, measured
+  document.querySelectorAll('.login-card').forEach(el=>{
+    el.addEventListener('pointermove',e=>{
+      /* the entrance animation writes transform too. By the time someone is
+         pointing at the card the entrance is over, so take the wheel. */
+      if(el.style.animation!=='none'){ el.style.animation='none'; el.style.opacity='1'; }
+      const r=el.getBoundingClientRect();
+      const px=(e.clientX-r.left)/r.width  - 0.5;
+      const py=(e.clientY-r.top )/r.height - 0.5;
+      el.style.transitionDuration='120ms';                 // tracks with a slight lag
+      el.style.transform='rotateX('+(-py*MAX*2).toFixed(2)+'deg) rotateY('+(px*MAX*2).toFixed(2)+'deg)';
+    });
+    el.addEventListener('pointerleave',()=>{
+      el.style.transitionDuration='320ms';                 // the measured settle
+      el.style.transform='rotateX(0deg) rotateY(0deg)';
+    });
+  });
+})();
+</script>
 <script>
 /* @@BBCC_SELFTEST_BEGIN@@
    ═════════════════════════════════════════════════════════════════
