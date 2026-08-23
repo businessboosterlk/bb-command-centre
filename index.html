@@ -9156,7 +9156,15 @@ async function bulkReassign(){
   if(!confirm(`${parts.join(' & ')} for ${ids.length} task${ids.length!==1?'s':''}?`))return;
   document.getElementById('bulk-done-msg').textContent='Saving...';
   const patch={updated_at:new Date().toISOString()};
-  if(to)patch.assigned_to=to;
+  /* THE COLUMN IS `assign`, NOT `assigned_to`. Verified against the live schema
+     2026-08-23: `select=assigned_to` on tasks returns 42703, column does not
+     exist. So every Bulk Reassign sent a patch Postgres rejected, the catch
+     below swallowed the 400, and the counter never moved. Worse, assignee and
+     due date travel in ONE patch, so picking both meant the due date silently
+     failed too. The dropdown already sends the right codes (th/sh/smm/gd), so
+     this is only ever a wrong column name. Content plans DO have assigned_to,
+     which is why the name looked right everywhere else in the file. */
+  if(to)patch.assign=to;
   if(newDue)patch.due=newDue;
   let done=0;
   const todayStr2=new Date().toISOString().split('T')[0];
