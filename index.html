@@ -3669,6 +3669,20 @@ function selectRole(role){
 function activateRole(role,animate){
   ROLE=role;
   DEMO_MODE = (role === 'demo');   // demo serves fake sample data, touches no real records
+
+  /* WIPE ANYTHING THE PREVIOUS ROLE PAINTED, BEFORE THE NEW ROLE LOADS.
+     A panel rendered under a real role is not repainted by loadAll(), so
+     switching to demo left real client names on screen while the data
+     underneath was demo. Reproduced 2026-08-23: logged in as CEO, flipped to
+     demo, and "Fix red account BELLVANTAGE" was still sitting in the priority
+     chips with the check-in drawer naming the same client.
+     That is the exact thing that happens when Thulaib demos to a prospect, so
+     it is a confidentiality fault and not a cosmetic one. Clear first, let the
+     new role fill in. An empty panel for 200ms beats a real client's name in
+     front of the wrong person. */
+  ['top3-sugg','bba3-ci-body'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.innerHTML='';
+  });
   document.body.setAttribute('data-role',role);
 
   // Update sidebar user card
@@ -3683,7 +3697,7 @@ function activateRole(role,animate){
   } else if(role==='demo'){
     av.className='user-av demo';av.textContent='BB';
     nm.textContent='Demo Mode';rl.textContent='Preview';
-    document.getElementById('hero-title').textContent='BB Command Centre — Preview';
+    document.getElementById('hero-title').textContent='BB Command Centre Preview';
     document.getElementById('topbar-title').textContent='Dashboard';
   } else {
     av.className='user-av sh';av.textContent='SH';
@@ -3821,7 +3835,13 @@ function updateClock(){
    LOAD
 ══════════════════════════════════════ */
 async function loadAll(){
-  if(ROLE==='demo') return;
+  /* DEMO MODE LOADS THE DEMO DATASET, it does not load NOTHING.
+     This used to `return` here, so the public preview showed skeleton cards
+     that never resolved, on the one surface a prospect actually sees. The
+     plumbing was already correct: sb() intercepts every read when DEMO_MODE is
+     true and serves DEMO_DATA, touching no real record and making no network
+     call, and DEMO_MODE is set at line 3671 well before this runs. So the
+     early return was not protecting anything, it was only emptying the page. */
   const [clients,tasks,pipeline,events,pillars,videos,invoices,shoots,editors]=await Promise.all([
     sb('clients','?select=*&order=name'),
     sb('tasks','?select=*'),
@@ -14074,6 +14094,35 @@ async function runSelfTest(){
       broken here twice. clip clips without creating one. */
    const m=document.querySelector('.main');
    if(!m){ok('Layout: the scroll ancestor uses clip, not hidden',false,'NO .main FOUND, check proved nothing');return;}
+   /* NO EM DASH IN ANYTHING A PERSON READS. A hard BB rule with checks that
+      live elsewhere (house_style.py, gate.js) and were never wired into this
+      app, so 271 of them reached a public page and one sat in the demo hero,
+      which is a sales surface. A rule that lives only in a document is a hope.
+      This watches the RENDERED text, not the source, because a dash inside a
+      code comment harms nobody and a dash on screen is the violation. */
+   (function(){
+    const walk=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{
+     acceptNode:function(n){
+      const p=n.parentElement; if(!p) return NodeFilter.FILTER_REJECT;
+      if(/^(SCRIPT|STYLE|NOSCRIPT)$/.test(p.tagName)) return NodeFilter.FILTER_REJECT;
+      if(p.closest('#bb-selftest-report')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+     }});
+    const hits=[]; let n;
+    while((n=walk.nextNode())){
+     if(/[\u2014\u2013]/.test(n.nodeValue||'')){
+      const t=(n.nodeValue||'').trim().replace(/\s+/g,' ');
+      if(t) hits.push(t.slice(0,60));
+     }
+    }
+    /* Every page container lives in the DOM at once, hidden ones included, so
+       this walks the WHOLE app's text in one pass and not just the visible
+       page. Say that in the label, because a check that overstates its reach
+       is how you end up trusting a number that only covered one screen. */
+    ok('Copy: no em dash or en dash in any text the app can show',hits.length===0,
+       hits.length? hits.length+' found across every page, first: "'+hits[0]+'"' : 'clean across every page');
+   })();
+
    /* THE ONE THAT SHIPPED BROKEN TWICE. bb-app-shell check 1 of 3.
       A sticky topbar binds to its nearest SCROLL CONTAINER. Give an ancestor
       overflow:hidden or auto and that ancestor becomes the container, so the
