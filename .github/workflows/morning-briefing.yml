@@ -43,6 +43,17 @@ jobs:
           overdue   = [t for t in tasks if t.get('due') and t['due'] < today_str]
 
           invoices  = get("invoices?status=in.(unpaid,overdue)&select=client_name,status")
+          # ZERO IS NOT THE SAME AS CLEAR. Once invoices are locked to masters,
+          # an anon key reads them and gets an EMPTY LIST rather than an error,
+          # so this would report "0 unpaid" and the silence would read as good
+          # news. A money check that fails by going quiet is the worst kind.
+          if not invoices and os.environ.get('SB_KEY_KIND') == 'anon':
+              invoices_unknown = True
+              print("WARNING: could not read invoices while holding the public key. "
+                    "Treat the invoice figures below as UNKNOWN, not zero. "
+                    "Fix: add the SB_SERVICE_ROLE_KEY secret to this repo.")
+          else:
+              invoices_unknown = False
 
           red       = get("clients?health=eq.red&select=name")
           red_names = ', '.join(c['name'] for c in red) if red else 'None'
