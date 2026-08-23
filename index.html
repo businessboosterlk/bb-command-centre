@@ -3500,25 +3500,30 @@ function _sbCacheInvalidate(table){Object.keys(_sbCache).filter(k=>k.startsWith(
    The typed PIN (1031/1006) gates the UI; behind it we obtain a real
    authenticated JWT so the database can reject anyone without a login.
 ══════════════════════════════════════ */
-const BB_AUTH = {
-  th: {email:'thulaib@bb-leads.app', pass:'pin1031secure'},
-  sh: {email:'shiara@bb-leads.app',  pass:'pin1006secure'}
-};
+/* THE TYPED CREDENTIAL. The password a person types IS the password the
+   database checks. Source holds only an email, and an email is not a secret.
+   This file is served from a PUBLIC GitHub Pages site, so anything left in it
+   is published. Two real Supabase passwords used to sit right here. */
+const BB_EMAIL = { th:'thulaib@bb-leads.app', sh:'shiara@bb-leads.app' };
 let AUTH_TOKEN=null, AUTH_REFRESH=null, AUTH_EXP=0, AUTH_ROLE=null;
 
-async function bbAuthLogin(role){
-  const c = BB_AUTH[role];
-  if(!c){ AUTH_TOKEN=null; AUTH_ROLE=null; return false; }   // demo / unknown → anon
+async function bbAuthLogin(role, typedPassword){
+  const email = BB_EMAIL[role];
+  if(!email || !typedPassword){ AUTH_TOKEN=null; AUTH_ROLE=null; return false; }   // demo / unknown → anon
   try{
     const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=password`,{
       method:'POST',
       headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
-      body:JSON.stringify({email:c.email,password:c.pass})
+      body:JSON.stringify({email:email,password:typedPassword})
     });
     const d=await r.json();
     if(d&&d.access_token){
       AUTH_TOKEN=d.access_token; AUTH_REFRESH=d.refresh_token||null;
       AUTH_EXP=Date.now()+((d.expires_in||3600)*1000); AUTH_ROLE=role;
+      /* the refresh token is what lets a returning session restore itself.
+         Without it the only way back in would be a stored password, which is
+         the exact thing this change exists to delete. */
+      if(AUTH_REFRESH) localStorage.setItem('bb_cc_rt', AUTH_REFRESH);
       return true;
     }
     console.warn('[Auth] login failed',d);
@@ -3526,7 +3531,27 @@ async function bbAuthLogin(role){
   AUTH_TOKEN=null; return false;
 }
 async function bbAuthEnsure(){
-  if(AUTH_ROLE && (!AUTH_TOKEN || Date.now() > AUTH_EXP-120000)) await bbAuthLogin(AUTH_ROLE);
+  /* Renew with the refresh token. The old version called bbAuthLogin(role),
+     which only worked because a password was sitting in the source. There is
+     no password to re-send now, and that is the point. If the refresh fails
+     the caller gets no token and the user signs in again, which is correct:
+     an expired session should ask, not silently carry a secret around. */
+  if(AUTH_ROLE && (!AUTH_TOKEN || Date.now() > AUTH_EXP-120000)){
+    const rt = AUTH_REFRESH || localStorage.getItem('bb_cc_rt');
+    if(rt){
+      try{
+        const r=await fetch(`${SB_URL}/auth/v1/token?grant_type=refresh_token`,{
+          method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({refresh_token:rt})});
+        const d=await r.json();
+        if(d&&d.access_token){
+          AUTH_TOKEN=d.access_token; AUTH_REFRESH=d.refresh_token||rt;
+          AUTH_EXP=Date.now()+((d.expires_in||3600)*1000);
+          localStorage.setItem('bb_cc_rt',AUTH_REFRESH);
+        } else { AUTH_TOKEN=null; localStorage.removeItem('bb_cc_rt'); }
+      }catch(e){ console.warn('[Auth] refresh failed',e); }
+    } else { AUTH_TOKEN=null; }
+  }
   return AUTH_TOKEN;
 }
 function bbBearer(){ return 'Bearer ' + (AUTH_TOKEN || SB_KEY); }
@@ -3588,7 +3613,7 @@ async function sb(table,q=''){
   try{
     await bbAuthEnsure();
     let r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{headers:{'apikey':SB_KEY,'Authorization':bbBearer()}});
-    if(r.status===401 && AUTH_ROLE){ await bbAuthLogin(AUTH_ROLE); r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{headers:{'apikey':SB_KEY,'Authorization':bbBearer()}}); }
+    if(r.status===401 && AUTH_ROLE){ await bbAuthEnsure(); r=await fetch(`${SB_URL}/rest/v1/${table}${q}`,{headers:{'apikey':SB_KEY,'Authorization':bbBearer()}}); }
     const d=r.ok?await r.json():[];
     if(r.ok)_sbCacheSet(ck,d);
     return d;
@@ -3599,8 +3624,10 @@ async function sb(table,q=''){
 /* ══════════════════════════════════════
    LOGIN — CARD SELECT + PASSWORD
 ══════════════════════════════════════ */
-// CHANGE PASSWORDS HERE:
-const PASSWORDS = { th: '1031', sh: '1006', demo: '0000' };
+/* THE PIN MAP IS GONE ON PURPOSE. It used to read
+   { th:'1031', sh:'1006', demo:'0000' } in a page anyone can view-source, so
+   it was never a lock, only a label on a door. The real check now happens at
+   Supabase against a password that exists nowhere in this file. */
 
 let _pendingRole = null;
 
@@ -3633,9 +3660,18 @@ function selectCard(role){
 async function checkPw(){
   const pw = document.getElementById('pw-input');
   const err = document.getElementById('pw-error');
-  if(pw.value === PASSWORDS[_pendingRole]){
-    err.style.display = 'none';
-    if(BB_AUTH[_pendingRole]) await bbAuthLogin(_pendingRole);  // obtain real JWT before entering
+  const btn = document.getElementById('pw-btn');
+  if(_pendingRole==='demo'){ err.style.display='none'; selectRole('demo'); return; }
+
+  /* Supabase is the judge now, so this is a network call and it can be slow on
+     a phone. Say so, and stop a second tap from firing a second login. */
+  const label = btn ? btn.textContent : '';
+  if(btn){ btn.disabled=true; btn.textContent='Checking...'; }
+  const ok = await bbAuthLogin(_pendingRole, pw.value);
+  if(btn){ btn.disabled=false; btn.textContent=label; }
+
+  if(ok){
+    err.style.display='none';
     selectRole(_pendingRole);
   } else {
     pw.style.animation = 'shake 0.4s ease';
@@ -3652,8 +3688,17 @@ let ROLE=null;
 async function initApp(){
   const saved=localStorage.getItem('bb_cc_role');
   if(saved==='th'||saved==='sh'){
-    await bbAuthLogin(saved);   // silently re-establish JWT before any data loads
-    activateRole(saved,false);
+    /* Restore from the refresh token. If it has expired or been revoked there
+       is nothing to fall back on, and that is deliberate: ask for the password
+       again rather than keep one lying around to re-send. */
+    AUTH_ROLE=saved;
+    const tok = await bbAuthEnsure();
+    if(tok){ activateRole(saved,false); }
+    else {
+      AUTH_ROLE=null;
+      localStorage.removeItem('bb_cc_role');
+      document.getElementById('login-screen').style.display='flex';
+    }
   } else {
     document.getElementById('login-screen').style.display='flex';
   }
@@ -3725,6 +3770,7 @@ function activateRole(role,animate){
 
 function signOut(){
   localStorage.removeItem('bb_cc_role');
+  localStorage.removeItem('bb_cc_rt');   // or the next visitor resumes this session
   AUTH_TOKEN=null; AUTH_REFRESH=null; AUTH_ROLE=null; AUTH_EXP=0;
   ROLE=null;
   document.body.removeAttribute('data-role');
@@ -5231,7 +5277,7 @@ async function sbC(table,method='GET',body=null,query='?order=id.asc'){
     await bbAuthEnsure();
     const mk=()=>{const o={method,headers:{'apikey':SB_KEY,'Authorization':bbBearer(),'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'}};if(body)o.body=JSON.stringify(body);return o;};
     let r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk());
-    if(r.status===401 && AUTH_ROLE){ await bbAuthLogin(AUTH_ROLE); r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk()); }
+    if(r.status===401 && AUTH_ROLE){ await bbAuthEnsure(); r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk()); }
     const t=await r.text();const d=t?JSON.parse(t):null;
     if(method==='GET'&&r.ok&&d)_sbCacheSet(ck,d);
     if(method!=='GET')_sbCacheInvalidate(table);
@@ -14102,6 +14148,17 @@ async function runSelfTest(){
       String(window.__bbAppFoundations));
    ok('App: scroll restoration is manual',history.scrollRestoration==='manual',history.scrollRestoration);
   })();
+
+  /* GO SOMEWHERE THAT CAN ACTUALLY PROVE IT FIRST.
+     The layout checks used to run on whatever page the walk happened to end
+     on. When that was Missions, which does not scroll, the topbar check
+     refused to pass and said so, correctly, while proving nothing. A check
+     that depends on where a loop stopped is not a check. The dashboard is the
+     longest page and the one a person opens first, so test there.
+     This sits in the async body on purpose: the first attempt put the await
+     inside a plain IIFE and guard.py's syntax check caught it. */
+  showPage('dashboard');
+  await new Promise(r=>setTimeout(r,250));
 
   /* ── F · LAYOUT, the two faults that shipped twice ──────────────────── */
   ok('Layout: the page does not scroll sideways',
