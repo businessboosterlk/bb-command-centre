@@ -145,7 +145,11 @@ body{
   border:1px solid var(--border);
   border-radius:16px;
   padding:32px 36px;
-  width:220px;
+  /* 248, not 220. MEASURED: "Chief Operating Officer" needs 163px on one line
+     and a 220px card left only 148px, so both real titles wrapped and orphaned
+     the word OFFICER while "Preview Mode" sat on one line. 248 gives 176px,
+     which fits all three with room to spare. */
+  width:248px;
   cursor:pointer;
   /* NOT `all`. The tilt drives transform from a spring every frame, and a CSS
      transition on transform would fight it and smear the tracking. Name the
@@ -166,6 +170,20 @@ body{
 .login-card .login-person-name,
 .login-card .login-role-lbl{transform:translateZ(26px)}
 .login-card .login-enter{transform:translateZ(60px)}
+
+/* THE DEMO CARD'S IDENTITY, OWNED IN ONE PLACE.
+   Its colours were three inline styles on three children, and its border was a
+   fourth. That is the alignment rule broken twice over: a child deciding what
+   the container owns. The purple border also read as "already selected" beside
+   two nearly invisible ones, which is a state the card is not in. The avatar
+   and the action line carry the identity now, and all three borders match. */
+.login-card.demo .login-person-name{color:var(--text)}
+.login-card.demo .login-role-lbl,
+.login-card.demo .login-enter{color:#8b5cf6}
+.login-card.demo:hover{
+  border-color:rgba(139,92,246,.45);
+  box-shadow:0 0 50px -12px rgba(139,92,246,.28);
+}
 
 .login-card:hover{
   border-color:rgba(255,107,43,.45);
@@ -250,10 +268,20 @@ body[data-role="demo"] #finance-demo-overlay{display:flex!important}
   font-size:9px;font-weight:700;
   letter-spacing:.2em;text-transform:uppercase;
   color:var(--text-3);margin-top:2px;
+  /* RESERVE TWO LINES ON EVERY CARD. "Chief Executive Officer" wraps and
+     "Preview Mode" does not, so without this the third card's enter row sat
+     13.5px higher than the other two. Measured, not guessed. */
+  /* One line now that the card is wide enough. The enter row is pinned with
+     margin-top:auto, so if a longer title ever wraps the cards stretch
+     together and the three rows STILL line up. The reserve was the fix for a
+     symptom; the pin is the fix for the cause. */
+  line-height:1.5;min-height:1.5em;
 }
 .login-enter{
   font-size:11px;font-weight:600;
-  color:var(--text-3);margin-top:4px;
+  /* auto pins it to the bottom of the card whatever the text above does, so a
+     longer name tomorrow cannot knock the three rows out of line again. */
+  color:var(--text-3);margin-top:auto;padding-top:4px;
   display:flex;align-items:center;gap:5px;
 }
 .login-enter svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -1492,13 +1520,13 @@ window.__ST_LOG=[];
         Enter Dashboard
       </div>
     </div>
-    <div class="login-card demo" id="card-demo" onclick="selectCard('demo')" style="border-color:rgba(139,92,246,0.25)">
+    <div class="login-card demo" id="card-demo" onclick="selectCard('demo')">
       <div class="login-av demo">BB</div>
       <div>
-        <div class="login-person-name" style="color:var(--text)">DEMO</div>
-        <div class="login-role-lbl" style="color:#8b5cf6">Preview Mode</div>
+        <div class="login-person-name">DEMO</div>
+        <div class="login-role-lbl">Preview Mode</div>
       </div>
-      <div class="login-enter" style="color:#8b5cf6">
+      <div class="login-enter">
         <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
         Preview System
       </div>
@@ -13973,8 +14001,16 @@ else buildNavGroups();
   .login-card:hover{transform:none}           /* no hover lift on a touch screen */
   .login-av{width:44px;height:44px;font-size:14px;flex-shrink:0}
   .login-person-name{font-size:16px}
-  .login-role-lbl{font-size:9.5px;line-height:1.35}
-  .login-enter{margin-left:auto;flex-shrink:0}
+  .login-role-lbl{font-size:9.5px;line-height:1.35;min-height:0}
+  .login-enter{margin-top:0}   /* the row layout aligns on its own */
+  /* CHEVRON ONLY ON A PHONE. "Enter Dashboard" costs 106px of a 343px row and
+     says nothing a chevron does not, and paying for it forced the job title to
+     wrap and orphan the word OFFICER. Measured: the label had 135px and needed
+     172px; dropping the words gives it 217px and it fits on one line.
+     font-size:0 collapses the text node, the icon keeps its own size. */
+  .login-enter{margin-left:auto;flex-shrink:0;font-size:0;gap:0}
+  .login-enter svg{width:16px;height:16px}
+  .login-role-lbl{white-space:nowrap}
 }
 @media (max-width:600px) and (max-height:700px){
   /* short phones and landscape: shrink the header, never the tap targets */
