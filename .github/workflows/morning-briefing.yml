@@ -12,7 +12,14 @@ jobs:
       - name: Send morning briefing
         env:
           SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
-          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          # Use the service-role key when it exists, otherwise fall back to the
+          # public anon key. The runbook had this as a strict ordering: add the
+          # secret FIRST or these agents break. A fallback removes the ordering
+          # entirely, so there is never a window where the secret is half done
+          # and a scheduled job is failing at 7am.
+          SB_KEY: ${{ secrets.SB_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc' }}
+          # so the job can say WHICH key it used without ever printing it
+          SB_KEY_KIND: ${{ secrets.SB_SERVICE_ROLE_KEY && 'service-role' || 'anon' }}
           ALERT_URL: https://yyviiwnqgphyklcoijyd.supabase.co/functions/v1/bb-alert
         run: |
           python3 << 'PYEOF'

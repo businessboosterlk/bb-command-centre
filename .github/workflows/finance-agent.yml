@@ -12,7 +12,14 @@ jobs:
       - name: Check finance and write to CC only (no Gmail)
         env:
           SB_URL: https://yyviiwnqgphyklcoijyd.supabase.co/rest/v1
-          SB_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc
+          # Use the service-role key when it exists, otherwise fall back to the
+          # public anon key. The runbook had this as a strict ordering: add the
+          # secret FIRST or these agents break. A fallback removes the ordering
+          # entirely, so there is never a window where the secret is half done
+          # and a scheduled job is failing at 7am.
+          SB_KEY: ${{ secrets.SB_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc' }}
+          # so the job can say WHICH key it used without ever printing it
+          SB_KEY_KIND: ${{ secrets.SB_SERVICE_ROLE_KEY && 'service-role' || 'anon' }}
         run: |
           python3 << 'PYEOF'
           import urllib.request, json, os, datetime
@@ -39,6 +46,21 @@ jobs:
           today = datetime.date.today()
 
           invoices = get("invoices?status=in.(unpaid,overdue)&select=client_name,amount,due_date,status")
+
+          # ZERO IS NOT THE SAME AS CLEAR.
+          # Once the Class-M lock lands, an anon key reads invoices and gets an
+          # empty list rather than an error. This agent would then post nothing
+          # and the silence would read as "no unpaid invoices", which is the
+          # most expensive kind of wrong: a money check that fails by going
+          # quiet. If we got nothing back while holding the public key, say so
+          # loudly and call it UNKNOWN, never clear.
+          if not invoices and os.environ.get('SB_KEY_KIND') == 'anon':
+              msg = ("FINANCE CHECK COULD NOT READ INVOICES. It is holding the public key, "
+                     "so an empty result may mean the table is locked rather than paid up. "
+                     "Treat as UNKNOWN. Fix: add the SB_SERVICE_ROLE_KEY secret to this repo.")
+              write_alert(msg, "critical")
+              print(msg)
+
           for inv in invoices:
               if inv.get('due_date'):
                   try:
