@@ -13993,6 +13993,7 @@ else buildNavGroups();
     {name:'team_members',core:true},
     {name:'tasks',core:false},
     {name:'content_plans',core:false},
+    {name:'smm_publish_log',core:false},
     {name:'smm_shoots',core:false},
     {name:'invoices',core:false},
     {name:'client_journal',core:false},
@@ -14548,3 +14549,75 @@ if(location.search.indexOf('selftest')>-1){
 }
 /* @@BBCC_SELFTEST_END@@ */
 </script>
+<!-- @@BBCC_PUBTRACK_BEGIN@@ -->
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   PUBLISH LOG, READ ONLY (hub build, 2026-08-26)
+   The same per-item view the SMM sees on her Posting Plan: every finished
+   graphic and video for the open client and month, with where it has been
+   posted (TikTok, Instagram, Facebook, LinkedIn), who ticked it and when.
+
+   THIS SURFACE NEVER WRITES. One writing system (the SMM Workspace) means a
+   tick can only ever have one author. Indicators here are not buttons.
+
+   Reads land under the Readiness tab so posted sits beside made. Finished
+   uses the same definitions the readiness counts already use. Queries name
+   their columns: graphic_projects carries base64 images and select * is
+   banned there (bb-base64-image-perf-landmine).
+   ════════════════════════════════════════════════════════════════════════ */
+var CCPT_PLATFORMS=[['tiktok','TT'],['instagram','IG'],['facebook','FB'],['linkedin','LI']];
+
+function ccptChip(logRow, key, label){
+  var at=logRow?logRow[key+'_at']:null, by=logRow?logRow[key+'_by']:null;
+  if(at){
+    var d=new Date(at).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return '<span title="'+label+' · '+(by||'')+' · '+d+'" style="min-width:30px;height:22px;padding:0 6px;border-radius:6px;font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;background:var(--green,#22c55e);color:#02170b">'+label+'</span>';
+  }
+  return '<span title="Not marked posted on '+label+'" style="min-width:30px;height:22px;padding:0 6px;border-radius:6px;font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);color:var(--text-3)">'+label+'</span>';
+}
+
+async function ccptRender(c){
+  var host=document.getElementById('rb-client-rows');
+  if(!host||!c) return;
+  var ym=nowYM(), y=ym.y, m=ym.m;
+  var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
+  var vids=[], gfx=[], log=[];
+  try{
+    var r=await Promise.allSettled([
+      SBget('video_projects','?select=id,title,type,target_month,target_year&client_id=eq.'+c.id+'&target_year=eq.'+y+'&target_month=eq.'+m+'&or=(current_stage.eq.add_to_drive,current_stage.eq.posted)&is_archived=eq.false'),
+      SBget('graphic_projects','?select=id,title,type,target_month,target_year&client_id=eq.'+c.id+'&target_year=eq.'+y+'&target_month=eq.'+m+'&current_stage=eq.approved&is_archived=eq.false'),
+      SBget('smm_publish_log','?select=*&client_id=eq.'+c.id+'&target_year=eq.'+y+'&target_month=eq.'+m)
+    ]);
+    vids=r[0].status==='fulfilled'?(r[0].value||[]):[];
+    gfx =r[1].status==='fulfilled'?(r[1].value||[]):[];
+    log =r[2].status==='fulfilled'?(r[2].value||[]):[];
+  }catch(e){ console.error('Publish log read failed:',e); }
+  var find=function(tbl,id){ for(var i=0;i<log.length;i++){ if(log[i].source_table===tbl&&Number(log[i].source_id)===Number(id)) return log[i]; } return null; };
+  var row=function(item,tbl,badge,color){
+    var lr=find(tbl,item.id);
+    var chips=CCPT_PLATFORMS.map(function(p){return ccptChip(lr,p[0],p[1]);}).join('');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--border)">'
+      +'<span style="font-size:8px;font-weight:800;letter-spacing:.06em;padding:2px 7px;border-radius:20px;border:1px solid '+color+';color:'+color+';flex-shrink:0">'+badge+'</span>'
+      +'<span style="flex:1;font-size:12px;font-weight:600;color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">'+esc(item.title||'Untitled')+'</span>'
+      +'<div style="display:flex;gap:4px;flex-shrink:0">'+chips+'</div></div>';
+  };
+  var items=gfx.map(function(g){return row(g,'graphic_projects',(g.type==='story'?'STORY':'POST'),'var(--cyan,#06b6d4)');})
+    .concat(vids.map(function(v){return row(v,'video_projects','VIDEO','var(--pink,#ec4899)');}));
+  var block='<div id="ccpt-block" style="margin-top:16px">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">'
+    +'<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)">Publish log — '+MS[m-1]+' '+y+'</div>'
+    +'<div style="font-size:9px;color:var(--text-3)">Ticked by the SMM in her workspace. View only here.</div></div>'
+    +(items.length?items.join(''):'<div style="font-size:11px;color:var(--text-3);padding:10px 2px">Nothing finished for this month yet. Items appear when a video reaches Add to Drive or a graphic reaches Approved.</div>')
+    +'</div>';
+  var old=document.getElementById('ccpt-block'); if(old) old.remove();
+  host.insertAdjacentHTML('beforeend',block);
+}
+
+/* Wrap the readiness renderer: aggregates first, the per-item log after. */
+var ccptOrigReadiness=renderReadinessTab;
+renderReadinessTab=async function(c){
+  await ccptOrigReadiness(c);
+  try{ await ccptRender(c); }catch(e){ console.error('Publish log block failed:',e); }
+};
+</script>
+<!-- @@BBCC_PUBTRACK_END@@ -->
