@@ -3959,6 +3959,39 @@ function isOverdue(t){return !t.done&&t.due&&t.due<todayStr()}
    getMRRQuoted() is kept for places that legitimately want the list price. */
 function getMRR(c){return Number(c&&c.mrr)||0}
 function getMRRQuoted(c){return Number(c&&c.mrr)||PKG_MRR[c&&c.package]||0}
+/* WHO COUNTS AS A CLIENT, decided once.
+   The clients table could never say a client had gone, so "ACTIVE CLIENTS"
+   counted every row ever added, including Business Booster itself. Two columns
+   now carry it: `status` (active | churned | internal) and `ended_on`, the last
+   billable day.
+
+   `ended_on` is a DATE and not a flag on purpose. Thulaib's instruction was
+   "remove GSC and LGL AFTER August", so they must keep counting until the 31st
+   and drop off on the 1st, by themselves, with nobody remembering to do it.
+
+   This filters COUNTS and SUMS only. Lookups by id still see every row, because
+   a churned client's 53 tasks and 39 videos still have to find their own name. */
+function isCountableClient(c){
+  if(!c) return false;
+  if(c.status==='internal') return false;                 // Business Booster is us
+  if(!c.ended_on) return true;
+  return String(c.ended_on) >= todayStr();                // ISO dates compare as text
+}
+function countableClients(list){ return (list||[]).filter(isCountableClient); }
+
+/* "COUNTS AS A CLIENT" AND "CAN HAVE WORK BOOKED AGAINST IT" ARE NOT THE SAME
+   QUESTION, and Business Booster is the proof. The instruction was to keep BB in
+   the system so work can be logged against it, while keeping it off the dashboard
+   and out of finance. So a picker for NEW work asks a different question from the
+   client count: not "is this a client" but "is this still live". Internal is
+   live. A client who left in July is not. */
+function isWorkableClient(c){
+  if(!c) return false;
+  if(!c.ended_on) return true;
+  return String(c.ended_on) >= todayStr();
+}
+function workableClients(list){ return (list||[]).filter(isWorkableClient); }
+
 function mrrUnknownCount(list){return (list||[]).filter(function(x){return !Number(x&&x.mrr);}).length}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function fmtK(n){
@@ -4100,7 +4133,7 @@ function renderAll(){
 
 /* ── STATS ── */
 function renderStats(){
-  const c=D.clients;
+  const c=countableClients(D.clients);
   document.getElementById('s-clients').textContent=c.length;
   document.getElementById('s-mrr').textContent=fmtK(c.reduce((s,x)=>s+getMRR(x),0));
   var _mrrGap=mrrUnknownCount(c), _mn=document.getElementById('s-mrr-note');
@@ -4129,7 +4162,7 @@ function renderStats(){
 /* ── ATTENTION CEO ── */
 function renderAttentionCEO(){
   const items=[];
-  D.clients.filter(c=>c.health==='red').forEach(c=>{
+  countableClients(D.clients).filter(c=>c.health==='red').forEach(c=>{
     items.push({dot:'red',client:c.name,reason:'Health marked red — needs immediate review',tag:'red',tagLabel:'RED HEALTH'});
   });
   D.invoices.filter(i=>i.status==='overdue').forEach(i=>{
@@ -4150,7 +4183,7 @@ function renderAttentionCEO(){
       items.push({dot:'amber',client:c.name,reason:`${n} overdue tasks`,tag:'amber',tagLabel:'OVERDUE'});
     }
   });
-  D.clients.filter(c=>c.renewal).forEach(c=>{
+  countableClients(D.clients).filter(c=>c.renewal).forEach(c=>{
     const diff=Math.round((new Date(c.renewal)-new Date())/(864e5));
     if(diff>=0&&diff<=45){
       items.push({dot:'amber',client:c.name,reason:`Renewal in ${diff} day${diff===1?'':'s'}`,tag:'amber',tagLabel:'RENEWAL'});
@@ -4165,16 +4198,16 @@ function renderAttentionCOO(){
   const dayOfMonth=new Date().getDate();
 
   // Amber health (COO catches before they go red)
-  D.clients.filter(c=>c.health==='amber').forEach(c=>{
+  countableClients(D.clients).filter(c=>c.health==='amber').forEach(c=>{
     items.push({dot:'amber',client:c.name,reason:'Health amber — intervene before it goes red',tag:'amber',tagLabel:'AT RISK'});
   });
-  D.clients.filter(c=>c.health==='red').forEach(c=>{
+  countableClients(D.clients).filter(c=>c.health==='red').forEach(c=>{
     items.push({dot:'red',client:c.name,reason:'Health red — escalate to Thulaib immediately',tag:'red',tagLabel:'RED HEALTH'});
   });
 
   // Plans not ready after 15th — show top 5 only to avoid flooding
   if(dayOfMonth>=15){
-    const noPlans=D.clients.filter(c=>!c.plan_ready);
+    const noPlans=countableClients(D.clients).filter(c=>!c.plan_ready);
     noPlans.slice(0,4).forEach(c=>{
       items.push({dot:'amber',client:c.name,reason:`Plan not approved — ${dayOfMonth>25?'URGENT':'approve before 25th'}`,tag:dayOfMonth>25?'red':'amber',tagLabel:'NO PLAN'});
     });
@@ -4185,7 +4218,7 @@ function renderAttentionCOO(){
 
   // No shoot in next 30 days — cap at 5 to avoid flooding
   const clientsWithShoots=new Set(D.shoots.map(s=>String(s.client_id)));
-  const noShootClients=D.clients.filter(c=>!clientsWithShoots.has(String(c.id)));
+  const noShootClients=countableClients(D.clients).filter(c=>!clientsWithShoots.has(String(c.id)));
   const noShootSample=noShootClients.slice(0,3); // show max 3
   noShootSample.forEach(c=>{
     items.push({dot:'amber',client:c.name,reason:'No shoot scheduled in next 30 days',tag:'amber',tagLabel:'NO SHOOT'});
@@ -4506,7 +4539,7 @@ function buildTop3Suggestions(){
     out.push({text:`${t.title||t.name||'Task due today'}${c?' — '+c.name:''}`,color:'var(--accent)'});
   });
   // Red-health clients
-  D.clients.filter(c=>c.health==='red').slice(0,2).forEach(c=>{
+  countableClients(D.clients).filter(c=>c.health==='red').slice(0,2).forEach(c=>{
     out.push({text:`Fix red account — ${c.name}`,color:'var(--red)'});
   });
   // Upcoming shoots (next 3 days)
@@ -4516,7 +4549,7 @@ function buildTop3Suggestions(){
     out.push({text:`Prep shoot${nm?' — '+nm:''} (${fmtDate(s.shoot_date)})`,color:'var(--blue)'});
   });
   // Amber clients if room
-  D.clients.filter(c=>c.health==='amber').slice(0,1).forEach(c=>{
+  countableClients(D.clients).filter(c=>c.health==='amber').slice(0,1).forEach(c=>{
     out.push({text:`Check in — ${c.name}`,color:'var(--amber)'});
   });
   return out;
@@ -5530,7 +5563,7 @@ setInterval(autoScoreClientHealth, 30*60*1000);
 
 
 function renderClientStats(){
-  const c=CLIENTS;
+  const c=countableClients(CLIENTS);
   document.getElementById('st-total').textContent=c.length;
   document.getElementById('st-mrr').textContent=fmtK(c.reduce((s,x)=>s+getMRR(x),0));
   document.getElementById('st-green').textContent=c.filter(x=>x.health==='green').length;
@@ -5543,7 +5576,7 @@ function setTab(t){tabFilter=t;['all','sm','web'].forEach(x=>document.getElement
 function toggleHF(h){healthFilter=healthFilter===h?null:h;['green','amber','red'].forEach(c=>{document.getElementById('fchip-'+c).className='filter-chip'+(c===healthFilter?' active-'+c:'');});renderTable();}
 function renderTable(){
   const q=(document.getElementById('client-search').value||'').toLowerCase();
-  let cs=[...CLIENTS];
+  let cs=countableClients(CLIENTS);
   if(tabFilter==='sm')cs=cs.filter(c=>!c.client_type||c.client_type==='sm'||c.client_type==='both');
   else if(tabFilter==='web')cs=cs.filter(c=>c.client_type==='web'||c.client_type==='both'||['SEO Essential','SEO+Maintenance'].includes(c.package));
   if(healthFilter)cs=cs.filter(c=>c.health===healthFilter);
@@ -6946,7 +6979,9 @@ function openFinInvoiceModal(id=null){
   _finExtras=[];
   document.getElementById('fin-inv-modal-title').textContent=id?'Edit Invoice':'Add Invoice';
   const csel=document.getElementById('fin-inv-client');
-  csel.innerHTML='<option value="">Select client</option>'+(CLIENTS||[]).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  /* you cannot raise an invoice against Business Booster, and you should not be
+     able to raise a new one against a client who has already left */
+  csel.innerHTML='<option value="">Select client</option>'+countableClients(CLIENTS).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   const month=getFinMonth();
   if(id){
     const inv=FIN_INVOICES.find(x=>x.id===id);
@@ -7816,7 +7851,7 @@ function closeModal(id){const el=document.getElementById(id);if(el)el.classList.
 document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.add('hidden');}));
 
 /* ── EXPORT ── */
-function exportCSV(){const rows=[['Name','Type','Package','Month','MRR','Health','Posts/mo','Stories/mo','Videos/mo','Open Tasks']];CLIENTS.forEach(c=>{const open=TASKS.filter(t=>t.clientId===Number(c.id)&&!t.done).length;rows.push([c.name,c.client_type||'sm',c.package,c.month||1,getMRR(c),c.health||'green',c.monthly_posts||0,c.monthly_stories||0,c.monthly_videos||0,open]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bb-clients-'+todayStr()+'.csv';a.click();}
+function exportCSV(){const rows=[['Name','Type','Package','Month','MRR','Health','Posts/mo','Stories/mo','Videos/mo','Open Tasks']];countableClients(CLIENTS).forEach(c=>{const open=TASKS.filter(t=>t.clientId===Number(c.id)&&!t.done).length;rows.push([c.name,c.client_type||'sm',c.package,c.month||1,getMRR(c),c.health||'green',c.monthly_posts||0,c.monthly_stories||0,c.monthly_videos||0,open]);});const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='bb-clients-'+todayStr()+'.csv';a.click();}
 
 /* ── INIT ── */
 function uploadLogo(){
@@ -8002,7 +8037,7 @@ async function deleteTaskBook(id){
 }
 
 function openGlobalTaskModal(editId=null){
-  const clients=(D.clients||[]).filter(c=>c.id);
+  const clients=workableClients((D.clients||[]).filter(c=>c.id));
   const sel=document.getElementById('gtask-client');
   if(sel){
     sel.innerHTML=clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
@@ -8083,7 +8118,7 @@ function openDuplicateTask(id){
   document.getElementById('dup-task-preview').textContent='\uD83D\uDCCB '+t.title;
   document.getElementById('dup-task-due').value=t.due||todayStr();
 
-  const clients=(D.clients||[]).filter(c=>c.id);
+  const clients=workableClients((D.clients||[]).filter(c=>c.id));
   const sourceClientId=String(t.client_id||'');
   document.getElementById('dup-client-list').innerHTML=clients.map(c=>{
     const isSelf=String(c.id)===sourceClientId;
@@ -8103,7 +8138,7 @@ async function executeDuplicate(){
   const selectedIds=[...document.querySelectorAll('.dup-client-cb:checked')].map(cb=>cb.value);
   if(!selectedIds.length)return alert('Select at least one client');
   const due=document.getElementById('dup-task-due').value||null;
-  const clients=(D.clients||[]).filter(c=>c.id);
+  const clients=workableClients((D.clients||[]).filter(c=>c.id));
   let created=0;
   for(const cid of selectedIds){
     const data={
@@ -8551,7 +8586,7 @@ function openEditVideoModal(){
   document.getElementById('ev-id').value=v.id;
   document.getElementById('ev-title').value=v.title||'';
   // Populate client dropdown
-  const clients=(D.clients||[]).filter(c=>c.id);
+  const clients=(D.clients||[]).filter(c=>c.id);   // NOT filtered on purpose: an edit must be able to show the client it already has
   document.getElementById('ev-client').innerHTML=clients.map(c=>`<option value="${c.id}" ${c.id===v.client_id?'selected':''}>${esc(c.name)}</option>`).join('');
   // Populate editor dropdown
   const editors=(D.editors||[]).filter(e=>e.name);
@@ -8600,7 +8635,7 @@ async function archiveVideo(){
 }
 
 function openNewVideoModal(){
-  const clients=(D.clients||[]).filter(c=>c.id);
+  const clients=workableClients((D.clients||[]).filter(c=>c.id));
   document.getElementById('nv-client').innerHTML=clients.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
   const editors=(D.editors||[]).filter(e=>e.name);
   document.getElementById('nv-editor').innerHTML='<option value="">Unassigned</option>'+editors.map(e=>`<option value="${e.id}">${esc(e.name)}</option>`).join('');
