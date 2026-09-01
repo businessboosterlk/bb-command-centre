@@ -6005,10 +6005,27 @@ async function loadFinancePage(){
     if(needClients&&clients&&clients.length)CLIENTS=clients;
   }catch(e){console.error('loadFinancePage',e);}
   loadFinRecon();
+
+  /* OPEN ON THE LATEST MONTH THAT HAS ANYTHING IN IT, not blindly on today's.
+     Found 2026-09-01, when Thulaib asked for a "mark this cost as paid" button
+     that had already shipped and worked. He could not see it because the page
+     opened on September, September had no costs yet, so the list was empty and
+     there was nothing to click. On the 1st of a month everything you want to
+     settle is LAST month's. Zero of 91 costs had ever been marked paid, which
+     is what a feature nobody can reach looks like.
+     The dropdown still holds every month, so adding a cost to the new month is
+     one click away. */
   const{y,m}=nowYM();
   const cur=`${y}-${String(m).padStart(2,'0')}`;
+  const months=[...new Set([].concat(
+      (FIN_INVOICES||[]).map(x=>x.month),
+      (FIN_COSTS||[]).map(x=>x.month)
+    ).filter(Boolean))].sort();
+  const latestWithData = months.length ? months[months.length-1] : null;
+  const want = (latestWithData && latestWithData > cur) ? cur
+             : (latestWithData || cur);
   const sel=document.getElementById('fin-month-sel');
-  if(sel&&sel.querySelector(`option[value="${cur}"]`))sel.value=cur;
+  if(sel&&sel.querySelector(`option[value="${want}"]`))sel.value=want;
   renderFinancePage();
   loadFinanceAgentAlerts();
 }
@@ -6795,10 +6812,33 @@ function renderFinancePage(){
   // Cost list
   const costEl=document.getElementById('fin-cost-list');
   if(!costs.length){
-    costEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No costs for ${FIN_MONTH_NAMES[month]||month}</div>`;
+    /* An empty month is honest but useless on its own. Say where the costs
+       actually are and make it one click, because "No costs for September" on
+       the 1st of September looks like a broken page rather than a new month. */
+    const others=[...new Set((FIN_COSTS||[]).map(c=>c.month).filter(Boolean))].sort();
+    const last=others.length?others[others.length-1]:null;
+    costEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">
+        Nothing recorded for ${FIN_MONTH_NAMES[month]||month} yet.
+        ${last&&last!==month?`<div style="margin-top:8px"><button class="btn-ghost btn-sm" style="font-size:11px"
+           onclick="const s=document.getElementById('fin-month-sel');if(s){s.value='${last}';s.dispatchEvent(new Event('change'));}"
+           >Show ${FIN_MONTH_NAMES[last]||last} instead</button></div>`:''}
+      </div>`;
   }else{
     const sorted=[...costs].sort((a,b)=>(b.amount||0)-(a.amount||0));
-    costEl.innerHTML=sorted.map(cost=>{
+    /* The number the button exists to move. Without it you can tick things off
+       and never see whether you are done. */
+    const _due=sorted.filter(c=>c.paid!==true), _dueAmt=_due.reduce((t,c)=>t+(c.amount||0),0);
+    const _paidAmt=sorted.filter(c=>c.paid===true).reduce((t,c)=>t+(c.amount||0),0);
+    const summary = _due.length
+      ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)">
+           <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Still to pay</span>
+           <span style="font-size:13px;font-weight:800;color:var(--red)">LKR ${_dueAmt.toLocaleString()} <span style="font-size:10px;font-weight:600;color:var(--text-3)">across ${_due.length} of ${sorted.length}</span></span>
+         </div>`
+      : `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)">
+           <span style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em">All paid</span>
+           <span style="font-size:13px;font-weight:800;color:var(--green)">LKR ${_paidAmt.toLocaleString()}</span>
+         </div>`;
+    costEl.innerHTML=summary+sorted.map(cost=>{
       const linkedCl=cost.client_id?CLIENTS.find(c=>Number(c.id)===Number(cost.client_id)):null;
       const clientTag=linkedCl?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);margin-left:6px">${esc(linkedCl.name)}</span>`:'';
       return `<div class="fin-cost-row">
