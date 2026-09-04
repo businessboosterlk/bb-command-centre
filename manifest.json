@@ -1,6 +1,6 @@
 {
   "name": "BB Command Centre",
-  "short_name": "Command",
+  "short_name": "BB Centre",
   "description": "The BB cockpit: clients, delivery, finance and the week.",
   "start_url": "./",
   "scope": "./",
