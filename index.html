@@ -12098,12 +12098,16 @@ if('serviceWorker' in navigator){
       '</div>';
     document.body.appendChild(el);
 
-    // floating trigger button
-    var fab = document.createElement('button');
-    fab.id = 'bba3-checkin-fab';
-    fab.innerHTML = '⚡ Task Check-In <span class="bba3-fab-badge" id="bba3-fab-badge">0</span>';
-    fab.onclick = function(){ window.BBA3 && window.BBA3.openCheckin(); };
-    document.body.appendChild(fab);
+    /* THE TASK CHECK-IN PILL IS REMOVED. Same reason as the assistant bubble:
+       it floated over the bottom right of every page. The check-in itself is
+       NOT gone and is still reachable from the command bar, "Daily Check-In".
+       Everything that touches the pill already null-guards, so removing it
+       throws nothing. To restore: uncomment the five lines below. */
+    // var fab = document.createElement('button');
+    // fab.id = 'bba3-checkin-fab';
+    // fab.innerHTML = '⚡ Task Check-In <span class="bba3-fab-badge" id="bba3-fab-badge">0</span>';
+    // fab.onclick = function(){ window.BBA3 && window.BBA3.openCheckin(); };
+    // document.body.appendChild(fab);
   }
 
   /* ── SET CARD STATE ────────────────────────────────────────── */
@@ -12523,10 +12527,12 @@ if('serviceWorker' in navigator){
 #bbcc-send svg{width:15px;height:15px;fill:#fff}
 </style>
 
-<button id="bbcc-bubble" onclick="bbccToggle()" title="BB Assistant — Ask anything">
-  <div id="bbcc-err-badge">0</div>
-  <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
-</button>
+<!-- THE ASSISTANT BUBBLE IS REMOVED. Thulaib, 7 September 2026: two floating
+     buttons sat over the bottom right corner of every page, and on the Finance
+     page they cover the last row of costs. The panel code below is left in
+     place and is now unreachable, which is deliberate rather than deleting two
+     hundred lines that other things may still call. bbccToggle() null-guards,
+     so nothing throws. To restore: put this button back. -->
 
 <div id="bbcc-panel">
   <div id="bbcc-hd">
