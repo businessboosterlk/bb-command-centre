@@ -14923,3 +14923,76 @@ var BBSET=(function(){
 })();
 </script>
 <!-- @@BB_SETTINGS_END@@ -->
+<!-- @@BBCC_ALERTHEALTH_BEGIN@@ -->
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   WHO CAN BE ALERTED (hub build 2026-09-09).
+   Thulaib had to ask whether his team was receiving notifications. A system
+   that cannot answer that about itself is not finished, so the answer now
+   sits on the Team page and a Monday alert names anyone who cannot be reached.
+
+   Reads the bb_push_reach view, which judges a person by whether their phone
+   has EVER delivered, never by a failure count: every "failure" logged before
+   someone registers is an attempt to reach a phone that did not exist yet.
+   Reading those counts made Farhath look broken when he was fine.
+   Read only. This panel never writes.
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  var STATE_STYLE={
+    'OK':            {bg:'rgba(34,197,94,.12)',  fg:'#22c55e', label:'Getting alerts'},
+    'NOT REACHABLE': {bg:'rgba(239,68,68,.12)',  fg:'#ef4444', label:'No phone set up'},
+    'NEVER DELIVERED':{bg:'rgba(239,68,68,.12)', fg:'#ef4444', label:'Never delivered'},
+    'GONE QUIET':    {bg:'rgba(245,158,11,.12)', fg:'#f59e0b', label:'Gone quiet'}
+  };
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function ago(iso){
+    if(!iso) return 'never';
+    var h=(Date.now()-new Date(iso).getTime())/36e5;
+    if(h<1) return 'just now'; if(h<24) return Math.round(h)+'h ago';
+    return Math.round(h/24)+'d ago';
+  }
+  async function render(){
+    var host=document.getElementById('bbcc-alert-health');
+    if(!host){
+      var grid=document.getElementById('tm-grid');
+      if(!grid) return;
+      host=document.createElement('div'); host.id='bbcc-alert-health';
+      host.style.cssText='margin:0 0 18px';
+      grid.parentNode.insertBefore(host, grid);
+    }
+    var rows=[];
+    try{
+      var r=await fetch(SB_URL+'/rest/v1/bb_push_reach?select=name,role,phones,state,last_delivered&order=state.asc,name.asc',
+        {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      rows=await r.json();
+    }catch(e){
+      host.innerHTML='<div class="card" style="margin:0"><div style="font-size:12px;color:var(--red,#ef4444)">Could not read alert health: '+esc(e.message)+'</div></div>';
+      return;
+    }
+    if(!rows.length){ host.innerHTML=''; return; }
+    var bad=rows.filter(function(x){return x.state!=='OK';});
+    var head='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px;flex-wrap:wrap">'
+      +'<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#FF6B2B)">Phone alerts</div>'
+      +'<div style="font-size:11px;color:var(--text-3)">'+(rows.length-bad.length)+' of '+rows.length+' getting alerts'
+      +(bad.length?' · <b style="color:#ef4444">'+bad.length+' not</b>':'')+'</div></div>';
+    var cells=rows.map(function(x){
+      var st=STATE_STYLE[x.state]||{bg:'rgba(148,163,184,.12)',fg:'#94a3b8',label:x.state};
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid var(--border)">'
+        +'<div style="min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text)">'+esc(x.name)+'</div>'
+        +'<div style="font-size:10px;color:var(--text-3)">'+esc(x.role||'')+' · '+(x.phones||0)+' phone'+(x.phones===1?'':'s')+'</div></div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<span style="display:inline-block;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:'+st.bg+';color:'+st.fg+'">'+st.label+'</span>'
+        +'<div style="font-size:10px;color:var(--text-3);margin-top:2px">'+ago(x.last_delivered)+'</div></div></div>';
+    }).join('');
+    var hint=bad.length?'<div style="padding:9px 11px;font-size:11px;color:var(--text-3);line-height:1.5">'
+      +'<b style="color:var(--text)">'+esc(bad.map(function(b){return b.name;}).join(', '))+'</b> cannot be alerted. '
+      +'They open their app from the Home Screen icon, then Settings, then Turn on alerts. On iPhone a Safari tab receives nothing.</div>':'';
+    host.innerHTML='<div class="card" style="margin:0;padding:14px 4px 4px">'+ '<div style="padding:0 11px">'+head+'</div>'+cells+hint+'</div>';
+  }
+  var origRender=(typeof renderTeamPage==='function')?renderTeamPage:null;
+  if(origRender){ renderTeamPage=function(){ origRender.apply(this,arguments); try{ render(); }catch(e){ console.warn('[alert health]',e); } }; }
+  window.bbccAlertHealth=render;
+})();
+</script>
+<!-- @@BBCC_ALERTHEALTH_END@@ -->
