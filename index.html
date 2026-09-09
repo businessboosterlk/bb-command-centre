@@ -14809,7 +14809,7 @@ if(location.search.indexOf('selftest')>-1){
        which is the only way a write path is ever actually proven. */
     var names=failed.map(function(r){return String(r.name).slice(0,160);}).slice(0,40);
     var body={ app:APP, checks:res.total, failed:res.failed,
-               failed_names:names, width:window.innerWidth,
+               failed_names:names, width:(window.innerWidth||document.documentElement.clientWidth||0),
                user_name:who(), url:location.href.slice(0,300) };
     var r=await fetch(SB_URL+'/rest/v1/bb_harness_runs',{
       method:'POST',
@@ -14834,6 +14834,15 @@ if(location.search.indexOf('selftest')>-1){
         if(typeof CURRENT_PAGE!=='undefined'&&CURRENT_PAGE!=='dashboard') return {skipped:'not on the dashboard'};
       }
     }
+    /* A ZERO WIDTH VIEWPORT MEANS THE LAYOUT CHECKS PROVED NOTHING. Seen for real
+       while verifying this: a hidden browser pane reports innerWidth 0, every
+       geometry check ran against nothing and the row went in claiming 3 of 72
+       failed at 0px. A row like that is not evidence, it is noise wearing the
+       shape of evidence, and the whole point of writing the score down is knowing
+       WHICH screen a check failed on. The tab-in-front gate normally stops this;
+       this is the belt to that brace. */
+    var w=window.innerWidth||document.documentElement.clientWidth||0;
+    if(w<200) return {skipped:'viewport is '+w+'px, the layout checks would prove nothing'};
     markToday();
     var res=await runSelfTest({silent:true});
     return await post(res);
