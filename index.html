@@ -2928,7 +2928,7 @@ window.__ST_LOG=[];
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
       <div>
         <h1 style="font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;margin:0;color:var(--text)">🤖 Agents</h1>
-        <div style="font-size:12px;color:var(--text-3);margin-top:3px">Live alerts from all BB system agents — updated automatically</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px">Live alerts from all BB system agents, updated automatically</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-sm btn-ghost" onclick="loadAgentsPage()">↻ Refresh</button>
@@ -3652,6 +3652,18 @@ function bbBearer(){ return 'Bearer ' + (AUTH_TOKEN || SB_KEY); }
 ══════════════════════════════════════ */
 let DEMO_MODE = false;
 const DEMO_DATA = {
+  /* IDS ARE NUMBERS HERE BECAUSE THEY ARE NUMBERS IN THE DATABASE (L-CC-004).
+     They used to be strings, 'd1' and 'dm1'. Row templates interpolate an id
+     straight into an inline onclick, unquoted, which is correct for a bigint
+     and a ReferenceError for a string: selectTeamMember(dm1) is a variable
+     named dm1 that does not exist. That is the bug logged on 7 September, and
+     the same shape made every demo client row unopenable, because openProfile
+     starts Number(id) and Number('d1') is NaN, which matches nothing.
+     Fixing the fixture rather than the forty render sites is the smaller and
+     safer change: demo data that does not have production's types is not a
+     demo, it is a second code path. The 9xxxxx range cannot collide with a
+     real id and reads as obviously invented. A harness check now fails if a
+     demo id is ever a string again. */
   /* THE DEMO CLIENTS CARRY A FEE, and they have to.
      Every one was mrr:0, so the preview a prospect sees reported "LKR 0" next
      to "5 fees not recorded" on the one page that asks them to buy this. That
@@ -3660,45 +3672,45 @@ const DEMO_DATA = {
      number: the no-untrackable-numbers rule protects BB's real metrics, and
      showing zero was the more misleading of the two. Totals 345,000. */
   clients: [
-    {id:'d1',name:'Acme Cafe',health:'green',package:'Growth',mrr:65000,industry:'F&B',contact:'Sam',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2026-12-01'},
-    {id:'d2',name:'Skyline Realty',health:'amber',package:'Pro',mrr:85000,industry:'Real Estate',contact:'Dana',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:8,monthly_videos:2,client_type:'retainer',renewal:'2026-09-15'},
-    {id:'d3',name:'FitZone Gym',health:'red',package:'Starter',mrr:45000,industry:'Fitness',contact:'Alex',plan_ready:false,assigned_smm:'NIRVANA',monthly_posts:8,monthly_videos:0,client_type:'retainer',renewal:'2026-07-30'},
-    {id:'d4',name:'Bloom Florist',health:'green',package:'Growth',mrr:65000,industry:'Retail',contact:'Mia',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2027-01-10'},
-    {id:'d5',name:'Nova Tech',health:'green',package:'Pro',mrr:85000,industry:'Technology',contact:'Ravi',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:10,monthly_videos:3,client_type:'retainer',renewal:'2026-11-05'}
+    {id:901001,name:'Acme Cafe',health:'green',package:'Growth',mrr:65000,industry:'F&B',contact:'Sam',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2026-12-01'},
+    {id:901002,name:'Skyline Realty',health:'amber',package:'Pro',mrr:85000,industry:'Real Estate',contact:'Dana',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:8,monthly_videos:2,client_type:'retainer',renewal:'2026-09-15'},
+    {id:901003,name:'FitZone Gym',health:'red',package:'Starter',mrr:45000,industry:'Fitness',contact:'Alex',plan_ready:false,assigned_smm:'NIRVANA',monthly_posts:8,monthly_videos:0,client_type:'retainer',renewal:'2026-07-30'},
+    {id:901004,name:'Bloom Florist',health:'green',package:'Growth',mrr:65000,industry:'Retail',contact:'Mia',plan_ready:true,assigned_smm:'KANEESHA',monthly_posts:12,monthly_videos:4,client_type:'retainer',renewal:'2027-01-10'},
+    {id:901005,name:'Nova Tech',health:'green',package:'Pro',mrr:85000,industry:'Technology',contact:'Ravi',plan_ready:true,assigned_smm:'NIRVANA',monthly_posts:10,monthly_videos:3,client_type:'retainer',renewal:'2026-11-05'}
   ],
   tasks: [
-    {id:'dt1',client_id:'d3',title:'Send June content plan',assign:'NIRVANA',due:'2026-06-19',priority:'high',category:'Content Creation',done:false},
-    {id:'dt2',client_id:'d2',title:'Approve ad creatives',assign:'KANEESHA',due:'2026-06-21',priority:'medium',category:'Ads',done:false},
-    {id:'dt3',client_id:'d1',title:'Monthly review call',assign:'Thulaib',due:'2026-06-23',priority:'medium',category:'Strategy & Planning',done:false},
-    {id:'dt4',client_id:'d5',title:'Publish launch reel',assign:'RAJEEWA',due:'2026-06-18',priority:'high',category:'Content Creation',done:true},
-    {id:'dt5',client_id:'d4',title:'Schedule shoot',assign:'RAMANI',due:'2026-06-25',priority:'low',category:'Production',done:false}
+    {id:902001,client_id:901003,title:'Send June content plan',assign:'NIRVANA',due:'2026-06-19',priority:'high',category:'Content Creation',done:false},
+    {id:902002,client_id:901002,title:'Approve ad creatives',assign:'KANEESHA',due:'2026-06-21',priority:'medium',category:'Ads',done:false},
+    {id:902003,client_id:901001,title:'Monthly review call',assign:'Thulaib',due:'2026-06-23',priority:'medium',category:'Strategy & Planning',done:false},
+    {id:902004,client_id:901005,title:'Publish launch reel',assign:'RAJEEWA',due:'2026-06-18',priority:'high',category:'Content Creation',done:true},
+    {id:902005,client_id:901004,title:'Schedule shoot',assign:'RAMANI',due:'2026-06-25',priority:'low',category:'Production',done:false}
   ],
   invoices: [
-    {id:'di1',client_id:'d1',client_name:'Acme Cafe',amount:45000,due_date:'2026-06-30',month:'2026-06',status:'unpaid'},
-    {id:'di2',client_id:'d2',client_name:'Skyline Realty',amount:60000,due_date:'2026-06-10',month:'2026-06',status:'unpaid'},
-    {id:'di3',client_id:'d4',client_name:'Bloom Florist',amount:45000,due_date:'2026-06-05',month:'2026-06',status:'paid'}
+    {id:903001,client_id:901001,client_name:'Acme Cafe',amount:45000,due_date:'2026-06-30',month:'2026-06',status:'unpaid'},
+    {id:903002,client_id:901002,client_name:'Skyline Realty',amount:60000,due_date:'2026-06-10',month:'2026-06',status:'unpaid'},
+    {id:903003,client_id:901004,client_name:'Bloom Florist',amount:45000,due_date:'2026-06-05',month:'2026-06',status:'paid'}
   ],
   costs: [
-    {id:'dc1',amount:18000,category:'Ads spend',month:'2026-06',note:'Meta ads'},
-    {id:'dc2',amount:25000,category:'Salaries',month:'2026-06',note:'Team'}
+    {id:904001,amount:18000,category:'Ads spend',month:'2026-06',note:'Meta ads'},
+    {id:904002,amount:25000,category:'Salaries',month:'2026-06',note:'Team'}
   ],
   pipeline: [
-    {id:'dp1',name:'Greenleaf Spa',stage:'proposal',status:'open',temperature:'hot',is_hot:true,estimated_value:55000,next_action:'Send proposal',last_contact_at:'2026-06-20T08:00:00Z'},
-    {id:'dp2',name:'Urban Eats',stage:'contacted',status:'open',temperature:'warm',estimated_value:40000,next_action:'Follow up',last_contact_at:'2026-06-12T08:00:00Z'}
+    {id:905001,name:'Greenleaf Spa',stage:'proposal',status:'open',temperature:'hot',is_hot:true,estimated_value:55000,next_action:'Send proposal',last_contact_at:'2026-06-20T08:00:00Z'},
+    {id:905002,name:'Urban Eats',stage:'contacted',status:'open',temperature:'warm',estimated_value:40000,next_action:'Follow up',last_contact_at:'2026-06-12T08:00:00Z'}
   ],
   content_plans: [
-    {id:'dcp1',client_id:'d1',client_name:'Acme Cafe',title:'Weekend special reel',type:'reel',status:'planned',due_date:'2026-06-24',posted:false,platform:'instagram'},
-    {id:'dcp2',client_id:'d3',client_name:'FitZone Gym',title:'Transformation carousel',type:'carousel',status:'designing',due_date:'2026-06-17',posted:false,platform:'instagram'}
+    {id:906001,client_id:901001,client_name:'Acme Cafe',title:'Weekend special reel',type:'reel',status:'planned',due_date:'2026-06-24',posted:false,platform:'instagram'},
+    {id:906002,client_id:901003,client_name:'FitZone Gym',title:'Transformation carousel',type:'carousel',status:'designing',due_date:'2026-06-17',posted:false,platform:'instagram'}
   ],
   smm_shoots: [
-    {id:'ds1',client_id:'d4',title:'Bloom product shoot',shoot_date:'2026-06-24',status:'scheduled'}
+    {id:907001,client_id:901004,title:'Bloom product shoot',shoot_date:'2026-06-24',status:'scheduled'}
   ],
   team_members: [
-    {id:'dm1',name:'NIRVANA',active:true},{id:'dm2',name:'KANEESHA',active:true},
-    {id:'dm3',name:'RAJEEWA',active:true},{id:'dm4',name:'RAMANI',active:true},
-    {id:'dm5',name:'SUHANA',active:true}
+    {id:908001,name:'NIRVANA',active:true},{id:908002,name:'KANEESHA',active:true},
+    {id:908003,name:'RAJEEWA',active:true},{id:908004,name:'RAMANI',active:true},
+    {id:908005,name:'SUHANA',active:true}
   ],
-  missions: [{id:'dms1',title:'Hit 25 retainer clients',status:'active',progress:60}],
+  missions: [{id:909001,title:'Hit 25 retainer clients',status:'active',progress:60}],
   agent_alerts: []
 };
 function demoRows(table){ return (DEMO_DATA[table] ? DEMO_DATA[table].slice() : []); }
@@ -14085,7 +14097,17 @@ else buildNavGroups();
     {name:'agent_alerts',core:false},
     {name:'cc_notifications',core:false},
     {name:'video_time_logs',core:false},
-    {name:'team_login_logs',core:false}
+    {name:'team_login_logs',core:false},
+    /* The catcher watches itself. If a policy change makes either of these
+       unreadable, the app stops being able to see its own bugs and nothing
+       else in the estate would notice, because the silence looks like health.
+       They are core:false: empty is normal on a quiet day. */
+    /* col: bb_bug_clusters is a VIEW that groups rows, so it has no id, it has
+       an ids array. Probing it for 'id' returned HTTP 400 and the Sentinel
+       reported a server_error on every single load: a watcher that alarms about
+       itself is worse than no watcher. Caught in the console before this shipped. */
+    {name:'bb_harness_runs',core:false},
+    {name:'bb_bug_clusters',core:false,col:'app'}
   ];
   /* Exposed for the self-test harness. The anon-read check (L-CC-001) walks this
      exact list, and on its first run it FAILED with "NO TABLES LIST" because the
@@ -14097,13 +14119,31 @@ else buildNavGroups();
   function who(){var r=role();return r==='th'?'THULAIB':r==='sh'?'SHIARA':(r||'anon');}
   function isAdminViewer(){var r=role();return r==='th'||r==='sh';}
 
+  /* A PREVIEW IS NOT A LIVE FAULT, AND ONE DROPPED LINE IS NOT SIXTEEN BUGS.
+     Two noise classes filled this log and made stability unreadable. First, a
+     localhost preview writes rows indistinguishable from a live fault: two of
+     the estate's open bugs on 9 September were somebody's own machine, and the
+     hourly triage has to spend a rule closing them. Nothing is learned by
+     posting them, so a preview now reports to the console and stops there.
+     Second, the table walk reports one failed read PER TABLE, so a dropped
+     connection wrote sixteen rows in a second and read as a storm. Network
+     failures now collapse to one row per app per ten minutes keyed on the
+     category alone. The table name is not the story when the line is down. */
+  function isLocalPreview(){
+    var h=location.hostname;
+    return h==='localhost'||h==='127.0.0.1'||h==='::1'||h==='';
+  }
   function report(issue){
     try{
-      var key=(issue.category||'')+'|'+(issue.table_name||'')+'|'+(issue.message||'').slice(0,120);
+      var cat=issue.category||'';
+      var key = (cat==='network')
+        ? ('network|'+APP)
+        : (cat+'|'+(issue.table_name||'')+'|'+(issue.message||'').slice(0,120));
       var now=Date.now();
       if(_seen[key]&&(now-_seen[key])<DEDUPE_MS)return;
       _seen[key]=now;_issues.push(issue);
       console.error('[BB Sentinel]',issue.category,issue.table_name||'',issue.message,issue.detail||'');
+      if(isLocalPreview()){ if(!issue.quiet)renderBanner(); return; }
       fetch(SB_URL+'/rest/v1/system_bug_log',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({app:APP,severity:issue.severity||'error',category:issue.category||null,table_name:issue.table_name||null,message:(issue.message||'').slice(0,500),detail:(issue.detail||'').slice(0,2000),user_name:who(),url:location.href.slice(0,300),user_agent:(navigator.userAgent||'').slice(0,300)})}).catch(function(){});
       if(!issue.quiet)renderBanner();
     }catch(e){}
@@ -14126,13 +14166,15 @@ else buildNavGroups();
     ov.innerHTML='<div style="background:#12121a;border:1px solid #3a3a4e;border-radius:14px;max-width:560px;width:100%;max-height:80vh;display:flex;flex-direction:column"><div style="padding:16px 20px;border-bottom:1px solid #2a2a3a;display:flex;align-items:center;justify-content:space-between"><div style="font:800 15px Poppins,Inter;color:#fff">🛡️ Sentinel — '+_issues.length+' issue(s)</div><button id="bbSentClose" style="background:none;border:none;color:#a0a0b8;font-size:22px;cursor:pointer">×</button></div><div style="padding:16px 20px;overflow-y:auto">'+rows+'<div style="margin-top:6px;font-size:11px;color:#8888a0">All issues logged to <code>system_bug_log</code> in Supabase.</div></div></div>';
     ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);document.getElementById('bbSentClose').onclick=function(){ov.remove();};
   }
-  function headCount(table){
-    return fetch(SB_URL+'/rest/v1/'+table+'?select=id&limit=1',{method:'GET',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}}).then(function(r){var cr=r.headers.get('content-range');var total=null;if(cr&&cr.indexOf('/')>-1){var t=cr.split('/')[1];total=(t==='*')?null:parseInt(t,10);}return r.text().then(function(body){return {ok:r.ok,status:r.status,count:total,body:body};});}).catch(function(e){return {ok:false,status:0,count:null,body:String(e&&e.message||e)};});
+  function headCount(t){
+    var table=(typeof t==='string')?t:t.name;
+    var col=(typeof t==='string')?'id':(t.col||'id');
+    return fetch(SB_URL+'/rest/v1/'+table+'?select='+col+'&limit=1',{method:'GET',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}}).then(function(r){var cr=r.headers.get('content-range');var total=null;if(cr&&cr.indexOf('/')>-1){var t=cr.split('/')[1];total=(t==='*')?null:parseInt(t,10);}return r.text().then(function(body){return {ok:r.ok,status:r.status,count:total,body:body};});}).catch(function(e){return {ok:false,status:0,count:null,body:String(e&&e.message||e)};});
   }
   function checkHealth(){
-    TABLES.forEach(function(t){headCount(t.name).then(function(res){
+    TABLES.forEach(function(t){headCount(t).then(function(res){
       if(!res.ok){if(res.status===0){report({severity:'info',category:'network',table_name:t.name,message:'read failed (network/offline)',detail:'Transient connectivity, not a bug.',quiet:true});return;}var cat=res.status===404?'table_missing':(res.status===401||res.status===403?'db_permission':'server_error');report({severity:'error',category:cat,table_name:t.name,message:'read failed (HTTP '+res.status+')',detail:(res.body||'').slice(0,300)});return;}
-      if(t.core&&res.count===0){report({severity:'warning',category:'empty_core',table_name:t.name,message:'returned 0 rows — likely a permissions (RLS) block',detail:'Core table should never be empty. Check RLS policy for the anon role.'});}
+      if(t.core&&res.count===0){report({severity:'warning',category:'empty_core',table_name:t.name,message:'returned 0 rows, likely a permissions (RLS) block',detail:'Core table should never be empty. Check RLS policy for the anon role.'});}
     });});
   }
   window.bbSentinelCheck=checkHealth;
@@ -14299,7 +14341,12 @@ else buildNavGroups();
    not find its target is worse than no check. Every check that selects something
    FAILS loudly when the selection is empty, naming what it looked for.
    ═════════════════════════════════════════════════════════════════ */
-async function runSelfTest(){
+async function runSelfTest(opts){
+ /* silent:true runs the same checks and returns the same object, but draws
+    nothing and logs nothing. The once-a-day automatic run uses it. A person
+    typing runSelfTest() still gets the full console table and the on-screen
+    card, unchanged. */
+ const SILENT=!!(opts&&opts.silent);
  const R=[];
  const ok=(name,pass,detail)=>{R.push({name:name,pass:!!pass,detail:String(detail==null?'':detail).slice(0,220)});};
  const cs=getComputedStyle;
@@ -14386,8 +14433,14 @@ async function runSelfTest(){
     try{
      const r=await fetch(SB_URL+'/rest/v1/'+name+'?select=*&limit=1',
                          {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
-     good = r.status!==401 && r.status!==403;
-     verdict = 'HTTP '+r.status+(good?'':' — ANON READ IS BLOCKED, this table will 401 the app');
+     /* 401 and 403 were the only failures this recognised, so a table that had
+        been renamed away (404) or queried wrongly (400) counted as readable.
+        A 5xx is Supabase having a moment and must not turn the suite red, which
+        is L-DEV-005, so it passes with the status said out loud. */
+     good = r.ok || r.status>=500;
+     verdict = 'HTTP '+r.status+(r.ok?'':(r.status>=500?', server side, not a permissions fault'
+              :(r.status===401||r.status===403)?', ANON READ IS BLOCKED, this table will 401 the app'
+              :', the app cannot read this table'));
     }catch(e){ good=false; verdict='fetch failed: '+(e&&e.message||e); }
     ok('Anon: '+name+' is readable',good,verdict);
    }
@@ -14591,6 +14644,44 @@ async function runSelfTest(){
       found.length?('found '+[...new Set(found)].slice(0,6).join(' ')):'clean');
   })();
 
+  /* ── J · THE BUG CATCHER CAN STILL SEE ──────────────────────────── */
+
+  /* A demo id that is not the same TYPE as a real id is a second code path,
+     and it broke in the only place that matters, the prospect preview. Every
+     row template writes the id straight into an inline onclick unquoted, so a
+     string id becomes a variable name and throws. This check fails on the
+     shape of the fault rather than on one page, so it catches the next
+     fixture somebody adds as well as the one that was fixed. */
+  (function(){
+   if(typeof DEMO_DATA!=='object'||!DEMO_DATA){ ok('Demo: fixture data was found',false,'NO DEMO_DATA, this check proved nothing'); return; }
+   const bad=[];
+   Object.keys(DEMO_DATA).forEach(t=>{
+     (DEMO_DATA[t]||[]).forEach(r=>{
+       if(r&&'id' in r&&typeof r.id!=='number') bad.push(t+'.'+r.id);
+       if(r&&'client_id' in r&&r.client_id!=null&&typeof r.client_id!=='number') bad.push(t+'.client_id='+r.client_id);
+     });
+   });
+   ok('Demo: every demo id is a number, like a real one (L-CC-004)',bad.length===0,
+      bad.length?('string ids: '+bad.slice(0,6).join(', ')):'all numeric');
+  })();
+
+  /* The catcher going quiet looks exactly like a week with no bugs. These two
+     are the writers; if either name disappears in a refactor nothing else in
+     the estate would report it. */
+  ok('Catcher: the once-a-day self-test writer is loaded',
+     typeof window.bbccHarnessLog==='function','window.bbccHarnessLog');
+  ok('Catcher: the bug panel is loaded',
+     typeof window.bbccBugPanel==='function','window.bbccBugPanel');
+  ok('Catcher: Report a problem is reachable from Settings',
+     typeof BBSET==='object'&&BBSET&&typeof BBSET.report==='function','BBSET.report');
+  (function(){
+   const T=(window.__CC_TABLES||[]).map(t=>t.name);
+   const want=['bb_harness_runs','bb_bug_clusters'];
+   const miss=want.filter(n=>T.indexOf(n)<0);
+   ok('Catcher: its own tables are in the anon-read walk',miss.length===0,
+      miss.length?('missing: '+miss.join(', ')):'both watched');
+  })();
+
  }catch(e){
   ok('HARNESS: completed without crashing',false,String(e&&e.message||e));
  }finally{
@@ -14600,14 +14691,17 @@ async function runSelfTest(){
  const failed=R.filter(r=>!r.pass);
  const pass=failed.length===0;
  window.__ST_REPORTING=true;
+ if(!SILENT){
  console.log('%c BB COMMAND CENTRE SELF-TEST  '+(pass?'ALL GREEN':failed.length+' FAILED')+'  '+R.length+' checks',
              'background:'+(pass?'#16a34a':'#dc2626')+';color:#fff;padding:3px 8px;border-radius:4px;font-weight:700');
  console.table(R.map(r=>({check:r.name,result:r.pass?'PASS':'FAIL',detail:r.detail})));
  if(!pass)console.warn('FAILED:\n'+failed.map(f=>'  - '+f.name+(f.detail?('  ['+f.detail+']'):'')).join('\n'));
+ }
  window.__ST_REPORTING=false;
 
  /* on-screen report, so it can be read on a phone where there is no console */
  try{
+  if(SILENT) return {pass:pass,failed:failed.length,total:R.length,results:R};
   let box=document.getElementById('bbcc-selftest');
   if(!box){box=document.createElement('div');box.id='bbcc-selftest';document.body.appendChild(box);}
   box.style.cssText='position:fixed;inset:auto 10px 10px 10px;max-height:70vh;overflow:auto;z-index:99999;'
@@ -14630,6 +14724,121 @@ if(location.search.indexOf('selftest')>-1){
 }
 /* @@BBCC_SELFTEST_END@@ */
 </script>
+<!-- @@BBCC_HARNESSLOG_BEGIN@@ -->
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   WRITE THE SCORE DOWN (bug catcher, 9 September 2026).
+
+   The harness has been green for weeks on the one screen it was ever run on:
+   this laptop, on a desk. Nobody has ever seen it run on a designer's phone at
+   390px, which is exactly where bb-app-foundations says a suite that only
+   tests what a desktop can see will pass a product that is broken in the hand.
+   So it now runs itself once a day per person and posts one row. The hub reads
+   those rows within the hour. A red check on somebody's phone becomes visible
+   without anyone reporting it, and a day with no rows at all is itself a
+   signal, because it means nobody opened the app or the writer is broken.
+
+   IT NEVER INTERRUPTS WORK. The harness walks every page to check it, then
+   returns to where it started, so running it under somebody's hands would
+   flick the screen for two seconds and read as a fault. It therefore runs only
+   in the quiet moment after login: still on the dashboard, tab in front, no
+   click or key pressed yet. If the person started working first, today is
+   skipped rather than stolen. That is why a row can be missing on a busy day.
+
+   It is not part of the harness. The harness block above states it makes no
+   writes and that has to stay literally true, so the one write in this feature
+   lives out here where it can be read.
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  'use strict';
+  var APP='command-centre';
+  var touched=false;
+  ['pointerdown','keydown'].forEach(function(ev){
+    window.addEventListener(ev,function(){touched=true;},{once:true,capture:true});
+  });
+
+  function localPreview(){var h=location.hostname;return h==='localhost'||h==='127.0.0.1'||h==='::1'||h==='';}
+  function who(){
+    try{ return (typeof ROLE!=='undefined'&&ROLE==='th')?'THULAIB'
+              :(typeof ROLE!=='undefined'&&ROLE==='sh')?'SHIARA'
+              :(typeof ROLE!=='undefined'&&ROLE?String(ROLE):'unknown'); }
+    catch(e){ return 'unknown'; }
+  }
+  function dayKey(){
+    var d=new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function alreadyToday(){
+    try{ return localStorage.getItem('bbcc_harness_'+dayKey()+'_'+who())==='1'; }catch(e){ return false; }
+  }
+  function markToday(){
+    try{ localStorage.setItem('bbcc_harness_'+dayKey()+'_'+who(),'1'); }catch(e){}
+  }
+
+  async function post(res){
+    var failed=(res.results||[]).filter(function(r){return !r.pass;});
+    /* failed_names is a text ARRAY and it is NOT NULL, so a green run sends an
+       empty array, never null and never a joined string. Null came back 23502
+       and a string came back 22P02, and both would have failed inside the catch
+       with nobody the wiser. Null fails on the GOOD days, which is the worse of
+       the two: the panel would have read "no self-test today" every day the app
+       was perfectly well. Found by posting the real payload before shipping it,
+       which is the only way a write path is ever actually proven. */
+    var names=failed.map(function(r){return String(r.name).slice(0,160);}).slice(0,40);
+    var body={ app:APP, checks:res.total, failed:res.failed,
+               failed_names:names, width:window.innerWidth,
+               user_name:who(), url:location.href.slice(0,300) };
+    var r=await fetch(SB_URL+'/rest/v1/bb_harness_runs',{
+      method:'POST',
+      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,
+               'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(body)});
+    if(!r.ok) throw new Error('HTTP '+r.status+' '+(await r.text()).slice(0,160));
+    return body;
+  }
+
+  /* force:true is the escape hatch for a person testing this, and for the
+     first proof that the row lands. It ignores the once-a-day mark and the
+     quiet-moment rule, but never the demo and preview blocks. */
+  async function run(force){
+    if(localPreview()) return {skipped:'local preview'};
+    if(typeof DEMO_MODE!=='undefined'&&DEMO_MODE) return {skipped:'demo mode'};
+    if(!force){
+      if(alreadyToday()) return {skipped:'already ran today'};
+      if(touched) return {skipped:'person is working'};
+      if(document.hidden) return {skipped:'tab not in front'};
+      if(typeof CURRENT_PAGE!=='undefined'&&CURRENT_PAGE!=='dashboard') return {skipped:'not on the dashboard'};
+    }
+    markToday();
+    var res=await runSelfTest({silent:true});
+    return await post(res);
+  }
+
+  /* Wait for a real login, up to three minutes. A row written from the login
+     screen would say nothing loaded and read as a failure of the app rather
+     than of the moment, which is the false alarm a harness must never make. */
+  async function waitForLogin(){
+    for(var i=0;i<180;i++){
+      try{ if(typeof D==='object'&&D&&(D.clients||[]).length>0) return true; }catch(e){}
+      await new Promise(function(r){setTimeout(r,1000);});
+    }
+    return false;
+  }
+
+  window.addEventListener('load',function(){
+    setTimeout(async function(){
+      try{
+        if(!(await waitForLogin())) return;
+        await new Promise(function(r){setTimeout(r,4000);});
+        await run(false);
+      }catch(e){ console.warn('[harness log]',e&&e.message||e); }
+    },3000);
+  });
+
+  window.bbccHarnessLog=run;
+})();
+</script>
+<!-- @@BBCC_HARNESSLOG_END@@ -->
 <!-- @@BBCC_PUBTRACK_BEGIN@@ -->
 <script>
 /* ════════════════════════════════════════════════════════════════════════════
@@ -14859,7 +15068,7 @@ var BBPUSH=(function(){
    nav item, so it inherits that app's look without a line of app CSS.
    ════════════════════════════════════════════════════════════════════════ */
 var BBSET=(function(){
-  var APP_LABEL='Command Centre', ACCENT='#FF6B2B';
+  var APP_LABEL='Command Centre', ACCENT='#FF6B2B', APP_SLUG='command-centre';
   var GEAR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
   var sheet=null, back=null;
   function standalone(){ return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true; }
@@ -14876,6 +15085,16 @@ var BBSET=(function(){
     html+=card('Phone alerts', row('Status',alertsLine)+row('Quiet hours','9pm to 7am, held until 7am')+'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'+alertsBtns+btn('Run diagnostics','BBSET.diag()',false)+'</div><pre id="bbset-diag" style="display:none;white-space:pre-wrap;font-size:11px;line-height:1.5;margin:10px 0 0;padding:10px;border-radius:8px;background:var(--bg,#0c0d10);color:var(--text,#fff)"></pre>'+(st.lastError?'<div style="margin-top:8px;font-size:11px;color:#f87171">'+st.lastError+'</div>':''));
     html+=card('Installed as an app', row('This device', standalone()?'Yes':'No, running in the browser')+(!standalone()?'<div style="margin-top:8px;font-size:12px;color:var(--text3,#9aa3ad)">'+(isIOS()?'Share, then Add to Home Screen. Alerts only work from the installed app.':'Use your browser menu, then Add to Home screen.')+'</div>':''));
     html+=card('Account', row('Signed in as', st.user||'Not signed in')+(logoutFn()?'<div style="margin-top:12px">'+btn('Sign out','BBSET.signout()',false)+'</div>':''));
+    /* REPORT A PROBLEM. Everything else in the bug catcher watches the machine:
+       a thrown error, a failed read, a red check. None of it sees the fault a
+       person can see, which is a number that is wrong or a button that does
+       nothing without complaining. This is the only door for that, so it asks
+       for nothing but the sentence and sends the page and the name with it. */
+    html+=card('Report a problem',
+      '<div style="font-size:12px;color:var(--text3,#9aa3ad);line-height:1.5;margin-bottom:9px">Say what you saw and what you expected. It reaches Thulaib within the hour.</div>'
+      +'<textarea id="bbset-report" rows="3" placeholder="The August total looks wrong on the Finance page" style="width:100%;box-sizing:border-box;background:var(--bg,#0c0d10);color:var(--text,#fff);border:1px solid var(--border,#2a2d35);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px;resize:vertical"></textarea>'
+      +'<div id="bbset-report-said" style="display:none;font-size:12px;margin-top:8px"></div>'
+      +'<div style="margin-top:10px">'+btn('Send','BBSET.report()',true)+'</div>');
     html+=card('App', row('Build', document.lastModified||'')+'<div style="margin-top:12px">'+btn('Reload latest version','BBSET.reload()',false)+'</div>');
     sheet.innerHTML=html;
   }
@@ -14895,6 +15114,26 @@ var BBSET=(function(){
   async function enable(){ try{ await BBPUSH.enable(); }catch(e){} render(); }
   async function test(){ try{ var r=await BBPUSH.test(); alert(r&&r.sent?'Test sent. Check your phone.':'Nothing sent: '+(r&&r.error||'no phone registered')); }catch(e){ alert('Test failed: '+(e&&e.message||e)); } }
   async function diag(){ var el=document.getElementById('bbset-diag'); if(!el) return; el.style.display='block'; el.textContent='Checking, one line per step'; try{ var L=await BBPUSH.diagnose(function(lines){ el.textContent=lines.join('\n')+'\n…'; }); el.textContent=L.join('\n'); }catch(e){ el.textContent='Diagnostics failed: '+(e&&e.message||e); } }
+  async function report(){
+    var box=document.getElementById('bbset-report'), said=document.getElementById('bbset-report-said');
+    if(!box||!said) return;
+    var text=(box.value||'').trim();
+    function say(msg,good){ said.style.display='block'; said.style.color=good?'#22c55e':'#f87171'; said.textContent=msg; }
+    if(text.length<4){ say('Write a line or two first, then Send.',false); return; }
+    var st=(typeof BBPUSH!=='undefined'&&BBPUSH.status)?BBPUSH.status():{};
+    try{
+      var r=await fetch(SB_URL+'/rest/v1/system_bug_log',{
+        method:'POST',
+        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+        body:JSON.stringify({app:APP_SLUG,severity:'info',category:'user_report',
+          message:text.slice(0,500),
+          user_name:st.user||'unknown',
+          url:location.href.slice(0,300),
+          user_agent:(navigator.userAgent||'').slice(0,300)})});
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      box.value=''; say('Sent. Thank you, that is genuinely useful.',true);
+    }catch(e){ say('Could not send: '+(e&&e.message||e)+'. Try again when you have signal.',false); }
+  }
   function signout(){ var f=logoutFn(); close(); if(f) f(); }
   async function reload(){
     try{ if('serviceWorker' in navigator){ var rs=await navigator.serviceWorker.getRegistrations(); for(var i=0;i<rs.length;i++) await rs[i].unregister(); } if(window.caches){ var ks=await caches.keys(); for(var j=0;j<ks.length;j++) await caches.delete(ks[j]); } }catch(e){}
@@ -14919,7 +15158,7 @@ var BBSET=(function(){
   }
   var tries=0; function boot(){ if(!inject() && tries++<60) setTimeout(boot,2000); }
   window.addEventListener('load',function(){ setTimeout(boot,1500); });
-  return { open:open, close:close, enable:enable, test:test, signout:signout, reload:reload, inject:inject, diag:diag };
+  return { open:open, close:close, enable:enable, test:test, signout:signout, reload:reload, inject:inject, diag:diag, report:report };
 })();
 </script>
 <!-- @@BB_SETTINGS_END@@ -->
@@ -14996,3 +15235,101 @@ var BBSET=(function(){
 })();
 </script>
 <!-- @@BBCC_ALERTHEALTH_END@@ -->
+<!-- @@BBCC_BUGPANEL_BEGIN@@ -->
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   IS THE BUG CATCHER WORKING (bug catcher, 9 September 2026).
+
+   Every other layer of this runs where Thulaib cannot see it: a triage job in
+   the database, a fixer in the cloud at night. The estate has been here before.
+   A Guardian, an outage monitor and a Sentinel all ran for weeks shouting into
+   a Gmail account whose password was revoked in July, and nothing said so. Ten
+   silent days in the bug log read exactly like ten stable days.
+
+   So the catcher reports on itself, on the page where the other automation
+   already reports. Two numbers and no buttons: what is open, and whether the
+   self-test has run today. A day with no harness row is the signal that the
+   writer is broken, and it is only a signal if somebody can see it.
+
+   READ ONLY. This panel never writes and never resolves anything.
+   Gated to Thulaib and Shiara, never demo, for the reason in L-CC-010: an
+   ungated panel queried real records on the public page before anyone signed
+   in. Open bug text can name a client, so it goes through the same choke point.
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  var APP='command-centre';
+  function allowed(){
+    if(typeof DEMO_MODE!=='undefined'&&DEMO_MODE) return false;
+    return typeof ROLE!=='undefined'&&(ROLE==='th'||ROLE==='sh');
+  }
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function ago(iso){
+    if(!iso) return 'never';
+    var h=(Date.now()-new Date(iso).getTime())/36e5;
+    if(h<1) return 'just now'; if(h<24) return Math.round(h)+'h ago';
+    return Math.round(h/24)+'d ago';
+  }
+  async function get(path){
+    var r=await fetch(SB_URL+'/rest/v1/'+path,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  }
+  async function render(){
+    var list=document.getElementById('agents-page-list');
+    if(!list) return;
+    var host=document.getElementById('bbcc-bugpanel');
+    if(!host){
+      host=document.createElement('div'); host.id='bbcc-bugpanel';
+      host.style.cssText='margin:0 0 18px';
+      list.parentNode.insertBefore(host,list);
+    }
+    if(!allowed()){ host.innerHTML=''; return; }
+    var clusters=[], runs=[];
+    try{
+      clusters=await get('bb_bug_clusters?app=eq.'+APP+'&resolved=eq.false&from_localhost=eq.false&order=hits.desc&limit=20');
+      runs=await get('bb_harness_runs?app=eq.'+APP+'&select=checks,failed,failed_names,width,user_name,created_at&order=created_at.desc&limit=10');
+    }catch(e){
+      host.innerHTML='<div class="card" style="margin:0"><div style="font-size:12px;color:var(--red,#ef4444)">Could not read the bug catcher: '+esc(e.message)+'</div></div>';
+      return;
+    }
+    var last=runs[0]||null;
+    var todayRuns=runs.filter(function(r){return (Date.now()-new Date(r.created_at).getTime())<24*36e5;});
+    var reds=todayRuns.filter(function(r){return r.failed>0;});
+
+    var head='<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:9px;flex-wrap:wrap">'
+      +'<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#FF6B2B)">Bug catcher</div>'
+      +'<div style="font-size:11px;color:var(--text-3)">'
+      +(clusters.length?('<b style="color:#ef4444">'+clusters.length+' open</b>'):'nothing open')
+      +' · '+(todayRuns.length?(todayRuns.length+' self-test'+(todayRuns.length===1?'':'s')+' today'):'<b style="color:#f59e0b">no self-test today</b>')
+      +'</div></div>';
+
+    var rows=clusters.length ? clusters.map(function(c){
+      return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-bottom:1px solid var(--border)">'
+        +'<div style="min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(c.message)+'</div>'
+        +'<div style="font-size:10px;color:var(--text-3)">'+esc(c.category||'')+' · '+(c.people||1)+' person'+((c.people||1)===1?'':'s')+' · first seen '+ago(c.first_seen)+'</div></div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+        +'<span style="display:inline-block;font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,.12);color:#ef4444">'+(c.hits||1)+' hit'+((c.hits||1)===1?'':'s')+'</span>'
+        +'<div style="font-size:10px;color:var(--text-3);margin-top:2px">'+ago(c.last_seen)+'</div></div></div>';
+    }).join('')
+    : '<div style="padding:9px 11px;font-size:12px;color:var(--text-3)">No open bugs on the Command Centre. The nightly fixer has nothing to take tonight.</div>';
+
+    var foot='<div style="padding:9px 11px;font-size:11px;color:var(--text-3);line-height:1.5;border-top:1px solid var(--border)">';
+    if(!last){
+      foot+='The self-test has never posted a score. It runs once a day per person, in the quiet moment after you sign in.';
+    }else{
+      foot+='Last self-test '+ago(last.created_at)+', '+esc(last.user_name||'someone')+' at '+(last.width||0)+'px: '
+         +(last.failed>0
+            ? '<b style="color:#ef4444">'+last.failed+' of '+last.checks+' failed</b> · '+esc([].concat(last.failed_names||[]).join(', ').slice(0,140))
+            : '<b style="color:#22c55e">all '+last.checks+' green</b>');
+      if(reds.length) foot+='<br><b style="color:#ef4444">'+reds.length+' red run'+(reds.length===1?'':'s')+' in the last day.</b> A check that fails on a phone and passes here is the point of this.';
+    }
+    foot+='</div>';
+
+    host.innerHTML='<div class="card" style="margin:0;padding:14px 4px 4px"><div style="padding:0 11px">'+head+'</div>'+rows+foot+'</div>';
+  }
+  var orig=(typeof loadAgentsPage==='function')?loadAgentsPage:null;
+  if(orig){ loadAgentsPage=function(){ orig.apply(this,arguments); try{ render(); }catch(e){ console.warn('[bug panel]',e); } }; }
+  window.bbccBugPanel=render;
+})();
+</script>
+<!-- @@BBCC_BUGPANEL_END@@ -->
