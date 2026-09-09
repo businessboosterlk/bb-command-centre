@@ -14752,10 +14752,19 @@ if(location.search.indexOf('selftest')>-1){
 (function(){
   'use strict';
   var APP='command-centre';
-  var touched=false;
-  ['pointerdown','keydown'].forEach(function(ev){
-    window.addEventListener(ev,function(){touched=true;},{once:true,capture:true});
-  });
+  /* ARM THIS ONLY AFTER LOGIN, NOT AT PAGE LOAD. Written the wrong way first and
+     caught by reading it back: picking a login card is a pointerdown and typing a
+     password is a keydown, so the watch fired during the sign-in itself and the
+     run was skipped on EVERY login, for ever, while the panel said "no self-test
+     today" every day the app was well. That is the same shape as L-CC-013: a
+     fault that only ever lands on the good path. */
+  var touched=false, watching=false;
+  function watchForWork(){
+    if(watching) return; watching=true;
+    ['pointerdown','keydown'].forEach(function(ev){
+      window.addEventListener(ev,function(){touched=true;},{once:true,capture:true});
+    });
+  }
 
   function localPreview(){var h=location.hostname;return h==='localhost'||h==='127.0.0.1'||h==='::1'||h==='';}
   function who(){
@@ -14772,7 +14781,21 @@ if(location.search.indexOf('selftest')>-1){
     try{ return localStorage.getItem('bbcc_harness_'+dayKey()+'_'+who())==='1'; }catch(e){ return false; }
   }
   function markToday(){
-    try{ localStorage.setItem('bbcc_harness_'+dayKey()+'_'+who(),'1'); }catch(e){}
+    try{
+      localStorage.setItem('bbcc_harness_'+dayKey()+'_'+who(),'1');
+      localStorage.setItem('bbcc_harness_last','' + Date.now());
+    }catch(e){}
+  }
+  /* THE SAFETY VALVE. Every gate below can legitimately skip a day, so a person
+     who always starts working the moment they land could skip for ever and the
+     panel would read as a broken writer rather than a busy week. After three
+     days with no row the quiet-moment rule is dropped and it runs anyway. Two
+     seconds of flicker once a quarter beats a signal that is permanently stuck. */
+  function overdue(){
+    try{
+      var last=parseInt(localStorage.getItem('bbcc_harness_last')||'0',10);
+      return !last || (Date.now()-last) > 3*24*36e5;
+    }catch(e){ return false; }
   }
 
   async function post(res){
@@ -14805,9 +14828,11 @@ if(location.search.indexOf('selftest')>-1){
     if(typeof DEMO_MODE!=='undefined'&&DEMO_MODE) return {skipped:'demo mode'};
     if(!force){
       if(alreadyToday()) return {skipped:'already ran today'};
-      if(touched) return {skipped:'person is working'};
       if(document.hidden) return {skipped:'tab not in front'};
-      if(typeof CURRENT_PAGE!=='undefined'&&CURRENT_PAGE!=='dashboard') return {skipped:'not on the dashboard'};
+      if(!overdue()){
+        if(touched) return {skipped:'person is working'};
+        if(typeof CURRENT_PAGE!=='undefined'&&CURRENT_PAGE!=='dashboard') return {skipped:'not on the dashboard'};
+      }
     }
     markToday();
     var res=await runSelfTest({silent:true});
@@ -14829,6 +14854,7 @@ if(location.search.indexOf('selftest')>-1){
     setTimeout(async function(){
       try{
         if(!(await waitForLogin())) return;
+        watchForWork();
         await new Promise(function(r){setTimeout(r,4000);});
         await run(false);
       }catch(e){ console.warn('[harness log]',e&&e.message||e); }
