@@ -15305,11 +15305,58 @@ var BBSET=(function(){
   function dayDate(i){ var d=new Date(MW_MONDAY); d.setDate(d.getDate()+i); return d; }
   function fmtDay(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
 
-  /* One line becomes a time and a block. A line with no time keeps its text. */
+  /* One line becomes a tick, a time and a block. A line with no time keeps its
+     text. A done block is stored by prefixing its own line with [x], inside the
+     notes field, which is why this reads the marker before the time.
+
+     WHY THE MARKER LIVES IN THE TEXT. A tick has to survive closing the laptop
+     and has to be the same tick on the phone, so it cannot live in the browser.
+     The alternative was a new column, which is a schema change and Thulaib's
+     call, and this needed none: bb_week.notes is already the plan and My Week is
+     the only surface that reads it. Ticking writes the whole notes field back
+     through the normal authenticated writer, so an undo is another tap. */
   function splitLine(line){
-    var m = String(line).match(/^\s*(\d{1,2}:\d{2})\s+(.*)$/);
-    return m ? {time:m[1], text:m[2]} : {time:'', text:String(line).trim()};
+    var raw = String(line);
+    var done = /^\s*\[x\]\s/i.test(raw);
+    if(done) raw = raw.replace(/^\s*\[x\]\s*/i,'');
+    var m = raw.match(/^\s*(\d{1,2}:\d{2})\s+(.*)$/);
+    return m ? {done:done, time:m[1], text:m[2]} : {done:done, time:'', text:raw.trim()};
   }
+
+  /* Toggle one line in one day and save. Optimistic: the tick moves at once and
+     goes back if the write fails, because a tick that lies is worse than a slow one. */
+  window.mwToggle = async function(dayNo, lineIdx){
+    var row = MW_ROWS.filter(function(r){ return r.day_of_week===dayNo && String(r.assigned_to||'').toUpperCase()===MW_WHO; })[0];
+    if(!row || !row.notes) return;
+    var lines = String(row.notes).split('\n');
+    if(lineIdx<0 || lineIdx>=lines.length) return;
+    var before = row.notes;
+    lines[lineIdx] = /^\s*\[x\]\s/i.test(lines[lineIdx])
+      ? lines[lineIdx].replace(/^\s*\[x\]\s*/i,'')
+      : '[x] ' + lines[lineIdx].replace(/^\s+/,'');
+    row.notes = lines.join('\n');
+    renderMyWeek();
+    /* READ IT BACK, do not trust the writer's return value. A successful PATCH
+       comes back with an empty body, so SBpatch returns null on success exactly
+       as it does on failure: checking it for null called every saved tick a
+       failure, rolled the tick back on screen and showed an alert, while the
+       row in the database had changed correctly.
+
+       Re-reading is also the only thing that catches the worse case. On a table
+       with row level security a PATCH against a row the reader cannot see
+       returns 200 and changes nothing, so even checking the HTTP status would
+       have called that a success. The only honest question is whether the value
+       is now what we sent. */
+    try{
+      await SBpatch('bb_week', row.id, {notes: row.notes});
+      var back = await SBget('bb_week', '?id=eq.'+row.id+'&select=notes');
+      var saved = back && back[0] ? back[0].notes : null;
+      if(saved !== row.notes) throw new Error('the row did not change');
+    }catch(e){
+      row.notes = before; renderMyWeek();
+      alert('That tick did not save: '+(e&&e.message||e)+'. Sign in with your password rather than the demo card.');
+    }
+  };
 
   window.mwSetWho = function(who){ MW_WHO = who; renderMyWeek(); };
   window.mwShift = function(n){ var d=new Date(MW_MONDAY); d.setDate(d.getDate()+n*7); MW_MONDAY=d; loadMyWeek(); };
@@ -15365,17 +15412,30 @@ var BBSET=(function(){
       var isToday = iso(d)===todayIso;
       var lines = row && row.notes ? String(row.notes).split('\n').filter(function(l){return l.trim();}) : [];
 
-      var body = lines.length ? lines.map(function(l){
+      var doneCount = 0;
+      var body = lines.length ? lines.map(function(l, li){
         var p = splitLine(l);
-        return '<div style="display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--border)">'
-          +'<div style="flex:0 0 46px;font:800 11px ui-monospace,Menlo,monospace;color:'+(p.time?'var(--accent,#FF6B2B)':'var(--text-3)')+';letter-spacing:.02em">'+esc(p.time||'')+'</div>'
-          +'<div style="flex:1;min-width:0;font-size:12.5px;line-height:1.45;color:var(--text)">'+esc(p.text)+'</div></div>';
+        if(p.done) doneCount++;
+        /* 26px is a small target on a desk and a poor one on a phone, so the
+           whole row is the button and the box is only what it looks like. */
+        return '<div role="button" tabindex="0" onclick="mwToggle('+(i+1)+','+li+')" '
+          +'onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();mwToggle('+(i+1)+','+li+');}" '
+          +'style="display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--border);cursor:pointer;min-height:38px">'
+          +'<span aria-hidden="true" style="flex:0 0 17px;height:17px;margin-top:1px;border-radius:5px;display:flex;align-items:center;justify-content:center;'
+            +'border:1.5px solid '+(p.done?'var(--accent,#FF6B2B)':'var(--border)')+';'
+            +'background:'+(p.done?'var(--accent,#FF6B2B)':'transparent')+';'
+            +'font:900 11px Inter,system-ui,sans-serif;color:#0b1014;line-height:1">'+(p.done?'&#10003;':'')+'</span>'
+          +'<div style="flex:0 0 44px;font:800 11px ui-monospace,Menlo,monospace;letter-spacing:.02em;margin-top:2px;'
+            +'color:'+(p.done?'var(--text-3)':(p.time?'var(--accent,#FF6B2B)':'var(--text-3)'))+'">'+esc(p.time||'')+'</div>'
+          +'<div style="flex:1;min-width:0;font-size:12.5px;line-height:1.45;'
+            +'color:'+(p.done?'var(--text-3)':'var(--text)')+';'+(p.done?'text-decoration:line-through':'')+'">'+esc(p.text)+'</div></div>';
       }).join('') : '<div style="padding:14px 0;font-size:12px;color:var(--text-3)">Nothing planned</div>';
 
       return '<div class="card" style="margin:0;padding:14px 16px 10px;'+(isToday?'border-color:var(--accent,#FF6B2B)':'')+'">'
         +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px">'
           +'<div style="font:800 11px Inter,system-ui,sans-serif;letter-spacing:.08em;color:'+(isToday?'var(--accent,#FF6B2B)':'var(--text-2)')+'">'+name+'</div>'
           +'<div style="font-size:11px;color:var(--text-3)">'+fmtDay(d)+'</div></div>'
+        +(lines.length?'<div style="font-size:10.5px;color:'+(doneCount===lines.length?'var(--green,#22c55e)':'var(--text-3)')+';margin-bottom:6px;font-weight:700">'+doneCount+' of '+lines.length+' done</div>':'')
         +(row&&row.title?'<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;line-height:1.4">'+esc(row.title)+'</div>':'')
         +body+'</div>';
     }).join('');
