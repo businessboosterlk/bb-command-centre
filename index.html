@@ -3015,6 +3015,12 @@ window.__ST_LOG=[];
   <div class="content"><div id="cc-dl-root"></div></div>
 </div>
 
+<div id="page-myweek" class="page-section" style="display:none">
+  <div class="content">
+    <div id="mw-hours"></div>
+  </div>
+</div>
+
 <div id="page-week" class="page-section" style="display:none">
   <div class="content">
     <div style="margin-bottom:16px">
@@ -4710,6 +4716,10 @@ function showPage(page) {
   window._bbCurrentPage = page; // tracked by bug detector
 
   // Load data for the page
+  if (page === 'myweek') {
+    document.getElementById('topbar-title').textContent = 'My Week';
+    loadMyWeek();
+  }
   if (page === 'month') {
     document.getElementById('topbar-title').textContent = 'The Month';
     loadMonthlyRecap();
@@ -14053,10 +14063,11 @@ const NAV_PARENT = {month:'myday',
 };
 /* in-page segmented switches per group (page → [label, targetPage]) */
 const PAGE_TABS = {
-  myday:      [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
-  week:       [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
-  month:      [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
-  taskbook:   [['My Day','myday'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  myday:      [['My Day','myday'],['My Week','myweek'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  myweek:     [['My Day','myday'],['My Week','myweek'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  week:       [['My Day','myday'],['My Week','myweek'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  month:      [['My Day','myday'],['My Week','myweek'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
+  taskbook:   [['My Day','myday'],['My Week','myweek'],['The Week','week'],['The Month','month'],['Task Book','taskbook']],
   clients:    [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   onboarding: [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
   readiness:  [['Directory','clients'],['Onboarding','onboarding'],['Readiness','readiness'],['Churn','churn','ceo-only']],
@@ -15258,6 +15269,123 @@ var BBSET=(function(){
 })();
 </script>
 <!-- @@BB_SETTINGS_END@@ -->
+<!-- @@BBCC_MYWEEK_BEGIN@@ -->
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   MY WEEK, the owners' week by the hour (18 September 2026).
+
+   The Week answers "what is every client getting this week". It groups by
+   client, so the two owners' own days land under one Internal row as a pair of
+   untitled chips, which is unreadable and was never what Thulaib asked for.
+   This page answers the other question: what does MY week look like, hour by
+   hour, for me or for Shiara, and nobody else.
+
+   NO SCHEMA CHANGE. The hours are already in `bb_week.notes`, one block a line
+   as `HH:MM Block`, which is exactly why they were written that way. This page
+   splits on the newline and on the first space after the time. A line without a
+   time still shows, indented, rather than being dropped, because losing a line
+   silently is worse than showing it in the wrong place.
+
+   AUTHENTICATED ONLY. `bb_week` returns an empty list with HTTP 200 to anyone
+   not signed in with a real password, so demo mode shows the empty state and
+   says why rather than looking broken.
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  var MW_WHO = 'THULAIB';
+  var MW_MONDAY = null;
+  var MW_ROWS = [];
+  var DAYS = ['MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY'];
+
+  function esc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  /* Build the date string by hand. toISOString would turn local Monday midnight
+     into the previous Sunday in Colombo, which is the drift the spine's own
+     CHECK constraint forbids. */
+  function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function mondayOf(d){ var x=new Date(d); var g=x.getDay(); x.setDate(x.getDate()-g+(g===0?-6:1)); x.setHours(0,0,0,0); return x; }
+  function dayDate(i){ var d=new Date(MW_MONDAY); d.setDate(d.getDate()+i); return d; }
+  function fmtDay(d){ return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+
+  /* One line becomes a time and a block. A line with no time keeps its text. */
+  function splitLine(line){
+    var m = String(line).match(/^\s*(\d{1,2}:\d{2})\s+(.*)$/);
+    return m ? {time:m[1], text:m[2]} : {time:'', text:String(line).trim()};
+  }
+
+  window.mwSetWho = function(who){ MW_WHO = who; renderMyWeek(); };
+  window.mwShift = function(n){ var d=new Date(MW_MONDAY); d.setDate(d.getDate()+n*7); MW_MONDAY=d; loadMyWeek(); };
+  window.mwThisWeek = function(){ MW_MONDAY = mondayOf(new Date()); loadMyWeek(); };
+
+  window.loadMyWeek = async function(){
+    if(!MW_MONDAY) MW_MONDAY = mondayOf(new Date());
+    var host = document.getElementById('mw-hours');
+    if(host) host.innerHTML = '<div class="card" style="margin:0;padding:28px;text-align:center;color:var(--text-3);font-size:13px">Loading the week</div>';
+    try{
+      MW_ROWS = await SBget('bb_week', '?week_start=eq.'+iso(MW_MONDAY)+'&dept=eq.ceo&select=*&order=day_of_week.asc') || [];
+    }catch(e){ MW_ROWS = []; }
+    renderMyWeek();
+  };
+
+  function renderMyWeek(){
+    var host = document.getElementById('mw-hours');
+    if(!host) return;
+    var mine = MW_ROWS.filter(function(r){ return String(r.assigned_to||'').toUpperCase() === MW_WHO; });
+    var byDay = {}; mine.forEach(function(r){ byDay[r.day_of_week] = r; });
+    var todayIso = iso(new Date());
+
+    var who = ['THULAIB','SHIARA'].map(function(n){
+      var on = n===MW_WHO;
+      return '<button type="button" onclick="mwSetWho(\''+n+'\')" style="border:1px solid '+(on?'var(--accent,#FF6B2B)':'var(--border)')+';'
+        +'background:'+(on?'var(--accent,#FF6B2B)':'transparent')+';color:'+(on?'#0b1014':'var(--text-2)')+';'
+        +'border-radius:999px;padding:7px 16px;font:800 12px Inter,system-ui,sans-serif;cursor:pointer;letter-spacing:.03em">'+n+'</button>';
+    }).join('');
+
+    var fri = new Date(MW_MONDAY); fri.setDate(fri.getDate()+4);
+    var head = '<div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">'
+        +'<button type="button" class="btn btn-sm btn-ghost" onclick="mwShift(-1)">Previous</button>'
+        +'<div style="font:800 15px Poppins,Inter,sans-serif;color:var(--text);white-space:nowrap">'+fmtDay(MW_MONDAY)+' to '+fmtDay(fri)+'</div>'
+        +'<button type="button" class="btn btn-sm btn-ghost" onclick="mwShift(1)">Next</button>'
+        +'<button type="button" class="btn btn-sm btn-ghost" onclick="mwThisWeek()">This week</button>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px">'+who+'</div></div>';
+
+    if(!mine.length){
+      var why = (typeof DEMO_MODE!=='undefined'&&DEMO_MODE)
+        ? 'The week plan is only visible to a real signed-in owner, so it is empty in preview.'
+        : 'Nothing is planned for '+MW_WHO+' in this week yet.';
+      host.innerHTML = head + '<div class="card" style="margin:0;padding:34px 20px;text-align:center">'
+        +'<div style="font:800 14px Poppins,Inter,sans-serif;color:var(--text);margin-bottom:6px">No hours for this week</div>'
+        +'<div style="font-size:12.5px;color:var(--text-3);line-height:1.6;max-width:430px;margin:0 auto">'+esc(why)+'</div></div>';
+      return;
+    }
+
+    var cols = DAYS.map(function(name, i){
+      var d = dayDate(i);
+      var row = byDay[i+1];
+      var isToday = iso(d)===todayIso;
+      var lines = row && row.notes ? String(row.notes).split('\n').filter(function(l){return l.trim();}) : [];
+
+      var body = lines.length ? lines.map(function(l){
+        var p = splitLine(l);
+        return '<div style="display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--border)">'
+          +'<div style="flex:0 0 46px;font:800 11px ui-monospace,Menlo,monospace;color:'+(p.time?'var(--accent,#FF6B2B)':'var(--text-3)')+';letter-spacing:.02em">'+esc(p.time||'')+'</div>'
+          +'<div style="flex:1;min-width:0;font-size:12.5px;line-height:1.45;color:var(--text)">'+esc(p.text)+'</div></div>';
+      }).join('') : '<div style="padding:14px 0;font-size:12px;color:var(--text-3)">Nothing planned</div>';
+
+      return '<div class="card" style="margin:0;padding:14px 16px 10px;'+(isToday?'border-color:var(--accent,#FF6B2B)':'')+'">'
+        +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px">'
+          +'<div style="font:800 11px Inter,system-ui,sans-serif;letter-spacing:.08em;color:'+(isToday?'var(--accent,#FF6B2B)':'var(--text-2)')+'">'+name+'</div>'
+          +'<div style="font-size:11px;color:var(--text-3)">'+fmtDay(d)+'</div></div>'
+        +(row&&row.title?'<div style="font-size:12px;color:var(--text-3);margin-bottom:6px;line-height:1.4">'+esc(row.title)+'</div>':'')
+        +body+'</div>';
+    }).join('');
+
+    host.innerHTML = head
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:14px;align-items:start">'+cols+'</div>';
+  }
+})();
+</script>
+<!-- @@BBCC_MYWEEK_END@@ -->
 <!-- @@BBCC_ALERTHEALTH_BEGIN@@ -->
 <script>
 /* ════════════════════════════════════════════════════════════════════════════
