@@ -6115,15 +6115,19 @@ async function loadAgentAlerts(system,containerId){
   if(!el)return;
   el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:20px 0;text-align:center;">Loading alerts...</div>';
   try{
+    /* 50 was the old limit, and it is why the page was a wall of the same alert:
+       the newest fifty rows on a busy day are all one robot repeating itself, so
+       a real fault written yesterday fell off the bottom and was never seen. It
+       grouped to nothing. Pull a real window and group it down instead. */
     const q=system==='all'
-      ? 'agent_alerts?order=created_at.desc&limit=50&select=*'
-      : `agent_alerts?or=(system.eq.${system},system.eq.all)&order=created_at.desc&limit=50&select=*`;
+      ? 'agent_alerts?order=created_at.desc&limit=600&select=*'
+      : `agent_alerts?or=(system.eq.${system},system.eq.all)&order=created_at.desc&limit=600&select=*`;
     const resp=await fetch(`${SB_URL}/rest/v1/${q}`,{
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
     });
     const alerts=resp.ok?await resp.json():[];
     if(!alerts||alerts.length===0){
-      el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:24px 0;text-align:center;">✅ No alerts — everything running smoothly.</div>';
+      el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:24px 0;text-align:center;">No alerts. Everything is running smoothly.</div>';
       return;
     }
     const sevColor={critical:'var(--red)',warning:'var(--amber)',info:'#3b82f6'};
@@ -6132,23 +6136,58 @@ async function loadAgentAlerts(system,containerId){
       'finance':'Finance','stuck-video':'Stuck Video','client-health':'Client Health',
       'content-overdue':'Content Overdue','shoot-tracker':'Shoot Tracker'
     };
-    el.innerHTML=alerts.map(a=>{
-      const d=new Date(a.created_at);
-      const fmt=d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' '+
-                d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      const col=sevColor[a.severity]||'var(--text-2)';
-      const unread=!a.read_at;
-      const border=unread?`3px solid ${col}`:'3px solid var(--border)';
-      const aLabel=agentLabel[a.agent]||a.agent;
-      return `<div id="alert-card-${a.id}" style="border-left:${border};padding:12px 16px;background:var(--surface-2);border-radius:8px;margin-bottom:10px;"
-        onclick="markAlertReadFull(${a.id})">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
-          <span style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase;">${sevLabel[a.severity]||a.severity}</span>
-          ${unread?'<span class="alert-new-badge" style="font-size:10px;font-weight:700;background:'+col+';color:#fff;padding:2px 6px;border-radius:4px;">NEW</span>':''}
-          <span style="font-size:11px;color:var(--text-3);margin-left:auto;">${aLabel} · ${fmt}</span>
+    /* ONE ROW PER PROBLEM, not one row per time it was said.
+       1,421 alerts had been written since 20 June and exactly ONE had ever been
+       marked read. It was never 1,421 problems: Content Overdue had written 112
+       alerts saying only THREE different things, and Client Health relists the
+       same seven clients in a DIFFERENT ORDER on every run, so grouping on the
+       message text catches almost nothing. The same treatment the Bug Catcher
+       already gives faults, applied to the robots. */
+    const groups=new Map();
+    alerts.forEach(a=>{
+      const k=agentClusterKey(a);
+      let g=groups.get(k);
+      if(!g){ g={key:k, agent:a.agent, severity:a.severity, newest:a, hits:0, unread:0, ids:[], first:a.created_at, last:a.created_at};
+              groups.set(k,g); }
+      g.hits++;
+      if(!a.read_at){ g.unread++; g.ids.push(a.id); }
+      if(a.created_at > g.last){ g.last=a.created_at; g.newest=a; }
+      if(a.created_at < g.first){ g.first=a.created_at; }
+    });
+    /* Unread first, then loudest, then most recent. A critical nobody has read
+       outranks a warning shouted four hundred times. */
+    const SEV={critical:2,warning:1,info:0};
+    const list=[...groups.values()].sort((x,y)=>
+      (y.unread>0)-(x.unread>0) || (SEV[y.severity]||0)-(SEV[x.severity]||0) || (y.last>x.last?1:-1));
+
+    el.innerHTML =
+      '<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
+      +'<div style="font-size:12px;color:var(--text-3)"><b style="color:var(--text)">'+list.length+'</b> thing'+(list.length===1?'':'s')+' to know, from '+alerts.length+' alert'+(alerts.length===1?'':'s')+'</div>'
+      +(list.some(g=>g.unread>0)?'<button type="button" class="btn btn-sm btn-ghost" onclick="markAllShownRead()">Mark these read</button>':'')
+      +'</div>'
+      + list.map(g=>{
+      const col=sevColor[g.severity]||'var(--text-2)';
+      const unread=g.unread>0;
+      const aLabel=agentLabel[g.agent]||g.agent;
+      const lastD=new Date(g.last), firstD=new Date(g.first);
+      const fmt=d=>d.toLocaleDateString('en-GB',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      const since = g.hits>1 ? ('said '+g.hits+' times, first on '+firstD.toLocaleDateString('en-GB',{day:'numeric',month:'short'})) : 'said once';
+      /* The ids ride in a data attribute, never inside the onclick string. A JSON
+         array written into a quoted attribute closes the attribute on its own
+         first quote, and reading it back out with a regex over the onclick is
+         the kind of thing that works until a number changes shape. */
+      const safeKey=g.key.replace(/[^a-z0-9]+/gi,'-');
+      return `<div id="alert-group-${safeKey}" data-ids="${g.ids.join(',')}"
+        style="border-left:3px solid ${unread?col:'var(--border)'};padding:13px 16px;background:var(--surface-2);border-radius:8px;margin-bottom:10px;cursor:pointer"
+        onclick="markGroupRead(this)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap;">
+          <span style="font-size:11px;font-weight:700;color:${col};text-transform:uppercase;">${sevLabel[g.severity]||g.severity}</span>
+          ${g.hits>1?'<span style="font-size:10px;font-weight:800;background:'+col+';color:#fff;padding:2px 7px;border-radius:20px;">'+g.hits+'</span>':''}
+          ${unread?'<span class="alert-new-badge" style="font-size:10px;font-weight:700;border:1px solid '+col+';color:'+col+';padding:2px 6px;border-radius:4px;">'+g.unread+' unread</span>':''}
+          <span style="font-size:11px;color:var(--text-3);margin-left:auto;">${aLabel} · latest ${fmt(lastD)}</span>
         </div>
-        <div style="font-size:13px;white-space:pre-wrap;line-height:1.5;color:var(--text-1);">${esc(a.message)}</div>
-        ${unread?'<div style="font-size:11px;color:var(--text-3);margin-top:8px;">Click to mark as read</div>':''}
+        <div style="font-size:13px;white-space:pre-wrap;line-height:1.5;color:var(--text-1);">${esc(g.newest.message)}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:8px;">${since}${unread?' · click to mark read':''}</div>
       </div>`;
     }).join('');
     updateAgentsUnreadBadge();
@@ -6156,6 +6195,55 @@ async function loadAgentAlerts(system,containerId){
     el.innerHTML='<div style="color:var(--text-3);font-size:13px;padding:16px 0;">Could not load alerts.</div>';
     console.error('loadAgentAlerts',e);
   }
+}
+
+/* THE CLUSTER KEY. What makes two alerts the same problem.
+
+   Client Health writes "AMBER clients (7): CHERRY FISH, HIRE PANTHER, AUTO
+   MUSEUM..." and on the next run writes the SAME seven names in a different
+   order, so 923 alerts held only 106 distinct strings and even those were mostly
+   one fact. Stuck Video writes "21 video(s) stuck in editing 48h+" followed by
+   the list. So the key is the SHAPE of the first line with every number removed,
+   and never the list, because the list is what changes while the problem stays
+   the same. The card then shows the NEWEST message in full, so the names and
+   counts on screen are today's, not the first time it was ever said. */
+function agentClusterKey(a){
+  var m = String(a.message||'')
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2190}-\u{21FF}\u{2600}-\u{27BF}]/gu,'')
+    .split('\n')[0]
+    .split(':')[0]
+    .replace(/\d+/g,'')
+    .replace(/[^a-z ]/gi,' ')
+    .replace(/\s+/g,' ')
+    .trim().toLowerCase();
+  return (a.agent||'?')+'|'+(a.severity||'?')+'|'+(m||'no message');
+}
+
+/* Mark every alert in one cluster read, in ONE request rather than N. Reading
+   one of forty identical alerts and leaving thirty-nine is how the pile grew. */
+async function markGroupRead(card){
+  if(!card) return;
+  var ids=(card.getAttribute('data-ids')||'').split(',').filter(Boolean);
+  if(!ids.length) return;
+  try{
+    await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},'?id=in.('+ids.join(',')+')');
+    if(card){
+      card.style.borderLeftColor='var(--border)';
+      var b=card.querySelector('.alert-new-badge'); if(b) b.remove();
+    }
+    updateAgentsUnreadBadge();
+  }catch(e){ console.warn('markGroupRead',e); }
+}
+
+/* Everything currently on screen, which is what "these" means to a person. */
+async function markAllShownRead(){
+  var ids=[];
+  document.querySelectorAll('[id^="alert-group-"]').forEach(function(c){
+    (c.getAttribute('data-ids')||'').split(',').filter(Boolean).forEach(function(i){ ids.push(i); });
+  });
+  if(!ids.length) return;
+  await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},'?id=in.('+ids.join(',')+')');
+  loadAgentAlerts(_agentsFilter,'agents-page-list');
 }
 
 async function markAlertReadFull(id){
