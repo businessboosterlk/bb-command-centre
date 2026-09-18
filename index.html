@@ -12783,6 +12783,29 @@ const TW_TYPES = {meeting:'Meeting',review:'Review',planning:'Planning',finance:
 let twWeekStart = null;
 let twAllTasks = [];   // all tasks with _sys tag
 let twRoster = [];     // full team roster (team_members) — shown every week
+let twSystemOf = {};   // name -> the system that person works in, for the avatar colour
+
+/* THE SYSTEM COLOURS, the same accents the five apps use (~/BB-CONTROL.md).
+   Command Centre #FF6B2B, SMM #00E5FF, Video #a855f7, Graphic #FF1F8E,
+   Dev #3b82f6. A role nobody has mapped yet goes grey rather than borrowing
+   somebody else's colour, because a wrong colour reads as a fact. */
+const TW_SYSTEMS = {
+  command: {label:'Command Centre', colour:'#FF6B2B'},
+  smm:     {label:'SMM',            colour:'#00E5FF'},
+  video:   {label:'Video',          colour:'#a855f7'},
+  graphic: {label:'Graphic',        colour:'#FF1F8E'},
+  dev:     {label:'Dev',            colour:'#3b82f6'},
+  none:    {label:'Unassigned',     colour:'#6b7280'}
+};
+function TW_SYSTEM_FOR_ROLE(role){
+  const r = String(role||'').toLowerCase();
+  if(r.includes('ceo')||r.includes('coo'))                 return TW_SYSTEMS.command;
+  if(r.includes('social')||r.includes('smm'))              return TW_SYSTEMS.smm;
+  if(r.includes('editor')||r.includes('video'))            return TW_SYSTEMS.video;
+  if(r.includes('graphic')||r.includes('design'))          return TW_SYSTEMS.graphic;
+  if(r.includes('dev'))                                    return TW_SYSTEMS.dev;
+  return TW_SYSTEMS.none;
+}
 let twFiltered = [];   // after filters applied
 let twSysFilter = '';
 let twEmpFilter = '';
@@ -12838,7 +12861,7 @@ async function twLoadWeek(){
   const ws = twWeekStart.toISOString().slice(0,10);
   const fri = new Date(twWeekStart); fri.setDate(fri.getDate()+4);
   const lbl = document.getElementById('twWeekLabel');
-  if(lbl) lbl.textContent = twFmtDate(twWeekStart)+' — '+twFmtDate(fri)+', '+twWeekStart.getFullYear();
+  if(lbl) lbl.textContent = twFmtDate(twWeekStart)+' to '+twFmtDate(fri)+', '+twWeekStart.getFullYear();
 
   const board = document.getElementById('twBoard');
   if(board) board.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3)">Loading all systems…</div>';
@@ -12850,11 +12873,24 @@ async function twLoadWeek(){
       sb('smm_weekly_plan', q),
       sb('graphic_weekly_plan', q),
       sb('video_weekly_plan', q),
-      sb('team_members', '?select=name'),
+      sb('team_members', '?select=name,role&active=eq.true'),
       sb('clients', '?select=name,assigned_smm')
     ]);
     // Full roster — every worker is shown each week (even with no tasks)
+    /* ACTIVE ONLY. This board listed every person who had ever been on it, because
+       the query asked for names and nothing else. Six people who left were still
+       drawn a row each week, so the board said the team was bigger than it is and
+       a leaver looked like somebody with a quiet week. The `active` flag was
+       already false on all six: the data was right and the question was wrong. */
     twRoster = [...new Set((team||[]).map(m=>(m.name||'').trim()).filter(Boolean))].sort();
+    /* Which system a person belongs to is carried by their ROLE, because
+       team_members has no department column and four systems share the table.
+       Matching by meaning, never by a hardcoded list of names. */
+    twSystemOf = {};
+    (team||[]).forEach(function(m){
+      var n=(m.name||'').trim(); if(!n) return;
+      twSystemOf[n]=TW_SYSTEM_FOR_ROLE(m.role);
+    });
     const rosterLC = {}; twRoster.forEach(n=>rosterLC[n.toLowerCase()]=n);
     // Merge names case-insensitively (e.g. "Suhana" → "SUHANA") so one person = one row
     const canon = (n)=>{ if(!n) return null; const k=String(n).trim().toLowerCase(); return rosterLC[k]||String(n).trim(); };
@@ -12959,7 +12995,10 @@ function twRenderGrid(){
   const dayTotals = dayDates.map((_,i)=>twFiltered.filter(t=>t.day_of_week===i+1).length);
 
   // Avatar colour palette (cycles per employee)
-  const AVATARCOLS = ['#FF6B2B','#3b82f6','#22c55e','#a855f7','#f59e0b','#ec4899','#14b8a6','#f97316'];
+  /* The avatar used to cycle a palette by row order, so a person's colour changed
+     the moment somebody joined or left above them, and it meant nothing. It is now
+     the colour of the system they work in, the same accent their own app uses, so
+     the board can be read down a column without reading a single name. */
 
   let html = '<div class="tw-grid-wrap"><table class="tw-gtable"><thead><tr>';
   html += '<th class="emp-col">Employee</th>';
@@ -12978,7 +13017,7 @@ function twRenderGrid(){
   }
 
   emps.forEach((emp,ei)=>{
-    const avatarCol = AVATARCOLS[ei % AVATARCOLS.length];
+    const avatarCol = (twSystemOf[emp]||TW_SYSTEMS.none).colour;
     const initials = emp.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
     const empTasks = twFiltered.filter(t=>(t.assigned_to||'Unassigned')===emp);
     const empTotal = empTasks.length;
