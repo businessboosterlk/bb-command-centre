@@ -479,7 +479,7 @@ async function enter(){
   route();
   if(S.intake){const u=S.intake;S.intake=null;openFile({url:u});}
 }
-async function signOut(){try{await rpc('inspo_logout',{p_token:S.token});}catch(e){}store(TOKEN_KEY,null);S.token=null;S.me=null;showGate();}
+function signOut(){const t=S.token;store(TOKEN_KEY,null);S.token=null;S.me=null;showGate();if(t)rpc('inspo_logout',{p_token:t}).catch(()=>{});}
 
 // ── ROUTER. The hash is the router. ──
 function route(){
@@ -642,13 +642,19 @@ function showPreview(title,sub){
   const p=$('f-prev');if(!p)return;p.hidden=false;
   p.innerHTML=(draft.image_path?'<img alt="" src="'+esc(SHOTS+draft.image_path)+'">':'')+'<div><div class="t">'+esc(title||'No title found')+'</div><div class="s">'+esc(sub||'')+'</div></div>';
 }
+// TikTok and YouTube answer a phone or a laptop and refuse or stall a server, so the page asks them
+// itself (both allow it) and the fetcher only stores the picture. Four seconds, then move on.
+const OEMBED={TikTok:'https://www.tiktok.com/oembed?url=',YouTube:'https://www.youtube.com/oembed?format=json&url='};
+async function askPlatform(url){
+  const ep=OEMBED[platformOf(url)];if(!ep)return {};
+  try{const o=await fetch(ep+encodeURIComponent(url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);
+    return o?{title:o.title||o.author_name||'',image_url:o.thumbnail_url||''}:{};}catch(e){return {};}
+}
 async function unfurl(url){
   if(!/^https?:\/\//i.test(url)||!draft||draft.unfurled===url||draft.id)return;
   draft.unfurled=url;showPreview(platformOf(url)+' link','Looking for a title and a picture');
   try{
-    // TikTok answers a phone and refuses a server, so the phone asks and the fetcher only stores the picture.
-    let hint={};
-    if(platformOf(url)==='TikTok'){try{const o=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);if(o)hint={title:o.title||o.author_name||'',image_url:o.thumbnail_url||''};}catch(e){}}
+    const hint=await askPlatform(url);
     const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url,...hint})});
     if(!draft||draft.unfurled!==url)return;
     if(r&&r.ok&&!r.title&&hint.title)r.title=hint.title;
@@ -751,8 +757,7 @@ async function bulkUnfurl(){
   for(const r of mine.rows){
     if(bulk!==mine||!sheetOpen)return;
     try{
-      let hint={};
-      if(platformOf(r.url)==='TikTok'){try{const o=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(r.url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);if(o)hint={title:o.title||o.author_name||'',image_url:o.thumbnail_url||''};}catch(e){}}
+      const hint=await askPlatform(r.url);
       const a=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url:r.url,...hint})});
       if(a&&a.ok){r.title=a.title||hint.title||'';r.image_path=a.image_path||'';}
     }catch(e){}
