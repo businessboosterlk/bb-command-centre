@@ -54,6 +54,9 @@ select::-ms-expand{display:none}
 .btn.quiet{background:none;border-color:transparent;color:var(--text2)}
 .btn.danger{color:var(--bad)}
 .btn:disabled{opacity:.5}
+.btn.inline{display:inline-flex;width:auto;min-height:44px;padding:0 6px}
+.btn.accent{color:var(--accent)}
+.is-bad{color:var(--bad)}.is-ok{color:var(--ok)}
 .btn svg,.tab svg,.icon-btn svg{width:20px;height:20px;flex:none}
 .icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:var(--r-sm)}
 /* SHEET ACTION BAR: primary full width, secondary in equal pairs, quiet cancel last. */
@@ -162,29 +165,114 @@ pre.plan{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,
 .stepper button{min-height:48px;border:1px solid var(--line2);border-radius:var(--r-sm);display:grid;place-items:center}
 .stepper button svg{width:20px;height:20px;display:block}
 
-/* LOGIN */
-#gate{max-width:420px;margin:0 auto;padding:calc(var(--sat) + 40px) 16px 40px}
-#gate h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
-#gate p{color:var(--text2);margin-top:6px}
-.pin{letter-spacing:.5em;text-align:center;font-size:24px!important;font-weight:700}
+/* LOGIN. The house card: the same name, PIN and ENTER every BB system uses. */
+#gate{min-height:100dvh;display:grid;place-items:center;padding:calc(var(--sat) + 24px) 16px calc(var(--sab) + 24px)}
+.login-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:48px 40px 36px;width:100%;max-width:440px}
+.login-logo{display:block;height:54px;width:auto;margin:0 auto}
+.login-sub{text-align:center;font-size:11px;font-weight:700;letter-spacing:.32em;color:var(--accent);margin-top:14px}
+.login-date{text-align:center;color:var(--text3);font-size:13px;margin:10px 0 26px}
+.login-input{text-align:center;letter-spacing:.18em;font-weight:600;text-transform:uppercase;border-radius:10px;min-height:56px;margin-bottom:12px}
+.login-input::placeholder{color:var(--text3);letter-spacing:.18em}
+.login-btn{width:100%;min-height:56px;border-radius:10px;background:var(--accent);color:#140a05;font-weight:800;font-size:14px;letter-spacing:.24em}
+.login-err{text-align:center;color:var(--bad);font-size:13px;margin-top:14px;min-height:20px}
+.login-card p{color:var(--text2);text-align:center;margin-top:10px}
+@media(max-width:480px){.login-card{padding:36px 24px 28px}}
+
+/* DESKTOP. A different model, not the phone stretched: sidebar, dashboard, table, modals. */
+.side{display:none}
+.desk-only{display:none}
+@media(min-width:1024px){
+  .bar{display:none}
+  .phone-only{display:none!important}
+  .desk-only{display:revert}
+  .side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:248px;background:var(--surface);border-right:1px solid var(--line);padding:22px 14px;gap:4px;z-index:20}
+  .side .brand{display:flex;align-items:center;gap:10px;padding:4px 10px 18px}
+  .side .brand img{height:30px;width:auto}
+  .side .brand b{font-size:15px;font-weight:700;letter-spacing:-.01em}
+  .side a.nav,.side button.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:var(--r-sm);font-size:14px;font-weight:600;color:var(--text2);text-decoration:none;width:100%;text-align:left}
+  .side .nav svg{width:18px;height:18px;flex:none}
+  .side .nav:hover{background:var(--surface2);color:var(--text)}
+  .side .nav.on{background:var(--surface2);color:var(--text)}
+  .side .cta{margin-top:14px;display:grid;gap:8px}
+  .side .foot{margin-top:auto;display:grid;gap:4px}
+  #app{max-width:none;margin:0 0 0 248px;padding:28px 36px 48px}
+  #app .inner{max-width:1320px}
+  .top h1{font-size:26px}
+  .stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .cols2{display:grid;grid-template-columns:1.15fr 1fr;gap:28px;align-items:start}
+  .ideas{grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+  .idea{transition:border-color .15s,transform .15s}
+  .idea:hover{border-color:var(--line2);transform:translateY(-2px)}
+  .row:hover{background:var(--surface2)}
+  div.row:hover{background:none}
+  .board{grid-auto-columns:1fr;margin:14px 0 0;padding:0;overflow:visible}
+  .board .ideas{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .chips{margin:0;padding-left:0;padding-right:0;flex-wrap:wrap;overflow:visible}
+  .fbar{flex-wrap:wrap;align-items:center}
+  .fbar input{flex:1 1 280px;max-width:420px}
+  .fbar select{width:auto;min-width:220px}
+  .fbar .seg{min-width:200px;margin-left:auto}
+  #sheet-root.on{display:grid;place-items:center;padding:24px}
+  .sheet{position:relative;left:auto;right:auto;bottom:auto;width:560px;max-width:100%;max-height:88dvh;border-radius:16px;border:1px solid var(--line2);padding:22px 24px 24px;margin:0}
+  .sheet.wide{width:980px}
+  .grab{display:none}
+  .actions.pinned{bottom:-24px;margin-bottom:-24px;padding-bottom:24px}
+  .btn:hover{border-color:var(--text3)}
+  .btn.primary:hover{filter:brightness(1.08);border-color:var(--accent)}
+}
+.week.stat .big{font-size:40px}
+.stat .cap{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{font-size:12px;font-weight:600;color:var(--text3);text-align:right;padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+.tbl th:first-child,.tbl td:first-child,.tbl th.l,.tbl td.l{text-align:left}
+.tbl th.sorted{color:var(--text)}
+.tbl td{padding:13px 14px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;color:var(--text2)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl td:first-child{color:var(--text);font-weight:600}
+.tbl td.zero{color:var(--text3)}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:hover td{background:var(--surface2)}
+
+/* BULK ADD */
+.bulk-row{display:grid;grid-template-columns:1fr;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.bulk-row:first-child{border-top:0}
+.bulk-head{display:flex;align-items:center;gap:10px;min-width:0}
+.bulk-head .u{flex:1;min-width:0;font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bulk-head .u b{color:var(--text);font-weight:600;margin-right:6px}
+.bulk-row textarea{min-height:104px}
+.bulk-state{font-size:13px;font-weight:600}
+.bulk-state.ok{color:var(--ok)}.bulk-state.bad{color:var(--bad)}.bulk-state.dup{color:var(--warn)}
+.bulk-row.done{opacity:.55}
+@media(min-width:1024px){.bulk-row{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px;align-items:start}}
 
 .toast{position:fixed;left:16px;right:16px;top:calc(var(--sat) + 12px);z-index:80;background:var(--text);color:#0b0b0c;font-weight:600;font-size:14px;padding:14px 16px;border-radius:var(--r-sm);max-width:480px;margin:0 auto;opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s;pointer-events:none}
 .toast.on{opacity:1;transform:none}
 .toast.bad{background:var(--bad);color:#fff}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+/* Desktop toast. Placed AFTER the base rule on purpose: an earlier media block loses to it and leaves top AND bottom set. */
+@media(min-width:1024px){.toast{left:auto;right:28px;top:auto;bottom:28px;width:auto;max-width:380px;margin:0}}
 </style>
 </head>
 <body>
 
 <div id="gate" hidden></div>
 
-<div id="app" hidden>
+<aside class="side" id="side" hidden>
+  <div class="brand"><img src="bb-logo.png" alt="" onerror="this.hidden=true"><b>Inspo Hub</b></div>
+  <a class="nav" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
+  <a class="nav" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
+  <a class="nav" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
+  <div class="cta"><button class="btn primary" data-act="file">File an idea</button><button class="btn" data-act="bulk">Bulk add</button></div>
+  <div class="foot"><a class="nav" href="index.html">Command Centre</a><button class="nav" data-act="account" id="side-who"></button></div>
+</aside>
+
+<div id="app" hidden><div class="inner">
   <div class="top">
     <h1 id="view-title">Inspo Hub</h1>
-    <button class="who" id="who-btn" data-act="account"><span id="who-name"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button class="who phone-only" id="who-btn" data-act="account"><span id="who-name"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
   <main id="view"></main>
-</div>
+</div></div>
 
 <nav class="bar" id="bar" hidden>
   <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
@@ -203,11 +291,12 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView';
+const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName';
 history.scrollRestoration='manual';
+const DESK=matchMedia('(min-width:1024px)');
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
-  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null};
+  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1}};
 
 const KIND_BUCKET={'Post idea':'post','Video idea':'video','Video to Create':'video','Video Style':'video','Hook':'video',
   'Design idea':'design','Font':'design','Editing idea':'editing','Transition':'editing','Caption Style':'editing',
@@ -290,18 +379,19 @@ function personTarget(p,t){
 
 // ── SHEETS. One at a time, Back closes it, the page behind is frozen and out of reach. ──
 let lockedY=0, sheetOpen=false, closing=false, afterClose=null, dirty=false;
-function openSheet(html){
+function openSheet(html,wide){
+  $('sheet').classList.toggle('wide',!!wide);
   $('sheet').innerHTML='<div class="grab"></div>'+html;$('sheet').scrollTop=0;
   if(sheetOpen)return;                       // swapping content keeps the one history entry
   sheetOpen=true;lockedY=window.scrollY;
   document.body.style.top=-lockedY+'px';document.body.classList.add('sheet-open');
-  $('sheet-root').classList.add('on');$('app').inert=true;$('bar').inert=true;
+  $('sheet-root').classList.add('on');$('app').inert=true;$('bar').inert=true;$('side').inert=true;
   history.pushState({sheet:true},'');
 }
 function hideSheet(){
   if(!sheetOpen)return;sheetOpen=false;
   $('sheet-root').classList.remove('on');$('sheet').innerHTML='';
-  $('app').inert=false;$('bar').inert=false;
+  $('app').inert=false;$('bar').inert=false;$('side').inert=false;
   document.body.classList.remove('sheet-open');document.body.style.top='';window.scrollTo(0,lockedY);
 }
 function closeSheet(then){
@@ -329,43 +419,48 @@ async function boot(){
 }
 function gateError(e){
   $('gate').hidden=false;
-  $('gate').innerHTML='<h1>Inspo Hub</h1><p>The hub could not reach the database. Check your connection and try again.</p><p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div>';
+  $('gate').innerHTML='<div class="login-card"><div class="login-sub">INSPO HUB</div><p>The hub could not reach the database. Check your connection and try again.</p><p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div></div>';
 }
-async function showGate(){
-  $('app').hidden=true;$('bar').hidden=true;$('gate').hidden=false;
-  $('gate').innerHTML='<h1>Inspo Hub</h1><p>Loading the team.</p>';
-  let people;try{people=await rpc('inspo_people');}catch(e){return gateError(e);}
-  S.people=people||[];
-  $('gate').innerHTML='<h1>Inspo Hub</h1><p>Who are you?</p><div class="card rows" style="margin-top:20px">'+
-    S.people.map(x=>'<button class="row" data-act="pick" data-name="'+esc(x.name)+'"'+(x.has_login?'':' disabled')+'><span class="grow"><span class="name">'+esc(nice(x.name))+'</span><span class="meta">'+(x.has_login?esc(SEAT_NAME[x.seat]||'Team'):'No login yet. Ask Thulaib or Shiara')+'</span></span>'+chev()+'</button>').join('')+'</div>';
-}
-function chev(){return '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';}
-function showPin(name){
-  $('gate').innerHTML='<h1>Hello '+esc(nice(name))+'</h1><p>Type your four digit PIN.</p>'+
-    '<form id="pin-form" style="margin-top:20px"><input class="pin" id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="go" aria-label="PIN">'+
-    '<div class="err" id="pin-err" hidden></div><div class="actions"><button class="btn primary" type="submit">Sign in</button><button class="btn quiet" type="button" data-act="gate">Not '+esc(nice(name))+'</button></div></form>';
-  $('pin').focus();
-  $('pin-form').onsubmit=async ev=>{
-    ev.preventDefault();const pin=$('pin').value.trim(), er=$('pin-err');er.hidden=true;
-    if(!/^\d{4}$/.test(pin)){er.textContent='A PIN is four digits.';er.hidden=false;return;}
+function showGate(){
+  $('app').hidden=true;$('bar').hidden=true;$('side').hidden=true;$('gate').hidden=false;
+  const d=new Date(), days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  /* remember WHO, never the PIN, so tomorrow is one tap and the digits (the SMM Workspace rule) */
+  const last=read(NAME_KEY)||'';
+  $('gate').innerHTML='<form class="login-card" id="login-form" autocomplete="off"><img class="login-logo" src="bb-logo.png" alt="Business Booster" onerror="this.hidden=true">'+
+    '<div class="login-sub">INSPO HUB</div><div class="login-date">'+days[d.getDay()]+', '+fmtDate(d)+'</div>'+
+    '<input class="login-input" id="log-name" placeholder="YOUR NAME" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(last)+'">'+
+    '<input class="login-input" id="log-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="go" placeholder="PIN" maxlength="6">'+
+    '<button class="login-btn" type="submit" id="log-btn">ENTER</button><div class="login-err" id="log-err" role="alert"></div></form>';
+  const nm=$('log-name'), pn=$('log-pin');
+  (last?pn:nm).focus();
+  nm.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();pn.focus();}});
+  $('login-form').onsubmit=async ev=>{
+    ev.preventDefault();
+    const name=nm.value.trim().toUpperCase(), pin=pn.value.trim(), er=$('log-err');er.textContent='';
+    if(!name||!pin){er.textContent='Enter name and PIN';return;}
+    $('log-btn').disabled=true;
     try{
       const r=await rpc('inspo_login',{p_name:name,p_pin:pin});
-      if(!r.ok){er.textContent=r.why==='locked'?'Too many wrong tries. This name is locked for ten minutes.':'That PIN is not right.';er.hidden=false;$('pin').value='';return;}
-      S.token=r.token;store(TOKEN_KEY,r.token);S.me=r;enter();
-    }catch(e){er.textContent='Could not sign in: '+(e.message||e);er.hidden=false;}
+      if(!r.ok){er.textContent=r.why==='locked'?'Too many wrong tries. Wait ten minutes':'Incorrect name or PIN';pn.value='';pn.focus();$('log-btn').disabled=false;return;}
+      S.token=r.token;store(TOKEN_KEY,r.token);store(NAME_KEY,r.name);S.me=r;
+      /* the same login log every BB system writes, so the Command Centre Team page sees the hub */
+      api('/rest/v1/team_login_logs',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({member_name:r.name,logged_in_at:new Date().toISOString(),app:'inspo-hub'})}).catch(()=>{});
+      enter();
+    }catch(e){er.textContent='Could not reach the database. Try again';$('log-btn').disabled=false;}
   };
 }
+function chev(){return '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';}
 function showChangePin(forced){
-  $('app').hidden=true;$('bar').hidden=true;$('gate').hidden=false;
-  $('gate').innerHTML='<h1>Choose your own PIN</h1><p>'+(forced?'The PIN you were sent works once. Pick four digits only you know.':'Pick four new digits.')+'</p>'+
-    '<form id="cp-form" style="margin-top:20px"><label class="lbl" for="cp1">New PIN</label><input class="pin" id="cp1" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="next">'+
-    '<label class="lbl" for="cp2">Same PIN again</label><input class="pin" id="cp2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="go">'+
-    '<div class="err" id="cp-err" hidden></div><div class="actions"><button class="btn primary" type="submit">Save my PIN</button>'+(forced?'':'<button class="btn quiet" type="button" data-act="enter">Cancel</button>')+'</div></form>';
+  $('app').hidden=true;$('bar').hidden=true;$('side').hidden=true;$('gate').hidden=false;
+  $('gate').innerHTML='<div class="login-card"><div class="login-sub">CHOOSE A PIN</div><p>'+(forced?'Pick four to six digits only you know.':'Pick four to six new digits. This changes the hub only, your other BB systems keep their PIN.')+'</p>'+
+    '<form id="cp-form" style="margin-top:20px"><label class="lbl" for="cp1">New PIN</label><input class="login-input" id="cp1" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" enterkeyhint="next">'+
+    '<label class="lbl" for="cp2">Same PIN again</label><input class="login-input" id="cp2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" enterkeyhint="go">'+
+    '<div class="err" id="cp-err" hidden></div><div class="actions"><button class="btn primary" type="submit">Save my PIN</button>'+(forced?'':'<button class="btn quiet" type="button" data-act="enter">Cancel</button>')+'</div></form></div>';
   $('cp1').focus();
   $('cp-form').onsubmit=async ev=>{
     ev.preventDefault();const a=$('cp1').value.trim(), b=$('cp2').value.trim(), er=$('cp-err');er.hidden=true;
     const say=m=>{er.textContent=m;er.hidden=false;};
-    if(!/^\d{4}$/.test(a))return say('A PIN is four digits.');
+    if(!/^\d{4,6}$/.test(a))return say('A PIN is four to six digits.');
     if(a!==b)return say('The two PINs do not match.');
     try{
       const r=await rpc('inspo_change_pin',{p_token:S.token,p_new:a});
@@ -376,8 +471,8 @@ function showChangePin(forced){
 }
 async function enter(){
   if(S.me.must_change)return showChangePin(true);
-  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;
-  $('who-name').textContent=nice(S.me.name);
+  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('side').hidden=false;
+  $('who-name').textContent=nice(S.me.name);$('side-who').textContent=nice(S.me.name)+' · '+(SEAT_NAME[S.me.seat]||'Team');
   S.ideasView=read(VIEW_KEY)==='board'?'board':'list';
   $('view').innerHTML='<div class="empty">Loading the shelf.</div>';
   try{await loadAll();}catch(e){$('view').innerHTML='<div class="empty"><b>The shelf did not load</b>'+esc(e.message||e)+'</div>';return;}
@@ -389,7 +484,7 @@ async function signOut(){try{await rpc('inspo_logout',{p_token:S.token});}catch(
 // ── ROUTER. The hash is the router. ──
 function route(){
   const h=(location.hash||'#home').slice(1), parts=h.split('/');
-  document.querySelectorAll('.tab[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===(parts[0]==='shelf'?'home':parts[0])));
+  document.querySelectorAll('.tab[data-tab],.side .nav[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===(parts[0]==='shelf'?'home':parts[0])));
   if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();
   else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderHome();
   window.scrollTo(0,0);
@@ -397,38 +492,53 @@ function route(){
 
 // ── HOME: the counter ──
 function renderHome(){
-  $('view-title').textContent='Inspo Hub';
-  const t=targets(), ms=monthStart();
+  $('view-title').textContent=DESK.matches?'Counter':'Inspo Hub';
+  const t=targets(), ms=monthStart(), desk=DESK.matches;
   const lastFor=id=>{const l=S.links.find(x=>x.client_id===id);return l?l.date_added:null;};
   const starved=S.clients.filter(c=>!S.links.some(l=>l.client_id===c.id&&new Date(l.date_added)>=ms))
     .sort((a,b)=>{const x=lastFor(a.id),y=lastFor(b.id);if(!x&&!y)return a.name.localeCompare(b.name);if(!x)return -1;if(!y)return 1;return new Date(x)-new Date(y);});
   const pct=t.target?Math.min(100,Math.round(t.landed/t.target*100)):0;
-  let h='<section class="card week"><div class="big num">'+t.landed+'<small>of '+t.target+' this week</small></div>'+
-    '<p>'+(t.mode==='all'?'The target is '+t.T+' for every active client, every week.':'The target is '+t.T+' for each of the '+t.inPlay.length+' clients in this week\'s rotation.')+' '+t.week.length+' filed in total since Monday.</p>'+
-    '<div class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></div></section>';
+  const why=(t.mode==='all'?'The target is '+t.T+' for every active client, every week.':'The target is '+t.T+' for each of the '+t.inPlay.length+' clients in this week\'s rotation.');
 
-  h+='<div class="starved-head"><span class="n num'+(starved.length?'':' zero')+'">'+starved.length+'</span><span class="t">'+(starved.length===1?'client has':'clients have')+' nothing filed in '+MONTHS[ms.getMonth()]+'</span></div>';
-  h+=starved.length?'<div class="card rows">'+starved.map(c=>{const l=lastFor(c.id);
+  const weekCard='<section class="card week stat">'+(desk?'<div class="cap">Landed this week</div>':'')+'<div class="big num">'+t.landed+'<small>of '+t.target+' this week</small></div><p>'+why+(desk?'':' '+t.week.length+' filed in total since Monday.')+'</p><div class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></div></section>';
+  const starvedList=starved.length?'<div class="card rows">'+starved.map(c=>{const l=lastFor(c.id);
     return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+(l?'Last idea '+daysSince(l)+' days ago':'Never had one')+' · '+(c.assigned_smm?esc(nice(c.assigned_smm)):'No social manager')+'</span></span>'+chev()+'</button>';}).join('')+'</div>'
     :'<div class="card empty">Every active client has at least one idea this month.</div>';
-
-  if(t.mode!=='all'){
-    h+='<h2>This week\'s rotation</h2><div class="card rows">'+(Object.keys(t.rota).length?Object.entries(t.rota).map(([smm,cs])=>cs.map(c=>{
+  const starvedHead='<div class="starved-head"><span class="n num'+(starved.length?'':' zero')+'">'+starved.length+'</span><span class="t">'+(starved.length===1?'client has':'clients have')+' nothing filed in '+MONTHS[ms.getMonth()]+'</span></div>';
+  const rotation=t.mode==='all'?'':'<h2>This week\'s rotation</h2><div class="card rows">'+(Object.keys(t.rota).length?Object.entries(t.rota).map(([smm,cs])=>cs.map(c=>{
       const n=t.week.filter(l=>l.client_id===c.id).length;
       return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+esc(nice(smm))+'</span></span><span class="val num">'+n+' <small>of '+t.T+'</small></span>'+chev()+'</button>';}).join('')).join(''):'<div class="empty">No client has a social manager set, so there is no rotation.</div>')+'</div>';
-  }
-
-  h+='<h2>People this week</h2><div class="card rows">'+S.people.filter(p=>p.seat!=='dev'||t.week.some(l=>up(l.added_by)===up(p.name))).map(p=>{
+  const people='<h2>People this week</h2><div class="card rows">'+S.people.filter(p=>p.seat!=='dev'||t.week.some(l=>up(l.added_by)===up(p.name))).map(p=>{
     const n=t.week.filter(l=>up(l.added_by)===up(p.name)).length, tg=personTarget(p,t);
     return '<div class="row"><span class="grow"><span class="name">'+esc(nice(p.name))+'</span><span class="meta">'+esc(SEAT_NAME[p.seat]||'Team')+'</span></span><span class="val num">'+n+(tg==null?'':' <small>of '+tg+'</small>')+'</span></div>';}).join('')+'</div>';
 
-  h+='<h2>Every client<span class="sub">'+S.clients.length+' active</span></h2><div class="card rows">'+S.clients.map(c=>{
-    const mine=S.links.filter(l=>l.client_id===c.id), l=mine[0];
-    const sp=BUCKETS.map(([k,n])=>{const x=mine.filter(m=>bucketOf(m)===k).length;return x?'<span><b class="num">'+x+'</b> '+n.toLowerCase()+'</span>':'';}).join('');
-    return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+(l?'Freshest '+fmtDate(l.date_added):'Empty shelf')+'</span>'+(sp?'<span class="split">'+sp+'</span>':'')+'</span><span class="val num">'+mine.length+'</span>'+chev()+'</button>';}).join('')+'</div>';
+  const stat=c=>{const mine=S.links.filter(l=>l.client_id===c.id), o={c,total:mine.length,fresh:mine[0]?mine[0].date_added:null,name:c.name,smm:c.assigned_smm||''};BUCKETS.forEach(([k])=>o[k]=mine.filter(m=>bucketOf(m)===k).length);return o;};
+  const rows=S.clients.map(stat);
+  let every;
+  if(desk){
+    const k=S.sort.k, dir=S.sort.dir;
+    rows.sort((a,b)=>{const x=a[k],y=b[k];if(k==='name'||k==='smm')return String(x).localeCompare(String(y))*dir;if(k==='fresh')return ((x?new Date(x).getTime():0)-(y?new Date(y).getTime():0))*dir;return (x-y)*dir||a.name.localeCompare(b.name);});
+    const th=(key,label,l)=>'<th data-act="sort" data-k="'+key+'" class="'+(l?'l ':'')+(k===key?'sorted':'')+'">'+label+(k===key?(dir>0?' ↑':' ↓'):'')+'</th>';
+    const z=n=>'<td class="'+(n?'':'zero')+'">'+n+'</td>';
+    every='<div class="card" style="overflow:hidden"><table class="tbl"><thead><tr>'+th('name','Client',1)+th('smm','Social manager',1)+th('total','Ideas')+BUCKETS.map(([b,n])=>th(b,n)).join('')+th('fresh','Freshest')+'</tr></thead><tbody>'+
+      rows.map(r=>'<tr data-act="go" data-hash="#shelf/'+r.c.id+'"><td>'+esc(r.name)+'</td><td class="l">'+(r.smm?esc(nice(r.smm)):'None')+'</td>'+z(r.total)+BUCKETS.map(([b])=>z(r[b])).join('')+'<td class="'+(r.fresh?'':'zero')+'">'+(r.fresh?fmtDate(r.fresh):'Empty shelf')+'</td></tr>').join('')+'</tbody></table></div>';
+  }else{
+    every='<div class="card rows">'+rows.map(r=>{
+      const sp=BUCKETS.map(([b,n])=>r[b]?'<span><b class="num">'+r[b]+'</b> '+n.toLowerCase()+'</span>':'').join('');
+      return '<button class="row" data-act="go" data-hash="#shelf/'+r.c.id+'"><span class="grow"><span class="name">'+esc(r.name)+'</span><span class="meta">'+(r.fresh?'Freshest '+fmtDate(r.fresh):'Empty shelf')+'</span>'+(sp?'<span class="split">'+sp+'</span>':'')+'</span><span class="val num">'+r.total+'</span>'+chev()+'</button>';}).join('')+'</div>';
+  }
+  const everyHead='<h2>Every client<span class="sub">'+S.clients.length+' active</span></h2>';
+  const honest='<p class="note-line">A counter measures filing, not taste. Nine weak links beat three good ones on any counter ever built, so heads mark the strong ones and the plan is drafted from those first.</p>';
 
-  h+='<p class="note-line">A counter measures filing, not taste. Nine weak links beat three good ones on any counter ever built, so heads mark the strong ones and the plan is drafted from those first.</p>';
-  $('view').innerHTML=h;
+  if(desk){
+    const used=S.plays.length, strong=S.links.filter(l=>l.strong_by).length;
+    $('view').innerHTML='<div class="stats3">'+weekCard+
+      '<section class="card week stat"><div class="cap">Clients with nothing in '+MONTHS[ms.getMonth()]+'</div><div class="big num '+(starved.length?'is-bad':'is-ok')+'">'+starved.length+'<small>of '+S.clients.length+' active</small></div><p>Worst first in the list below. A shelf that only shows what it has hides what it lacks.</p></section>'+
+      '<section class="card week stat"><div class="cap">On the shelf</div><div class="big num">'+S.links.length+'<small>ideas in total</small></div><p>'+t.week.length+' filed since Monday. '+strong+' marked strong by a head. '+used+' used in a plan.</p></section></div>'+
+      '<div class="cols2"><div>'+starvedHead+starvedList+'</div><div>'+rotation+people+'</div></div>'+everyHead+every+honest;
+  }else{
+    $('view').innerHTML=weekCard+starvedHead+starvedList+rotation+people+everyHead+every+honest;
+  }
 }
 
 // ── IDEA CARDS ──
@@ -456,9 +566,17 @@ function kindChips(cur,act){
 function renderIdeas(){
   $('view-title').textContent='Ideas';
   const f=S.filter, list=applyFilter(S.links,f), extra=(f.client?1:0)+(f.strong?1:0)+(f.unused?1:0);
-  let h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas" value="'+esc(f.q)+'" enterkeyhint="search" autocomplete="off"><button class="btn" data-act="filters">Filters'+(extra?' · '+extra:'')+'</button></div>'+
-    kindChips(f.kind,'kind')+
-    '<div class="seg" style="margin-top:12px"><button data-act="view" data-v="list" class="'+(S.ideasView==='list'?'on':'')+'">List</button><button data-act="view" data-v="board" class="'+(S.ideasView==='board'?'on':'')+'">Board</button></div>';
+  const seg='<div class="seg"><button data-act="view" data-v="list" class="'+(S.ideasView==='list'?'on':'')+'">List</button><button data-act="view" data-v="board" class="'+(S.ideasView==='board'?'on':'')+'">Board</button></div>';
+  let h;
+  if(DESK.matches){
+    h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas, notes or a name" value="'+esc(f.q)+'" autocomplete="off">'+
+      '<select id="fd-client" aria-label="Client"><option value="">Every client</option>'+S.clients.map(c=>'<option value="'+c.id+'"'+(f.client===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select>'+
+      '<button class="chip'+(f.strong?' on':'')+'" data-act="ftoggle" data-f="strong">Marked strong</button><button class="chip'+(f.unused?' on':'')+'" data-act="ftoggle" data-f="unused">Not used yet</button>'+seg+'</div>'+
+      kindChips(f.kind,'kind')+'<p class="help" style="margin:10px 0 0">'+list.length+' of '+S.links.length+' ideas</p>';
+  }else{
+    h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas" value="'+esc(f.q)+'" enterkeyhint="search" autocomplete="off"><button class="btn" data-act="filters">Filters'+(extra?' · '+extra:'')+'</button></div>'+
+      kindChips(f.kind,'kind')+'<div style="margin-top:12px">'+seg+'</div>';
+  }
   if(!list.length)h+='<div class="card empty" style="margin-top:14px"><b>'+(S.links.length?'Nothing matches':'The shelf is empty')+'</b>'+(S.links.length?'Clear a filter or search for something else.':'Tap File an idea to put the first one in.')+'</div>';
   else if(S.ideasView==='board'){
     const a=list.filter(l=>!playsOf(l.id).length), b=list.filter(l=>playsOf(l.id).length);
@@ -467,6 +585,7 @@ function renderIdeas(){
   }else h+='<div class="ideas">'+list.map(ideaCard).join('')+'</div>';
   $('view').innerHTML=h;
   const q=$('q');q.oninput=()=>{S.filter.q=q.value;const pos=q.selectionStart;renderIdeas();const n=$('q');n.focus();n.setSelectionRange(pos,pos);};
+  const fc=$('fd-client');if(fc)fc.onchange=()=>{S.filter.client=fc.value;renderIdeas();};
 }
 function renderShelf(id){
   const c=clientById(id), all=S.links.filter(l=>l.client_id===id);
@@ -474,7 +593,7 @@ function renderShelf(id){
   const list=S.shelfKind?all.filter(l=>bucketOf(l)===S.shelfKind):all;
   let h='<p class="help" style="margin:0 0 12px">'+all.length+' on the shelf · '+all.filter(l=>l.strong_by).length+' strong · '+all.filter(l=>playsOf(l.id).length).length+' used'+(c.assigned_smm?' · '+esc(nice(c.assigned_smm)):'')+'</p>'+
     kindChips(S.shelfKind,'shelf-kind')+
-    '<div class="actions" style="margin-top:12px"><button class="btn" data-act="file" data-client="'+id+'">File for '+esc(c.name)+'</button><button class="btn" data-act="plan" data-id="'+id+'">Plan chat text</button></div>';
+    '<div class="actions" style="margin-top:12px"><button class="btn" data-act="file" data-client="'+id+'">File for '+esc(c.name)+'</button><button class="btn" data-act="plan" data-id="'+id+'">Plan chat text</button><button class="btn full" data-act="bulk" data-client="'+id+'">Bulk add for '+esc(c.name)+'</button></div>';
   h+=list.length?'<div class="ideas">'+list.map(ideaCard).join('')+'</div>':'<div class="card empty" style="margin-top:14px"><b>'+(all.length?'None of that kind':'Nothing on this shelf yet')+'</b>'+(all.length?'Pick another kind above.':'The next plan for '+esc(c.name)+' starts from a blank page until somebody files here.')+'</div>';
   $('view').innerHTML=h;
 }
@@ -501,7 +620,7 @@ function openFile(pre){
   const lang=ed?(ed.language||''):'';
   const mine=S.clients.filter(c=>up(c.assigned_smm)===up(S.me.name)), rest=S.clients.filter(c=>!mine.includes(c));
   const opt=c=>'<option value="'+c.id+'"'+(String(client)===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>';
-  openSheet('<h2>'+(ed?'Edit this idea':'File an idea')+'</h2>'+
+  openSheet('<h2>'+(ed?'Edit this idea':'File an idea')+'</h2>'+(ed?'':'<p class="lead">Several links for one client? <button type="button" class="btn quiet inline accent" data-act="bulk">Bulk add</button></p>')+
     '<form id="file-form" novalidate><label class="lbl" for="f-url">Link</label><div class="urlrow"><input id="f-url" type="url" inputmode="url" placeholder="Paste the link" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(ed?ed.url:(pre.url||''))+'"><button class="btn" type="button" data-act="paste">Paste</button></div>'+
     '<div class="preview" id="f-prev" hidden></div>'+
     '<label class="lbl" for="f-client">Client</label><select id="f-client"><option value="">No client, a general reference</option>'+(mine.length?'<optgroup label="Your clients">'+mine.map(opt).join('')+'</optgroup><optgroup label="Everyone else">'+rest.map(opt).join('')+'</optgroup>':S.clients.map(opt).join(''))+'</select>'+
@@ -578,6 +697,92 @@ async function saveFile(){
   }catch(e){btn.disabled=false;say('It did not save: '+esc(e.message||e));}
 }
 
+// ── BULK ADD. Many links for one client in one go. Every idea still carries a note. ──
+let bulk=null;
+function allUrls(t){return [...new Set((String(t||'').match(/https?:\/\/[^\s<>"']+/gi)||[]).map(u=>u.replace(/[),.;]+$/,'')))];}
+function openBulk(pre){
+  pre=pre||{};let last={};try{last=JSON.parse(read(LAST_KEY)||'{}');}catch(e){}
+  const kinds=S.me.kinds, kind=kinds.includes(last.kind)?last.kind:kinds[0], client=pre.client||last.client||'';
+  bulk={rows:[],kind,saving:false};
+  const mine=S.clients.filter(c=>up(c.assigned_smm)===up(S.me.name)), rest=S.clients.filter(c=>!mine.includes(c));
+  const opt=c=>'<option value="'+c.id+'"'+(String(client)===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>';
+  openSheet('<h2>Bulk add</h2><p class="lead">Paste every link you have for one client. Each one is filed as its own idea, so each one still needs a note. One note can cover all of them.</p>'+
+    '<label class="lbl" for="b-client">Client</label><select id="b-client"><option value="">No client, general references</option>'+(mine.length?'<optgroup label="Your clients">'+mine.map(opt).join('')+'</optgroup><optgroup label="Everyone else">'+rest.map(opt).join('')+'</optgroup>':S.clients.map(opt).join(''))+'</select>'+
+    '<span class="lbl">Kind, for all of them</span><div class="wrapchips" id="b-kinds">'+kinds.map(k=>'<button type="button" class="chip'+(k===kind?' on':'')+'" data-act="pick-kind" data-k="'+esc(k)+'">'+esc(k)+'</button>').join('')+'</div>'+
+    '<span class="lbl">Language of the references</span><div class="wrapchips" id="b-langs">'+LANGS.map(g=>'<button type="button" class="chip" data-act="pick-lang" data-g="'+g+'">'+g+'</button>').join('')+'</div>'+
+    '<label class="lbl" for="b-links">Links, one per line</label><textarea id="b-links" style="min-height:150px" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste them all here. Anything that is not a link is ignored."></textarea>'+
+    '<div class="err" id="b-err" hidden></div>'+
+    '<div class="actions pinned"><button class="btn primary" data-act="bulk-read">Read the links</button><button class="btn quiet" data-act="close-sheet">Cancel</button></div>',true);
+}
+function bulkRead(){
+  const urls=allUrls($('b-links').value), er=$('b-err');er.hidden=true;
+  if(!urls.length){er.textContent='There is no link in that box yet. Paste at least one, starting with https.';er.hidden=false;return;}
+  if(urls.length>40){er.textContent='That is '+urls.length+' links. Forty at a time is the limit, so the notes stay honest.';er.hidden=false;return;}
+  bulk.client=$('b-client').value;bulk.kind=(document.querySelector('#b-kinds .chip.on')||{dataset:{}}).dataset.k||S.me.kinds[0];
+  bulk.lang=(document.querySelector('#b-langs .chip.on')||{dataset:{}}).dataset.g||'';
+  bulk.rows=urls.map(u=>({url:u,title:'',image_path:'',note:'',state:'',msg:''}));
+  bulkDraw();bulkUnfurl();
+}
+function bulkDraw(){
+  const c=clientById(Number(bulk.client)), left=bulk.rows.filter(r=>r.state!=='ok').length;
+  openSheet('<h2>'+bulk.rows.length+' links for '+esc(c?c.name:'the general shelf')+'</h2><p class="lead">'+esc(bulk.kind)+(bulk.lang?' · '+esc(bulk.lang):'')+'. Write a note beside each link. One note below can fill every empty box.</p>'+
+    '<label class="lbl" for="b-all">One note for all of them</label><textarea id="b-all" style="min-height:104px" placeholder="What kind of post is this? Why does it work? Which client does it suit?"></textarea>'+
+    '<div class="actions" style="margin-top:8px"><button class="btn full" data-act="bulk-fill">Use this note for every empty box</button></div>'+
+    '<div id="b-rows" style="margin-top:14px">'+bulk.rows.map((r,i)=>bulkRowHtml(r,i)).join('')+'</div>'+
+    '<div class="actions pinned"><button class="btn primary" data-act="bulk-save" id="b-save"'+(left?'':' disabled')+'>'+(left?'File '+left+(left===1?' idea':' ideas'):'All filed')+'</button><button class="btn quiet" data-act="close-sheet">'+(left===bulk.rows.length?'Cancel':'Done')+'</button></div>',true);
+  $('b-rows').addEventListener('input',ev=>{const i=ev.target.dataset.i;if(i==null)return;const r=bulk.rows[Number(i)];r.note=ev.target.value;
+    if(r.state==='bad'&&r.note.trim()){r.state='';r.msg='';const st=$('b-state-'+i);if(st){st.textContent='';st.className='bulk-state';}}});
+}
+function bulkRowHtml(r,i){
+  const cls={ok:'ok',dup:'dup',bad:'bad'}[r.state]||'';
+  return '<div class="bulk-row'+(r.state==='ok'?' done':'')+'" id="b-row-'+i+'"><div><div class="bulk-head"><span class="u"><b>'+esc(platformOf(r.url))+'</b>'+esc(r.title||r.url.replace(/^https?:\/\/(www\.)?/,''))+'</span>'+
+    (r.state==='ok'?'':'<button class="icon-btn" data-act="bulk-drop" data-i="'+i+'" aria-label="Remove this link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>')+'</div>'+
+    '<div class="bulk-state '+cls+'" id="b-state-'+i+'">'+esc(r.msg)+'</div></div>'+
+    (r.state==='ok'?'<div class="help">'+esc(r.note)+'</div>':'<textarea data-i="'+i+'" aria-label="Note for link '+(i+1)+'" placeholder="Note for this one">'+esc(r.note)+'</textarea>')+'</div>';
+}
+function bulkFill(){
+  const v=$('b-all').value.trim();if(!v)return toast('Write the note first',true);
+  let n=0;bulk.rows.forEach(r=>{if(r.state!=='ok'&&!r.note.trim()){r.note=v;n++;}if(r.state==='bad'&&r.note.trim()&&/needs a note/.test(r.msg)){r.state='';r.msg='';}});
+  const keep=v;bulkDraw();$('b-all').value=keep;toast(n?'Note added to '+n+(n===1?' link':' links'):'Every box already has a note');
+}
+function bulkDrop(i){bulk.rows.splice(i,1);if(!bulk.rows.length)return closeSheet();const keep=$('b-all').value;bulkDraw();$('b-all').value=keep;}
+async function bulkUnfurl(){
+  const mine=bulk;
+  for(const r of mine.rows){
+    if(bulk!==mine||!sheetOpen)return;
+    try{
+      let hint={};
+      if(platformOf(r.url)==='TikTok'){try{const o=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(r.url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);if(o)hint={title:o.title||o.author_name||'',image_url:o.thumbnail_url||''};}catch(e){}}
+      const a=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url:r.url,...hint})});
+      if(a&&a.ok){r.title=a.title||hint.title||'';r.image_path=a.image_path||'';}
+    }catch(e){}
+    const i=mine.rows.indexOf(r), el=i>=0&&document.querySelector('#b-row-'+i+' .u');
+    if(el&&r.title)el.innerHTML='<b>'+esc(platformOf(r.url))+'</b>'+esc(r.title);
+  }
+}
+async function bulkSave(){
+  if(bulk.saving)return;
+  const todo=bulk.rows.filter(r=>r.state!=='ok');
+  const missing=todo.filter(r=>!r.note.trim());
+  if(missing.length){missing.forEach(r=>{r.state='bad';r.msg='This one still needs a note';});const keep=$('b-all').value;bulkDraw();$('b-all').value=keep;
+    const first=document.querySelector('.bulk-state.bad');if(first)first.scrollIntoView({block:'center'});return toast(missing.length+(missing.length===1?' link needs':' links need')+' a note before filing',true);}
+  bulk.saving=true;$('b-save').disabled=true;let ok=0,dup=0,bad=0;
+  for(const r of todo){
+    $('b-save').textContent='Filing '+(ok+dup+bad+1)+' of '+todo.length;
+    try{
+      const a=await rpc('inspo_save_link',{p_token:S.token,p:{id:'',url:r.url,notes:r.note.trim(),title:r.title||'',category:bulk.kind,client_id:bulk.client,platform:platformOf(r.url),language:bulk.lang,image_path:r.image_path||''}});
+      if(a.ok){r.state='ok';r.msg='Filed';ok++;}
+      else if(a.why==='duplicate'){r.state='dup';r.msg='Already on the shelf, filed by '+nice(a.existing.added_by);dup++;}
+      else if(a.why==='session'){bulk.saving=false;return signOut();}
+      else{r.state='bad';r.msg={kind:'Your seat cannot file that kind',client:'That client is not active any more',url:'That is not a full link'}[a.why]||'The hub refused this one';bad++;}
+    }catch(e){r.state='bad';r.msg='It did not save. Try again';bad++;}
+  }
+  bulk.saving=false;store(LAST_KEY,{kind:bulk.kind,client:bulk.client});
+  await loadAll();dirty=true;
+  if(!dup&&!bad)return closeSheet(()=>{route();toast('Filed '+ok+(ok===1?' idea':' ideas'));});
+  bulkDraw();toast('Filed '+ok+' of '+todo.length+'. '+(dup?dup+' already on the shelf. ':'')+(bad?bad+' need another look.':''),!!bad);
+}
+
 // ── DETAIL, USED, STRONG, PLAN TEXT ──
 function openDetail(id){
   const l=S.links.find(x=>x.id===id);if(!l)return toast('That idea is no longer on the shelf',true);
@@ -626,7 +831,7 @@ function openPlan(id){
 // ── ACCOUNT AND ADMIN ──
 function openAccount(){
   openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
-    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets and logins</button>':'')+'<button class="btn" data-act="change-pin">Change my PIN</button><button class="btn" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><a class="btn" href="index.html">Command Centre</a><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function openAdmin(){
   openSheet('<h2>Targets and logins</h2><p class="lead">Loading.</p>');
@@ -639,8 +844,8 @@ async function openAdmin(){
     '<span class="lbl">Who the target applies to</span><div class="seg" id="mode-seg"><button data-act="mode" data-m="rota" class="'+(t.mode==='rota'?'on':'')+'">Clients in rotation</button><button data-act="mode" data-m="all" class="'+(t.mode==='all'?'on':'')+'">Every client</button></div>'+
     step('rota_clients_per_smm','Clients each social manager researches a week','At 3 each, every client comes round about once every four weeks.')+
     step('weekly_target_other_seats','Ideas a week for each graphic and video seat','These seats add to whichever clients they are working on.')+
-    '<h2 style="margin-top:28px">Logins</h2><p class="lead">This list is the team table, active people only. A new PIN works once, then the person picks their own.</p><div class="card rows" style="margin-top:10px">'+
-    r.people.map(p=>'<div class="row"><span class="grow"><span class="name">'+esc(nice(p.name))+'</span><span class="meta">'+(p.has_login?(p.must_change?'Has not signed in yet':(p.last_login?'Last signed in '+fmtDate(p.last_login):'Has a login')):'No login')+'</span></span><button class="btn" style="width:auto" data-act="reset-pin" data-tm="'+p.team_member_id+'" data-name="'+esc(p.name)+'">'+(p.has_login?'New PIN':'Give a PIN')+'</button></div>').join('')+'</div>'+
+    '<h2 style="margin-top:28px">Logins</h2><p class="lead">This list is the team table, active people only. Everyone signs in with their name and the PIN they use in their own BB system. Set one here for a new joiner or a forgotten PIN.</p><div class="card rows" style="margin-top:10px">'+
+    r.people.map(p=>'<div class="row"><span class="grow"><span class="name">'+esc(nice(p.name))+'</span><span class="meta">'+(p.has_login?(p.last_login?'Last signed in '+fmtDate(p.last_login):'Has not signed in yet'):'No login')+'</span></span><button class="btn" style="width:auto" data-act="set-pin" data-tm="'+p.team_member_id+'" data-name="'+esc(p.name)+'">'+(p.has_login?'Set PIN':'Give a PIN')+'</button></div>').join('')+'</div>'+
     '<div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function saveSetting(key,value){
@@ -657,10 +862,8 @@ document.addEventListener('click',async ev=>{
     case 'reload':location.reload();break;
     case 'gate':showGate();break;
     case 'enter':enter();break;
-    case 'pick':showPin(el.dataset.name);break;
     case 'account':openAccount();break;
     case 'admin':openAdmin();break;
-    case 'change-pin':closeSheet(()=>showChangePin(false));break;
     case 'sign-out':closeSheet(signOut);break;
     case 'close-sheet':closeSheet();break;
     case 'go':{const h=el.dataset.hash;closeSheet(()=>{if(location.hash===h)route();else location.hash=h;});break;}
@@ -694,10 +897,17 @@ document.addEventListener('click',async ev=>{
     case 'step':{const box=el.closest('.stepper'), key=box.dataset.key, v=Math.max(0,Math.min(20,Number(setting(key,3))+Number(el.dataset.d)));
       box.querySelector('.v').textContent=v;await saveSetting(key,v);dirty=true;openAdmin();break;}
     case 'mode':el.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));await saveSetting('target_mode',el.dataset.m);dirty=true;openAdmin();break;
-    case 'reset-pin':{if(!confirm('Make a new one time PIN for '+nice(el.dataset.name)+'? Their old PIN stops working.'))break;
-      const r=await rpc('inspo_admin_reset_pin',{p_token:S.token,p_team_member_id:Number(el.dataset.tm)}).catch(()=>null);
-      if(!r||!r.ok){toast('Could not make a PIN',true);break;}
-      openSheet('<h2>New PIN for '+esc(nice(el.dataset.name))+'</h2><p class="lead">Send this to '+esc(nice(el.dataset.name))+' only. It is shown once and works once.</p><div class="pinshow num">'+esc(r.pin)+'</div><div class="actions"><button class="btn primary" data-act="admin">Back to logins</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');break;}
+    case 'set-pin':openSheet('<h2>PIN for '+esc(nice(el.dataset.name))+'</h2><p class="lead">Type the PIN '+esc(nice(el.dataset.name))+' uses in their own BB system, four to six digits. It is stored hashed and never shown again.</p><label class="lbl" for="sp-pin">PIN</label><input id="sp-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" enterkeyhint="go"><div class="err" id="sp-err" hidden></div><div class="actions"><button class="btn primary" data-act="set-pin-save" data-tm="'+el.dataset.tm+'">Save the PIN</button><button class="btn quiet" data-act="admin">Back to logins</button></div>');$('sp-pin').focus();break;
+    case 'set-pin-save':{const v=$('sp-pin').value.trim();if(!/^\d{4,6}$/.test(v)){$('sp-err').textContent='A PIN is four to six digits.';$('sp-err').hidden=false;break;}
+      const r=await rpc('inspo_admin_set_pin',{p_token:S.token,p_team_member_id:Number(el.dataset.tm),p_pin:v}).catch(()=>null);
+      if(!r||!r.ok){toast('Could not save that PIN',true);break;}toast('PIN saved');openAdmin();break;}
+    case 'bulk':openBulk({client:el.dataset.client||''});break;
+    case 'bulk-read':bulkRead();break;
+    case 'bulk-fill':bulkFill();break;
+    case 'bulk-drop':bulkDrop(Number(el.dataset.i));break;
+    case 'bulk-save':bulkSave();break;
+    case 'sort':{const k=el.dataset.k;S.sort={k,dir:S.sort.k===k?-S.sort.dir:(k==='name'||k==='smm'?1:-1)};renderHome();break;}
+    case 'ftoggle':S.filter[el.dataset.f]=!S.filter[el.dataset.f];renderIdeas();break;
     case 'f-clear':S.filter={q:S.filter.q,kind:S.filter.kind,client:'',strong:false,unused:false};closeSheet(renderIdeas);break;
     case 'f-apply':S.filter.client=$('fl-client').value;S.filter.strong=$('fl-strong').classList.contains('on');S.filter.unused=$('fl-unused').classList.contains('on');closeSheet(renderIdeas);break;
     case 'toggle':el.classList.toggle('on');break;
@@ -712,6 +922,7 @@ function openFilters(){
 // Keyboard hints applied at focus, because most fields do not exist at boot.
 document.addEventListener('focusin',ev=>{const t=ev.target;if(t.matches&&t.matches('input[type=url],input[inputmode=numeric]')){t.autocapitalize='off';t.spellcheck=false;}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&sheetOpen)closeSheet();});
+DESK.addEventListener('change',()=>{if(S.me&&!sheetOpen)route();});
 
 boot();
 </script>
