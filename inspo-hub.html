@@ -1,760 +1,719 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inspo Hub">
+<meta name="robots" content="noindex,nofollow">
 <title>BB Inspo Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="inspo-hub.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* LEGACY single file, relaunched 21 Sep 2026. Rollback: LANDMINES.md L-CC-016. */
 :root{
-  --bg:#000; --bg2:#0a0a0a; --bg3:#111; --bg4:#1a1a1a;
-  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.12);
-  --text:#fff; --text2:rgba(255,255,255,0.7); --text3:rgba(255,255,255,0.45);
-  --orange:#FF6B2B; --pink:#FF2D78; --cyan:#00E5FF; --purple:#A855F7; --green:#00FF85;
-  --red:#FF3B3B; --amber:#FBBF24;
+  --bg:#0b0b0c;--surface:#141416;--surface2:#1c1c20;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);
+  --text:#f4f4f5;--text2:#b4b4bb;--text3:#85858f;
+  --accent:#FF6B2B;--accent-soft:rgba(255,107,43,.12);
+  --ok:#35c48a;--warn:#f0b429;--bad:#ef5350;
+  --r:12px;--r-sm:8px;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --bar:64px;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%}
+html,body{overscroll-behavior-y:none}
+body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;min-height:100dvh}
+body.sheet-open{position:fixed;left:0;right:0;overflow:hidden}
+button,label,.tab,[role="button"]{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit}
+[hidden]{display:none!important}
+.num{font-variant-numeric:tabular-nums}
 
-/* HEADER */
-.hdr{padding:24px 32px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;position:sticky;top:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(20px);z-index:10}
-.hdr-left{display:flex;align-items:center;gap:14px}
-.bb-logo-wrap{flex-shrink:0}
-.bb-mark{width:48px;height:48px;display:block;box-shadow:0 6px 20px rgba(255,45,120,0.35);border-radius:14px}
-.hdr-brand{font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:3px}
-.hdr-title{font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;letter-spacing:-0.01em;line-height:1}
-.hdr-sub{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.12em;margin-top:2px}
-.btn{padding:10px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.15s}
-.btn:hover{background:var(--bg4);border-color:var(--border2)}
-.btn-primary{background:linear-gradient(135deg,#FF6B2B,#FF2D78);border:none;color:#fff;box-shadow:0 4px 14px rgba(255,45,120,0.3)}
-.btn-primary:hover{box-shadow:0 6px 20px rgba(255,45,120,0.45);transform:translateY(-1px)}
-.btn-sm{padding:6px 12px;font-size:12px}
-.btn-ghost{background:transparent;border:1px solid var(--border)}
-.btn-danger{background:rgba(255,59,59,0.12);color:var(--red);border:1px solid rgba(255,59,59,0.25)}
-.btn-back{background:rgba(255,255,255,0.04);color:var(--text2);border:1px solid var(--border);font-size:12px;padding:8px 14px;display:inline-flex;align-items:center;gap:6px}
-.btn-back:hover{color:var(--text)}
+/* FIELDS. 16px so iOS never zooms. */
+input,select,textarea{font:inherit;font-size:16px;color:var(--text);background:var(--surface2);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px 14px;width:100%;min-height:48px}
+textarea{min-height:112px;resize:vertical;line-height:1.45}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+@media (pointer:coarse){input,select,textarea{font-size:16px!important}}
+/* SELECT LAW: never the browser's arrow. */
+select{-webkit-appearance:none;appearance:none;padding-right:44px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8d96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 16px center;background-size:14px 14px}
+select::-ms-expand{display:none}
+.lbl{display:block;font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 6px}
+.help{font-size:13px;color:var(--text3);margin-top:6px}
+.err{font-size:13px;color:var(--bad);margin-top:8px}
+
+/* BUTTONS */
+.btn{text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-sm);font-weight:600;font-size:15px;border:1px solid var(--line2);background:var(--surface2);width:100%}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#140a05}
+.btn.quiet{background:none;border-color:transparent;color:var(--text2)}
+.btn.danger{color:var(--bad)}
+.btn:disabled{opacity:.5}
+.btn svg,.tab svg,.icon-btn svg{width:20px;height:20px;flex:none}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border-radius:var(--r-sm)}
+/* SHEET ACTION BAR: primary full width, secondary in equal pairs, quiet cancel last. */
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+.actions .primary,.actions .quiet,.actions .full{grid-column:1/-1}
+.actions.pinned{position:sticky;bottom:calc(-1 * var(--sab) - 20px);background:var(--surface);padding:12px 0 calc(var(--sab) + 20px);margin-bottom:calc(-1 * var(--sab) - 20px);border-top:1px solid var(--line)}
+
+/* SHELL */
+#app{max-width:760px;margin:0 auto;padding:calc(var(--sat) + 12px) 16px calc(var(--bar) + var(--sab) + 24px)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin-bottom:8px}
+.top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
+.who svg{width:16px;height:16px;color:var(--text3)}
+.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:var(--bg);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:20}
+.bar-in{max-width:760px}
+.tab{text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--text3);min-height:var(--bar)}
+.tab.on{color:var(--text)}
+.tab.file{color:var(--accent)}
+
+h2{font-size:15px;font-weight:700;margin:28px 0 10px}
+h2 .sub{font-weight:500;color:var(--text3);margin-left:6px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+
+/* HOME */
+.week{padding:18px}
+.week .big{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.week .big small{font-size:18px;font-weight:600;color:var(--text3);letter-spacing:0;margin-left:6px}
+.week p{color:var(--text2);font-size:14px;margin-top:8px}
+.meter{height:6px;border-radius:3px;background:var(--surface2);margin-top:14px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.starved-head{display:flex;align-items:baseline;gap:10px;margin:28px 0 10px}
+.starved-head .n{font-size:34px;font-weight:700;letter-spacing:-.02em;color:var(--bad);line-height:1}
+.starved-head .n.zero{color:var(--ok)}
+.starved-head .t{font-size:15px;font-weight:700}
+.rows{overflow:hidden}
+.row{display:flex;align-items:center;gap:12px;min-height:56px;padding:10px 14px;border-top:1px solid var(--line);width:100%;text-align:left}
+.row:first-child{border-top:0}
+.row .grow{flex:1;min-width:0}
+.row .name,.row .meta{display:block}
+.row .name{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .meta{font-size:13px;color:var(--text3)}
+.row .val{font-weight:700;font-size:15px;text-align:right;white-space:nowrap}
+.row .val small{font-weight:500;color:var(--text3)}
+.row .chev{width:16px;height:16px;color:var(--text3);flex:none}
+.split{display:flex;gap:10px;font-size:12px;color:var(--text3);margin-top:2px}
+.split b{color:var(--text2);font-weight:600}
+.note-line{font-size:13px;color:var(--text3);margin-top:20px;padding:14px;border:1px dashed var(--line2);border-radius:var(--r)}
 
 /* FILTER BAR */
-.filters{padding:18px 32px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.filters label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-right:4px}
-.filters select{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;min-width:130px}
-.filters select:focus{outline:none;border-color:var(--pink)}
-.search{background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:12px;font-family:inherit;min-width:200px;flex:1;max-width:300px}
-.search:focus{outline:none;border-color:var(--pink)}
-.filter-clear{color:var(--text3);font-size:11px;cursor:pointer;padding:4px 8px;text-decoration:underline}
-.filter-clear:hover{color:var(--pink)}
+.fbar{display:flex;gap:8px;margin:12px 0}
+.fbar input{flex:1;min-width:0}
+.fbar .btn{width:auto;flex:none}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;margin:0 -16px;padding-left:16px;padding-right:16px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid var(--line2);font-size:14px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.chip.on{background:var(--text);color:#0b0b0c;border-color:var(--text)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;border:1px solid var(--line2);border-radius:var(--r-sm);overflow:hidden}
+.seg button{min-height:44px;font-size:14px;font-weight:600;color:var(--text2)}
+.seg button.on{background:var(--surface2);color:var(--text)}
+.wrapchips{display:flex;flex-wrap:wrap;gap:8px}
 
-/* VIEW TOGGLE */
-.view-toggle{padding:14px 32px 0;display:flex;gap:6px}
-.vt-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;font-family:inherit;transition:all 0.15s}
-.vt-btn:hover{color:var(--text);border-color:var(--border2)}
-.vt-btn.active{background:linear-gradient(135deg,#FF6B2B,#FF2D78);color:#fff;border-color:transparent;box-shadow:0 3px 10px rgba(255,45,120,0.25)}
-.vt-btn svg{flex-shrink:0}
+/* IDEA CARDS */
+.ideas{display:grid;gap:14px;margin-top:14px}
+@media(min-width:700px){.ideas{grid-template-columns:1fr 1fr}}
+.idea{overflow:hidden;text-align:left;display:block;width:100%}
+.pic{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;background:var(--surface2)}
+.nopic{min-height:92px;background:var(--surface2);display:flex;flex-direction:column;justify-content:flex-end;padding:14px;gap:2px}
+.nopic .p{font-size:22px;font-weight:700;letter-spacing:-.02em;color:var(--text2)}
+.nopic .k{font-size:13px;color:var(--text3)}
+.idea .body{padding:14px}
+.kline{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;font-weight:600;color:var(--text3);margin-bottom:6px}
+.kline .strong{color:var(--accent)}
+.kline .used{color:var(--ok)}
+.idea h3{font-size:16px;font-weight:700;line-height:1.3;margin-bottom:6px;overflow-wrap:anywhere}
+.idea .n{font-size:14px;color:var(--text2);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.idea .by{font-size:12px;color:var(--text3);margin-top:10px}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,1fr);gap:12px;overflow-x:auto;margin:14px -16px 0;padding:0 16px 8px;scroll-snap-type:x mandatory}
+.board .col{scroll-snap-align:start}
+.board .col h4{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px}
+.board .ideas{grid-template-columns:1fr;margin-top:0}
+.empty{padding:36px 18px;text-align:center;color:var(--text2)}
+.empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
 
-/* PIPELINE VIEW */
-.pipeline-wrap{padding:16px 32px 40px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:flex-start}
-.pipe-col{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px;min-height:200px}
-.pipe-col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding:2px 4px}
-.pipe-col-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em}
-.pipe-col-count{font-size:11px;color:var(--text3);background:var(--bg4);padding:3px 8px;border-radius:999px;font-weight:700}
-.pipe-col.not .pipe-col-title{color:var(--text2)}
-.pipe-col.prog .pipe-col-title{color:var(--cyan)}
-.pipe-col.impl .pipe-col-title{color:var(--green)}
-.pipe-col .card{margin-bottom:10px;padding:14px}
-.pipe-col .card-notes{-webkit-line-clamp:2}
-.pipe-empty{color:var(--text3);font-size:12px;text-align:center;padding:30px 10px;font-style:italic}
+/* SHEET */
+#sheet-root{position:fixed;inset:0;z-index:50;display:none}
+#sheet-root.on{display:block}
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:18px 18px 0 0;border-top:1px solid var(--line2);padding:8px 16px calc(var(--sab) + 20px);max-width:760px;margin:0 auto}
+.grab{width:36px;height:4px;border-radius:2px;background:var(--line2);margin:0 auto 10px}
+.sheet h2{margin:4px 0 4px;font-size:18px}
+.sheet .lead{font-size:14px;color:var(--text2)}
+.preview{display:flex;gap:12px;align-items:center;margin-top:10px;padding:10px;border:1px solid var(--line);border-radius:var(--r-sm);min-height:72px}
+.preview img{width:52px;height:64px;object-fit:cover;border-radius:6px;flex:none;background:var(--surface2)}
+.preview .t{font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.preview .s{font-size:13px;color:var(--text3)}
+.urlrow{display:flex;gap:8px}
+.urlrow input{flex:1;min-width:0}
+.urlrow .btn{width:auto;flex:none}
+.detail-pic{width:100%;border-radius:var(--r-sm);margin:10px 0;max-height:60dvh;object-fit:contain;background:#000}
+.kv{font-size:14px;color:var(--text2);margin-top:10px;overflow-wrap:anywhere}
+.kv b{color:var(--text)}
+pre.plan{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,Menlo,monospace;color:var(--text2);background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:12px;margin-top:12px;max-height:46dvh;overflow:auto;-webkit-user-select:text;user-select:text}
+.pinshow{font-size:40px;font-weight:700;letter-spacing:.2em;text-align:center;padding:18px 0;font-variant-numeric:tabular-nums}
+.stepper{display:grid;grid-template-columns:48px 1fr 48px;gap:8px;align-items:center}
+.stepper .v{text-align:center;font-size:22px;font-weight:700}
+.stepper button{min-height:48px;border:1px solid var(--line2);border-radius:var(--r-sm);display:grid;place-items:center}
+.stepper button svg{width:20px;height:20px;display:block}
 
-/* STATS */
-.stats{padding:18px 32px;display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-.stat{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
-.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700;margin-bottom:6px}
-.stat-val{font-size:22px;font-weight:800;font-family:'Poppins',sans-serif}
+/* LOGIN */
+#gate{max-width:420px;margin:0 auto;padding:calc(var(--sat) + 40px) 16px 40px}
+#gate h1{font-size:26px;font-weight:700;letter-spacing:-.02em}
+#gate p{color:var(--text2);margin-top:6px}
+.pin{letter-spacing:.5em;text-align:center;font-size:24px!important;font-weight:700}
 
-/* GRID */
-.grid{padding:20px 32px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-.card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:all 0.15s;position:relative}
-.card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.4)}
-.card.stale{border-color:rgba(255,59,59,0.35);box-shadow:0 0 0 1px rgba(255,59,59,0.15)}
-.card.stale::before{content:'STALE';position:absolute;top:12px;right:12px;background:var(--red);color:#fff;font-size:9px;font-weight:800;padding:3px 7px;border-radius:4px;letter-spacing:0.08em}
-
-.card-head{display:flex;align-items:flex-start;gap:10px}
-.plat-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
-.plat-tiktok{background:rgba(255,255,255,0.08);color:#fff}
-.plat-instagram{background:linear-gradient(135deg,#833AB4,#FD1D1D,#F77737);color:#fff}
-.plat-youtube{background:#FF0000;color:#fff}
-.plat-facebook{background:#1877F2;color:#fff}
-.plat-general{background:var(--bg4);color:var(--text2)}
-.card-title{font-size:14px;font-weight:700;line-height:1.35;flex:1;word-break:break-word}
-.card-notes{font-size:12.5px;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-
-.tags{display:flex;gap:5px;flex-wrap:wrap}
-.tag{font-size:10px;font-weight:600;padding:3px 8px;border-radius:999px;letter-spacing:0.02em}
-.tag-cat{background:rgba(168,85,247,0.12);color:var(--purple)}
-.tag-ind{background:rgba(0,229,255,0.1);color:var(--cyan)}
-.tag-pri-high{background:rgba(255,59,59,0.12);color:var(--red)}
-.tag-pri-med{background:rgba(251,191,36,0.12);color:var(--amber)}
-.tag-pri-low{background:rgba(255,255,255,0.06);color:var(--text3)}
-.tag-status-not{background:rgba(255,255,255,0.06);color:var(--text3)}
-.tag-status-prog{background:rgba(0,229,255,0.1);color:var(--cyan)}
-.tag-status-impl{background:rgba(0,255,133,0.1);color:var(--green)}
-
-.perf{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:10px;background:var(--bg4);border-radius:8px;margin-top:4px}
-.perf-item{text-align:center}
-.perf-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:700}
-.perf-val{font-size:13px;font-weight:700;margin-top:2px}
-
-.card-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--text3);padding-top:10px;border-top:1px solid var(--border)}
-.card-actions{display:flex;gap:6px;flex-wrap:wrap}
-
-/* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
-.modal-bg.show{display:flex}
-.modal{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 60px rgba(0,0,0,0.6)}
-.modal-title{font-family:'Poppins',sans-serif;font-size:18px;font-weight:800;margin-bottom:18px}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;font-weight:700;margin-bottom:6px}
-.field input,.field select,.field textarea{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);padding:10px 12px;border-radius:8px;font-size:13px;font-family:inherit}
-.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--pink)}
-.field textarea{min-height:70px;resize:vertical}
-.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
-
-/* PLAYS LIST */
-.plays-list{margin-top:16px}
-.play-item{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px}
-.play-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px}
-.play-client{font-weight:700;font-size:13px}
-.play-date{font-size:11px;color:var(--text3)}
-.play-rating{color:var(--amber);font-size:13px}
-.play-perf{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
-.play-url{display:inline-block;color:var(--cyan);font-size:11px;margin-top:8px;word-break:break-all}
-.play-notes{font-size:12px;color:var(--text2);margin-top:8px;line-height:1.5}
-
-/* LOADER */
-.loader{text-align:center;padding:60px 20px;color:var(--text3)}
-.empty{text-align:center;padding:80px 20px;color:var(--text3)}
-.empty-ico{font-size:48px;margin-bottom:12px;opacity:0.4}
-.empty-title{font-size:16px;font-weight:700;color:var(--text2);margin-bottom:6px}
-
-/* TOAST */
-.toast{position:fixed;bottom:28px;right:28px;background:var(--bg3);border:1px solid var(--border);padding:14px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
-.toast.show{opacity:1;transform:translateY(0)}
-.toast.success{border-color:rgba(0,255,133,0.35);color:var(--green)}
-.toast.error{border-color:rgba(255,59,59,0.35);color:var(--red)}
-
-/* MOBILE */
-@media(max-width:720px){
-  .hdr{padding:16px 18px}
-  .hdr-left{gap:10px}
-  .bb-mark{width:38px;height:38px}
-  .hdr-brand{font-size:9px;margin-bottom:2px}
-  .hdr-title{font-size:16px}
-  .filters{padding:14px 18px;gap:8px}
-  .filters select,.search{min-width:0;flex:1 1 45%;font-size:11px;padding:7px 10px}
-  .stats{padding:14px 18px;grid-template-columns:repeat(2,1fr);gap:8px}
-  .stat{padding:12px}
-  .stat-val{font-size:18px}
-  .grid{padding:14px 18px;grid-template-columns:1fr;gap:12px}
-  .card{padding:16px}
-  .field-row,.field-row-3{grid-template-columns:1fr}
-  .modal{padding:20px}
-  .perf{grid-template-columns:repeat(2,1fr)}
-  .play-perf{grid-template-columns:repeat(2,1fr)}
-  .view-toggle{padding:12px 18px 0}
-  .pipeline-wrap{grid-template-columns:1fr;padding:14px 18px;gap:12px}
-}
+.toast{position:fixed;left:16px;right:16px;top:calc(var(--sat) + 12px);z-index:80;background:var(--text);color:#0b0b0c;font-weight:600;font-size:14px;padding:14px 16px;border-radius:var(--r-sm);max-width:480px;margin:0 auto;opacity:0;transform:translateY(-8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+.toast.bad{background:var(--bad);color:#fff}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
 <body>
 
-<div class="hdr">
-  <div class="hdr-left">
-    <div class="bb-logo-wrap">
-      <svg class="bb-mark" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-label="Business Booster">
-        <defs>
-          <linearGradient id="bbgrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#FF6B2B"/>
-            <stop offset="100%" stop-color="#FF2D78"/>
-          </linearGradient>
-        </defs>
-        <rect x="0" y="0" width="64" height="64" rx="14" fill="url(#bbgrad)"/>
-        <text x="32" y="44" font-family="Poppins, sans-serif" font-weight="800" font-size="28" fill="#fff" text-anchor="middle" letter-spacing="-0.5">BB</text>
-      </svg>
-    </div>
-    <div>
-      <div class="hdr-brand">BUSINESS BOOSTER</div>
-      <div class="hdr-title">INSPO HUB</div>
-    </div>
+<div id="gate" hidden></div>
+
+<div id="app" hidden>
+  <div class="top">
+    <h1 id="view-title">Inspo Hub</h1>
+    <button class="who" id="who-btn" data-act="account"><span id="who-name"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
-  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-    <button class="btn-back" onclick="window.close();if(!window.closed)history.back()">&larr; Back</button>
-    <button class="btn btn-primary" onclick="openAddModal()">+ New Inspo</button>
-  </div>
+  <main id="view"></main>
 </div>
 
-<div class="stats">
-  <div class="stat"><div class="stat-lbl">Total</div><div class="stat-val" id="stat-total">—</div></div>
-  <div class="stat"><div class="stat-lbl">Not Tried</div><div class="stat-val" id="stat-not" style="color:var(--text2)">—</div></div>
-  <div class="stat"><div class="stat-lbl">Implemented</div><div class="stat-val" id="stat-impl" style="color:var(--green)">—</div></div>
-  <div class="stat"><div class="stat-lbl">Stale</div><div class="stat-val" id="stat-stale" style="color:var(--red)">—</div></div>
-  <div class="stat"><div class="stat-lbl">Total Plays</div><div class="stat-val" id="stat-plays" style="color:var(--cyan)">—</div></div>
-</div>
+<nav class="bar" id="bar" hidden>
+  <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
+  <a class="tab" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
+  <a class="tab" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
+  <button class="tab file" data-act="file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>File an idea</button>
+</nav>
 
-<div class="filters">
-  <input type="text" class="search" id="f-search" placeholder="Search title or notes..." oninput="renderCards()">
-  <select id="f-client" onchange="renderCards()"><option value="">All clients</option></select>
-  <select id="f-industry" onchange="renderCards()"><option value="">All industries</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option><option>BPO</option><option>Lighting</option><option>Fish</option><option>Food Shop</option><option>Teacher</option><option>General</option></select>
-  <select id="f-platform" onchange="renderCards()"><option value="">All platforms</option><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>General</option></select>
-  <select id="f-category" onchange="renderCards()"><option value="">All categories</option><option>Video to Create</option><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select>
-  <select id="f-priority" onchange="renderCards()"><option value="">Any priority</option><option>High</option><option>Medium</option><option>Low</option></select>
-  <select id="f-status" onchange="renderCards()"><option value="">Any status</option><option>Not Tried</option><option>In Progress</option><option>Implemented</option></select>
-  <select id="f-daterange" onchange="renderCards()"><option value="">All time</option><option value="1">Today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select>
-  <select id="f-sort" onchange="renderCards()"><option value="desc">Newest first</option><option value="asc">Oldest first</option></select>
-  <span class="filter-clear" onclick="clearFilters()">Clear all</span>
-</div>
-
-<div class="view-toggle">
-  <button class="vt-btn active" id="vt-grid" onclick="setView('grid')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-    Grid
-  </button>
-  <button class="vt-btn" id="vt-pipe" onclick="setView('pipeline')">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5" height="18"/><rect x="10" y="3" width="5" height="18"/><rect x="17" y="3" width="5" height="18"/></svg>
-    Pipeline
-  </button>
-</div>
-
-<div id="cards-container"></div>
-
-<!-- ADD/EDIT MODAL -->
-<div class="modal-bg" id="add-modal">
-  <div class="modal">
-    <div class="modal-title" id="add-title">Add New Inspo</div>
-    <input type="hidden" id="edit-id">
-    <div class="field"><label>Title *</label><input type="text" id="f-title" placeholder="Short descriptive name"></div>
-    <div class="field"><label>URL *</label><input type="text" id="f-url" placeholder="https://..."></div>
-    <div class="field"><label>Notes</label><textarea id="f-notes" placeholder="What's interesting about this? Why save it?"></textarea></div>
-    <div class="field-row">
-      <div class="field"><label>Platform</label><select id="f-plat"><option>TikTok</option><option>Instagram</option><option>YouTube</option><option>Facebook</option><option>General</option></select></div>
-      <div class="field"><label>Category</label><select id="f-cat"><option>Video to Create</option><option>Video Style</option><option>Hook</option><option>Transition</option><option>Font</option><option>Tool</option><option>Caption Style</option><option>Editing Technique</option></select></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Client (optional)</label><select id="f-clientid"><option value="">None — general reference</option></select></div>
-      <div class="field"><label>Industry</label><select id="f-ind"><option>General</option><option>Automotive</option><option>Food & Beverage</option><option>Retail</option><option>Fashion</option><option>BPO</option><option>Lighting</option><option>Fish</option><option>Food Shop</option><option>Teacher</option></select></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Added By</label><select id="f-by"><option>Thulaib</option><option>Shiara</option><option>Suhana</option><option>Kenuli</option><option>Rukshan</option><option>Ushane</option><option>Rajeewa</option><option>Tharuka</option><option>Kishini</option><option>Nidwin</option></select></div>
-      <div class="field"><label>Priority</label><select id="f-pri"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('add-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveInspo()">Save</button>
-    </div>
-  </div>
-</div>
-
-<!-- DETAIL / PLAYS MODAL -->
-<div class="modal-bg" id="detail-modal">
-  <div class="modal" style="max-width:680px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px">
-      <div style="flex:1;min-width:0">
-        <div class="modal-title" id="d-title" style="margin-bottom:6px">—</div>
-        <a id="d-url" target="_blank" style="color:var(--cyan);font-size:12px;word-break:break-all">—</a>
-      </div>
-      <button class="btn-back" onclick="closeModal('detail-modal')">Close</button>
-    </div>
-    <div id="d-notes" style="color:var(--text2);font-size:13px;margin-bottom:14px;line-height:1.6"></div>
-    <div id="d-tags" class="tags" style="margin-bottom:20px"></div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-top:16px;border-top:1px solid var(--border)">
-      <div style="font-weight:700;font-size:14px">Plays <span id="d-play-count" style="color:var(--text3);font-weight:400"></span></div>
-      <button class="btn btn-sm btn-primary" onclick="openPlayModal()">+ Log Play</button>
-    </div>
-    <div id="d-plays"></div>
-
-    <div style="display:flex;gap:8px;margin-top:22px;padding-top:16px;border-top:1px solid var(--border);flex-wrap:wrap">
-      <button class="btn btn-sm" onclick="markReviewed()">✓ Mark Reviewed</button>
-      <button class="btn btn-sm btn-ghost" onclick="editCurrent()">Edit</button>
-      <button class="btn btn-sm btn-danger" onclick="deleteCurrent()" style="margin-left:auto">Delete</button>
-    </div>
-  </div>
-</div>
-
-<!-- REVIEW NOTE MODAL -->
-<div class="modal-bg" id="review-modal">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-title">Mark as Reviewed</div>
-    <div style="color:var(--text2);font-size:13px;margin-bottom:14px">What did you learn from reviewing this? (required)</div>
-    <div class="field"><textarea id="review-note" placeholder="e.g. Still relevant, tried hook style on AutoMuseum reel — got 8k views"></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('review-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveReview()">Save Review</button>
-    </div>
-  </div>
-</div>
-
-<!-- LOG PLAY MODAL -->
-<div class="modal-bg" id="play-modal">
-  <div class="modal">
-    <div class="modal-title">Log a Play</div>
-    <input type="hidden" id="play-edit-id">
-    <div class="field-row">
-      <div class="field"><label>Client</label><select id="p-client"><option value="">Choose...</option></select></div>
-      <div class="field"><label>Date Posted</label><input type="date" id="p-date"></div>
-    </div>
-    <div class="field"><label>Output URL (the post you made)</label><input type="text" id="p-url" placeholder="https://instagram.com/..."></div>
-    <div class="field-row-3">
-      <div class="field"><label>Views</label><input type="number" id="p-views" min="0" value="0"></div>
-      <div class="field"><label>Likes</label><input type="number" id="p-likes" min="0" value="0"></div>
-      <div class="field"><label>Shares</label><input type="number" id="p-shares" min="0" value="0"></div>
-      <div class="field"><label>Comments</label><input type="number" id="p-comments" min="0" value="0"></div>
-    </div>
-    <div class="field"><label>Rating (1 = flop, 5 = banger)</label><select id="p-rating"><option value="">—</option><option>1</option><option>2</option><option value="3" selected>3</option><option>4</option><option>5</option></select></div>
-    <div class="field"><label>Notes — what you'd change next time</label><textarea id="p-notes" placeholder="e.g. Hook was too slow, cut 2 sec from intro next time"></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('play-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="savePlay()">Save Play</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
+<div id="sheet-root"><div class="scrim" data-act="close-sheet"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div class="toast" id="toast" role="status"></div>
 
 <script>
-console.log('%c[INSPO] script parsing started','color:#FF2D78;font-weight:700');
-
+'use strict';
 const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
+// The anon key is public by design, as in every BB internal system. No PIN, password or
+// service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
+const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
+const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView';
+history.scrollRestoration='manual';
 
-const STALE_DAYS=14;
-const STATE={links:[],plays:[],clients:[],currentId:null,view:'grid'};
+const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
+  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null};
 
-// ── SUPABASE HELPERS ──
-async function sb(path,opts){
-  const url=SUPA_URL+'/rest/v1/'+path;
-  const res=await fetch(url,{
-    ...opts,
-    headers:{
-      'apikey':SUPA_KEY,
-      'Authorization':'Bearer '+SUPA_KEY,
-      'Content-Type':'application/json',
-      'Prefer':'return=representation',
-      ...(opts&&opts.headers)
-    }
-  });
-  if(!res.ok){
-    const txt=await res.text();
-    throw new Error('Supabase '+res.status+': '+txt);
-  }
-  if(res.status===204)return null;
-  const t=await res.text();
-  return t?JSON.parse(t):null;
+const KIND_BUCKET={'Post idea':'post','Video idea':'video','Video to Create':'video','Video Style':'video','Hook':'video',
+  'Design idea':'design','Font':'design','Editing idea':'editing','Transition':'editing','Caption Style':'editing',
+  'Editing Technique':'editing','Tool':'editing'};
+const BUCKETS=[['post','Posts'],['video','Videos'],['design','Design'],['editing','Editing'],['reference','References']];
+const SEAT_NAME={owner:'Owner',social:'Social',graphic:'Graphic',editor:'Video editor',video_head:'Video head',dev:'Development',other:'Team'};
+const LANGS=['English','Sinhala','Tamil'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+// ── SMALL HELPERS ──
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const bucketOf=l=>KIND_BUCKET[l.category]||'reference';
+const up=s=>String(s||'').toUpperCase();
+const nice=s=>{s=String(s||'');return s.charAt(0)+s.slice(1).toLowerCase();};
+function fmtDate(d){if(!d)return '';const x=new Date(d);return x.getDate()+' '+MONTHS[x.getMonth()]+' '+x.getFullYear();}
+function fmtMonth(d){const x=new Date(d);return MONTHS[x.getMonth()]+' '+x.getFullYear();}
+function daysSince(d){return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
+function weekStart(){const n=new Date();const d=new Date(n.getFullYear(),n.getMonth(),n.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
+function monthStart(){const n=new Date();return new Date(n.getFullYear(),n.getMonth(),1);}
+function isoWeek(){const d=new Date();const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));const day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1));return {year:t.getUTCFullYear(),week:Math.ceil(((t-y0)/86400000+1)/7)};}
+function weekKey(){const w=isoWeek();return w.year+'-W'+String(w.week).padStart(2,'0');}
+function platformOf(url){let h='';try{h=new URL(url).hostname.replace(/^www\./,'');}catch(e){return 'General';}
+  if(/instagram\.com$/.test(h))return 'Instagram';if(/tiktok\.com$/.test(h))return 'TikTok';
+  if(/youtube\.com$|youtu\.be$/.test(h))return 'YouTube';if(/facebook\.com$|fb\.watch$/.test(h))return 'Facebook';
+  if(/pinterest\./.test(h)||/pin\.it$/.test(h))return 'Pinterest';if(/behance\.net$/.test(h))return 'Behance';
+  if(/linkedin\.com$/.test(h))return 'LinkedIn';return 'General';}
+function firstUrl(t){const m=String(t||'').match(/https?:\/\/[^\s]+/i);return m?m[0]:'';}
+function toast(msg,bad){const t=$('toast');t.textContent=msg;t.className='toast on'+(bad?' bad':'');clearTimeout(toast._t);toast._t=setTimeout(()=>{t.className='toast'+(bad?' bad':'');},3200);}
+function store(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.setItem(k,typeof v==='string'?v:JSON.stringify(v));}catch(e){}}
+function read(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+
+// ── DATA LAYER ──
+async function api(path,opts){
+  const res=await fetch(SUPA_URL+path,{...opts,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',...(opts&&opts.headers)}});
+  const txt=await res.text();
+  if(!res.ok)throw new Error(res.status+' '+txt.slice(0,200));
+  return txt?JSON.parse(txt):null;
 }
-
-function toast(msg,type){
-  const el=document.getElementById('toast');
-  el.textContent=msg;
-  el.className='toast '+(type||'')+' show';
-  setTimeout(()=>{el.className='toast '+(type||'');},2800);
-}
-
-// ── LOAD ──
+const rpc=(fn,args)=>api('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args||{})});
+const get=q=>api('/rest/v1/'+q);
 async function loadAll(){
-  try{
-    const [links,plays,clients]=await Promise.all([
-      sb('inspo_links?select=*&order=date_added.desc'),
-      sb('inspo_plays?select=*&order=created_at.desc'),
-      sb('clients?select=id,name,industry&order=name.asc').catch(()=>[])
-    ]);
-    STATE.links=links||[];
-    STATE.plays=plays||[];
-    STATE.clients=clients||[];
-    populateClientDropdowns();
-    renderCards();
-    renderStats();
-  }catch(e){
-    console.error('[INSPO] Load failed:',e);
-    toast('Load failed — check Supabase tables exist','error');
-    document.getElementById('cards-container').innerHTML=
-      '<div class="empty"><div class="empty-ico">⚠</div><div class="empty-title">Couldn\'t load data</div>'+
-      '<div style="font-size:13px;margin-top:8px">Make sure you ran the SQL to create <code>inspo_links</code> and <code>inspo_plays</code> tables in Supabase.</div>'+
-      '<div style="font-size:11px;color:var(--text3);margin-top:14px">'+String(e.message||e)+'</div></div>';
+  // Named columns only. clients is filtered to active, the person list comes from
+  // team_members where active inside inspo_people(). Never select * on a list.
+  const [links,plays,clients,people,settings]=await Promise.all([
+    get('inspo_links?select=id,title,url,notes,platform,category,client_id,added_by,date_added,language,image_path,strong_by&order=date_added.desc'),
+    get('inspo_plays?select=id,inspo_link_id,client_id,date_posted,notes,logged_by,created_at&order=created_at.desc'),
+    get('clients?select=id,name,industry,assigned_smm&status=eq.active&order=name.asc'),
+    rpc('inspo_people'),rpc('inspo_settings_get')]);
+  S.links=links||[];S.plays=plays||[];S.clients=clients||[];S.people=people||[];S.settings=settings||{};
+}
+const clientById=id=>S.clients.find(c=>c.id===id);
+const playsOf=id=>S.plays.filter(p=>p.inspo_link_id===id);
+const setting=(k,d)=>S.settings[k]==null?d:S.settings[k];
+
+// ── THE ROTA AND THE TARGETS ──
+function rota(){
+  const per=Number(setting('rota_clients_per_smm',3))||3, ov=(setting('rota_override',{})||{})[weekKey()]||{}, out={};
+  const smms=[...new Set(S.clients.map(c=>up(c.assigned_smm)).filter(Boolean))];
+  smms.forEach(s=>{
+    const mine=S.clients.filter(c=>up(c.assigned_smm)===s);
+    if(Array.isArray(ov[s])&&ov[s].length){out[s]=mine.filter(c=>ov[s].includes(c.id));return;}
+    const chunks=Math.max(1,Math.ceil(mine.length/per)), i=isoWeek().week%chunks;
+    out[s]=mine.slice(i*per,i*per+per);
+  });
+  return out;
+}
+function targets(){
+  const T=Number(setting('weekly_target_per_client',3))||0, mode=setting('target_mode','rota'), r=rota();
+  const inPlay=mode==='all'?S.clients.slice():Object.values(r).flat();
+  const ws=weekStart(), week=S.links.filter(l=>new Date(l.date_added)>=ws);
+  const ids=new Set(inPlay.map(c=>c.id));
+  return {T,mode,rota:r,inPlay,week,target:T*inPlay.length,landed:week.filter(l=>ids.has(l.client_id)).length};
+}
+function personTarget(p,t){
+  if(p.seat==='social'){const n=t.mode==='all'?S.clients.filter(c=>up(c.assigned_smm)===up(p.name)).length:(t.rota[up(p.name)]||[]).length;return t.T*n;}
+  if(['graphic','editor','video_head'].includes(p.seat))return Number(setting('weekly_target_other_seats',3))||0;
+  return null;
+}
+
+// ── SHEETS. One at a time, Back closes it, the page behind is frozen and out of reach. ──
+let lockedY=0, sheetOpen=false, closing=false, afterClose=null, dirty=false;
+function openSheet(html){
+  $('sheet').innerHTML='<div class="grab"></div>'+html;$('sheet').scrollTop=0;
+  if(sheetOpen)return;                       // swapping content keeps the one history entry
+  sheetOpen=true;lockedY=window.scrollY;
+  document.body.style.top=-lockedY+'px';document.body.classList.add('sheet-open');
+  $('sheet-root').classList.add('on');$('app').inert=true;$('bar').inert=true;
+  history.pushState({sheet:true},'');
+}
+function hideSheet(){
+  if(!sheetOpen)return;sheetOpen=false;
+  $('sheet-root').classList.remove('on');$('sheet').innerHTML='';
+  $('app').inert=false;$('bar').inert=false;
+  document.body.classList.remove('sheet-open');document.body.style.top='';window.scrollTo(0,lockedY);
+}
+function closeSheet(then){
+  if(!sheetOpen){if(then)then();return;}
+  if(closing)return;closing=true;afterClose=then||null;history.back();
+}
+window.addEventListener('popstate',()=>{
+  if(sheetOpen)hideSheet();
+  closing=false;const f=afterClose;afterClose=null;
+  if(f)f();else if(dirty&&S.me){dirty=false;route();}
+});
+window.addEventListener('hashchange',()=>{if(S.me&&!sheetOpen)route();});
+
+// ── GATE: pick your name, four digits ──
+async function boot(){
+  const p=new URLSearchParams(location.search);
+  const shared=p.get('url')||firstUrl(p.get('text'))||firstUrl(p.get('title'));
+  if(shared){S.intake=shared;history.replaceState(null,'',location.pathname+location.hash);}
+  S.token=read(TOKEN_KEY);
+  if(S.token){
+    try{const me=await rpc('inspo_me',{p_token:S.token});if(me&&me.ok){S.me=me;return enter();}}catch(e){return gateError(e);}
+    store(TOKEN_KEY,null);S.token=null;
   }
+  showGate();
 }
-
-function populateClientDropdowns(){
-  const filter=document.getElementById('f-client');
-  const form=document.getElementById('f-clientid');
-  const play=document.getElementById('p-client');
-  const opts=STATE.clients.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  filter.innerHTML='<option value="">All clients</option>'+opts;
-  form.innerHTML='<option value="">None — general reference</option>'+opts;
-  play.innerHTML='<option value="">Choose a client...</option>'+opts;
+function gateError(e){
+  $('gate').hidden=false;
+  $('gate').innerHTML='<h1>Inspo Hub</h1><p>The hub could not reach the database. Check your connection and try again.</p><p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div>';
 }
-
-// ── HELPERS ──
-function daysSince(d){if(!d)return 9999;return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
-function isStale(link){
-  if(getStatus(link.id)!=='Not Tried')return false;
-  const days=daysSince(link.last_reviewed||link.date_added);
-  return days>=STALE_DAYS;
+async function showGate(){
+  $('app').hidden=true;$('bar').hidden=true;$('gate').hidden=false;
+  $('gate').innerHTML='<h1>Inspo Hub</h1><p>Loading the team.</p>';
+  let people;try{people=await rpc('inspo_people');}catch(e){return gateError(e);}
+  S.people=people||[];
+  $('gate').innerHTML='<h1>Inspo Hub</h1><p>Who are you?</p><div class="card rows" style="margin-top:20px">'+
+    S.people.map(x=>'<button class="row" data-act="pick" data-name="'+esc(x.name)+'"'+(x.has_login?'':' disabled')+'><span class="grow"><span class="name">'+esc(nice(x.name))+'</span><span class="meta">'+(x.has_login?esc(SEAT_NAME[x.seat]||'Team'):'No login yet. Ask Thulaib or Shiara')+'</span></span>'+chev()+'</button>').join('')+'</div>';
 }
-function getPlays(linkId){return STATE.plays.filter(p=>p.inspo_link_id===linkId);}
-function getStatus(linkId){
-  const plays=getPlays(linkId);
-  if(plays.length===0)return 'Not Tried';
-  const published=plays.filter(p=>p.output_url&&p.output_url.trim());
-  return published.length>0?'Implemented':'In Progress';
-}
-function platIcon(p){
-  const map={TikTok:'TT',Instagram:'IG',YouTube:'YT',Facebook:'FB',General:'LK'};
-  const cls={TikTok:'plat-tiktok',Instagram:'plat-instagram',YouTube:'plat-youtube',Facebook:'plat-facebook',General:'plat-general'};
-  return `<div class="plat-icon ${cls[p]||'plat-general'}">${map[p]||'LK'}</div>`;
-}
-function fmtNum(n){n=parseInt(n)||0;if(n>=1000000)return(n/1000000).toFixed(1)+'M';if(n>=1000)return(n/1000).toFixed(1)+'K';return n;}
-function fmtDate(d){if(!d)return '—';const dt=new Date(d);return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});}
-function escapeHtml(s){if(!s)return '';return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-
-function aggPerf(linkId){
-  const plays=getPlays(linkId);
-  if(plays.length===0)return null;
-  return {
-    n:plays.length,
-    views:plays.reduce((s,p)=>s+(p.views||0),0),
-    likes:plays.reduce((s,p)=>s+(p.likes||0),0),
-    shares:plays.reduce((s,p)=>s+(p.shares||0),0),
-    comments:plays.reduce((s,p)=>s+(p.comments||0),0),
-    avgRating:plays.filter(p=>p.rating).length?(plays.reduce((s,p)=>s+(p.rating||0),0)/plays.filter(p=>p.rating).length).toFixed(1):null
+function chev(){return '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';}
+function showPin(name){
+  $('gate').innerHTML='<h1>Hello '+esc(nice(name))+'</h1><p>Type your four digit PIN.</p>'+
+    '<form id="pin-form" style="margin-top:20px"><input class="pin" id="pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="go" aria-label="PIN">'+
+    '<div class="err" id="pin-err" hidden></div><div class="actions"><button class="btn primary" type="submit">Sign in</button><button class="btn quiet" type="button" data-act="gate">Not '+esc(nice(name))+'</button></div></form>';
+  $('pin').focus();
+  $('pin-form').onsubmit=async ev=>{
+    ev.preventDefault();const pin=$('pin').value.trim(), er=$('pin-err');er.hidden=true;
+    if(!/^\d{4}$/.test(pin)){er.textContent='A PIN is four digits.';er.hidden=false;return;}
+    try{
+      const r=await rpc('inspo_login',{p_name:name,p_pin:pin});
+      if(!r.ok){er.textContent=r.why==='locked'?'Too many wrong tries. This name is locked for ten minutes.':'That PIN is not right.';er.hidden=false;$('pin').value='';return;}
+      S.token=r.token;store(TOKEN_KEY,r.token);S.me=r;enter();
+    }catch(e){er.textContent='Could not sign in: '+(e.message||e);er.hidden=false;}
   };
 }
-
-// ── RENDER ──
-function renderStats(){
-  const total=STATE.links.length;
-  const not=STATE.links.filter(l=>getStatus(l.id)==='Not Tried').length;
-  const impl=STATE.links.filter(l=>getStatus(l.id)==='Implemented').length;
-  const stale=STATE.links.filter(l=>isStale(l)).length;
-  document.getElementById('stat-total').textContent=total;
-  document.getElementById('stat-not').textContent=not;
-  document.getElementById('stat-impl').textContent=impl;
-  document.getElementById('stat-stale').textContent=stale;
-  document.getElementById('stat-plays').textContent=STATE.plays.length;
-}
-
-function cardHTML(l){
-  const status=getStatus(l.id);
-  const perf=aggPerf(l.id);
-  const stale=isStale(l);
-  const priCls={High:'tag-pri-high',Medium:'tag-pri-med',Low:'tag-pri-low'}[l.priority]||'tag-pri-low';
-  const stCls={'Not Tried':'tag-status-not','In Progress':'tag-status-prog','Implemented':'tag-status-impl'}[status];
-  const client=STATE.clients.find(x=>x.id===l.client_id);
-  return `<div class="card${stale?' stale':''}" onclick="openDetail(${l.id})">
-    <div class="card-head">
-      ${platIcon(l.platform)}
-      <div class="card-title">${escapeHtml(l.title)}</div>
-    </div>
-    ${l.notes?`<div class="card-notes">${escapeHtml(l.notes)}</div>`:''}
-    <div class="tags">
-      <span class="tag tag-cat">${l.category||'—'}</span>
-      ${l.industry?`<span class="tag tag-ind">${l.industry}</span>`:''}
-      ${client?`<span class="tag tag-ind">${escapeHtml(client.name)}</span>`:''}
-      <span class="tag ${priCls}">${l.priority||'Medium'}</span>
-      <span class="tag ${stCls}">${status}</span>
-    </div>
-    ${perf?`<div class="perf">
-      <div class="perf-item"><div class="perf-lbl">Plays</div><div class="perf-val">${perf.n}</div></div>
-      <div class="perf-item"><div class="perf-lbl">Views</div><div class="perf-val">${fmtNum(perf.views)}</div></div>
-      <div class="perf-item"><div class="perf-lbl">Likes</div><div class="perf-val">${fmtNum(perf.likes)}</div></div>
-      <div class="perf-item"><div class="perf-lbl">Avg ★</div><div class="perf-val" style="color:var(--amber)">${perf.avgRating||'—'}</div></div>
-    </div>`:''}
-    <div class="card-meta">
-      <span>By ${escapeHtml(l.added_by||'—')} · ${fmtDate(l.date_added)}</span>
-      ${l.last_reviewed?`<span title="Last reviewed">✓ ${fmtDate(l.last_reviewed)}</span>`:''}
-    </div>
-  </div>`;
-}
-
-function setView(v){
-  STATE.view=v;
-  document.getElementById('vt-grid').classList.toggle('active',v==='grid');
-  document.getElementById('vt-pipe').classList.toggle('active',v==='pipeline');
-  renderCards();
-}
-
-function renderCards(){
-  const c=document.getElementById('f-client').value;
-  const i=document.getElementById('f-industry').value;
-  const p=document.getElementById('f-platform').value;
-  const cat=document.getElementById('f-category').value;
-  const pri=document.getElementById('f-priority').value;
-  const st=document.getElementById('f-status').value;
-  const q=document.getElementById('f-search').value.toLowerCase().trim();
-  const dr=document.getElementById('f-daterange').value;
-  const sort=document.getElementById('f-sort').value;
-
-  let filtered=STATE.links.filter(l=>{
-    if(c&&String(l.client_id)!==c)return false;
-    if(i&&l.industry!==i)return false;
-    if(p&&l.platform!==p)return false;
-    if(cat&&l.category!==cat)return false;
-    if(pri&&l.priority!==pri)return false;
-    if(st&&getStatus(l.id)!==st)return false;
-    if(dr){
-      const days=daysSince(l.date_added);
-      if(days>parseInt(dr))return false;
-    }
-    if(q){
-      const hay=(l.title+' '+(l.notes||'')).toLowerCase();
-      if(!hay.includes(q))return false;
-    }
-    return true;
-  });
-
-  // sort
-  filtered.sort((a,b)=>{
-    const ta=new Date(a.date_added||0).getTime();
-    const tb=new Date(b.date_added||0).getTime();
-    return sort==='asc'?ta-tb:tb-ta;
-  });
-
-  const container=document.getElementById('cards-container');
-
-  if(filtered.length===0){
-    container.innerHTML=`<div class="grid"><div class="empty" style="grid-column:1/-1"><div class="empty-ico">💡</div><div class="empty-title">${STATE.links.length===0?'No inspo saved yet':'No matches'}</div><div style="font-size:13px;margin-top:6px">${STATE.links.length===0?'Click "+ New Inspo" to add your first reference.':'Try clearing filters.'}</div></div></div>`;
-    return;
-  }
-
-  if(STATE.view==='pipeline'){
-    const cols=[
-      {key:'Not Tried',cls:'not',items:filtered.filter(l=>getStatus(l.id)==='Not Tried')},
-      {key:'In Progress',cls:'prog',items:filtered.filter(l=>getStatus(l.id)==='In Progress')},
-      {key:'Implemented',cls:'impl',items:filtered.filter(l=>getStatus(l.id)==='Implemented')}
-    ];
-    container.innerHTML='<div class="pipeline-wrap">'+cols.map(col=>
-      `<div class="pipe-col ${col.cls}">
-        <div class="pipe-col-head">
-          <span class="pipe-col-title">${col.key}</span>
-          <span class="pipe-col-count">${col.items.length}</span>
-        </div>
-        ${col.items.length===0?'<div class="pipe-empty">Nothing here</div>':col.items.map(cardHTML).join('')}
-      </div>`
-    ).join('')+'</div>';
-    return;
-  }
-
-  // grid view
-  container.innerHTML='<div class="grid">'+filtered.map(cardHTML).join('')+'</div>';
-}
-
-function clearFilters(){
-  ['f-client','f-industry','f-platform','f-category','f-priority','f-status','f-daterange'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-search').value='';
-  document.getElementById('f-sort').value='desc';
-  renderCards();
-}
-
-// ── MODALS ──
-function openModal(id){document.getElementById(id).classList.add('show');}
-function closeModal(id){document.getElementById(id).classList.remove('show');}
-
-function openAddModal(){
-  document.getElementById('edit-id').value='';
-  document.getElementById('add-title').textContent='Add New Inspo';
-  ['f-title','f-url','f-notes'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('f-plat').value='TikTok';
-  document.getElementById('f-cat').value='Video Style';
-  document.getElementById('f-clientid').value='';
-  document.getElementById('f-ind').value='General';
-  document.getElementById('f-by').value='Thulaib';
-  document.getElementById('f-pri').value='Medium';
-  openModal('add-modal');
-}
-
-async function saveInspo(){
-  const id=document.getElementById('edit-id').value;
-  const title=document.getElementById('f-title').value.trim();
-  const url=document.getElementById('f-url').value.trim();
-  if(!title||!url){toast('Title and URL required','error');return;}
-  const clientId=document.getElementById('f-clientid').value;
-  const client=clientId?STATE.clients.find(c=>String(c.id)===clientId):null;
-  const payload={
-    title,url,
-    notes:document.getElementById('f-notes').value.trim()||null,
-    platform:document.getElementById('f-plat').value,
-    category:document.getElementById('f-cat').value,
-    client_id:clientId?parseInt(clientId):null,
-    industry:(client&&client.industry)||document.getElementById('f-ind').value,
-    added_by:document.getElementById('f-by').value,
-    priority:document.getElementById('f-pri').value
+function showChangePin(forced){
+  $('app').hidden=true;$('bar').hidden=true;$('gate').hidden=false;
+  $('gate').innerHTML='<h1>Choose your own PIN</h1><p>'+(forced?'The PIN you were sent works once. Pick four digits only you know.':'Pick four new digits.')+'</p>'+
+    '<form id="cp-form" style="margin-top:20px"><label class="lbl" for="cp1">New PIN</label><input class="pin" id="cp1" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="next">'+
+    '<label class="lbl" for="cp2">Same PIN again</label><input class="pin" id="cp2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" enterkeyhint="go">'+
+    '<div class="err" id="cp-err" hidden></div><div class="actions"><button class="btn primary" type="submit">Save my PIN</button>'+(forced?'':'<button class="btn quiet" type="button" data-act="enter">Cancel</button>')+'</div></form>';
+  $('cp1').focus();
+  $('cp-form').onsubmit=async ev=>{
+    ev.preventDefault();const a=$('cp1').value.trim(), b=$('cp2').value.trim(), er=$('cp-err');er.hidden=true;
+    const say=m=>{er.textContent=m;er.hidden=false;};
+    if(!/^\d{4}$/.test(a))return say('A PIN is four digits.');
+    if(a!==b)return say('The two PINs do not match.');
+    try{
+      const r=await rpc('inspo_change_pin',{p_token:S.token,p_new:a});
+      if(!r.ok)return say({same:'That is the PIN you already have. Pick a different one.',too_easy:'That one is too easy to guess. Pick another.',session:'Your session ended. Sign in again.'}[r.why]||'Could not save that PIN.');
+      S.me.must_change=false;toast('PIN saved');enter();
+    }catch(e){say('Could not save: '+(e.message||e));}
   };
+}
+async function enter(){
+  if(S.me.must_change)return showChangePin(true);
+  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;
+  $('who-name').textContent=nice(S.me.name);
+  S.ideasView=read(VIEW_KEY)==='board'?'board':'list';
+  $('view').innerHTML='<div class="empty">Loading the shelf.</div>';
+  try{await loadAll();}catch(e){$('view').innerHTML='<div class="empty"><b>The shelf did not load</b>'+esc(e.message||e)+'</div>';return;}
+  route();
+  if(S.intake){const u=S.intake;S.intake=null;openFile({url:u});}
+}
+async function signOut(){try{await rpc('inspo_logout',{p_token:S.token});}catch(e){}store(TOKEN_KEY,null);S.token=null;S.me=null;showGate();}
+
+// ── ROUTER. The hash is the router. ──
+function route(){
+  const h=(location.hash||'#home').slice(1), parts=h.split('/');
+  document.querySelectorAll('.tab[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===(parts[0]==='shelf'?'home':parts[0])));
+  if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();
+  else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderHome();
+  window.scrollTo(0,0);
+}
+
+// ── HOME: the counter ──
+function renderHome(){
+  $('view-title').textContent='Inspo Hub';
+  const t=targets(), ms=monthStart();
+  const lastFor=id=>{const l=S.links.find(x=>x.client_id===id);return l?l.date_added:null;};
+  const starved=S.clients.filter(c=>!S.links.some(l=>l.client_id===c.id&&new Date(l.date_added)>=ms))
+    .sort((a,b)=>{const x=lastFor(a.id),y=lastFor(b.id);if(!x&&!y)return a.name.localeCompare(b.name);if(!x)return -1;if(!y)return 1;return new Date(x)-new Date(y);});
+  const pct=t.target?Math.min(100,Math.round(t.landed/t.target*100)):0;
+  let h='<section class="card week"><div class="big num">'+t.landed+'<small>of '+t.target+' this week</small></div>'+
+    '<p>'+(t.mode==='all'?'The target is '+t.T+' for every active client, every week.':'The target is '+t.T+' for each of the '+t.inPlay.length+' clients in this week\'s rotation.')+' '+t.week.length+' filed in total since Monday.</p>'+
+    '<div class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></div></section>';
+
+  h+='<div class="starved-head"><span class="n num'+(starved.length?'':' zero')+'">'+starved.length+'</span><span class="t">'+(starved.length===1?'client has':'clients have')+' nothing filed in '+MONTHS[ms.getMonth()]+'</span></div>';
+  h+=starved.length?'<div class="card rows">'+starved.map(c=>{const l=lastFor(c.id);
+    return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+(l?'Last idea '+daysSince(l)+' days ago':'Never had one')+' · '+(c.assigned_smm?esc(nice(c.assigned_smm)):'No social manager')+'</span></span>'+chev()+'</button>';}).join('')+'</div>'
+    :'<div class="card empty">Every active client has at least one idea this month.</div>';
+
+  if(t.mode!=='all'){
+    h+='<h2>This week\'s rotation</h2><div class="card rows">'+(Object.keys(t.rota).length?Object.entries(t.rota).map(([smm,cs])=>cs.map(c=>{
+      const n=t.week.filter(l=>l.client_id===c.id).length;
+      return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+esc(nice(smm))+'</span></span><span class="val num">'+n+' <small>of '+t.T+'</small></span>'+chev()+'</button>';}).join('')).join(''):'<div class="empty">No client has a social manager set, so there is no rotation.</div>')+'</div>';
+  }
+
+  h+='<h2>People this week</h2><div class="card rows">'+S.people.filter(p=>p.seat!=='dev'||t.week.some(l=>up(l.added_by)===up(p.name))).map(p=>{
+    const n=t.week.filter(l=>up(l.added_by)===up(p.name)).length, tg=personTarget(p,t);
+    return '<div class="row"><span class="grow"><span class="name">'+esc(nice(p.name))+'</span><span class="meta">'+esc(SEAT_NAME[p.seat]||'Team')+'</span></span><span class="val num">'+n+(tg==null?'':' <small>of '+tg+'</small>')+'</span></div>';}).join('')+'</div>';
+
+  h+='<h2>Every client<span class="sub">'+S.clients.length+' active</span></h2><div class="card rows">'+S.clients.map(c=>{
+    const mine=S.links.filter(l=>l.client_id===c.id), l=mine[0];
+    const sp=BUCKETS.map(([k,n])=>{const x=mine.filter(m=>bucketOf(m)===k).length;return x?'<span><b class="num">'+x+'</b> '+n.toLowerCase()+'</span>':'';}).join('');
+    return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+(l?'Freshest '+fmtDate(l.date_added):'Empty shelf')+'</span>'+(sp?'<span class="split">'+sp+'</span>':'')+'</span><span class="val num">'+mine.length+'</span>'+chev()+'</button>';}).join('')+'</div>';
+
+  h+='<p class="note-line">A counter measures filing, not taste. Nine weak links beat three good ones on any counter ever built, so heads mark the strong ones and the plan is drafted from those first.</p>';
+  $('view').innerHTML=h;
+}
+
+// ── IDEA CARDS ──
+function ideaCard(l){
+  const c=clientById(l.client_id), used=playsOf(l.id);
+  const pic=l.image_path?'<img class="pic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="nopic"><span class="p">'+esc(l.platform||'Link')+'</span><span class="k">No picture yet. Open it to add a screenshot</span></div>';
+  return '<button class="card idea" data-act="detail" data-id="'+l.id+'">'+pic+'<div class="body"><div class="kline"><span>'+esc(l.category||'Reference')+'</span>'+
+    (l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used '+esc(fmtMonth(used[0].date_posted))+'</span>':'')+(l.language?'<span>'+esc(l.language)+'</span>':'')+'</div>'+
+    '<h3>'+esc(l.title)+'</h3>'+(l.notes?'<div class="n">'+esc(l.notes)+'</div>':'<div class="n">No note on this one. It was filed before notes were required.</div>')+
+    '<div class="by">'+esc(c?c.name:'No client')+' · '+esc(nice(l.added_by))+' · '+fmtDate(l.date_added)+'</div></div></button>';
+}
+function applyFilter(list,f){
+  const q=f.q.trim().toLowerCase();
+  return list.filter(l=>{
+    if(f.kind&&bucketOf(l)!==f.kind)return false;
+    if(f.client&&String(l.client_id)!==f.client)return false;
+    if(f.strong&&!l.strong_by)return false;
+    if(f.unused&&playsOf(l.id).length)return false;
+    if(q&&!((l.title||'')+' '+(l.notes||'')+' '+(l.added_by||'')).toLowerCase().includes(q))return false;
+    return true;});
+}
+function kindChips(cur,act){
+  return '<div class="chips">'+[['','All']].concat(BUCKETS).map(([k,n])=>'<button class="chip'+(cur===k?' on':'')+'" data-act="'+act+'" data-kind="'+k+'">'+n+'</button>').join('')+'</div>';
+}
+function renderIdeas(){
+  $('view-title').textContent='Ideas';
+  const f=S.filter, list=applyFilter(S.links,f), extra=(f.client?1:0)+(f.strong?1:0)+(f.unused?1:0);
+  let h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas" value="'+esc(f.q)+'" enterkeyhint="search" autocomplete="off"><button class="btn" data-act="filters">Filters'+(extra?' · '+extra:'')+'</button></div>'+
+    kindChips(f.kind,'kind')+
+    '<div class="seg" style="margin-top:12px"><button data-act="view" data-v="list" class="'+(S.ideasView==='list'?'on':'')+'">List</button><button data-act="view" data-v="board" class="'+(S.ideasView==='board'?'on':'')+'">Board</button></div>';
+  if(!list.length)h+='<div class="card empty" style="margin-top:14px"><b>'+(S.links.length?'Nothing matches':'The shelf is empty')+'</b>'+(S.links.length?'Clear a filter or search for something else.':'Tap File an idea to put the first one in.')+'</div>';
+  else if(S.ideasView==='board'){
+    const a=list.filter(l=>!playsOf(l.id).length), b=list.filter(l=>playsOf(l.id).length);
+    h+='<div class="board"><div class="col"><h4>Not used yet · '+a.length+'</h4><div class="ideas">'+(a.map(ideaCard).join('')||'<div class="card empty">Nothing here.</div>')+'</div></div>'+
+       '<div class="col"><h4>Used · '+b.length+'</h4><div class="ideas">'+(b.map(ideaCard).join('')||'<div class="card empty">Nothing used yet. Open an idea and tap Mark used.</div>')+'</div></div></div>';
+  }else h+='<div class="ideas">'+list.map(ideaCard).join('')+'</div>';
+  $('view').innerHTML=h;
+  const q=$('q');q.oninput=()=>{S.filter.q=q.value;const pos=q.selectionStart;renderIdeas();const n=$('q');n.focus();n.setSelectionRange(pos,pos);};
+}
+function renderShelf(id){
+  const c=clientById(id), all=S.links.filter(l=>l.client_id===id);
+  $('view-title').textContent=c.name;
+  const list=S.shelfKind?all.filter(l=>bucketOf(l)===S.shelfKind):all;
+  let h='<p class="help" style="margin:0 0 12px">'+all.length+' on the shelf · '+all.filter(l=>l.strong_by).length+' strong · '+all.filter(l=>playsOf(l.id).length).length+' used'+(c.assigned_smm?' · '+esc(nice(c.assigned_smm)):'')+'</p>'+
+    kindChips(S.shelfKind,'shelf-kind')+
+    '<div class="actions" style="margin-top:12px"><button class="btn" data-act="file" data-client="'+id+'">File for '+esc(c.name)+'</button><button class="btn" data-act="plan" data-id="'+id+'">Plan chat text</button></div>';
+  h+=list.length?'<div class="ideas">'+list.map(ideaCard).join('')+'</div>':'<div class="card empty" style="margin-top:14px"><b>'+(all.length?'None of that kind':'Nothing on this shelf yet')+'</b>'+(all.length?'Pick another kind above.':'The next plan for '+esc(c.name)+' starts from a blank page until somebody files here.')+'</div>';
+  $('view').innerHTML=h;
+}
+function renderUsed(){
+  $('view-title').textContent='Used';
+  const rows=S.plays.slice().sort((a,b)=>new Date(b.date_posted||b.created_at)-new Date(a.date_posted||a.created_at));
+  let h='<p class="help" style="margin:0 0 12px">Ideas that went into a client\'s month. This is the number that shows the shelf is being read.</p>';
+  h+=rows.length?'<div class="card rows">'+rows.map(p=>{const l=S.links.find(x=>x.id===p.inspo_link_id), c=clientById(p.client_id);
+    return '<button class="row" data-act="detail" data-id="'+(l?l.id:'')+'"><span class="grow"><span class="name">'+esc(l?l.title:'Idea removed')+'</span><span class="meta">'+esc(c?c.name:'Client no longer active')+' · '+esc(p.date_posted?fmtMonth(p.date_posted):'')+(p.logged_by?' · marked by '+esc(nice(p.logged_by)):'')+'</span></span>'+chev()+'</button>';}).join('')+'</div>'
+    :'<div class="card empty"><b>Nothing marked used yet</b>Open any idea and tap Mark used once it goes into a plan.</div>';
+  $('view').innerHTML=h;
+}
+
+// ── FILE AN IDEA. The sheet that decides whether the hub lives. ──
+let fileT0=0, draft=null;
+function openFile(pre){
+  pre=pre||{};let last={};try{last=JSON.parse(read(LAST_KEY)||'{}');}catch(e){}
+  const ed=pre.id?S.links.find(l=>l.id===pre.id):null;
+  draft={id:ed?ed.id:null,image_path:ed?ed.image_path:null,title:ed?ed.title:'',unfurled:''};
+  fileT0=Date.now();
+  const kinds=ed?[...new Set(S.me.kinds.concat([ed.category]))]:S.me.kinds;
+  const kind=ed?ed.category:(kinds.includes(last.kind)?last.kind:kinds[0]);
+  const client=ed?(ed.client_id||''):(pre.client||last.client||'');
+  const lang=ed?(ed.language||''):'';
+  const mine=S.clients.filter(c=>up(c.assigned_smm)===up(S.me.name)), rest=S.clients.filter(c=>!mine.includes(c));
+  const opt=c=>'<option value="'+c.id+'"'+(String(client)===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>';
+  openSheet('<h2>'+(ed?'Edit this idea':'File an idea')+'</h2>'+
+    '<form id="file-form" novalidate><label class="lbl" for="f-url">Link</label><div class="urlrow"><input id="f-url" type="url" inputmode="url" placeholder="Paste the link" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(ed?ed.url:(pre.url||''))+'"><button class="btn" type="button" data-act="paste">Paste</button></div>'+
+    '<div class="preview" id="f-prev" hidden></div>'+
+    '<label class="lbl" for="f-client">Client</label><select id="f-client"><option value="">No client, a general reference</option>'+(mine.length?'<optgroup label="Your clients">'+mine.map(opt).join('')+'</optgroup><optgroup label="Everyone else">'+rest.map(opt).join('')+'</optgroup>':S.clients.map(opt).join(''))+'</select>'+
+    '<span class="lbl">Kind</span><div class="wrapchips" id="f-kinds">'+kinds.map(k=>'<button type="button" class="chip'+(k===kind?' on':'')+'" data-act="pick-kind" data-k="'+esc(k)+'">'+esc(k)+'</button>').join('')+'</div>'+
+    '<label class="lbl" for="f-note">Note</label><textarea id="f-note" enterkeyhint="done" placeholder="What kind of post is this? Why does it work? Which client does it suit?">'+esc(ed?ed.notes||'':'')+'</textarea>'+
+    '<p class="help">A link with no note is a bookmark. The note is what somebody drafting a plan reads in three months, when the link itself may be gone.</p>'+
+    '<span class="lbl">Language of the reference</span><div class="wrapchips" id="f-langs">'+LANGS.map(g=>'<button type="button" class="chip'+(g===lang?' on':'')+'" data-act="pick-lang" data-g="'+g+'">'+g+'</button>').join('')+'</div>'+
+    '<span class="lbl">Picture</span><input id="f-shot" type="file" accept="image/*" hidden><button class="btn" type="button" data-act="shot" id="f-shot-btn">'+(draft.image_path?'Replace the picture':'Add a screenshot')+'</button>'+
+    '<div class="err" id="f-err" hidden></div>'+
+    '<div class="actions pinned"><button class="btn primary" type="submit" id="f-save">'+(ed?'Save changes':'File it')+'</button><button class="btn quiet" type="button" data-act="close-sheet">Cancel</button></div></form>');
+  $('f-url').addEventListener('change',()=>unfurl($('f-url').value.trim()));
+  $('f-url').addEventListener('paste',()=>setTimeout(()=>unfurl($('f-url').value.trim()),0));
+  $('f-shot').onchange=ev=>{const f=ev.target.files[0];if(f)uploadShot(f);};
+  $('file-form').onsubmit=ev=>{ev.preventDefault();saveFile();};
+  if(draft.image_path)showPreview(draft.title,'Picture saved');
+  if(!ed&&pre.url)unfurl(pre.url);
+}
+function showPreview(title,sub){
+  const p=$('f-prev');if(!p)return;p.hidden=false;
+  p.innerHTML=(draft.image_path?'<img alt="" src="'+esc(SHOTS+draft.image_path)+'">':'')+'<div><div class="t">'+esc(title||'No title found')+'</div><div class="s">'+esc(sub||'')+'</div></div>';
+}
+async function unfurl(url){
+  if(!/^https?:\/\//i.test(url)||!draft||draft.unfurled===url||draft.id)return;
+  draft.unfurled=url;showPreview(platformOf(url)+' link','Looking for a title and a picture');
   try{
-    if(id){
-      await sb('inspo_links?id=eq.'+id,{method:'PATCH',body:JSON.stringify(payload)});
-      toast('Updated','success');
-    }else{
-      await sb('inspo_links',{method:'POST',body:JSON.stringify(payload)});
-      toast('Added','success');
-    }
-    closeModal('add-modal');
+    // TikTok answers a phone and refuses a server, so the phone asks and the fetcher only stores the picture.
+    let hint={};
+    if(platformOf(url)==='TikTok'){try{const o=await fetch('https://www.tiktok.com/oembed?url='+encodeURIComponent(url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);if(o)hint={title:o.title||o.author_name||'',image_url:o.thumbnail_url||''};}catch(e){}}
+    const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url,...hint})});
+    if(!draft||draft.unfurled!==url)return;
+    if(r&&r.ok&&!r.title&&hint.title)r.title=hint.title;
+    if(r&&r.ok&&(r.title||r.image_path)){draft.title=r.title||'';if(r.image_path)draft.image_path=r.image_path;
+      showPreview(r.title||platformOf(url)+' link',r.image_path?'Picture saved':'No picture came back. Add a screenshot if you can');
+      if(r.image_path&&$('f-shot-btn'))$('f-shot-btn').textContent='Replace the picture';return;}
+  }catch(e){}
+  if(draft&&draft.unfurled===url)showPreview(platformOf(url)+' link',platformOf(url)+' would not share a title or a picture. The link is kept. Add a screenshot if you can');
+}
+function shrink(file){
+  return new Promise((ok,no)=>{const img=new Image(), u=URL.createObjectURL(file);
+    img.onload=()=>{const m=1280, k=Math.min(1,m/Math.max(img.width,img.height)), c=document.createElement('canvas');
+      c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
+      ok(c.toDataURL('image/jpeg',.82).split(',')[1]);};
+    img.onerror=()=>{URL.revokeObjectURL(u);no(new Error('That file is not a picture'));};img.src=u;});
+}
+async function uploadShot(file){
+  const b=$('f-shot-btn');b.disabled=true;b.textContent='Saving the picture';
+  try{
+    const data=await shrink(file);
+    const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,image_b64:data})});
+    if(!r||!r.ok)throw new Error((r&&r.why)||'upload refused');
+    draft.image_path=r.image_path;showPreview(draft.title||'Your screenshot','Picture saved');b.textContent='Replace the picture';
+  }catch(e){b.textContent='Add a screenshot';toast('The picture did not save: '+(e.message||e),true);}
+  b.disabled=false;
+}
+async function saveFile(){
+  const er=$('f-err'), say=m=>{er.innerHTML=m;er.hidden=false;er.scrollIntoView({block:'nearest'});};er.hidden=true;
+  const url=$('f-url').value.trim(), note=$('f-note').value.trim();
+  const kind=(document.querySelector('#f-kinds .chip.on')||{}).dataset.k, lang=(document.querySelector('#f-langs .chip.on')||{dataset:{}}).dataset.g||'';
+  if(!/^https?:\/\//i.test(url))return say('Paste the full link, starting with https.');
+  if(!note)return say('Add a note before you file it. Say what kind of post it is, why it works and which client it suits. Without that, the next person sees a link and has to guess what you saw in it.');
+  const btn=$('f-save');btn.disabled=true;
+  const client=$('f-client').value;
+  try{
+    const r=await rpc('inspo_save_link',{p_token:S.token,p:{id:draft.id||'',url,notes:note,title:draft.title||'',category:kind,client_id:client,platform:platformOf(url),language:lang,image_path:draft.image_path||''}});
+    if(!r.ok){btn.disabled=false;
+      if(r.why==='duplicate'){const c=clientById(r.existing.client_id);
+        return say('This link is already on the shelf, filed by '+esc(nice(r.existing.added_by))+(c?' for '+esc(c.name):'')+'. <button type="button" class="btn" style="margin-top:10px" data-act="see-existing" data-id="'+r.existing.id+'">Open the one already filed</button>');}
+      if(r.why==='session')return signOut();
+      return say({note:'Add a note before you file it.',url:'Paste the full link, starting with https.',kind:'Your seat cannot file that kind. Pick another or use Reference.',client:'That client is not active any more. Pick another.',not_yours:'Only the person who filed an idea can change it.',change_pin:'Choose your own PIN first.'}[r.why]||'The hub refused that. Try again.');}
+    const secs=Math.round((Date.now()-fileT0)/1000), wasEdit=!!draft.id;
+    store(LAST_KEY,{kind,client});
     await loadAll();
-  }catch(e){toast('Save failed: '+e.message,'error');}
+    closeSheet(()=>{route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
+  }catch(e){btn.disabled=false;say('It did not save: '+esc(e.message||e));}
 }
 
+// ── DETAIL, USED, STRONG, PLAN TEXT ──
 function openDetail(id){
-  const l=STATE.links.find(x=>x.id===id);
-  if(!l)return;
-  STATE.currentId=id;
-  document.getElementById('d-title').textContent=l.title;
-  const urlEl=document.getElementById('d-url');
-  urlEl.textContent=l.url;
-  urlEl.href=l.url;
-  document.getElementById('d-notes').textContent=l.notes||'No notes.';
-  const client=STATE.clients.find(x=>x.id===l.client_id);
-  const status=getStatus(id);
-  const priCls={High:'tag-pri-high',Medium:'tag-pri-med',Low:'tag-pri-low'}[l.priority]||'tag-pri-low';
-  const stCls={'Not Tried':'tag-status-not','In Progress':'tag-status-prog','Implemented':'tag-status-impl'}[status];
-  document.getElementById('d-tags').innerHTML=
-    `<span class="tag tag-cat">${l.category||'—'}</span>`+
-    (l.platform?`<span class="tag tag-cat">${l.platform}</span>`:'')+
-    (l.industry?`<span class="tag tag-ind">${l.industry}</span>`:'')+
-    (client?`<span class="tag tag-ind">${escapeHtml(client.name)}</span>`:'')+
-    `<span class="tag ${priCls}">${l.priority||'Medium'}</span>`+
-    `<span class="tag ${stCls}">${status}</span>`;
-  renderPlays(id);
-  openModal('detail-modal');
+  const l=S.links.find(x=>x.id===id);if(!l)return toast('That idea is no longer on the shelf',true);
+  const c=clientById(l.client_id), used=playsOf(id), mine=up(l.added_by)===up(S.me.name);
+  const canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine, canEdit=mine||S.me.is_admin;
+  openSheet('<h2>'+esc(l.title)+'</h2><p class="lead">'+esc(l.category||'Reference')+' · '+esc(l.platform||'Link')+(l.language?' · '+esc(l.language):'')+(l.strong_by?' · marked strong by '+esc(nice(l.strong_by)):'')+'</p>'+
+    (l.image_path?'<img class="detail-pic" alt="" src="'+esc(SHOTS+l.image_path)+'">':'')+
+    '<p class="kv">'+(l.notes?esc(l.notes):'No note. This was filed before notes were required.')+'</p>'+
+    '<p class="kv"><b>'+esc(c?c.name:'No client')+'</b> · filed by '+esc(nice(l.added_by))+' on '+fmtDate(l.date_added)+'</p>'+
+    (used.length?'<p class="kv">'+used.map(p=>{const pc=clientById(p.client_id);return 'Used for <b>'+esc(pc?pc.name:'a client')+'</b> in '+esc(fmtMonth(p.date_posted))+(p.logged_by&&(up(p.logged_by)===up(S.me.name)||S.me.is_admin)?' <button class="btn quiet" style="display:inline-flex;width:auto;min-height:44px" data-act="unuse" data-play="'+p.id+'" data-id="'+id+'">Undo</button>':'');}).join('<br>')+'</p>':'')+
+    '<div class="actions"><a class="btn primary" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">Open the link</a>'+
+    '<button class="btn" data-act="use" data-id="'+id+'">Mark used</button>'+
+    (canEdit?'<button class="btn" data-act="edit" data-id="'+id+'">Edit</button>':'<button class="btn" data-act="go" data-hash="#shelf/'+(l.client_id||'')+'"'+(c?'':' disabled')+'>See the shelf</button>')+
+    (canStrong?'<button class="btn" data-act="strong" data-id="'+id+'" data-on="'+(l.strong_by?'0':'1')+'">'+(l.strong_by?'Remove strong':'Mark strong')+'</button>':'')+
+    (canEdit?'<button class="btn danger" data-act="del" data-id="'+id+'">Delete</button>':'')+
+    '<button class="btn quiet" data-act="close-sheet">Close</button></div>');
+  const a=$('sheet').querySelector('.actions'), mid=a.querySelectorAll('.btn:not(.primary):not(.quiet)');
+  if(mid.length%2)mid[mid.length-1].classList.add('full');     // never a ragged pair
+}
+function openUse(id){
+  const l=S.links.find(x=>x.id===id), n=new Date(), months=[];
+  for(let i=-1;i<5;i++){const d=new Date(n.getFullYear(),n.getMonth()+i,1);months.push(d);}
+  const val=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+  openSheet('<h2>Mark used</h2><p class="lead">'+esc(l.title)+'</p>'+
+    '<label class="lbl" for="u-client">Which client did it go into?</label><select id="u-client">'+S.clients.map(c=>'<option value="'+c.id+'"'+(c.id===l.client_id?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select>'+
+    '<label class="lbl" for="u-month">Which month\'s plan?</label><select id="u-month">'+months.map((d,i)=>'<option value="'+val(d)+'"'+(i===2?' selected':'')+'>'+fmtMonth(d)+'</option>').join('')+'</select>'+
+    '<div class="actions"><button class="btn primary" data-act="use-save" data-id="'+id+'">Mark it used</button><button class="btn quiet" data-act="detail" data-id="'+id+'">Back to the idea</button></div>');
+}
+function planText(id){
+  const c=clientById(id), rank=l=>(l.strong_by?0:2)+(playsOf(l.id).length?1:0);
+  const all=S.links.filter(l=>l.client_id===id).sort((a,b)=>rank(a)-rank(b)||new Date(b.date_added)-new Date(a.date_added));
+  const head=['INSPO SHELF FOR '+c.name,'Read '+fmtDate(new Date())+' from the BB Inspo Hub',
+    all.length+' ideas. '+all.filter(l=>l.strong_by).length+' marked strong by a head. '+all.filter(l=>playsOf(l.id).length).length+' already used.',
+    'Strong and unused ideas come first. Draft from these before inventing anything.',''];
+  if(!all.length)head.push('THE SHELF IS EMPTY. Nothing has been filed for this client, so say that in the plan notes.');
+  return head.concat(all.map((l,i)=>{const u=playsOf(l.id);
+    return [(i+1)+'. '+(l.strong_by?'[STRONG] ':'')+(u.length?'[USED '+u.map(p=>fmtMonth(p.date_posted)).join(', ')+'] ':'')+l.title,
+      '   Kind: '+(l.category||'Reference')+' | '+(l.platform||'Link')+(l.language?' | '+l.language:'')+' | filed by '+nice(l.added_by)+' on '+fmtDate(l.date_added),
+      '   Note: '+(l.notes||'none'),'   Link: '+l.url,''].join('\n');})).join('\n');
+}
+function openPlan(id){
+  openSheet('<h2>Text for the plan chat</h2><p class="lead">This is exactly what the chat that drafts '+esc(clientById(id).name)+'\'s plan will read. Copy it in before the first question.</p>'+
+    '<pre class="plan" id="plan-text">'+esc(planText(id))+'</pre><div class="actions"><button class="btn primary" data-act="copy-plan">Copy the text</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 
-function renderPlays(linkId){
-  const plays=getPlays(linkId);
-  document.getElementById('d-play-count').textContent=plays.length?`(${plays.length})`:'';
-  const container=document.getElementById('d-plays');
-  if(plays.length===0){
-    container.innerHTML='<div style="color:var(--text3);font-size:13px;padding:14px 0;text-align:center">No plays logged. Click "+ Log Play" after you use this on a client.</div>';
-    return;
+// ── ACCOUNT AND ADMIN ──
+function openAccount(){
+  openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
+    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets and logins</button>':'')+'<button class="btn" data-act="change-pin">Change my PIN</button><button class="btn" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+}
+async function openAdmin(){
+  openSheet('<h2>Targets and logins</h2><p class="lead">Loading.</p>');
+  let r;try{r=await rpc('inspo_admin_roster',{p_token:S.token});}catch(e){r=null;}
+  if(!r||!r.ok)return openSheet('<h2>Targets and logins</h2><p class="lead">Only Thulaib and Shiara can open this.</p><div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+  const step=(key,label,help)=>'<span class="lbl">'+label+'</span><div class="stepper" data-key="'+key+'"><button type="button" data-act="step" data-d="-1" aria-label="Less"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button><div class="v num">'+esc(setting(key,3))+'</div><button type="button" data-act="step" data-d="1" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button></div><p class="help">'+help+'</p>';
+  const t=targets();
+  openSheet('<h2>Targets and logins</h2><p class="lead">The target is a setting. Change it here and the counter follows straight away.</p>'+
+    step('weekly_target_per_client','Ideas per client per week','With '+S.clients.length+' active clients, every client every week would mean '+(t.T*S.clients.length)+' ideas a week. In rotation it is '+(t.T*Object.values(t.rota).flat().length)+'.')+
+    '<span class="lbl">Who the target applies to</span><div class="seg" id="mode-seg"><button data-act="mode" data-m="rota" class="'+(t.mode==='rota'?'on':'')+'">Clients in rotation</button><button data-act="mode" data-m="all" class="'+(t.mode==='all'?'on':'')+'">Every client</button></div>'+
+    step('rota_clients_per_smm','Clients each social manager researches a week','At 3 each, every client comes round about once every four weeks.')+
+    step('weekly_target_other_seats','Ideas a week for each graphic and video seat','These seats add to whichever clients they are working on.')+
+    '<h2 style="margin-top:28px">Logins</h2><p class="lead">This list is the team table, active people only. A new PIN works once, then the person picks their own.</p><div class="card rows" style="margin-top:10px">'+
+    r.people.map(p=>'<div class="row"><span class="grow"><span class="name">'+esc(nice(p.name))+'</span><span class="meta">'+(p.has_login?(p.must_change?'Has not signed in yet':(p.last_login?'Last signed in '+fmtDate(p.last_login):'Has a login')):'No login')+'</span></span><button class="btn" style="width:auto" data-act="reset-pin" data-tm="'+p.team_member_id+'" data-name="'+esc(p.name)+'">'+(p.has_login?'New PIN':'Give a PIN')+'</button></div>').join('')+'</div>'+
+    '<div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+}
+async function saveSetting(key,value){
+  const r=await rpc('inspo_set_setting',{p_token:S.token,p_key:key,p_value:value});
+  if(!r.ok)return toast('That setting did not save',true);
+  S.settings[key]=value;toast('Saved');
+}
+
+// ── ONE CLICK HANDLER. No inline handlers, no user text inside an attribute that runs. ──
+document.addEventListener('click',async ev=>{
+  const el=ev.target.closest('[data-act]');if(!el)return;
+  const act=el.dataset.act, id=Number(el.dataset.id);
+  switch(act){
+    case 'reload':location.reload();break;
+    case 'gate':showGate();break;
+    case 'enter':enter();break;
+    case 'pick':showPin(el.dataset.name);break;
+    case 'account':openAccount();break;
+    case 'admin':openAdmin();break;
+    case 'change-pin':closeSheet(()=>showChangePin(false));break;
+    case 'sign-out':closeSheet(signOut);break;
+    case 'close-sheet':closeSheet();break;
+    case 'go':{const h=el.dataset.hash;closeSheet(()=>{if(location.hash===h)route();else location.hash=h;});break;}
+    case 'file':openFile({client:el.dataset.client||''});break;
+    case 'edit':openFile({id});break;
+    case 'detail':if(id)openDetail(id);break;
+    case 'use':openUse(id);break;
+    case 'plan':openPlan(id);break;
+    case 'filters':openFilters();break;
+    case 'kind':S.filter.kind=el.dataset.kind;renderIdeas();break;
+    case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
+    case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);renderIdeas();break;
+    case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');break;}
+    case 'shot':$('f-shot').click();break;
+    case 'paste':try{const t=await navigator.clipboard.readText(), u=firstUrl(t);if(u){$('f-url').value=u;unfurl(u);}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
+    case 'see-existing':openDetail(id);break;
+    case 'use-save':{el.disabled=true;
+      const r=await rpc('inspo_mark_used',{p_token:S.token,p_link:id,p_client:Number($('u-client').value),p_month:$('u-month').value,p_note:''}).catch(()=>null);
+      if(!r||!r.ok){el.disabled=false;toast('It did not save',true);break;}
+      await loadAll();openDetail(id);toast('Marked used');break;}
+    case 'unuse':{const r=await rpc('inspo_unmark_used',{p_token:S.token,p_play:Number(el.dataset.play)}).catch(()=>null);
+      if(!r||!r.ok){toast('Could not undo that',true);break;}await loadAll();openDetail(id);toast('Undone');break;}
+    case 'strong':{const r=await rpc('inspo_mark_strong',{p_token:S.token,p_link:id,p_on:el.dataset.on==='1'}).catch(()=>null);
+      if(!r||!r.ok){toast(r&&r.why==='own'?'Somebody else has to mark your own idea strong':'Only heads can mark an idea strong',true);break;}
+      await loadAll();openDetail(id);break;}
+    case 'del':{if(!confirm('Delete this idea for everyone?'))break;
+      const r=await rpc('inspo_delete_link',{p_token:S.token,p_id:id}).catch(()=>null);
+      if(!r||!r.ok){toast('Could not delete that',true);break;}
+      await loadAll();closeSheet(()=>{route();toast('Deleted');});break;}
+    case 'copy-plan':try{await navigator.clipboard.writeText($('plan-text').textContent);toast('Copied');}catch(e){toast('Press and hold the text to copy it',true);}break;
+    case 'step':{const box=el.closest('.stepper'), key=box.dataset.key, v=Math.max(0,Math.min(20,Number(setting(key,3))+Number(el.dataset.d)));
+      box.querySelector('.v').textContent=v;await saveSetting(key,v);dirty=true;openAdmin();break;}
+    case 'mode':el.parentNode.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===el));await saveSetting('target_mode',el.dataset.m);dirty=true;openAdmin();break;
+    case 'reset-pin':{if(!confirm('Make a new one time PIN for '+nice(el.dataset.name)+'? Their old PIN stops working.'))break;
+      const r=await rpc('inspo_admin_reset_pin',{p_token:S.token,p_team_member_id:Number(el.dataset.tm)}).catch(()=>null);
+      if(!r||!r.ok){toast('Could not make a PIN',true);break;}
+      openSheet('<h2>New PIN for '+esc(nice(el.dataset.name))+'</h2><p class="lead">Send this to '+esc(nice(el.dataset.name))+' only. It is shown once and works once.</p><div class="pinshow num">'+esc(r.pin)+'</div><div class="actions"><button class="btn primary" data-act="admin">Back to logins</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');break;}
+    case 'f-clear':S.filter={q:S.filter.q,kind:S.filter.kind,client:'',strong:false,unused:false};closeSheet(renderIdeas);break;
+    case 'f-apply':S.filter.client=$('fl-client').value;S.filter.strong=$('fl-strong').classList.contains('on');S.filter.unused=$('fl-unused').classList.contains('on');closeSheet(renderIdeas);break;
+    case 'toggle':el.classList.toggle('on');break;
   }
-  container.innerHTML=plays.map(p=>{
-    const client=STATE.clients.find(c=>c.id===p.client_id);
-    const stars=p.rating?'★'.repeat(p.rating)+'☆'.repeat(5-p.rating):'';
-    return `<div class="play-item">
-      <div class="play-head">
-        <div class="play-client">${client?escapeHtml(client.name):'No client'}</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          ${stars?`<div class="play-rating">${stars}</div>`:''}
-          <div class="play-date">${fmtDate(p.date_posted)}</div>
-          <button class="btn btn-sm btn-danger" onclick="deletePlay(${p.id})" style="padding:3px 8px;font-size:10px">×</button>
-        </div>
-      </div>
-      <div class="play-perf">
-        <div class="perf-item"><div class="perf-lbl">Views</div><div class="perf-val">${fmtNum(p.views)}</div></div>
-        <div class="perf-item"><div class="perf-lbl">Likes</div><div class="perf-val">${fmtNum(p.likes)}</div></div>
-        <div class="perf-item"><div class="perf-lbl">Shares</div><div class="perf-val">${fmtNum(p.shares)}</div></div>
-        <div class="perf-item"><div class="perf-lbl">Comments</div><div class="perf-val">${fmtNum(p.comments)}</div></div>
-      </div>
-      ${p.output_url?`<a href="${escapeHtml(p.output_url)}" target="_blank" class="play-url">View post ↗</a>`:''}
-      ${p.notes?`<div class="play-notes">${escapeHtml(p.notes)}</div>`:''}
-    </div>`;
-  }).join('');
+});
+function openFilters(){
+  const f=S.filter;
+  openSheet('<h2>Filters</h2><label class="lbl" for="fl-client">Client</label><select id="fl-client"><option value="">Every client</option>'+S.clients.map(c=>'<option value="'+c.id+'"'+(f.client===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select>'+
+    '<span class="lbl">Show only</span><div class="wrapchips"><button class="chip'+(f.strong?' on':'')+'" id="fl-strong" data-act="toggle">Marked strong</button><button class="chip'+(f.unused?' on':'')+'" id="fl-unused" data-act="toggle">Not used yet</button></div>'+
+    '<div class="actions"><button class="btn primary" data-act="f-apply">Show ideas</button><button class="btn full" data-act="f-clear">Clear filters</button><button class="btn quiet" data-act="close-sheet">Cancel</button></div>');
 }
+// Keyboard hints applied at focus, because most fields do not exist at boot.
+document.addEventListener('focusin',ev=>{const t=ev.target;if(t.matches&&t.matches('input[type=url],input[inputmode=numeric]')){t.autocapitalize='off';t.spellcheck=false;}});
+document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&sheetOpen)closeSheet();});
 
-function openPlayModal(){
-  document.getElementById('play-edit-id').value='';
-  document.getElementById('p-client').value='';
-  document.getElementById('p-date').value=new Date().toISOString().slice(0,10);
-  document.getElementById('p-url').value='';
-  ['p-views','p-likes','p-shares','p-comments'].forEach(id=>document.getElementById(id).value=0);
-  document.getElementById('p-rating').value='3';
-  document.getElementById('p-notes').value='';
-  openModal('play-modal');
-}
-
-async function savePlay(){
-  if(!STATE.currentId){toast('No inspo selected','error');return;}
-  const payload={
-    inspo_link_id:STATE.currentId,
-    client_id:document.getElementById('p-client').value?parseInt(document.getElementById('p-client').value):null,
-    output_url:document.getElementById('p-url').value.trim()||null,
-    date_posted:document.getElementById('p-date').value||null,
-    views:parseInt(document.getElementById('p-views').value)||0,
-    likes:parseInt(document.getElementById('p-likes').value)||0,
-    shares:parseInt(document.getElementById('p-shares').value)||0,
-    comments:parseInt(document.getElementById('p-comments').value)||0,
-    rating:document.getElementById('p-rating').value?parseInt(document.getElementById('p-rating').value):null,
-    notes:document.getElementById('p-notes').value.trim()||null
-  };
-  try{
-    await sb('inspo_plays',{method:'POST',body:JSON.stringify(payload)});
-    toast('Play logged','success');
-    closeModal('play-modal');
-    await loadAll();
-    openDetail(STATE.currentId);
-  }catch(e){toast('Save failed: '+e.message,'error');}
-}
-
-async function deletePlay(id){
-  if(!confirm('Delete this play?'))return;
-  try{
-    await sb('inspo_plays?id=eq.'+id,{method:'DELETE'});
-    toast('Play deleted','success');
-    await loadAll();
-    if(STATE.currentId)openDetail(STATE.currentId);
-  }catch(e){toast('Delete failed','error');}
-}
-
-function markReviewed(){
-  openModal('review-modal');
-  document.getElementById('review-note').value='';
-  setTimeout(()=>document.getElementById('review-note').focus(),100);
-}
-
-async function saveReview(){
-  const note=document.getElementById('review-note').value.trim();
-  if(!note){toast('Note required','error');return;}
-  if(!STATE.currentId)return;
-  try{
-    await sb('inspo_links?id=eq.'+STATE.currentId,{
-      method:'PATCH',
-      body:JSON.stringify({last_reviewed:new Date().toISOString().slice(0,10),last_reviewed_note:note})
-    });
-    toast('Reviewed','success');
-    closeModal('review-modal');
-    await loadAll();
-    openDetail(STATE.currentId);
-  }catch(e){toast('Save failed','error');}
-}
-
-function editCurrent(){
-  const l=STATE.links.find(x=>x.id===STATE.currentId);
-  if(!l)return;
-  closeModal('detail-modal');
-  document.getElementById('edit-id').value=l.id;
-  document.getElementById('add-title').textContent='Edit Inspo';
-  document.getElementById('f-title').value=l.title||'';
-  document.getElementById('f-url').value=l.url||'';
-  document.getElementById('f-notes').value=l.notes||'';
-  document.getElementById('f-plat').value=l.platform||'TikTok';
-  document.getElementById('f-cat').value=l.category||'Video Style';
-  document.getElementById('f-clientid').value=l.client_id||'';
-  document.getElementById('f-ind').value=l.industry||'General';
-  document.getElementById('f-by').value=l.added_by||'Thulaib';
-  document.getElementById('f-pri').value=l.priority||'Medium';
-  openModal('add-modal');
-}
-
-async function deleteCurrent(){
-  if(!STATE.currentId)return;
-  if(!confirm('Delete this inspo and all its plays?'))return;
-  try{
-    await sb('inspo_links?id=eq.'+STATE.currentId,{method:'DELETE'});
-    toast('Deleted','success');
-    closeModal('detail-modal');
-    await loadAll();
-  }catch(e){toast('Delete failed','error');}
-}
-
-// ── BOOT ──
-loadAll();
-console.log('%c[INSPO] script parsed fully','color:#00FF85;font-weight:700');
+boot();
 </script>
 </body>
 </html>
