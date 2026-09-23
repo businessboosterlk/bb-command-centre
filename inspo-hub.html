@@ -793,6 +793,7 @@ async function askPlatform(url){
 }
 async function unfurl(url){
   if(!/^https?:\/\//i.test(url)||!draft||draft.unfurled===url||draft.id)return;
+  if(url!==draft.canonical)draft.resolved=false;   // a new link in the box may be resolved again, the resolved one never twice
   draft.unfurled=url;showPreview(platformOf(url)+' link','Looking for a title and a picture');
   try{
     const hint=await askPlatform(url);
