@@ -285,6 +285,30 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   .feed-wrap{margin:0 auto;width:520px;border-radius:var(--r);border:1px solid var(--line)}
   .fcard h3{font-size:20px}
 }
+/* IMMERSIVE FEED on the phone: the card is the whole screen, the chips float over it. */
+@media(max-width:1023px){
+  body.immersive #app{padding:0;max-width:none}
+  body.immersive .top{display:none}
+  body.immersive .feed-top{position:fixed;left:0;right:0;top:0;z-index:15;margin:0;padding:calc(var(--sat) + 10px) 0 10px;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none}
+  body.immersive .feed-top .chips{pointer-events:auto;margin:0;padding:0 72px 0 16px}
+  body.immersive .feed-top .chip{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.25);color:#fff}
+  body.immersive .feed-top .chip.on{background:#fff;color:#0b0b0c;border-color:#fff}
+  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab));height:auto!important;margin:0;border-radius:0}
+  body.immersive .fcard .ftext{bottom:22px}
+  body.immersive .fplayer{top:calc(var(--sat) + 64px);height:auto}
+  body.immersive .fwho{position:fixed;top:calc(var(--sat) + 10px);right:12px;z-index:16;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
+}
+.fwho{display:none}
+@media(max-width:1023px){body.immersive .fwho{display:grid}}
+/* PLAYERS. The platform's own player, muted, while the card is on screen. */
+.fplayer{position:absolute;left:0;right:0;top:0;bottom:150px;border:0;width:100%;height:calc(100% - 150px);background:#000}
+.fcard.playing .fpic,.fcard.playing .fquote{visibility:hidden}
+.fcard.playing .fshade{background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 70%,rgba(0,0,0,.92) 100%)}
+.fcard.playing .fn,.fcard.playing .fmore{display:none}
+.fcard.playing .ftext{bottom:14px}
+.fhint{position:absolute;left:16px;top:calc(var(--sat) + 64px);font-size:12px;font-weight:600;color:rgba(255,255,255,.8);background:rgba(0,0,0,.4);padding:6px 10px;border-radius:999px;display:none}
+.fcard.playing .fhint{display:block}
+@media(min-width:1024px){.fhint{top:14px}}
 /* BOARD DRAG */
 .board .col.over{outline:2px dashed var(--accent);outline-offset:6px;border-radius:var(--r)}
 .drag-ghost{position:fixed;z-index:90;pointer-events:none;width:240px;opacity:.9;transform:rotate(2deg);box-shadow:0 20px 40px rgba(0,0,0,.5)}
@@ -534,7 +558,7 @@ function signOut(){const t=S.token;store(TOKEN_KEY,null);S.token=null;S.me=null;
 function route(){
   const h=(location.hash||'#feed').slice(1), parts=h.split('/');
   document.querySelectorAll('.tab[data-tab],.side .nav[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===(parts[0]==='shelf'?'home':parts[0])));
-  $('app').classList.remove('feedmode');
+  $('app').classList.remove('feedmode');document.body.classList.remove('immersive');if(feedWatch){feedWatch.disconnect();feedWatch=null;}
   if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();else if(parts[0]==='home')renderHome();
   else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderFeed();
   window.scrollTo(0,0);
@@ -544,14 +568,47 @@ function route(){
 function feedCard(l){
   const c=clientById(l.client_id), used=playsOf(l.id), mine=up(l.added_by)===up(S.me.name), canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine;
   const ic=(d)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
-  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'">'+(l.image_path?'<img class="fpic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
+  const emb=embedFor(l.url);
+  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'"':'')+'>'+(l.image_path?'<img class="fpic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
     '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<span>'+esc(c.name)+'</span>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
     '<div class="fby">'+esc(nice(l.added_by))+' · '+fmtDate(l.date_added)+'</div></div>'+
-    '<div class="frail"><a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('<path d="M14 4h6v6M20 4 10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>')+'Open</a>'+
+    '<div class="fhint">'+(emb&&emb.auto?'Playing muted. Open for sound':'Tap the player to play')+'</div>'+
+    '<div class="frail">'+(emb?'<button data-act="play" data-id="'+l.id+'">'+ic('<path d="M6 4l14 8-14 8z"/>')+'Play</button>':'')+'<a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('<path d="M14 4h6v6M20 4 10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>')+'Open</a>'+
     (canStrong?'<button data-act="strong" data-id="'+l.id+'" data-on="'+(l.strong_by?'0':'1')+'" class="'+(l.strong_by?'on':'')+'">'+ic('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>')+'Strong</button>':'')+
     '<button data-act="use" data-id="'+l.id+'" class="'+(used.length?'on':'')+'">'+ic('<path d="M20 6 9 17l-5-5"/>')+'Used</button>'+
     '<button data-act="detail" data-id="'+l.id+'">'+ic('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>')+'More</button></div></article>';
+}
+// The platform's own player for a link. TikTok and YouTube autoplay muted; Instagram plays on a tap.
+// Nothing is downloaded and nothing is re-hosted: the card shows the platform's player, as their terms allow.
+function embedFor(url){
+  let u;try{u=new URL(url);}catch(e){return null;}
+  const h=u.hostname.replace(/^www\.|^m\./,''), p=u.pathname;
+  let m;
+  if(/tiktok\.com$/.test(h)&&(m=p.match(/\/video\/(\d+)/)))return {src:'https://www.tiktok.com/player/v1/'+m[1]+'?autoplay=1&mute=1&muted=1&loop=1&controls=0&progress_bar=0&play_button=0&volume_control=0&fullscreen_button=0&timestamp=0&description=0&music_info=0&rel=0&native_context_menu=0',auto:true};
+  if(/youtube\.com$/.test(h)&&(m=(u.searchParams.get('v')||'').match(/^[\w-]{11}$/)))return {src:'https://www.youtube.com/embed/'+m[0]+'?autoplay=1&mute=1&playsinline=1&loop=1&playlist='+m[0]+'&rel=0&modestbranding=1',auto:true};
+  if(/youtube\.com$/.test(h)&&(m=p.match(/\/shorts\/([\w-]{11})/)))return {src:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&playsinline=1&loop=1&playlist='+m[1]+'&rel=0&modestbranding=1',auto:true};
+  if(/youtu\.be$/.test(h)&&(m=p.match(/^\/([\w-]{11})/)))return {src:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&playsinline=1&loop=1&playlist='+m[1]+'&rel=0&modestbranding=1',auto:true};
+  if(/instagram\.com$/.test(h)&&(m=p.match(/^\/(?:p|reel|reels)\/([\w-]+)/)))return {src:'https://www.instagram.com/p/'+m[1]+'/embed/',auto:false};
+  return null;
+}
+function playCard(card){
+  if(!card||card.classList.contains('playing')||!card.dataset.embed)return;
+  const f=document.createElement('iframe');f.className='fplayer';f.src=card.dataset.embed;f.allow='autoplay; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.setAttribute('title','Player');f.loading='eager';
+  card.insertBefore(f,card.firstChild);card.classList.add('playing');
+}
+function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer');if(f)f.remove();card.classList.remove('playing');}
+let feedWatch=null;
+function watchFeed(){
+  if(feedWatch)feedWatch.disconnect();
+  const w=$('feed');if(!w)return;
+  const auto=read('inspo.autoplay')!=='off';
+  feedWatch=new IntersectionObserver(es=>es.forEach(e=>{
+    const c=e.target;
+    if(e.intersectionRatio>=.7){if(auto&&c.dataset.auto==='1'){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},500);}}
+    else{clearTimeout(c._t);stopCard(c);}
+  }),{root:w,threshold:[0,.7]});
+  w.querySelectorAll('.fcard[data-embed]').forEach(c=>feedWatch.observe(c));
 }
 function renderFeed(){
   $('view-title').textContent='Feed';
@@ -561,11 +618,12 @@ function renderFeed(){
     (seen&&fresh?'<div class="fnew">'+fresh+(fresh===1?' new idea':' new ideas')+' since you last looked</div>':'')+
     (all.length?all.map(feedCard).join(''):'')+
     '<div class="fend"><div>'+(all.length?'<b>That is everything</b>'+all.length+' ideas on the shelf. Saw something good today? File it and it lands here for everyone.':'<b>Nothing here yet</b>The first idea anybody files shows up here for the whole team.')+'<div class="actions" style="max-width:280px;margin:16px auto 0"><button class="btn primary" data-act="file">File an idea</button></div></div></div></div>';
-  $('view').innerHTML=h;$('app').classList.add('feedmode');sizeFeed();
+  h+='<button class="fwho" data-act="account" aria-label="Your account">'+esc(S.me.name[0])+'</button>';
+  $('view').innerHTML=h;$('app').classList.add('feedmode');document.body.classList.add('immersive');sizeFeed();watchFeed();
   const top=Math.max(0,...S.links.map(l=>l.id));if(top>seen)store(SEEN_KEY,String(top));
 }
 // The feed fills exactly the space between the title and the bar, measured, so the page itself never scrolls.
-function sizeFeed(){const w=$('feed');if(!w)return;const bar=DESK.matches?0:$('bar').getBoundingClientRect().height;w.style.height=Math.max(320,Math.floor(innerHeight-w.getBoundingClientRect().top-bar-(DESK.matches?24:0)))+'px';}
+function sizeFeed(){const w=$('feed');if(!w)return;if(!DESK.matches){w.style.height='';return;}const bar=DESK.matches?0:$('bar').getBoundingClientRect().height;w.style.height=Math.max(320,Math.floor(innerHeight-w.getBoundingClientRect().top-bar-(DESK.matches?24:0)))+'px';}
 window.addEventListener('resize',()=>{if($('feed'))sizeFeed();});
 
 // ── HOME: the counter ──
@@ -961,7 +1019,7 @@ function openPlan(id){
 // ── ACCOUNT AND ADMIN ──
 function openAccount(){
   openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
-    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><a class="btn" href="index.html">Command Centre</a><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><button class="btn" data-act="autoplay">'+(read('inspo.autoplay')==='off'?'Previews: tap to play':'Previews: play by themselves')+'</button><a class="btn full" href="index.html">Command Centre</a><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function openAdmin(){
   openSheet('<h2>Targets and logins</h2><p class="lead">Loading.</p>');
@@ -1017,6 +1075,8 @@ document.addEventListener('click',async ev=>{
     case 'kind':S.filter.kind=el.dataset.kind;renderIdeas();break;
     case 'feed-kind':S.feedKind=el.dataset.kind;renderFeed();break;
     case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
+    case 'play':{const c=el.closest('.fcard');if(c.classList.contains('playing'))stopCard(c);else playCard(c);break;}
+    case 'autoplay':{const off=read('inspo.autoplay')==='off';store('inspo.autoplay',off?null:'off');toast(off?'Previews will play by themselves':'Previews play only when you tap Play');openAccount();break;}
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
     case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);renderIdeas();break;
     case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');break;}
