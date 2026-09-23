@@ -785,7 +785,10 @@ const OEMBED={TikTok:'https://www.tiktok.com/oembed?url=',YouTube:'https://www.y
 async function askPlatform(url){
   const ep=OEMBED[platformOf(url)];if(!ep)return {};
   try{const o=await fetch(ep+encodeURIComponent(url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);
-    return o?{title:o.title||o.author_name||'',image_url:o.thumbnail_url||''}:{};}catch(e){return {};}
+    if(!o)return {};
+    // A short link (vt.tiktok.com) cannot be played or de-duplicated. The platform's answer carries the full address.
+    const cite=(String(o.html||'').match(/cite="([^"]+)"/)||[])[1]||'';
+    return {title:o.title||o.author_name||'',image_url:o.thumbnail_url||'',canonical:/tiktok\.com\/@[^/]+\/video\/\d+/.test(cite)?cite.split('?')[0]:''};}catch(e){return {};}
 }
 async function unfurl(url){
   if(!/^https?:\/\//i.test(url)||!draft||draft.unfurled===url||draft.id)return;
@@ -795,6 +798,8 @@ async function unfurl(url){
     const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url,...hint})});
     if(!draft||draft.unfurled!==url)return;
     if(r&&r.ok&&!r.title&&hint.title)r.title=hint.title;
+    const full=hint.canonical||(r&&r.ok&&r.final_url)||'';
+    if(full&&$('f-url')&&$('f-url').value.trim()===url){draft.canonical=full;$('f-url').value=full;draft.unfurled=full;}
     if(r&&r.ok&&(r.title||r.image_path)){draft.title=r.title||'';if(r.image_path)draft.image_path=r.image_path;
       showPreview(r.title||platformOf(url)+' link',r.image_path?'Picture saved':'No picture came back. Add a screenshot if you can');
       if(r.image_path&&$('f-shot-btn'))$('f-shot-btn').textContent='Replace the picture';return;}
@@ -939,6 +944,7 @@ async function bulkUnfurl(){
       const hint=await askPlatform(r.url);
       const a=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url:r.url,...hint})});
       if(a&&a.ok){r.title=a.title||hint.title||'';r.image_path=a.image_path||'';}
+      const full=hint.canonical||(a&&a.ok&&a.final_url)||'';if(full)r.url=full;
     }catch(e){}
     const i=mine.rows.indexOf(r), el=i>=0&&document.querySelector('#b-row-'+i+' .u');
     if(el&&r.title)el.innerHTML='<b>'+esc(platformOf(r.url))+'</b>'+esc(r.title);
