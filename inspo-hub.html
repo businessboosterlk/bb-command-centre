@@ -783,6 +783,7 @@ function showPreview(title,sub){
 // itself (both allow it) and the fetcher only stores the picture. Four seconds, then move on.
 const OEMBED={TikTok:'https://www.tiktok.com/oembed?url=',YouTube:'https://www.youtube.com/oembed?format=json&url='};
 async function askPlatform(url){
+  if(/^https?:\/\/(vt|vm)\.tiktok\.com\//i.test(url))return {};   // TikTok refuses short links from a browser; the fetcher follows them
   const ep=OEMBED[platformOf(url)];if(!ep)return {};
   try{const o=await fetch(ep+encodeURIComponent(url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);
     if(!o)return {};
