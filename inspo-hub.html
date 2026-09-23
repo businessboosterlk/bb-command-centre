@@ -1057,7 +1057,7 @@ document.addEventListener('click',async ev=>{
     case 'sweep':{el.disabled=true;el.textContent='Checking every link';
       try{const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,sweep:true})});
         if(!r||!r.ok)throw new Error((r&&r.why)||'refused');
-        await loadAll();dirty=true;toast('Checked '+r.checked+': '+r.alive+' alive, '+r.dead+' gone'+(r.unknown?', '+r.unknown+' could not be reached':''));openAdmin();
+        await loadAll();dirty=true;toast('Checked '+r.checked+': '+r.alive+' alive, '+r.dead+' gone'+(r.unknown?', '+r.unknown+' could not be reached':'')+(r.pictures_removed?'. '+r.pictures_removed+' leftover pictures cleared':''));openAdmin();
       }catch(e){toast('The sweep did not run: '+(e.message||e),true);el.disabled=false;el.textContent='Check every link now';}break;}
     case 'bulk-read':bulkRead();break;
     case 'bulk-fill':bulkFill();break;
