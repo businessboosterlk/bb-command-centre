@@ -273,7 +273,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .fcard.open .fn{-webkit-line-clamp:14}
 .fcard .fby{font-size:12px;color:rgba(255,255,255,.65);margin-top:10px}
 .fcard .fmore{background:none;color:#fff;font-weight:600;font-size:14px;min-height:44px;padding:0;text-decoration:underline;text-underline-offset:3px}
-.frail{position:absolute;right:10px;bottom:18px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.frail{position:absolute;right:10px;bottom:18px;display:flex;flex-direction:column;gap:6px;align-items:center;z-index:3}
+.fcard .ftext{z-index:3}
 .frail a,.frail button{width:52px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:10px;font-weight:600;text-decoration:none;border-radius:12px;background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .frail svg{width:22px;height:22px}
 .frail .on{color:var(--accent)}
@@ -309,6 +310,21 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .fhint{position:absolute;left:16px;top:calc(var(--sat) + 64px);font-size:12px;font-weight:600;color:rgba(255,255,255,.8);background:rgba(0,0,0,.4);padding:6px 10px;border-radius:999px;display:none}
 .fcard.playing .fhint{display:block}
 @media(min-width:1024px){.fhint{top:14px}}
+/* Touch shield: the platform's player never steals the swipe. One tap hands it the finger. */
+.fshield{position:absolute;left:0;right:0;top:0;bottom:150px;z-index:2}
+body.immersive .fshield{top:calc(var(--sat) + 64px)}
+.fcard.handed .fshield{display:none}
+.fcaught{height:100%;scroll-snap-align:start;display:grid;place-items:center;text-align:center;color:var(--text2);padding:24px;background:var(--surface)}
+.fcaught b{display:block;color:var(--text);font-size:20px;margin-bottom:8px}
+.fclient{color:#fff;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.4)}
+.feed-filter{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+body.immersive .feed-filter{position:fixed;top:calc(var(--sat) + 62px);left:16px;z-index:15}
+.mine{padding:16px 18px}
+.mine .big{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1}
+.mine .big small{font-size:15px;font-weight:600;color:var(--text3);margin-left:6px}
+.mine p{color:var(--text2);font-size:14px;margin-top:6px}
+.qchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:8px 0 0}
+.qchips::-webkit-scrollbar{display:none}
 /* BOARD DRAG */
 .board .col.over{outline:2px dashed var(--accent);outline-offset:6px;border-radius:var(--r)}
 .drag-ghost{position:fixed;z-index:90;pointer-events:none;width:240px;opacity:.9;transform:rotate(2deg);box-shadow:0 20px 40px rgba(0,0,0,.5)}
@@ -369,7 +385,7 @@ history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
-  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:''};
+  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:'',feedClient:0};
 
 const KIND_BUCKET={'Post idea':'post','Video idea':'video','Video to Create':'video','Video Style':'video','Hook':'video',
   'Design idea':'design','Font':'design','Editing idea':'editing','Transition':'editing','Caption Style':'editing',
@@ -386,6 +402,7 @@ const bucketOf=l=>KIND_BUCKET[l.category]||'reference';
 const up=s=>String(s||'').toUpperCase();
 const nice=s=>{s=String(s||'');return s.charAt(0)+s.slice(1).toLowerCase();};
 function fmtDate(d){if(!d)return '';const x=new Date(d);return x.getDate()+' '+MONTHS[x.getMonth()]+' '+x.getFullYear();}
+function ago(d){const s=(Date.now()-new Date(d).getTime())/1000;if(s<3600)return 'just now';if(s<86400)return Math.floor(s/3600)+'h ago';const dd=Math.floor(s/86400);if(dd<7)return dd+'d ago';if(dd<30)return Math.floor(dd/7)+'w ago';return fmtDate(d);}
 function fmtMonth(d){const x=new Date(d);return MONTHS[x.getMonth()]+' '+x.getFullYear();}
 function daysSince(d){return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
 function weekStart(){const n=new Date();const d=new Date(n.getFullYear(),n.getMonth(),n.getDate());d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
@@ -570,9 +587,10 @@ function feedCard(l){
   const ic=(d)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
   const emb=embedFor(l.url);
   return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'"':'')+'>'+(l.image_path?'<img class="fpic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
-    '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<span>'+esc(c.name)+'</span>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
+    (emb?'<div class="fshield" data-act="hand"></div>':'')+
+    '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<button class="fclient" data-act="feed-client" data-id="'+c.id+'">'+esc(c.name)+'</button>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
-    '<div class="fby">'+esc(nice(l.added_by))+' · '+fmtDate(l.date_added)+'</div></div>'+
+    '<div class="fby">Filed by '+esc(nice(l.added_by))+' · '+ago(l.date_added)+'</div></div>'+
     '<div class="fhint">'+(emb&&emb.auto?'Playing muted. Open for sound':'Tap the player to play')+'</div>'+
     '<div class="frail">'+(emb?'<button data-act="play" data-id="'+l.id+'">'+ic('<path d="M6 4l14 8-14 8z"/>')+'Play</button>':'')+'<a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('<path d="M14 4h6v6M20 4 10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>')+'Open</a>'+
     (canStrong?'<button data-act="strong" data-id="'+l.id+'" data-on="'+(l.strong_by?'0':'1')+'" class="'+(l.strong_by?'on':'')+'">'+ic('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>')+'Strong</button>':'')+
@@ -612,12 +630,18 @@ function watchFeed(){
 }
 function renderFeed(){
   $('view-title').textContent='Feed';
-  const seen=Number(read(SEEN_KEY)||0), all=(S.feedKind?S.links.filter(l=>bucketOf(l)===S.feedKind):S.links.slice()).sort((a,b)=>new Date(b.date_added)-new Date(a.date_added));
-  const fresh=all.filter(l=>l.id>seen).length;
-  let h='<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div><div class="feed-wrap" id="feed">'+
-    (seen&&fresh?'<div class="fnew">'+fresh+(fresh===1?' new idea':' new ideas')+' since you last looked</div>':'')+
-    (all.length?all.map(feedCard).join(''):'')+
-    '<div class="fend"><div>'+(all.length?'<b>That is everything</b>'+all.length+' ideas on the shelf. Saw something good today? File it and it lands here for everyone.':'<b>Nothing here yet</b>The first idea anybody files shows up here for the whole team.')+'<div class="actions" style="max-width:280px;margin:16px auto 0"><button class="btn primary" data-act="file">File an idea</button></div></div></div></div>';
+  const seen=Number(read(SEEN_KEY)||0);
+  let all=(S.feedKind?S.links.filter(l=>bucketOf(l)===S.feedKind):S.links.slice());
+  if(S.feedClient)all=all.filter(l=>l.client_id===S.feedClient);
+  all.sort((a,b)=>new Date(b.date_added)-new Date(a.date_added));
+  const fresh=all.filter(l=>l.id>seen), old=all.filter(l=>l.id<=seen), fc=S.feedClient?clientById(S.feedClient):null;
+  const weekN=S.links.filter(l=>new Date(l.date_added)>=weekStart()).length;
+  let h='<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div>'+(fc?'<div class="feed-filter"><button class="chip on" data-act="feed-client" data-id="">'+esc(fc.name)+' · clear</button></div>':'')+'<div class="feed-wrap" id="feed">'+
+    (seen&&fresh.length?'<div class="fnew">'+fresh.length+(fresh.length===1?' new idea':' new ideas')+' since you last looked</div>':'')+
+    (seen?fresh.map(feedCard).join(''):all.map(feedCard).join(''))+
+    (seen&&fresh.length&&old.length?'<div class="fcaught"><div><b>Caught up</b>Those were the '+fresh.length+' new since you last looked. Everything below you have seen.</div></div>':'')+
+    (seen?old.map(feedCard).join(''):'')+
+    '<div class="fend"><div>'+(all.length?'<b>All caught up</b>'+weekN+(weekN===1?' idea':' ideas')+' filed this week. The rotation resets on Monday.':'<b>Nothing here yet</b>The first idea anybody files shows up here for the whole team.')+'<div class="actions" style="max-width:280px;margin:16px auto 0"><button class="btn primary" data-act="file">File an idea</button></div></div></div></div>';
   h+='<button class="fwho" data-act="account" aria-label="Your account">'+esc(S.me.name[0])+'</button>';
   $('view').innerHTML=h;$('app').classList.add('feedmode');document.body.classList.add('immersive');sizeFeed();watchFeed();
   const top=Math.max(0,...S.links.map(l=>l.id));if(top>seen)store(SEEN_KEY,String(top));
@@ -636,6 +660,9 @@ function renderHome(){
   const pct=t.target?Math.min(100,Math.round(t.landed/t.target*100)):0;
   const why=(t.mode==='all'?'The target is '+t.T+' for every active client, every week.':'The target is '+t.T+' for each of the '+t.inPlay.length+' clients in this week\'s rotation.');
 
+  const me=S.people.find(p=>up(p.name)===up(S.me.name))||{seat:S.me.seat,name:S.me.name};
+  const myTarget=personTarget(me,t), myN=t.week.filter(l=>up(l.added_by)===up(S.me.name)).length, myRota=t.mode==='all'?[]:(t.rota[up(S.me.name)]||[]);
+  const mine=myTarget==null?'':'<section class="card mine"><div class="big num">'+myN+'<small>of '+myTarget+' this week, you</small></div><p>'+(myRota.length?'Your rotation this week: '+myRota.map(c=>esc(c.name)).join(', ')+'. '+t.T+' each. Resets on Monday.':'Your target is '+myTarget+' this week, on whichever clients you are working on.')+'</p></section>';
   const weekCard='<section class="card week stat">'+(desk?'<div class="cap">Landed this week</div>':'')+'<div class="big num">'+t.landed+'<small>of '+t.target+' this week</small></div><p>'+why+(desk?'':' '+t.week.length+' filed in total since Monday.')+'</p><div class="meter" aria-hidden="true"><i style="width:'+pct+'%"></i></div></section>';
   const starvedList=starved.length?'<div class="card rows">'+starved.map(c=>{const l=lastFor(c.id);
     return '<button class="row" data-act="go" data-hash="#shelf/'+c.id+'"><span class="grow"><span class="name">'+esc(c.name)+'</span><span class="meta">'+(l?'Last idea '+daysSince(l)+' days ago':'Never had one')+' · '+(c.assigned_smm?esc(nice(c.assigned_smm)):'No social manager')+'</span></span>'+chev()+'</button>';}).join('')+'</div>'
@@ -668,12 +695,12 @@ function renderHome(){
 
   if(desk){
     const used=S.plays.length, strong=S.links.filter(l=>l.strong_by).length;
-    $('view').innerHTML='<div class="stats3">'+weekCard+
+    $('view').innerHTML=mine+'<div class="stats3" style="margin-top:16px">'+weekCard+
       '<section class="card week stat"><div class="cap">Clients with nothing in '+MONTHS[ms.getMonth()]+'</div><div class="big num '+(starved.length?'is-bad':'is-ok')+'">'+starved.length+'<small>of '+S.clients.length+' active</small></div><p>Worst first in the list below. A shelf that only shows what it has hides what it lacks.</p></section>'+
       '<section class="card week stat"><div class="cap">On the shelf</div><div class="big num">'+S.links.length+'<small>ideas in total</small></div><p>'+t.week.length+' filed since Monday. '+strong+' marked strong by a head. '+used+' used in a plan.</p></section></div>'+
       '<div class="cols2"><div>'+starvedHead+starvedList+'</div><div>'+rotation+people+'</div></div>'+everyHead+every+honest;
   }else{
-    $('view').innerHTML=weekCard+starvedHead+starvedList+rotation+people+everyHead+every+honest;
+    $('view').innerHTML=mine+weekCard+starvedHead+starvedList+rotation+people+everyHead+every+honest;
   }
 }
 
@@ -746,6 +773,13 @@ function renderUsed(){
 
 // ── FILE AN IDEA. The sheet that decides whether the hub lives. ──
 let fileT0=0, draft=null;
+// The three clients in your rotation this week are one tap away. The list stays underneath for the rest.
+function rotaChips(cur){
+  const t=targets(), mine=(t.rota[up(S.me.name)]||[]).slice(0,6);
+  const pick=mine.length?mine:S.clients.filter(c=>up(c.assigned_smm)===up(S.me.name)).slice(0,3);
+  if(!pick.length)return '';
+  return '<div class="qchips" style="margin:0 0 8px">'+pick.map(c=>'<button type="button" class="chip'+(String(cur)===String(c.id)?' on':'')+'" data-act="pick-client" data-id="'+c.id+'">'+esc(c.name)+'</button>').join('')+'</div>';
+}
 function openFile(pre){
   pre=pre||{};let last={};try{last=JSON.parse(read(LAST_KEY)||'{}');}catch(e){}
   const ed=pre.id?S.links.find(l=>l.id===pre.id):null;
@@ -760,15 +794,16 @@ function openFile(pre){
   openSheet('<h2>'+(ed?'Edit this idea':'File an idea')+'</h2>'+(ed?'':'<p class="lead">Several links for one client? <button type="button" class="btn quiet inline accent" data-act="bulk">Bulk add</button></p>')+
     '<form id="file-form" novalidate><label class="lbl" for="f-url">Link</label><div class="urlrow"><input id="f-url" type="url" inputmode="url" placeholder="Paste the link" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(ed?ed.url:(pre.url||''))+'"><button class="btn" type="button" data-act="paste">Paste</button></div>'+
     '<div class="preview" id="f-prev" hidden></div>'+
-    '<label class="lbl" for="f-client">Client</label><select id="f-client"><option value="">No client, a general reference</option>'+(mine.length?'<optgroup label="Your clients">'+mine.map(opt).join('')+'</optgroup><optgroup label="Everyone else">'+rest.map(opt).join('')+'</optgroup>':S.clients.map(opt).join(''))+'</select>'+
+    '<label class="lbl" for="f-client">Client</label>'+(ed?'':rotaChips(client))+'<select id="f-client"><option value="">No client, a general reference</option>'+(mine.length?'<optgroup label="Your clients">'+mine.map(opt).join('')+'</optgroup><optgroup label="Everyone else">'+rest.map(opt).join('')+'</optgroup>':S.clients.map(opt).join(''))+'</select>'+
     '<span class="lbl">Kind</span><div class="wrapchips" id="f-kinds">'+kinds.map(k=>'<button type="button" class="chip'+(k===kind?' on':'')+'" data-act="pick-kind" data-k="'+esc(k)+'">'+esc(k)+'</button>').join('')+'</div>'+
-    '<label class="lbl" for="f-note">Note</label><textarea id="f-note" enterkeyhint="done" placeholder="What kind of post is this? Why does it work? Which client does it suit?">'+esc(ed?ed.notes||'':'')+'</textarea>'+
+    '<label class="lbl" for="f-note">Note</label><div class="qchips">'+['Hook','Format','Transition','Sound','Design style','Caption'].map(q=>'<button type="button" class="chip" data-act="qnote" data-q="'+q+'">'+q+'</button>').join('')+'</div><textarea id="f-note" enterkeyhint="done" placeholder="What kind of post is this? Why does it work? Which client does it suit?">'+esc(ed?ed.notes||'':'')+'</textarea>'+
     '<p class="help">A link with no note is a bookmark. The note is what somebody drafting a plan reads in three months, when the link itself may be gone.</p>'+
     '<span class="lbl">Language of the reference</span><div class="wrapchips" id="f-langs">'+LANGS.map(g=>'<button type="button" class="chip'+(g===lang?' on':'')+'" data-act="pick-lang" data-g="'+g+'">'+g+'</button>').join('')+'</div>'+
     '<span class="lbl">Picture</span><input id="f-shot" type="file" accept="image/*" hidden><button class="btn" type="button" data-act="shot" id="f-shot-btn">'+(draft.image_path?'Replace the picture':'Add a screenshot')+'</button>'+
     '<div class="err" id="f-err" hidden></div>'+
     '<div class="actions pinned"><button class="btn primary" type="submit" id="f-save">'+(ed?'Save changes':'File it')+'</button><button class="btn quiet" type="button" data-act="close-sheet">Cancel</button></div></form>');
   $('f-url').addEventListener('change',()=>unfurl($('f-url').value.trim()));
+  $('f-client').addEventListener('change',()=>document.querySelectorAll('#file-form [data-act="pick-client"]').forEach(c=>c.classList.toggle('on',c.dataset.id===$('f-client').value)));
   $('f-url').addEventListener('paste',()=>setTimeout(()=>unfurl($('f-url').value.trim()),0));
   $('f-shot').onchange=ev=>{const f=ev.target.files[0];if(f)uploadShot(f);};
   $('file-form').onsubmit=ev=>{ev.preventDefault();saveFile();};
@@ -837,7 +872,7 @@ async function saveFile(){
     const r=await rpc('inspo_save_link',{p_token:S.token,p:{id:draft.id||'',url,notes:note,title:draft.title||'',category:kind,client_id:client,platform:platformOf(url),language:lang,image_path:draft.image_path||''}});
     if(!r.ok){btn.disabled=false;
       if(r.why==='duplicate'){const c=clientById(r.existing.client_id);if(!draft.id){dropShot(draft.image_path);draft.image_path=null;}
-        return say('This link is already on the shelf, filed by '+esc(nice(r.existing.added_by))+(c?' for '+esc(c.name):'')+'. <button type="button" class="btn" style="margin-top:10px" data-act="see-existing" data-id="'+r.existing.id+'">Open the one already filed</button>');}
+        return say('This link is already on the shelf, filed by '+esc(nice(r.existing.added_by))+(c?' for '+esc(c.name):'')+'. You noticed the same thing, so add your note to it.<div class="actions" style="margin-top:10px"><button type="button" class="btn primary" data-act="append-note" data-id="'+r.existing.id+'">Add my note to that idea</button><button type="button" class="btn full" data-act="see-existing" data-id="'+r.existing.id+'">Open the one already filed</button></div>');}
       if(r.why==='session')return signOut();
       return say({note:'Add a note before you file it.',url:'Paste the full link, starting with https.',kind:'Your seat cannot file that kind. Pick another or use Reference.',client:'That client is not active any more. Pick another.',not_yours:'Only the person who filed an idea can change it.',change_pin:'Choose your own PIN first.'}[r.why]||'The hub refused that. Try again.');}
     const secs=Math.round((Date.now()-fileT0)/1000), wasEdit=!!draft.id;
@@ -1083,11 +1118,19 @@ document.addEventListener('click',async ev=>{
     case 'filters':openFilters();break;
     case 'kind':S.filter.kind=el.dataset.kind;renderIdeas();break;
     case 'feed-kind':S.feedKind=el.dataset.kind;renderFeed();break;
+    case 'feed-client':S.feedClient=Number(el.dataset.id)||0;renderFeed();break;
+    case 'hand':{const c=el.closest('.fcard');if(!c.classList.contains('playing'))playCard(c);c.classList.add('handed');break;}
     case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
     case 'play':{const c=el.closest('.fcard');if(c.classList.contains('playing'))stopCard(c);else playCard(c);break;}
     case 'autoplay':{const off=read('inspo.autoplay')==='off';store('inspo.autoplay',off?null:'off');toast(off?'Previews will play by themselves':'Previews play only when you tap Play');openAccount();break;}
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
     case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);renderIdeas();break;
+    case 'pick-client':{$('f-client').value=el.dataset.id;el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===el));break;}
+    case 'qnote':{const t=$('f-note'),v=t.value.trim();t.value=(v?v+'\n':'')+el.dataset.q+': ';t.focus();t.setSelectionRange(t.value.length,t.value.length);break;}
+    case 'append-note':{const note=$('f-note').value.trim();if(!note){toast('Write your note first, then add it',true);break;}
+      const r=await rpc('inspo_append_note',{p_token:S.token,p_id:id,p_note:note}).catch(()=>null);
+      if(!r||!r.ok){toast('Could not add your note',true);break;}
+      dropShot(draft&&draft.image_path);draft=null;await loadAll();closeSheet(()=>{route();toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
     case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');break;}
     case 'shot':$('f-shot').click();break;
     case 'paste':try{const t=await navigator.clipboard.readText(), u=firstUrl(t);if(u){$('f-url').value=u;unfurl(u);}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
