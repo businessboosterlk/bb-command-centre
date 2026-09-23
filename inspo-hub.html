@@ -66,11 +66,13 @@ select::-ms-expand{display:none}
 
 /* SHELL */
 #app{max-width:760px;margin:0 auto;padding:calc(var(--sat) + 12px) 16px calc(var(--bar) + var(--sab) + 24px)}
+#app.feedmode{padding-bottom:calc(var(--bar) + var(--sab));overflow:hidden}
+@media(min-width:1024px){#app.feedmode{padding-bottom:0}}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;margin-bottom:8px}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:var(--bg);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:20}
+.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:var(--bg);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:20}
 .bar-in{max-width:760px}
 .tab{text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--text3);min-height:var(--bar)}
 .tab.on{color:var(--text)}
@@ -249,6 +251,51 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .toast.on{opacity:1;transform:none}
 .toast.bad{background:var(--bad);color:#fff}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+
+/* FEED. One idea per screen, thumb scrolls, like the apps the ideas came from. */
+.feed-wrap{margin:0 -16px;height:60dvh;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;background:#000;border-radius:var(--r) var(--r) 0 0}
+.feed-wrap::-webkit-scrollbar{display:none}
+.fcard{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:var(--surface)}
+.fcard .fpic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* No picture: the note IS the picture. Big, centred, readable from a thumb's length. */
+.fcard.text{background:linear-gradient(160deg,#1c1c20 0%,#111114 60%,#0b0b0c 100%)}
+.fcard .fquote{position:absolute;left:20px;right:76px;top:16px;bottom:150px;display:flex;flex-direction:column;justify-content:center;gap:14px}
+.fcard .fquote .fp{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.fcard .fquote .fq{font-size:22px;line-height:1.35;font-weight:600;color:var(--text);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:9;-webkit-box-orient:vertical;overflow:hidden}
+.fcard.text .fn,.fcard.text .fmore{display:none}
+.fcard.text .fshade{background:linear-gradient(180deg,rgba(0,0,0,0) 60%,rgba(0,0,0,.55) 100%)}
+.fcard .fshade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.25) 0%,rgba(0,0,0,0) 30%,rgba(0,0,0,0) 45%,rgba(0,0,0,.88) 100%);pointer-events:none}
+.fcard .ftext{position:absolute;left:16px;right:76px;bottom:18px;color:#fff}
+.fcard .fk{display:flex;flex-wrap:wrap;gap:6px 10px;font-size:12px;font-weight:600;color:rgba(255,255,255,.75);margin-bottom:8px}
+.fcard .fk .strong{color:var(--accent)}.fcard .fk .used{color:var(--ok)}.fcard .fk .dead{color:var(--bad)}
+.fcard h3{font-size:18px;font-weight:700;line-height:1.25;margin-bottom:6px;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fcard .fn{font-size:15px;line-height:1.45;color:rgba(255,255,255,.92);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.fcard.open .fn{-webkit-line-clamp:14}
+.fcard .fby{font-size:12px;color:rgba(255,255,255,.65);margin-top:10px}
+.fcard .fmore{background:none;color:#fff;font-weight:600;font-size:14px;min-height:44px;padding:0;text-decoration:underline;text-underline-offset:3px}
+.frail{position:absolute;right:10px;bottom:18px;display:flex;flex-direction:column;gap:6px;align-items:center}
+.frail a,.frail button{width:52px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:10px;font-weight:600;text-decoration:none;border-radius:12px;background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.frail svg{width:22px;height:22px}
+.frail .on{color:var(--accent)}
+.fnew{position:sticky;top:0;z-index:2;background:var(--accent);color:#140a05;font-weight:700;font-size:13px;text-align:center;padding:8px 12px;scroll-snap-align:none}
+.fend{height:100%;scroll-snap-align:start;display:grid;place-items:center;text-align:center;color:var(--text2);padding:24px}
+.fend b{display:block;color:var(--text);font-size:18px;margin-bottom:8px}
+.feed-top{display:flex;gap:8px;align-items:center;margin:0 0 8px}
+@media(min-width:1024px){
+  .feed-wrap{margin:0 auto;width:520px;border-radius:var(--r);border:1px solid var(--line)}
+  .fcard h3{font-size:20px}
+}
+/* BOARD DRAG */
+.board .col.over{outline:2px dashed var(--accent);outline-offset:6px;border-radius:var(--r)}
+.drag-ghost{position:fixed;z-index:90;pointer-events:none;width:240px;opacity:.9;transform:rotate(2deg);box-shadow:0 20px 40px rgba(0,0,0,.5)}
+.idea.lifting{opacity:.35}
+.board .idea{touch-action:pan-y}
+body.dragging{user-select:none;-webkit-user-select:none}
+body.dragging .board .idea{touch-action:none}
+.drag-hint{font-size:12px;color:var(--text3);margin:8px 0 0}
+.dead-chip{color:var(--bad)}
+.rota-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+
 /* Desktop toast. Placed AFTER the base rule on purpose: an earlier media block loses to it and leaves top AND bottom set. */
 @media(min-width:1024px){.toast{left:auto;right:28px;top:auto;bottom:28px;width:auto;max-width:380px;margin:0}}
 </style>
@@ -259,6 +306,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 
 <aside class="side" id="side" hidden>
   <div class="brand"><img src="bb-logo.png" alt="" onerror="this.hidden=true"><b>Inspo Hub</b></div>
+  <a class="nav" href="#feed" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg>Feed</a>
   <a class="nav" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
   <a class="nav" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
   <a class="nav" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
@@ -275,6 +323,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 </div></div>
 
 <nav class="bar" id="bar" hidden>
+  <a class="tab" href="#feed" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg>Feed</a>
   <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
   <a class="tab" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
   <a class="tab" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
@@ -291,12 +340,12 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName';
+const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId';
 history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
-  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1}};
+  filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:''};
 
 const KIND_BUCKET={'Post idea':'post','Video idea':'video','Video to Create':'video','Video Style':'video','Hook':'video',
   'Design idea':'design','Font':'design','Editing idea':'editing','Transition':'editing','Caption Style':'editing',
@@ -342,7 +391,7 @@ async function loadAll(){
   // Named columns only. clients is filtered to active, the person list comes from
   // team_members where active inside inspo_people(). Never select * on a list.
   const [links,plays,clients,people,settings]=await Promise.all([
-    get('inspo_links?select=id,title,url,notes,platform,category,client_id,added_by,date_added,language,image_path,strong_by&order=date_added.desc'),
+    get('inspo_links?select=id,title,url,notes,platform,category,client_id,added_by,date_added,language,image_path,strong_by,dead_at&order=date_added.desc'),
     get('inspo_plays?select=id,inspo_link_id,client_id,date_posted,notes,logged_by,created_at&order=created_at.desc'),
     get('clients?select=id,name,industry,assigned_smm&status=eq.active&order=name.asc'),
     rpc('inspo_people'),rpc('inspo_settings_get')]);
@@ -483,12 +532,41 @@ function signOut(){const t=S.token;store(TOKEN_KEY,null);S.token=null;S.me=null;
 
 // ── ROUTER. The hash is the router. ──
 function route(){
-  const h=(location.hash||'#home').slice(1), parts=h.split('/');
+  const h=(location.hash||'#feed').slice(1), parts=h.split('/');
   document.querySelectorAll('.tab[data-tab],.side .nav[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===(parts[0]==='shelf'?'home':parts[0])));
-  if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();
-  else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderHome();
+  $('app').classList.remove('feedmode');
+  if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();else if(parts[0]==='home')renderHome();
+  else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderFeed();
   window.scrollTo(0,0);
 }
+
+// ── FEED. Everyone's ideas, newest first, one per screen. The door people open on their own. ──
+function feedCard(l){
+  const c=clientById(l.client_id), used=playsOf(l.id), mine=up(l.added_by)===up(S.me.name), canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine;
+  const ic=(d)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'">'+(l.image_path?'<img class="fpic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
+    '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<span>'+esc(c.name)+'</span>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
+    '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
+    '<div class="fby">'+esc(nice(l.added_by))+' · '+fmtDate(l.date_added)+'</div></div>'+
+    '<div class="frail"><a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('<path d="M14 4h6v6M20 4 10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>')+'Open</a>'+
+    (canStrong?'<button data-act="strong" data-id="'+l.id+'" data-on="'+(l.strong_by?'0':'1')+'" class="'+(l.strong_by?'on':'')+'">'+ic('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>')+'Strong</button>':'')+
+    '<button data-act="use" data-id="'+l.id+'" class="'+(used.length?'on':'')+'">'+ic('<path d="M20 6 9 17l-5-5"/>')+'Used</button>'+
+    '<button data-act="detail" data-id="'+l.id+'">'+ic('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>')+'More</button></div></article>';
+}
+function renderFeed(){
+  $('view-title').textContent='Feed';
+  const seen=Number(read(SEEN_KEY)||0), all=(S.feedKind?S.links.filter(l=>bucketOf(l)===S.feedKind):S.links.slice()).sort((a,b)=>new Date(b.date_added)-new Date(a.date_added));
+  const fresh=all.filter(l=>l.id>seen).length;
+  let h='<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div><div class="feed-wrap" id="feed">'+
+    (seen&&fresh?'<div class="fnew">'+fresh+(fresh===1?' new idea':' new ideas')+' since you last looked</div>':'')+
+    (all.length?all.map(feedCard).join(''):'')+
+    '<div class="fend"><div>'+(all.length?'<b>That is everything</b>'+all.length+' ideas on the shelf. Saw something good today? File it and it lands here for everyone.':'<b>Nothing here yet</b>The first idea anybody files shows up here for the whole team.')+'<div class="actions" style="max-width:280px;margin:16px auto 0"><button class="btn primary" data-act="file">File an idea</button></div></div></div></div>';
+  $('view').innerHTML=h;$('app').classList.add('feedmode');sizeFeed();
+  const top=Math.max(0,...S.links.map(l=>l.id));if(top>seen)store(SEEN_KEY,String(top));
+}
+// The feed fills exactly the space between the title and the bar, measured, so the page itself never scrolls.
+function sizeFeed(){const w=$('feed');if(!w)return;const bar=DESK.matches?0:$('bar').getBoundingClientRect().height;w.style.height=Math.max(320,Math.floor(innerHeight-w.getBoundingClientRect().top-bar-(DESK.matches?24:0)))+'px';}
+window.addEventListener('resize',()=>{if($('feed'))sizeFeed();});
 
 // ── HOME: the counter ──
 function renderHome(){
@@ -546,7 +624,7 @@ function ideaCard(l){
   const c=clientById(l.client_id), used=playsOf(l.id);
   const pic=l.image_path?'<img class="pic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="nopic"><span class="p">'+esc(l.platform||'Link')+'</span><span class="k">No picture yet. Open it to add a screenshot</span></div>';
   return '<button class="card idea" data-act="detail" data-id="'+l.id+'">'+pic+'<div class="body"><div class="kline"><span>'+esc(l.category||'Reference')+'</span>'+
-    (l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used '+esc(fmtMonth(used[0].date_posted))+'</span>':'')+(l.language?'<span>'+esc(l.language)+'</span>':'')+'</div>'+
+    (l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used '+esc(fmtMonth(used[0].date_posted))+'</span>':'')+(l.language?'<span>'+esc(l.language)+'</span>':'')+(l.dead_at?'<span class="dead-chip">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3>'+(l.notes?'<div class="n">'+esc(l.notes)+'</div>':'<div class="n">No note on this one. It was filed before notes were required.</div>')+
     '<div class="by">'+esc(c?c.name:'No client')+' · '+esc(nice(l.added_by))+' · '+fmtDate(l.date_added)+'</div></div></button>';
 }
@@ -580,8 +658,9 @@ function renderIdeas(){
   if(!list.length)h+='<div class="card empty" style="margin-top:14px"><b>'+(S.links.length?'Nothing matches':'The shelf is empty')+'</b>'+(S.links.length?'Clear a filter or search for something else.':'Tap File an idea to put the first one in.')+'</div>';
   else if(S.ideasView==='board'){
     const a=list.filter(l=>!playsOf(l.id).length), b=list.filter(l=>playsOf(l.id).length);
-    h+='<div class="board"><div class="col"><h4>Not used yet · '+a.length+'</h4><div class="ideas">'+(a.map(ideaCard).join('')||'<div class="card empty">Nothing here.</div>')+'</div></div>'+
-       '<div class="col"><h4>Used · '+b.length+'</h4><div class="ideas">'+(b.map(ideaCard).join('')||'<div class="card empty">Nothing used yet. Open an idea and tap Mark used.</div>')+'</div></div></div>';
+    h+='<div class="board"><div class="col" data-col="not"><h4>Not used yet · '+a.length+'</h4><div class="ideas">'+(a.map(ideaCard).join('')||'<div class="card empty">Nothing here.</div>')+'</div></div>'+
+       '<div class="col" data-col="used"><h4>Used · '+b.length+'</h4><div class="ideas">'+(b.map(ideaCard).join('')||'<div class="card empty">Nothing used yet. Open an idea and tap Mark used.</div>')+'</div></div></div>'+
+       '<p class="drag-hint">'+(DESK.matches?'Drag a card into Used to mark it. Drag it back to undo.':'Press and hold a card, then drag it into Used to mark it. Drag it back to undo.')+'</p>';
   }else h+='<div class="ideas">'+list.map(ideaCard).join('')+'</div>';
   $('view').innerHTML=h;
   const q=$('q');q.oninput=()=>{S.filter.q=q.value;const pos=q.selectionStart;renderIdeas();const n=$('q');n.focus();n.setSelectionRange(pos,pos);};
@@ -692,7 +771,7 @@ async function saveFile(){
   try{
     const r=await rpc('inspo_save_link',{p_token:S.token,p:{id:draft.id||'',url,notes:note,title:draft.title||'',category:kind,client_id:client,platform:platformOf(url),language:lang,image_path:draft.image_path||''}});
     if(!r.ok){btn.disabled=false;
-      if(r.why==='duplicate'){const c=clientById(r.existing.client_id);
+      if(r.why==='duplicate'){const c=clientById(r.existing.client_id);if(!draft.id){dropShot(draft.image_path);draft.image_path=null;}
         return say('This link is already on the shelf, filed by '+esc(nice(r.existing.added_by))+(c?' for '+esc(c.name):'')+'. <button type="button" class="btn" style="margin-top:10px" data-act="see-existing" data-id="'+r.existing.id+'">Open the one already filed</button>');}
       if(r.why==='session')return signOut();
       return say({note:'Add a note before you file it.',url:'Paste the full link, starting with https.',kind:'Your seat cannot file that kind. Pick another or use Reference.',client:'That client is not active any more. Pick another.',not_yours:'Only the person who filed an idea can change it.',change_pin:'Choose your own PIN first.'}[r.why]||'The hub refused that. Try again.');}
@@ -702,6 +781,48 @@ async function saveFile(){
     closeSheet(()=>{route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
   }catch(e){btn.disabled=false;say('It did not save: '+esc(e.message||e));}
 }
+
+// ── BOARD DRAG. Pointer events, one listener set, a long press on touch so scrolling still works. ──
+let drag=null;
+function dragStart(card,x,y){
+  const r=card.getBoundingClientRect(), g=card.cloneNode(true);
+  g.className='card idea drag-ghost';g.style.width=Math.min(240,r.width)+'px';g.style.left=(x-60)+'px';g.style.top=(y-30)+'px';
+  document.body.appendChild(g);card.classList.add('lifting');document.body.classList.add('dragging');
+  drag={id:Number(card.dataset.id),ghost:g,card,from:card.closest('.col').dataset.col,over:null};
+}
+function dragMove(x,y){
+  if(!drag)return;drag.ghost.style.left=(x-60)+'px';drag.ghost.style.top=(y-30)+'px';
+  const el=document.elementFromPoint(x,y), col=el&&el.closest('.board .col');
+  document.querySelectorAll('.board .col').forEach(c=>c.classList.toggle('over',c===col&&c.dataset.col!==drag.from));
+  drag.over=col&&col.dataset.col!==drag.from?col.dataset.col:null;
+}
+async function dragEnd(){
+  if(!drag)return;const d=drag;drag=null;
+  d.ghost.remove();d.card.classList.remove('lifting');document.body.classList.remove('dragging');
+  document.querySelectorAll('.board .col').forEach(c=>c.classList.remove('over'));
+  if(!d.over)return;
+  if(d.over==='used')return openUse(d.id);
+  const mine=playsOf(d.id).filter(p=>up(p.logged_by||'')===up(S.me.name)||S.me.is_admin), others=playsOf(d.id).length-mine.length;
+  if(!mine.length)return toast('Only the person who marked it used can undo that',true);
+  for(const p of mine){await rpc('inspo_unmark_used',{p_token:S.token,p_play:p.id}).catch(()=>null);}
+  await loadAll();renderIdeas();toast(others?'Undone. Somebody else also marked it used, so it stays in Used':'Moved back to not used');
+}
+let pressT=null, pressAt=null;
+document.addEventListener('pointerdown',ev=>{
+  const card=ev.target.closest('.board .idea');if(!card||ev.button)return;
+  pressAt={x:ev.clientX,y:ev.clientY,card};
+  if(ev.pointerType==='mouse')return;
+  pressT=setTimeout(()=>{if(pressAt){dragStart(pressAt.card,pressAt.x,pressAt.y);if(navigator.vibrate)navigator.vibrate(10);}},350);
+});
+document.addEventListener('pointermove',ev=>{
+  if(drag){ev.preventDefault();return dragMove(ev.clientX,ev.clientY);}
+  if(!pressAt)return;
+  const dx=ev.clientX-pressAt.x, dy=ev.clientY-pressAt.y;
+  if(ev.pointerType==='mouse'&&Math.hypot(dx,dy)>8){dragStart(pressAt.card,ev.clientX,ev.clientY);dragMove(ev.clientX,ev.clientY);}
+  else if(ev.pointerType!=='mouse'&&Math.hypot(dx,dy)>10){clearTimeout(pressT);pressAt=null;}
+},{passive:false});
+const dragStop=ev=>{clearTimeout(pressT);const was=!!drag;pressAt=null;if(was){dragEnd();if(ev.type==='pointerup'){ev.preventDefault();const stop=e=>{e.stopPropagation();e.preventDefault();document.removeEventListener('click',stop,true);};document.addEventListener('click',stop,true);setTimeout(()=>document.removeEventListener('click',stop,true),50);}}};
+document.addEventListener('pointerup',dragStop);document.addEventListener('pointercancel',dragStop);
 
 // ── BULK ADD. Many links for one client in one go. Every idea still carries a note. ──
 let bulk=null;
@@ -777,7 +898,7 @@ async function bulkSave(){
     try{
       const a=await rpc('inspo_save_link',{p_token:S.token,p:{id:'',url:r.url,notes:r.note.trim(),title:r.title||'',category:bulk.kind,client_id:bulk.client,platform:platformOf(r.url),language:bulk.lang,image_path:r.image_path||''}});
       if(a.ok){r.state='ok';r.msg='Filed';ok++;}
-      else if(a.why==='duplicate'){r.state='dup';r.msg='Already on the shelf, filed by '+nice(a.existing.added_by);dup++;}
+      else if(a.why==='duplicate'){r.state='dup';r.msg='Already on the shelf, filed by '+nice(a.existing.added_by);dup++;dropShot(r.image_path);r.image_path='';}
       else if(a.why==='session'){bulk.saving=false;return signOut();}
       else{r.state='bad';r.msg={kind:'Your seat cannot file that kind',client:'That client is not active any more',url:'That is not a full link'}[a.why]||'The hub refused this one';bad++;}
     }catch(e){r.state='bad';r.msg='It did not save. Try again';bad++;}
@@ -788,12 +909,16 @@ async function bulkSave(){
   bulkDraw();toast('Filed '+ok+' of '+todo.length+'. '+(dup?dup+' already on the shelf. ':'')+(bad?bad+' need another look.':''),!!bad);
 }
 
+// A picture nobody references is removed. The function checks the table first, so a shared path is kept.
+function dropShot(path){if(!path)return;api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,delete_path:path})}).catch(()=>{});}
+
 // ── DETAIL, USED, STRONG, PLAN TEXT ──
 function openDetail(id){
   const l=S.links.find(x=>x.id===id);if(!l)return toast('That idea is no longer on the shelf',true);
   const c=clientById(l.client_id), used=playsOf(id), mine=up(l.added_by)===up(S.me.name);
   const canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine, canEdit=mine||S.me.is_admin;
   openSheet('<h2>'+esc(l.title)+'</h2><p class="lead">'+esc(l.category||'Reference')+' · '+esc(l.platform||'Link')+(l.language?' · '+esc(l.language):'')+(l.strong_by?' · marked strong by '+esc(nice(l.strong_by)):'')+'</p>'+
+    (l.dead_at?'<p class="kv is-bad">This link no longer opens (checked '+fmtDate(l.dead_at)+'). The note and the picture stay, so the idea is not lost.</p>':'')+
     (l.image_path?'<img class="detail-pic" alt="" src="'+esc(SHOTS+l.image_path)+'">':'')+
     '<p class="kv">'+(l.notes?esc(l.notes):'No note. This was filed before notes were required.')+'</p>'+
     '<p class="kv"><b>'+esc(c?c.name:'No client')+'</b> · filed by '+esc(nice(l.added_by))+' on '+fmtDate(l.date_added)+'</p>'+
@@ -836,7 +961,7 @@ function openPlan(id){
 // ── ACCOUNT AND ADMIN ──
 function openAccount(){
   openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
-    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><a class="btn" href="index.html">Command Centre</a><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><a class="btn" href="index.html">Command Centre</a><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function openAdmin(){
   openSheet('<h2>Targets and logins</h2><p class="lead">Loading.</p>');
@@ -849,9 +974,20 @@ async function openAdmin(){
     '<span class="lbl">Who the target applies to</span><div class="seg" id="mode-seg"><button data-act="mode" data-m="rota" class="'+(t.mode==='rota'?'on':'')+'">Clients in rotation</button><button data-act="mode" data-m="all" class="'+(t.mode==='all'?'on':'')+'">Every client</button></div>'+
     step('rota_clients_per_smm','Clients each social manager researches a week','At 3 each, every client comes round about once every four weeks.')+
     step('weekly_target_other_seats','Ideas a week for each graphic and video seat','These seats add to whichever clients they are working on.')+
+    rotaPicker(t)+
+    '<h2 style="margin-top:28px">Links</h2><p class="lead">'+(S.links.filter(l=>l.dead_at).length?S.links.filter(l=>l.dead_at).length+' flagged as gone. ':'')+'A sweep asks each platform whether the link still exists. Gone links are flagged, never deleted.</p><div class="actions" style="margin-top:8px"><button class="btn full" data-act="sweep" id="sweep-btn">Check every link now</button></div>'+
     '<h2 style="margin-top:28px">Logins</h2><p class="lead">This list is the team table, active people only. Everyone signs in with their name and the PIN they use in their own BB system. Set one here for a new joiner or a forgotten PIN.</p><div class="card rows" style="margin-top:10px">'+
     r.people.map(p=>'<div class="row"><span class="grow"><span class="name">'+esc(nice(p.name))+'</span><span class="meta">'+(p.has_login?(p.last_login?'Last signed in '+fmtDate(p.last_login):'Has not signed in yet'):'No login')+'</span></span><button class="btn" style="width:auto" data-act="set-pin" data-tm="'+p.team_member_id+'" data-name="'+esc(p.name)+'">'+(p.has_login?'Set PIN':'Give a PIN')+'</button></div>').join('')+'</div>'+
     '<div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+}
+function rotaPicker(t){
+  if(t.mode==='all')return '';
+  const ov=(setting('rota_override',{})||{})[weekKey()]||{};
+  const smms=[...new Set(S.clients.map(c=>up(c.assigned_smm)).filter(Boolean))];
+  return '<h2 style="margin-top:28px">This week\'s rotation</h2><p class="lead">The hub rotates each social manager\'s clients '+esc(String(setting('rota_clients_per_smm',3)))+' at a time. Tap to change this week\'s set. It resets next Monday.</p>'+
+    smms.map(sm=>{const cur=new Set((t.rota[sm]||[]).map(c=>c.id));
+      return '<span class="lbl">'+esc(nice(sm))+(ov[sm]?' · set by hand':'')+'</span><div class="rota-pick">'+S.clients.filter(c=>up(c.assigned_smm)===sm).map(c=>'<button class="chip'+(cur.has(c.id)?' on':'')+'" data-act="rota-toggle" data-smm="'+sm+'" data-id="'+c.id+'">'+esc(c.name)+'</button>').join('')+'</div>';}).join('')+
+    (Object.keys(ov).length?'<div class="actions" style="margin-top:10px"><button class="btn full" data-act="rota-clear">Back to the automatic rotation</button></div>':'');
 }
 async function saveSetting(key,value){
   const r=await rpc('inspo_set_setting',{p_token:S.token,p_key:key,p_value:value});
@@ -870,7 +1006,7 @@ document.addEventListener('click',async ev=>{
     case 'account':openAccount();break;
     case 'admin':openAdmin();break;
     case 'sign-out':closeSheet(signOut);break;
-    case 'close-sheet':closeSheet();break;
+    case 'close-sheet':if(draft&&!draft.id&&draft.image_path&&$('file-form')){dropShot(draft.image_path);draft=null;}closeSheet();break;
     case 'go':{const h=el.dataset.hash;closeSheet(()=>{if(location.hash===h)route();else location.hash=h;});break;}
     case 'file':openFile({client:el.dataset.client||''});break;
     case 'edit':openFile({id});break;
@@ -879,6 +1015,8 @@ document.addEventListener('click',async ev=>{
     case 'plan':openPlan(id);break;
     case 'filters':openFilters();break;
     case 'kind':S.filter.kind=el.dataset.kind;renderIdeas();break;
+    case 'feed-kind':S.feedKind=el.dataset.kind;renderFeed();break;
+    case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
     case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);renderIdeas();break;
     case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');break;}
@@ -888,15 +1026,17 @@ document.addEventListener('click',async ev=>{
     case 'use-save':{el.disabled=true;
       const r=await rpc('inspo_mark_used',{p_token:S.token,p_link:id,p_client:Number($('u-client').value),p_month:$('u-month').value,p_note:''}).catch(()=>null);
       if(!r||!r.ok){el.disabled=false;toast('It did not save',true);break;}
-      await loadAll();openDetail(id);toast('Marked used');break;}
+      await loadAll();dirty=true;closeSheet(()=>{const y=$('feed')?$('feed').scrollTop:0;route();if($('feed'))$('feed').scrollTop=y;toast('Marked used');});break;}
     case 'unuse':{const r=await rpc('inspo_unmark_used',{p_token:S.token,p_play:Number(el.dataset.play)}).catch(()=>null);
       if(!r||!r.ok){toast('Could not undo that',true);break;}await loadAll();openDetail(id);toast('Undone');break;}
     case 'strong':{const r=await rpc('inspo_mark_strong',{p_token:S.token,p_link:id,p_on:el.dataset.on==='1'}).catch(()=>null);
       if(!r||!r.ok){toast(r&&r.why==='own'?'Somebody else has to mark your own idea strong':'Only heads can mark an idea strong',true);break;}
-      await loadAll();openDetail(id);break;}
+      await loadAll();if(sheetOpen)openDetail(id);else{const y=$('feed')?$('feed').scrollTop:0;route();if($('feed'))$('feed').scrollTop=y;}break;}
     case 'del':{if(!confirm('Delete this idea for everyone?'))break;
+      const gone=(S.links.find(x=>x.id===id)||{}).image_path;
       const r=await rpc('inspo_delete_link',{p_token:S.token,p_id:id}).catch(()=>null);
       if(!r||!r.ok){toast('Could not delete that',true);break;}
+      dropShot(gone);
       await loadAll();closeSheet(()=>{route();toast('Deleted');});break;}
     case 'copy-plan':try{await navigator.clipboard.writeText($('plan-text').textContent);toast('Copied');}catch(e){toast('Press and hold the text to copy it',true);}break;
     case 'step':{const box=el.closest('.stepper'), key=box.dataset.key, v=Math.max(0,Math.min(20,Number(setting(key,3))+Number(el.dataset.d)));
@@ -907,6 +1047,18 @@ document.addEventListener('click',async ev=>{
       const r=await rpc('inspo_admin_set_pin',{p_token:S.token,p_team_member_id:Number(el.dataset.tm),p_pin:v}).catch(()=>null);
       if(!r||!r.ok){toast('Could not save that PIN',true);break;}toast('PIN saved');openAdmin();break;}
     case 'bulk':openBulk({client:el.dataset.client||''});break;
+    case 'rota-toggle':{const t=targets(), sm=el.dataset.smm, id=Number(el.dataset.id), cur=(t.rota[sm]||[]).map(c=>c.id);
+      const next=cur.includes(id)?cur.filter(x=>x!==id):cur.concat([id]);
+      if(!next.length){toast('Keep at least one client in the rotation',true);break;}
+      const ov=Object.assign({},setting('rota_override',{})||{});const wk=Object.assign({},ov[weekKey()]||{});wk[sm]=next;
+      const clean={};clean[weekKey()]=wk;   /* only this week is kept, so the setting never grows */
+      await saveSetting('rota_override',clean);dirty=true;openAdmin();break;}
+    case 'rota-clear':await saveSetting('rota_override',{});dirty=true;openAdmin();break;
+    case 'sweep':{el.disabled=true;el.textContent='Checking every link';
+      try{const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,sweep:true})});
+        if(!r||!r.ok)throw new Error((r&&r.why)||'refused');
+        await loadAll();dirty=true;toast('Checked '+r.checked+': '+r.alive+' alive, '+r.dead+' gone'+(r.unknown?', '+r.unknown+' could not be reached':''));openAdmin();
+      }catch(e){toast('The sweep did not run: '+(e.message||e),true);el.disabled=false;el.textContent='Check every link now';}break;}
     case 'bulk-read':bulkRead();break;
     case 'bulk-fill':bulkFill();break;
     case 'bulk-drop':bulkDrop(Number(el.dataset.i));break;
