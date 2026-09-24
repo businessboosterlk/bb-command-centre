@@ -856,6 +856,7 @@ function showPreview(title,sub){
 const OEMBED={TikTok:'https://www.tiktok.com/oembed?url=',YouTube:'https://www.youtube.com/oembed?format=json&url='};
 async function askPlatform(url){
   if(/^https?:\/\/(vt|vm)\.tiktok\.com\//i.test(url))return {};   // TikTok refuses short links from a browser; the fetcher follows them
+  if(/tiktok\.com\/@\/video\//i.test(url))return {};   // and it refuses the username-less address a short link resolves to
   const ep=OEMBED[platformOf(url)];if(!ep)return {};
   try{const o=await fetch(ep+encodeURIComponent(url),{signal:AbortSignal.timeout(4000)}).then(x=>x.ok?x.json():null);
     if(!o)return {};
