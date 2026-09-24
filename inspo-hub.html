@@ -75,12 +75,12 @@ select::-ms-expand{display:none}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
+.bar{position:fixed;left:0;right:0;bottom:var(--kb,0px);height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
 /* The document never scrolls on a phone. Only #app scrolls, so the browser chrome never collapses
    and the bar never moves. This is what makes it feel like an app rather than a page. */
 @media(max-width:1023px){
   html,body{height:100dvh;overflow:hidden}
-  #app{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0}
+  #app{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab) + var(--kb,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0}
   body.sheet-open #app{overflow:hidden}
 }
 .bar-in{max-width:760px}
@@ -308,7 +308,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   body.immersive #app{padding:0;max-width:none}
   body.immersive .top{display:none}
   body.immersive .feed-top{display:none}
-  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab));height:auto!important;margin:0;border-radius:0}
+  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab) + var(--kb,0px));height:auto!important;margin:0;border-radius:0}
   body.immersive .fcard .ftext{bottom:22px}
   body.immersive .fwho{position:fixed;top:calc(var(--sat) + 10px);right:12px;z-index:16;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
 }
@@ -397,6 +397,23 @@ const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId';
 history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
+// iOS Safari loses the bottom edge: after the keyboard closes on the PIN screen, or when its toolbar
+// changes, every fixed element floats above or below the real bottom, and a page that never scrolls
+// never gets corrected. So the page measures the real visible bottom itself and carries the difference
+// in --kb: the bar, the app and the feed anchor to where the bottom actually is, not where Safari says.
+const VV=window.visualViewport;
+function vvSync(){
+  if(!VV||DESK.matches)return;
+  window.scrollTo(0,0);
+  let off=Math.round(innerHeight-VV.height-VV.offsetTop);
+  if(Math.abs(off)<=4)off=0;
+  document.documentElement.style.setProperty('--kb',Math.max(-240,Math.min(420,off))+'px');
+  if($('feed'))sizeFeed();
+}
+if(VV){let vvT;const vvQ=()=>{clearTimeout(vvT);vvT=setTimeout(vvSync,60);};
+  VV.addEventListener('resize',vvQ);VV.addEventListener('scroll',vvQ);
+  addEventListener('focusout',vvQ);addEventListener('pageshow',vvQ);addEventListener('orientationchange',vvQ);
+  setTimeout(vvSync,300);}
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
   filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:'',feedClient:0};
