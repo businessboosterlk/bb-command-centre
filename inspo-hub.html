@@ -75,10 +75,24 @@ select::-ms-expand{display:none}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:var(--bg);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:20}
+.bar{position:fixed;left:0;right:0;bottom:0;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
+/* The document never scrolls on a phone. Only #app scrolls, so the browser chrome never collapses
+   and the bar never moves. This is what makes it feel like an app rather than a page. */
+@media(max-width:1023px){
+  html,body{height:100dvh;overflow:hidden}
+  #app{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0}
+  body.sheet-open #app{overflow:hidden}
+}
 .bar-in{max-width:760px}
-.tab{text-decoration:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--text3);min-height:var(--bar)}
+.tab{position:relative;text-decoration:none;transition:color .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--text3);min-height:var(--bar)}
 .tab.on{color:var(--text)}
+.tab:active svg{transform:scale(.86)}
+.tab svg{transition:transform .15s}
+.tab .badge{position:absolute;top:7px;left:50%;margin-left:7px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--accent);color:#140a05;font-size:10px;font-weight:800;display:grid;place-items:center}
+#view{animation:viewin .18s ease-out}
+@keyframes viewin{from{opacity:.4}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#view{animation:none}.tab svg{transition:none}}
+.kind-rows .row .name{font-size:16px}
 .tab.file{color:var(--accent)}
 
 h2{font-size:15px;font-weight:700;margin:28px 0 10px}
@@ -293,10 +307,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 @media(max-width:1023px){
   body.immersive #app{padding:0;max-width:none}
   body.immersive .top{display:none}
-  body.immersive .feed-top{position:fixed;left:0;right:0;top:0;z-index:15;margin:0;padding:calc(var(--sat) + 10px) 0 10px;background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0));pointer-events:none}
-  body.immersive .feed-top .chips{pointer-events:auto;margin:0;padding:0 72px 0 16px}
-  body.immersive .feed-top .chip{background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.25);color:#fff}
-  body.immersive .feed-top .chip.on{background:#fff;color:#0b0b0c;border-color:#fff}
+  body.immersive .feed-top{display:none}
   body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab));height:auto!important;margin:0;border-radius:0}
   body.immersive .fcard .ftext{bottom:22px}
   body.immersive .fwho{position:fixed;top:calc(var(--sat) + 10px);right:12px;z-index:16;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
@@ -319,7 +330,8 @@ body.immersive .fshield{top:calc(var(--sat) + 64px)}
 .fcaught b{display:block;color:var(--text);font-size:20px;margin-bottom:8px}
 .fclient{color:#fff;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.4)}
 .feed-filter{display:flex;align-items:center;gap:8px;margin:0 0 8px}
-body.immersive .feed-filter{position:fixed;top:calc(var(--sat) + 62px);left:16px;z-index:15}
+body.immersive .feed-filter{position:fixed;top:calc(var(--sat) + 12px);left:16px;z-index:15}
+  body.immersive .feed-filter .chip{background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.25);color:#fff}
 .mine{padding:16px 18px}
 .mine .big{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1}
 .mine .big small{font-size:15px;font-weight:600;color:var(--text3);margin-left:6px}
@@ -364,10 +376,11 @@ body.dragging .board .idea{touch-action:none}
 </div></div>
 
 <nav class="bar" id="bar" hidden>
-  <a class="tab" href="#feed" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg>Feed</a>
+  <a class="tab" href="#feed" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg><span class="badge" id="feed-badge" hidden>0</span>Feed</a>
   <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
   <a class="tab" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
   <a class="tab" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
+  <button class="tab" data-act="kinds" id="tab-kinds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H3" /><path d="M12 19H3" /><path d="M14 3v4" /><path d="M16 17v4" /><path d="M21 12h-9" /><path d="M21 19h-5" /><path d="M21 5h-7" /><path d="M8 10v4" /><path d="M8 12H3" /></svg><span id="kinds-lbl">Kinds</span></button>
   <button class="tab file" data-act="file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>File an idea</button>
 </nav>
 
@@ -579,7 +592,7 @@ function route(){
   $('app').classList.remove('feedmode');document.body.classList.remove('immersive');if(feedWatch){feedWatch.disconnect();feedWatch=null;}
   if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();else if(parts[0]==='home')renderHome();
   else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderFeed();
-  window.scrollTo(0,0);
+  window.scrollTo(0,0);if($('app'))$('app').scrollTop=0;updateFeedBadge();
 }
 
 // ── FEED. Everyone's ideas, newest first, one per screen. The door people open on their own. ──
@@ -645,7 +658,7 @@ function renderFeed(){
   all.sort((a,b)=>new Date(b.date_added)-new Date(a.date_added));
   const fresh=all.filter(l=>l.id>seen), old=all.filter(l=>l.id<=seen), fc=S.feedClient?clientById(S.feedClient):null;
   const weekN=S.links.filter(l=>new Date(l.date_added)>=weekStart()).length;
-  let h='<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div>'+(fc?'<div class="feed-filter"><button class="chip on" data-act="feed-client" data-id="">'+esc(fc.name)+' · clear</button></div>':'')+'<div class="feed-wrap" id="feed">'+
+  let h=(DESK.matches?'<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div>':'')+(fc?'<div class="feed-filter"><button class="chip on" data-act="feed-client" data-id="">'+esc(fc.name)+' · clear</button></div>':'')+'<div class="feed-wrap" id="feed">'+
     (seen&&fresh.length?'<div class="fnew">'+fresh.length+(fresh.length===1?' new idea':' new ideas')+' since you last looked</div>':'')+
     (seen?fresh.map(feedCard).join(''):all.map(feedCard).join(''))+
     (seen&&fresh.length&&old.length?'<div class="fcaught"><div><b>Caught up</b>Those were the '+fresh.length+' new since you last looked. Everything below you have seen.</div></div>':'')+
@@ -654,6 +667,7 @@ function renderFeed(){
   h+='<button class="fwho" data-act="account" aria-label="Your account">'+esc(S.me.name[0])+'</button>';
   $('view').innerHTML=h;$('app').classList.add('feedmode');document.body.classList.add('immersive');sizeFeed();watchFeed();
   const top=Math.max(0,...S.links.map(l=>l.id));if(top>seen)store(SEEN_KEY,String(top));
+  updateFeedBadge();
 }
 // The feed fills exactly the space between the title and the bar, measured, so the page itself never scrolls.
 function sizeFeed(){const w=$('feed');if(!w)return;if(!DESK.matches){w.style.height='';return;}const bar=DESK.matches?0:$('bar').getBoundingClientRect().height;w.style.height=Math.max(320,Math.floor(innerHeight-w.getBoundingClientRect().top-bar-(DESK.matches?24:0)))+'px';}
@@ -1127,6 +1141,11 @@ document.addEventListener('click',async ev=>{
     case 'filters':openFilters();break;
     case 'kind':S.filter.kind=el.dataset.kind;renderIdeas();break;
     case 'feed-kind':S.feedKind=el.dataset.kind;renderFeed();break;
+    case 'kinds':openKinds();break;
+    case 'kind-pick':{const k=el.dataset.kind;S.feedKind=k;S.filter.kind=k;
+      $('kinds-lbl').textContent=k?{post:'Posts',video:'Videos',design:'Design',editing:'Editing',reference:'Refs'}[k]:'Kinds';
+      $('tab-kinds').classList.toggle('on',!!k);
+      closeSheet(()=>{const h=(location.hash||'').slice(1);if(h==='ideas')renderIdeas();else if(h===''||h==='feed')renderFeed();else location.hash='#feed';});break;}
     case 'feed-client':S.feedClient=Number(el.dataset.id)||0;renderFeed();break;
     case 'hand':{const c=el.closest('.fcard');if(!c.classList.contains('playing'))playCard(c);c.classList.add('handed');break;}
     case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
@@ -1191,6 +1210,17 @@ document.addEventListener('click',async ev=>{
     case 'toggle':el.classList.toggle('on');break;
   }
 });
+function openKinds(){
+  const cur=S.feedKind, KI={'':'M12 2v20M2 12h20',post:'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z'};
+  openSheet('<h2>Show</h2><p class="lead">Pick what fills the feed. It also filters the Ideas page.</p><div class="card rows kind-rows" style="margin-top:12px">'+
+    [['','Everything']].concat(BUCKETS).map(([k,n])=>'<button class="row" data-act="kind-pick" data-kind="'+k+'"><span class="grow"><span class="name">'+n+'</span><span class="meta">'+(k===''?'Every idea anyone has filed':{post:'Carousels, captions and post formats',video:'Whole video ideas and shoot concepts',design:'Layouts, type and colour',editing:'Cuts, transitions and sound',reference:'Good things with no category'}[k])+'</span></span>'+(cur===k?'<span class="val" style="color:var(--accent)">On</span>':'')+'</button>').join('')+
+    '</div><div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+}
+function updateFeedBadge(){
+  const b=$('feed-badge');if(!b)return;
+  const n=S.links.filter(l=>l.id>Number(read(SEEN_KEY)||0)).length;
+  b.hidden=!n;b.textContent=n>9?'9+':n;
+}
 function openFilters(){
   const f=S.filter;
   openSheet('<h2>Filters</h2><label class="lbl" for="fl-client">Client</label><select id="fl-client"><option value="">Every client</option>'+S.clients.map(c=>'<option value="'+c.id+'"'+(f.client===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select>'+
