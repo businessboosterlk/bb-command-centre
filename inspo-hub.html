@@ -35,6 +35,7 @@ button,label,.tab,[role="button"]{-webkit-touch-callout:none;-webkit-user-select
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 a{color:inherit}
 [hidden]{display:none!important}
+.statusfill{position:fixed;top:0;left:0;right:0;height:var(--sat);background:var(--bg);z-index:25;pointer-events:none}
 .num{font-variant-numeric:tabular-nums}
 
 /* FIELDS. 16px so iOS never zooms. */
@@ -75,22 +76,18 @@ select::-ms-expand{display:none}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{flex:none;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
+.bar{position:fixed;left:0;right:0;bottom:0;padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
 /* The document never scrolls on a phone. Only #app scrolls, so the browser chrome never collapses
    and the bar never moves. This is what makes it feel like an app rather than a page. */
 @media(max-width:1023px){
-  /* overflow:clip, not hidden. A hidden body is still a scroll container, and the phone scrolls it
-     to lift a focused field above the keyboard and never scrolls it back: that was the bar floating
-     88px up, in Safari and in the installed app. A clipped body is not a scroll container at all,
-     so nothing can ever scroll it. The column inside it is app on top, bar at the foot. */
-  html{height:100dvh;overflow:clip}
-  body{position:fixed;top:0;left:0;right:0;bottom:0;height:auto;min-height:0;overflow:clip;display:flex;flex-direction:column}
-  #gate{flex:1;min-height:0;overflow-y:auto}
-  #app{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0;width:100%}
-  body.sheet-open #app{overflow:hidden}
+  /* The house shell (Workshop OS, member skeleton): the page scrolls like a page, the bar is fixed
+     to the bottom with the inset as padding, the status strip is painted by the page. Nothing else. */
+  body{min-height:100dvh}
+  #gate{min-height:100dvh}
+  #app{max-width:none;margin:0;width:100%}
 }
 .bar-in{max-width:760px}
-.tab{position:relative;text-decoration:none;transition:color .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--text3);min-height:var(--bar)}
+.tab{position:relative;text-decoration:none;transition:color .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--text3);min-height:calc(var(--bar) - 1px)}  /* the bar's hairline is the 64th pixel */
 .tab.on{color:var(--text)}
 .tab:active svg{transform:scale(.86)}
 .tab svg{transition:transform .15s}
@@ -166,7 +163,7 @@ h2 .sub{font-weight:500;color:var(--text3);margin-left:6px}
 .empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
 
 /* SHEET */
-#sheet-root{position:fixed;left:0;right:0;top:0;height:100dvh;z-index:50;display:none}
+#sheet-root{position:fixed;inset:0;z-index:50;display:none}
 #sheet-root.on{display:block}
 .scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
 .sheet{position:absolute;left:0;right:0;bottom:0;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:18px 18px 0 0;border-top:1px solid var(--line2);padding:8px 16px calc(var(--sab) + 20px);max-width:760px;margin:0 auto}
@@ -314,9 +311,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   body.immersive #app{padding:0;max-width:none}
   body.immersive .top{display:none}
   body.immersive .feed-top{display:none}
-  body.immersive #app{overflow:hidden}
-  body.immersive #app .inner,body.immersive #view{height:100%}
-  body.immersive .feed-wrap{position:relative;height:100%!important;margin:0;border-radius:0}
+  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab));height:auto!important;margin:0;border-radius:0}
   body.immersive .fcard .ftext{bottom:22px}
   body.immersive .fwho{position:fixed;top:calc(var(--sat) + 10px);right:12px;z-index:16;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
 }
@@ -363,6 +358,7 @@ body.dragging .board .idea{touch-action:none}
 </head>
 <body>
 
+<div class="statusfill" aria-hidden="true"></div>
 <div id="gate" hidden></div>
 
 <aside class="side" id="side" hidden>
@@ -408,9 +404,7 @@ const DESK=matchMedia('(min-width:1024px)');
 // The bar sits in the normal flow at the foot of a full height column, so nothing measures or moves it.
 // If a browser still manages to scroll the root (a focused field, a scrollIntoView), put it back, late
 // enough to land after the keyboard has finished closing.
-function unscroll(){if(DESK.matches)return;document.documentElement.scrollTop=0;document.body.scrollTop=0;window.scrollTo(0,0);}
-['focusout','pageshow','orientationchange'].forEach(ev=>addEventListener(ev,()=>{[60,360,800].forEach(t=>setTimeout(unscroll,t));}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)unscroll();});
+function unscroll(){window.scrollTo(0,0);}
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
   filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:'',feedClient:0};
@@ -510,7 +504,7 @@ function hideSheet(){
   if(!sheetOpen)return;sheetOpen=false;
   $('sheet-root').classList.remove('on');$('sheet').innerHTML='';
   $('app').inert=false;$('bar').inert=false;$('side').inert=false;
-  document.body.classList.remove('sheet-open');document.body.style.top='';if(DESK.matches)window.scrollTo(0,lockedY);else unscroll();
+  document.body.classList.remove('sheet-open');document.body.style.top='';window.scrollTo(0,lockedY);
 }
 function closeSheet(then){
   if(!sheetOpen){if(then)then();return;}
@@ -625,7 +619,7 @@ function route(){
   $('app').classList.remove('feedmode');document.body.classList.remove('immersive');if(feedWatch){feedWatch.disconnect();feedWatch=null;}
   if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();else if(parts[0]==='home')renderHome();
   else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderFeed();
-  unscroll();if($('app'))$('app').scrollTop=0;updateFeedBadge();
+  window.scrollTo(0,0);updateFeedBadge();
 }
 
 // ── FEED. Everyone's ideas, newest first, one per screen. The door people open on their own. ──
