@@ -398,6 +398,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
+const BUILD='2026-09-24 15:30';   // the app compares this with the live file and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId';
 history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
@@ -518,7 +519,24 @@ window.addEventListener('popstate',()=>{
 window.addEventListener('hashchange',()=>{if(S.me&&!sheetOpen)route();});
 
 // ── GATE: pick your name, four digits ──
+// An installed app keeps the first copy of a page for ever unless it is told otherwise. So the hub asks
+// the server for the live file, with caching switched off, and if the build stamp differs it reloads
+// itself on a fresh address. Nobody ever has to delete an icon again.
+async function freshen(){
+  try{
+    if(location.search&&/url=|text=|title=/.test(location.search))return;   // a shared link is being handed in
+    const r=await fetch(location.pathname+'?b='+Date.now(),{cache:'no-store'});
+    if(!r.ok)return;
+    const m=(await r.text()).match(/const BUILD='([^']+)'/);
+    if(!m||m[1]===BUILD){try{sessionStorage.removeItem('inspo.updating');}catch(e){}return;}
+    let once=null;try{once=sessionStorage.getItem('inspo.updating');}catch(e){}
+    if(once)return;                                    // one reload per session, never a loop
+    try{sessionStorage.setItem('inspo.updating','1');}catch(e){}
+    location.replace(location.pathname+'?b='+Date.now()+location.hash);
+  }catch(e){}
+}
 async function boot(){
+  freshen();addEventListener('pageshow',()=>{setTimeout(freshen,1500);});
   const p=new URLSearchParams(location.search);
   const shared=p.get('url')||firstUrl(p.get('text'))||firstUrl(p.get('title'));
   if(shared){S.intake=shared;history.replaceState(null,'',location.pathname+location.hash);}
@@ -592,7 +610,7 @@ async function enter(){
   try{await loadAll();}catch(e){$('view').innerHTML='<div class="empty"><b>The shelf did not load</b>'+esc(e.message||e)+'</div>';return;}
   route();
   if(S.intake){const u=S.intake;S.intake=null;openFile({url:u});}
-  if(S.me.is_admin&&!DESK.matches){[400,2500].forEach(t=>setTimeout(sendDiag,t));}
+  if(!DESK.matches){[400,2500].forEach(t=>setTimeout(sendDiag,t));}
 }
 // An owner's phone reports its own geometry, so a layout fault is read as numbers, never guessed from a photo.
 function sendDiag(){
@@ -1114,6 +1132,7 @@ function openPlan(id){
 // ── ACCOUNT AND ADMIN ──
 function openAccount(){
   openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
+    '<p class="help" style="margin-top:10px">Version '+esc(BUILD)+'</p>'+
     '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><button class="btn" data-act="autoplay">'+(read('inspo.autoplay')==='off'?'Previews: tap to play':'Previews: play by themselves')+'</button><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function openAdmin(){
