@@ -27,7 +27,7 @@
   --bar:64px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{touch-action:manipulation;-webkit-text-size-adjust:100%}
+html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}
 html,body{overscroll-behavior-y:none}
 body{background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.5;min-height:100dvh}
 body.sheet-open{position:fixed;left:0;right:0;overflow:hidden}
@@ -276,7 +276,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 
 /* FEED. One idea per screen, thumb scrolls, like the apps the ideas came from. */
-.feed-wrap{margin:0 -16px;height:60dvh;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;background:#000;border-radius:var(--r) var(--r) 0 0}
+.feed-wrap{margin:0 -16px;height:60dvh;overflow-y:auto;scroll-snap-type:y mandatory;overscroll-behavior:contain;scrollbar-width:none;background:var(--bg);border-radius:var(--r) var(--r) 0 0}
 .feed-wrap::-webkit-scrollbar{display:none}
 .fcard{position:relative;height:100%;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;background:var(--surface)}
 .fcard .fpic{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -528,6 +528,8 @@ async function boot(){
   const p=new URLSearchParams(location.search);
   const shared=p.get('url')||firstUrl(p.get('text'))||firstUrl(p.get('title'));
   if(shared){S.intake=shared;history.replaceState(null,'',location.pathname+location.hash);}
+  const hs=(location.hash.match(/^#s=([0-9a-f]{48})$/)||[])[1];
+  if(hs){store(TOKEN_KEY,hs);history.replaceState(null,'',location.pathname+location.search+'#feed');}
   S.token=read(TOKEN_KEY);
   if(S.token){
     try{const me=await rpc('inspo_me',{p_token:S.token});if(me&&me.ok){S.me=me;return enter();}}catch(e){return gateError(e);}
