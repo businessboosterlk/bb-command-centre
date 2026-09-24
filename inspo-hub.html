@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Inspo Hub">
 <meta name="robots" content="noindex,nofollow">
 <title>BB Inspo Hub</title>
-<link rel="manifest" href="inspo-hub.webmanifest?v=2">
+<link rel="manifest" href="inspo-hub.webmanifest?v=6">
 <link rel="icon" type="image/png" sizes="64x64" href="inspo-icon-64.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="inspo-icon-192.png?v=2">
 <link rel="apple-touch-icon" sizes="180x180" href="inspo-icon-180.png?v=2">
@@ -75,12 +75,18 @@ select::-ms-expand{display:none}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{position:fixed;left:0;right:0;top:var(--barY,calc(100dvh - var(--bar) - var(--sab)));height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
+.bar{flex:none;height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
 /* The document never scrolls on a phone. Only #app scrolls, so the browser chrome never collapses
    and the bar never moves. This is what makes it feel like an app rather than a page. */
 @media(max-width:1023px){
-  html,body{height:100dvh;overflow:hidden}
-  #app{position:fixed;left:0;right:0;top:0;height:var(--barY,calc(100dvh - var(--bar) - var(--sab)));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0}
+  /* overflow:clip, not hidden. A hidden body is still a scroll container, and the phone scrolls it
+     to lift a focused field above the keyboard and never scrolls it back: that was the bar floating
+     88px up, in Safari and in the installed app. A clipped body is not a scroll container at all,
+     so nothing can ever scroll it. The column inside it is app on top, bar at the foot. */
+  html{height:100dvh;overflow:clip}
+  body{position:fixed;top:0;left:0;right:0;bottom:0;height:auto;min-height:0;overflow:clip;display:flex;flex-direction:column}
+  #gate{flex:1;min-height:0;overflow-y:auto}
+  #app{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0;width:100%}
   body.sheet-open #app{overflow:hidden}
 }
 .bar-in{max-width:760px}
@@ -160,7 +166,7 @@ h2 .sub{font-weight:500;color:var(--text3);margin-left:6px}
 .empty b{display:block;color:var(--text);font-size:16px;margin-bottom:6px}
 
 /* SHEET */
-#sheet-root{position:fixed;inset:0;z-index:50;display:none}
+#sheet-root{position:fixed;left:0;right:0;top:0;height:100dvh;z-index:50;display:none}
 #sheet-root.on{display:block}
 .scrim{position:absolute;inset:0;background:rgba(0,0,0,.6)}
 .sheet{position:absolute;left:0;right:0;bottom:0;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--surface);border-radius:18px 18px 0 0;border-top:1px solid var(--line2);padding:8px 16px calc(var(--sab) + 20px);max-width:760px;margin:0 auto}
@@ -185,7 +191,7 @@ pre.plan{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,
 .stepper button svg{width:20px;height:20px;display:block}
 
 /* LOGIN. The house card: the same name, PIN and ENTER every BB system uses. */
-#gate{min-height:100dvh;display:grid;place-items:center;padding:calc(var(--sat) + 24px) 16px calc(var(--sab) + 24px)}
+#gate{display:grid;place-items:center;padding:calc(var(--sat) + 24px) 16px calc(var(--sab) + 24px)}
 .login-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:48px 40px 36px;width:100%;max-width:440px}
 .login-logo{display:block;height:54px;width:auto;margin:0 auto}
 .login-sub{text-align:center;font-size:11px;font-weight:700;letter-spacing:.32em;color:var(--accent);margin-top:14px}
@@ -308,7 +314,9 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   body.immersive #app{padding:0;max-width:none}
   body.immersive .top{display:none}
   body.immersive .feed-top{display:none}
-  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;height:var(--barY,calc(100dvh - var(--bar) - var(--sab)))!important;margin:0;border-radius:0}
+  body.immersive #app{overflow:hidden}
+  body.immersive #app .inner,body.immersive #view{height:100%}
+  body.immersive .feed-wrap{position:relative;height:100%!important;margin:0;border-radius:0}
   body.immersive .fcard .ftext{bottom:22px}
   body.immersive .fwho{position:fixed;top:calc(var(--sat) + 10px);right:12px;z-index:16;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
 }
@@ -364,7 +372,7 @@ body.dragging .board .idea{touch-action:none}
   <a class="nav" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
   <a class="nav" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
   <div class="cta"><button class="btn primary" data-act="file">File an idea</button><button class="btn" data-act="bulk">Bulk add</button></div>
-  <div class="foot"><a class="nav" href="index.html">Command Centre</a><button class="nav" data-act="account" id="side-who"></button></div>
+  <div class="foot"><button class="nav" data-act="account" id="side-who"></button></div>
 </aside>
 
 <div id="app" hidden><div class="inner">
@@ -397,29 +405,12 @@ const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId';
 history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
-// iOS Safari loses the bottom edge: after the keyboard closes on the PIN screen, or when its toolbar
-// changes, every fixed element floats above or below the real bottom, and a page that never scrolls
-// never gets corrected. So the page measures the real visible bottom itself and carries the difference
-// in --kb: the bar, the app and the feed anchor to where the bottom actually is, not where Safari says.
-const VV=window.visualViewport;
-function vvSync(){
-  if(DESK.matches){document.documentElement.style.removeProperty('--barY');return;}
-  window.scrollTo(0,0);
-  // The one number that is true on every phone: where the visible area ends, from the top.
-  const bottom=VV?Math.round(VV.height+VV.offsetTop):innerHeight;
-  // The bar is hidden until sign in, and a hidden element measures zero. Measuring zero once parks the
-  // bar off the bottom edge and it stays there, which is exactly the fault Thulaib photographed.
-  const h=$('bar')?$('bar').offsetHeight:0, sab=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
-  const barH=h>40?h:64+sab;
-  document.documentElement.style.setProperty('--barY',Math.max(240,bottom-barH)+'px');
-  if($('feed'))sizeFeed();
-}
-let vvT;const vvQ=()=>{clearTimeout(vvT);vvT=setTimeout(vvSync,60);};
-if(VV){VV.addEventListener('resize',vvQ);VV.addEventListener('scroll',vvQ);}
-addEventListener('resize',vvQ);addEventListener('focusout',vvQ);addEventListener('focusin',vvQ);
-addEventListener('pageshow',vvQ);addEventListener('orientationchange',vvQ);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)vvQ();});
-addEventListener('DOMContentLoaded',vvQ);[0,120,400,1000].forEach(t=>setTimeout(vvSync,t));
+// The bar sits in the normal flow at the foot of a full height column, so nothing measures or moves it.
+// If a browser still manages to scroll the root (a focused field, a scrollIntoView), put it back, late
+// enough to land after the keyboard has finished closing.
+function unscroll(){if(DESK.matches)return;document.documentElement.scrollTop=0;document.body.scrollTop=0;window.scrollTo(0,0);}
+['focusout','pageshow','orientationchange'].forEach(ev=>addEventListener(ev,()=>{[60,360,800].forEach(t=>setTimeout(unscroll,t));}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)unscroll();});
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
   filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:'',feedClient:0};
@@ -519,7 +510,7 @@ function hideSheet(){
   if(!sheetOpen)return;sheetOpen=false;
   $('sheet-root').classList.remove('on');$('sheet').innerHTML='';
   $('app').inert=false;$('bar').inert=false;$('side').inert=false;
-  document.body.classList.remove('sheet-open');document.body.style.top='';window.scrollTo(0,lockedY);
+  document.body.classList.remove('sheet-open');document.body.style.top='';if(DESK.matches)window.scrollTo(0,lockedY);else unscroll();
 }
 function closeSheet(then){
   if(!sheetOpen){if(then)then();return;}
@@ -570,7 +561,7 @@ function showGate(){
       const r=await rpc('inspo_login',{p_name:name,p_pin:pin});
       if(!r.ok){er.textContent=r.why==='locked'?'Too many wrong tries. Wait ten minutes':'Incorrect name or PIN';pn.value='';pn.focus();$('log-btn').disabled=false;return;}
       S.token=r.token;store(TOKEN_KEY,r.token);store(NAME_KEY,r.name);S.me=r;
-      /* the same login log every BB system writes, so the Command Centre Team page sees the hub */
+      /* the same login log every BB system writes, so the the estate Team page sees the hub */
       api('/rest/v1/team_login_logs',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({member_name:r.name,logged_in_at:new Date().toISOString(),app:'inspo-hub'})}).catch(()=>{});
       enter();
     }catch(e){er.textContent='Could not reach the database. Try again';$('log-btn').disabled=false;}
@@ -598,7 +589,7 @@ function showChangePin(forced){
 }
 async function enter(){
   if(S.me.must_change)return showChangePin(true);
-  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('side').hidden=false;vvSync();
+  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('side').hidden=false;
   $('who-name').textContent=nice(S.me.name);$('side-who').textContent=nice(S.me.name)+' · '+(SEAT_NAME[S.me.seat]||'Team');
   S.ideasView=read(VIEW_KEY)==='board'?'board':'list';
   $('view').innerHTML='<div class="empty">Loading the shelf.</div>';
@@ -615,7 +606,7 @@ function route(){
   $('app').classList.remove('feedmode');document.body.classList.remove('immersive');if(feedWatch){feedWatch.disconnect();feedWatch=null;}
   if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();else if(parts[0]==='home')renderHome();
   else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderFeed();
-  window.scrollTo(0,0);if($('app'))$('app').scrollTop=0;updateFeedBadge();
+  unscroll();if($('app'))$('app').scrollTop=0;updateFeedBadge();
 }
 
 // ── FEED. Everyone's ideas, newest first, one per screen. The door people open on their own. ──
@@ -1109,7 +1100,7 @@ function openPlan(id){
 // ── ACCOUNT AND ADMIN ──
 function openAccount(){
   openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
-    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><button class="btn" data-act="autoplay">'+(read('inspo.autoplay')==='off'?'Previews: tap to play':'Previews: play by themselves')+'</button><a class="btn full" href="index.html">Command Centre</a><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><button class="btn" data-act="autoplay">'+(read('inspo.autoplay')==='off'?'Previews: tap to play':'Previews: play by themselves')+'</button><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function openAdmin(){
   openSheet('<h2>Targets and logins</h2><p class="lead">Loading.</p>');
