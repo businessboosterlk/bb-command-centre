@@ -1587,6 +1587,7 @@ window.__ST_LOG=[];
       <div class="nav-item" id="nav-shoots" onclick="showPage('shootpipeline')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></span>Shoots</div>
       <div class="nav-sec">Operations</div>
       <div class="nav-item" id="nav-finance" onclick="showPage('finance')"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
+      <div class="nav-item ceo-only" id="nav-ads" onclick="showPage('ads')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Ads</div>
       <div class="nav-item" id="nav-team" onclick="showPage('team')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
       <div class="nav-item" id="nav-brain" onclick="window.open('https://businessboosterlk.github.io/bb-brain/','_blank')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="1.6"/><circle cx="19" cy="7" r="1.6"/><circle cx="5" cy="17" r="1.6"/><circle cx="19" cy="17" r="1.6"/><path d="M6.4 8 10 10.6M17.6 8 14 10.6M6.4 16 10 13.4M17.6 16 14 13.4"/></svg></span>Digital Brain</div>
@@ -3148,6 +3149,9 @@ window.__ST_LOG=[];
 </div>
 
 <!-- ═══ TEAM WEEKLY VIEW PAGE ═══ -->
+<div id="page-ads" class="page-section ceo-only" style="display:none">
+  <div class="content"><div id="bbcc-ads-root"></div></div>
+</div><!-- /page-ads -->
 <div id="page-teamweekly" class="page-section" style="display:none">
   <div class="content">
     <!-- Top controls -->
@@ -4790,6 +4794,9 @@ function showPage(page) {
   } else if (page === 'agents') {
     document.getElementById('topbar-title').textContent = 'Agents';
     loadAgentsPage();
+  } else if (page === 'ads') {
+    document.getElementById('topbar-title').textContent = 'Ads';
+    if (window.bbccAdsRender) window.bbccAdsRender();
   } else if (page === 'teamweekly') {
     document.getElementById('topbar-title').textContent = 'Team Weekly';
     twLoadWeek();
@@ -14132,6 +14139,7 @@ const NAV9 = [
   { nav:'production', label:'Production' },
   { nav:'shoots',     label:'Schedule' },
   { nav:'finance',    label:'Finance' },
+  { nav:'ads',        label:'Ads' },        /* CEO only, 2026-09-24. Every client ad account, read each morning by bb-ads-pull */
   { nav:'team',       label:'Team' },
   { nav:'agents',     label:'System' },
   { nav:'brain',      label:'Digital Brain' },
@@ -14244,6 +14252,8 @@ else buildNavGroups();
        an ids array. Probing it for 'id' returned HTTP 400 and the Sentinel
        reported a server_error on every single load: a watcher that alarms about
        itself is worse than no watcher. Caught in the console before this shipped. */
+    {name:'bb_ads_pull_log',core:false},
+    {name:'bb_ads_campaign_7d',core:false,col:'campaign_id'},
     {name:'bb_harness_runs',core:false},
     {name:'bb_bug_clusters',core:false,col:'app'}
   ];
@@ -15534,6 +15544,113 @@ var BBSET=(function(){
 })();
 </script>
 <!-- @@BBCC_MYWEEK_END@@ -->
+<!-- @@BBCC_ADS_BEGIN@@ -->
+<style>
+#page-ads .ads-row{display:grid;grid-template-columns:minmax(0,2.2fr) 78px 1fr 1fr 1fr 1fr;gap:8px;align-items:center;padding:8px 11px;border-bottom:1px solid var(--border);font-size:12.5px;cursor:pointer}
+#page-ads .ads-row:hover{background:var(--surface-2)}
+#page-ads .ads-h{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);cursor:default}
+#page-ads .ads-h:hover{background:none}
+#page-ads .n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+#page-ads .ads-ad{grid-template-columns:minmax(0,2.2fr) 78px 1fr 1fr 1fr 1fr;background:var(--surface-2);font-size:11.5px;cursor:default}
+#page-ads .pill{display:inline-block;font-size:10px;font-weight:800;padding:2px 8px;border-radius:20px}
+#page-ads .seg{display:inline-flex;border:1px solid var(--border);border-radius:20px;overflow:hidden}
+#page-ads .seg button{background:none;border:0;color:var(--text-2);padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer}
+#page-ads .seg button.on{background:var(--accent-soft);color:var(--accent)}
+@media (max-width:640px){#page-ads .ads-row,#page-ads .ads-ad{grid-template-columns:1fr 1fr;font-size:12px}#page-ads .ads-h{display:none}#page-ads .n{text-align:left}#page-ads .ads-row>div:first-child{grid-column:1/-1}}
+</style>
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   ADS ACROSS EVERY CLIENT (2026-09-24).
+   Thulaib: "a separate section on the Command Centre which says ads, we click on
+   that and I am able to see all the ads and what is the performance". Reads
+   bb_ads_campaign_7d / _30d, filled every morning by the bb-ads-pull function
+   from every client ad account under BB's Business Manager.
+
+   Read only. This page never writes and never holds a token.
+
+   THREE THINGS THIS PAGE REFUSES TO HIDE
+   1. Whether the data is fresh. The header reads bb_ads_pull_log and goes red
+      when the last pull failed and amber when it is stale. Silence is not health.
+   2. What a result IS. Every count is an Ads Manager CREDIT under the account's
+      attribution window (AP-007). It says so above the table.
+   3. Currency. Spend prints in each account's own currency. There is no grand
+      total, because LKR and USD rows sit in the same table.
+   ════════════════════════════════════════════════════════════════════════ */
+(function(){
+  var WIN=7;
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function ago(iso){if(!iso)return 'never';var h=(Date.now()-new Date(iso).getTime())/36e5;if(h<1)return 'just now';if(h<24)return Math.round(h)+'h ago';return Math.round(h/24)+'d ago';}
+  function money(v,cur){var n=Number(v||0);var p=cur==='LKR'?'Rs ':cur==='USD'?'$':(cur||'')+' ';return p+n.toLocaleString('en-GB',{maximumFractionDigits:n<100?2:0});}
+  function num(v){return Number(v||0).toLocaleString('en-GB');}
+  function pill(st){var m={ACTIVE:['rgba(34,197,94,.12)','#22c55e','Live'],PAUSED:['rgba(148,163,184,.14)','#94a3b8','Paused'],CAMPAIGN_PAUSED:['rgba(148,163,184,.14)','#94a3b8','Paused'],ADSET_PAUSED:['rgba(148,163,184,.14)','#94a3b8','Paused'],DISAPPROVED:['rgba(239,68,68,.12)','#ef4444','Rejected'],WITH_ISSUES:['rgba(245,158,11,.12)','#f59e0b','Issues'],IN_PROCESS:['rgba(245,158,11,.12)','#f59e0b','Review'],PENDING_REVIEW:['rgba(245,158,11,.12)','#f59e0b','Review']};
+    var x=m[st]||['rgba(148,163,184,.14)','#94a3b8',st?String(st).toLowerCase().replace(/_/g,' '):'?'];
+    return '<span class="pill" style="background:'+x[0]+';color:'+x[1]+'">'+esc(x[2])+'</span>';}
+  async function get(path){var r=await fetch(SB_URL+'/rest/v1/'+path,{headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});if(!r.ok)throw new Error('HTTP '+r.status+' on '+path.split('?')[0]);return r.json();}
+  function health(log){
+    if(!log){return ['#f59e0b','Never pulled. The morning job has not run yet, or the tables are not there.'];}
+    if(log.ok===false){return ['#ef4444','LAST PULL FAILED '+ago(log.started_at)+': '+esc(log.error||'no error text')];}
+    if(log.ok===null){return ['#f59e0b','A pull started '+ago(log.started_at)+' and has not finished.'];}
+    var h=(Date.now()-new Date(log.finished_at).getTime())/36e5;
+    return [h>30?'#f59e0b':'#22c55e','Pulled '+ago(log.finished_at)+', '+log.accounts+' account'+(log.accounts===1?'':'s')+', '+num(log.rows)+' ad-day rows, '+log.since+' to '+log.until+(h>30?'. STALE.':'')];}
+  function flag(ad,cpr){ /* the diagnostic order from bb-meta-ads-expert-plus, as a hint, never a verdict */
+    if(Number(ad.spend)>0&&Number(ad.results)===0&&cpr&&Number(ad.spend)>3*cpr)return '<span class="pill" style="background:rgba(239,68,68,.12);color:#ef4444">no results</span>';
+    if(ad.cost_per_result&&cpr&&Number(ad.cost_per_result)>1.5*cpr)return '<span class="pill" style="background:rgba(245,158,11,.12);color:#f59e0b">dear</span>';
+    if(Number(ad.frequency)>3)return '<span class="pill" style="background:rgba(245,158,11,.12);color:#f59e0b">tired</span>';
+    return '';}
+  async function openAds(row,camp){
+    var host=row.nextElementSibling; if(host&&host.dataset.adsOf===camp.campaign_id){host.remove();return;}
+    var box=document.createElement('div'); box.dataset.adsOf=camp.campaign_id; box.innerHTML='<div class="ads-row ads-ad" style="color:var(--text-3)">loading ads</div>';
+    row.parentNode.insertBefore(box,row.nextSibling);
+    try{
+      var ads=await get('rpc/bb_ads_ads?p_campaign_id='+encodeURIComponent(camp.campaign_id)+'&p_days='+WIN);
+      if(typeof ads==='string')ads=JSON.parse(ads);
+      if(!ads.length){box.innerHTML='<div class="ads-row ads-ad" style="color:var(--text-3)">no ad rows in the window</div>';return;}
+      var cpr=camp.cost_per_result?Number(camp.cost_per_result):null;
+      box.innerHTML=ads.map(function(a){return '<div class="ads-row ads-ad">'
+        +'<div style="min-width:0"><div style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(a.ad_name||a.ad_id)+'</div><div style="font-size:10px;color:var(--text-3)">'+esc(a.adset_name||'')+'</div></div>'
+        +'<div>'+pill(a.status)+'</div>'
+        +'<div class="n">'+money(a.spend,camp.currency)+'</div>'
+        +'<div class="n">'+num(a.results)+' <span style="color:var(--text-3)">'+esc(a.result_label||'')+'</span></div>'
+        +'<div class="n">'+(a.cost_per_result?money(a.cost_per_result,camp.currency):'<span style="color:var(--text-3)">none</span>')+'</div>'
+        +'<div class="n">'+(a.frequency||'')+' <span style="color:var(--text-3)">freq</span> '+flag(a,cpr)+'</div></div>';}).join('');
+    }catch(e){box.innerHTML='<div class="ads-row ads-ad" style="color:#ef4444">could not read ads: '+esc(e.message)+'</div>';}
+  }
+  async function render(){
+    var root=document.getElementById('bbcc-ads-root'); if(!root)return;
+    root.innerHTML='<div style="color:var(--text-3);font-size:12px;padding:20px 0">reading</div>';
+    var log=null,rows=[],err=null;
+    try{var l=await get('bb_ads_pull_log?select=*&order=id.desc&limit=1');log=l[0]||null;}catch(e){err=e.message;}
+    try{rows=await get('bb_ads_campaign_'+WIN+'d?select=*&order=client_name.asc,spend.desc');}catch(e){err=err||e.message;}
+    var h=health(log);
+    var head='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">'
+      +'<div><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#FF6B2B)">Ads across every client</div>'
+      +'<div style="font-size:11px;margin-top:4px;color:'+h[0]+'">'+h[1]+'</div></div>'
+      +'<div class="seg"><button class="'+(WIN===7?'on':'')+'" onclick="bbccAdsWindow(7)">7 days</button><button class="'+(WIN===30?'on':'')+'" onclick="bbccAdsWindow(30)">30 days</button></div></div>'
+      +'<div style="font-size:11px;color:var(--text-3);margin-bottom:12px;line-height:1.5">Full days only, today is never in. Every result is an Ads Manager credit under the account\'s attribution window, so results across campaigns add up above the real number of people. Spend is in each account\'s own currency and is never totalled across accounts.</div>';
+    if(err&&!rows.length){root.innerHTML=head+'<div class="card" style="margin:0"><div style="font-size:12px;color:#ef4444;padding:6px 0">Could not read the ads tables: '+esc(err)+'</div></div>';return;}
+    if(!rows.length){root.innerHTML=head+'<div class="card" style="margin:0"><div style="font-size:12px;color:var(--text-3);padding:6px 0">No campaign rows in the last '+WIN+' days. If the header says a pull ran, no account delivered anything in the window.</div></div>';return;}
+    var byClient={};rows.forEach(function(r){(byClient[r.client_name]=byClient[r.client_name]||[]).push(r);});
+    var out=Object.keys(byClient).sort().map(function(cn){
+      var cs=byClient[cn];var cur=cs[0].currency;var spend=cs.reduce(function(a,r){return a+Number(r.spend||0);},0);var live=cs.filter(function(r){return r.status==='ACTIVE';}).length;
+      return '<div class="card" style="margin:0 0 14px;padding:12px 4px 4px">'
+        +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:0 11px 8px;flex-wrap:wrap"><div style="font-size:14px;font-weight:800;color:var(--text)">'+esc(cn)+(cs[0].client_id?'':' <span style="font-size:10px;color:var(--text-3);font-weight:600">unmapped account</span>')+'</div>'
+        +'<div style="font-size:11px;color:var(--text-3)">'+money(spend,cur)+' · '+cs.length+' campaign'+(cs.length===1?'':'s')+' · '+live+' live</div></div>'
+        +'<div class="ads-row ads-h"><div>Campaign</div><div>Status</div><div class="n">Spend</div><div class="n">Results</div><div class="n">Cost each</div><div class="n">Clicks</div></div>'
+        +cs.map(function(r,i){return '<div class="ads-row" data-i="'+i+'" data-c="'+esc(cn)+'">'
+          +'<div style="min-width:0"><div style="font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.campaign_name||r.campaign_id)+'</div><div style="font-size:10px;color:var(--text-3)">'+esc((r.objective||'').replace('OUTCOME_','').toLowerCase())+' · '+r.days+' day'+(r.days===1?'':'s')+'</div></div>'
+          +'<div>'+pill(r.status)+'</div>'
+          +'<div class="n">'+money(r.spend,r.currency)+'</div>'
+          +'<div class="n">'+num(r.results)+' <span style="color:var(--text-3)">'+esc(r.result_label||'')+'</span></div>'
+          +'<div class="n">'+(r.cost_per_result?money(r.cost_per_result,r.currency):'<span style="color:var(--text-3)">none</span>')+'</div>'
+          +'<div class="n">'+num(r.clicks)+'</div></div>';}).join('')+'</div>';}).join('');
+    root.innerHTML=head+out;
+    root.querySelectorAll('.ads-row[data-i]').forEach(function(el){el.addEventListener('click',function(){openAds(el,byClient[el.dataset.c][Number(el.dataset.i)]);});});
+  }
+  window.bbccAdsWindow=function(n){WIN=n;render();};
+  window.bbccAdsRender=render;
+})();
+</script>
+<!-- @@BBCC_ADS_END@@ -->
 <!-- @@BBCC_ALERTHEALTH_BEGIN@@ -->
 <script>
 /* ════════════════════════════════════════════════════════════════════════════
