@@ -15615,20 +15615,87 @@ var BBSET=(function(){
         +'<div class="n">'+(a.frequency||'')+' <span style="color:var(--text-3)">freq</span> '+flag(a,cpr)+'</div></div>';}).join('');
     }catch(e){box.innerHTML='<div class="ads-row ads-ad" style="color:#ef4444">could not read ads: '+esc(e.message)+'</div>';}
   }
+  /* ── THE BOARD AND THE PROBLEMS, above the tables ──────────────────────
+     Thulaib asked for a stock market. A market is not a table of everything,
+     it is the movers at the top and the reason underneath. So: what needs you
+     first, then one tile per client ranked WORST FIRST, then the detail that
+     was already here.
+
+     The arrow is this seven days against the seven before it, on cost per
+     result, because spend going up is not news and cost going up is. Down is
+     green: each result got cheaper. */
+  function arrow(pct){
+    if(pct===null||pct===undefined) return '<span style="color:var(--text-3);font-size:11px">no last week</span>';
+    var up=Number(pct)>0, flat=Math.abs(Number(pct))<5;
+    if(flat) return '<span style="color:var(--text-3);font-size:11px">level</span>';
+    return '<span style="color:'+(up?'#ef4444':'#22c55e')+';font-size:11px;font-weight:800">'
+      +(up?'&#9650; ':'&#9660; ')+Math.abs(Number(pct))+'%</span>';
+  }
+  function tile(b){
+    /* Red when something is rejected or the cost jumped, amber when it went up
+       at all, green when it got cheaper. A tile with no results is grey, not
+       green: absence of news is not good news. */
+    var c = b.campaigns_with_issues>0 ? '#ef4444'
+          : (b.cpr_change_pct>=30 ? '#ef4444'
+          : (b.cpr_change_pct>0 ? '#f59e0b'
+          : (b.cpr_change_pct<0 ? '#22c55e' : '#6b7280')));
+    return '<div class="card" style="margin:0;padding:12px 14px;border-left:3px solid '+c+'">'
+      +'<div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px">'
+        +'<div style="font-weight:800;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(b.client_name)+'</div>'
+        +arrow(b.cpr_change_pct)+'</div>'
+      +'<div style="font-size:19px;font-weight:800;margin-top:6px;color:var(--text);font-variant-numeric:tabular-nums">'
+        +(b.cpr_now?money(b.cpr_now,b.currency):'<span style="font-size:13px;color:var(--text-3)">no results yet</span>')+'</div>'
+      +'<div style="font-size:10.5px;color:var(--text-3);margin-top:2px">each '+esc((b.result_label||'result'))+'</div>'
+      +'<div style="font-size:11px;color:var(--text-3);margin-top:8px;padding-top:7px;border-top:1px solid var(--border)">'
+        +money(b.spend_now,b.currency)+' this week · '+num(b.results_now)+' in · '+(b.live_campaigns||0)+' live'
+        +(b.campaigns_with_issues>0?' · <b style="color:#ef4444">'+b.campaigns_with_issues+' blocked</b>':'')+'</div></div>';
+  }
+  function problems(al){
+    if(!al.length) return '<div class="card" style="margin:0 0 16px;padding:14px 16px">'
+      +'<div style="font-size:12px;color:#22c55e;font-weight:700">Nothing needs you on the ads today.</div>'
+      +'<div style="font-size:11px;color:var(--text-3);margin-top:3px">Five rules ran: rejected ads, money spent with no results, cost per result up by a third, the same people seeing an ad too often, and an account that has gone silent.</div></div>';
+    var K={rejected:['#ef4444','Blocked by Meta'],no_results:['#ef4444','Spending on nothing'],
+           cost_up:['#f59e0b','Getting dearer'],tired:['#f59e0b','Audience worn out'],
+           stopped:['#f59e0b','Gone silent']};
+    return '<div class="card" style="margin:0 0 16px;padding:12px 4px 4px">'
+      +'<div style="padding:0 12px 8px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#FF6B2B)">What needs you, '+al.length+'</div>'
+      +al.map(function(a){var k=K[a.kind]||['#94a3b8',a.kind];
+        return '<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-top:1px solid var(--border)">'
+          +'<span class="pill" style="background:'+k[0]+'1f;color:'+k[0]+';flex-shrink:0;margin-top:1px">'+esc(k[1])+'</span>'
+          +'<div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:var(--text)">'+esc(a.client_name)+': '+esc(a.headline)+'</div>'
+          +'<div style="font-size:11px;color:var(--text-3);line-height:1.5;margin-top:2px">'+esc(a.detail)+'</div></div></div>';}).join('')
+      +'</div>';
+  }
+
   async function render(){
     var root=document.getElementById('bbcc-ads-root'); if(!root)return;
     root.innerHTML='<div style="color:var(--text-3);font-size:12px;padding:20px 0">reading</div>';
-    var log=null,rows=[],err=null;
+    var log=null,rows=[],board=[],alerts=[],err=null;
     try{var l=await get('bb_ads_pull_log?select=*&order=id.desc&limit=1');log=l[0]||null;}catch(e){err=e.message;}
     try{rows=await get('bb_ads_campaign_'+WIN+'d?select=*&order=client_name.asc,spend.desc');}catch(e){err=err||e.message;}
+    /* The board and the rules are extra. If either fails the page still shows
+       the campaigns, because a broken headline must never take the data with it. */
+    try{board=await get('bb_ads_board?select=*');}catch(e){board=[];}
+    try{var a=await get('rpc/bb_ads_alerts');alerts=(typeof a==='string')?JSON.parse(a):a;}catch(e){alerts=[];}
     var h=health(log);
     var head='<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px">'
       +'<div><div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent,#FF6B2B)">Ads across every client</div>'
       +'<div style="font-size:11px;margin-top:4px;color:'+h[0]+'">'+h[1]+'</div></div>'
       +'<div class="seg"><button class="'+(WIN===7?'on':'')+'" onclick="bbccAdsWindow(7)">7 days</button><button class="'+(WIN===30?'on':'')+'" onclick="bbccAdsWindow(30)">30 days</button></div></div>'
       +'<div style="font-size:11px;color:var(--text-3);margin-bottom:12px;line-height:1.5">Full days only, today is never in. Every result is an Ads Manager credit under the account\'s attribution window, so results across campaigns add up above the real number of people. Spend is in each account\'s own currency and is never totalled across accounts.</div>';
-    if(err&&!rows.length){root.innerHTML=head+'<div class="card" style="margin:0"><div style="font-size:12px;color:#ef4444;padding:6px 0">Could not read the ads tables: '+esc(err)+'</div></div>';return;}
-    if(!rows.length){root.innerHTML=head+'<div class="card" style="margin:0"><div style="font-size:12px;color:var(--text-3);padding:6px 0">No campaign rows in the last '+WIN+' days. If the header says a pull ran, no account delivered anything in the window.</div></div>';return;}
+    /* WORST FIRST. A market page that sorts alphabetically is a spreadsheet.
+       Anything blocked outranks everything, then the biggest rise in cost per
+       result, then the biggest spender. */
+    board.sort(function(x,y){
+      return (y.campaigns_with_issues>0)-(x.campaigns_with_issues>0)
+          || (Number(y.cpr_change_pct||-999)-Number(x.cpr_change_pct||-999))
+          || (Number(y.spend_now||0)-Number(x.spend_now||0));});
+    var top = problems(alerts)
+      + (board.length ? '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin-bottom:18px">'
+            + board.map(tile).join('') + '</div>' : '');
+
+    if(err&&!rows.length){root.innerHTML=head+top+'<div class="card" style="margin:0"><div style="font-size:12px;color:#ef4444;padding:6px 0">Could not read the ads tables: '+esc(err)+'</div></div>';return;}
+    if(!rows.length){root.innerHTML=head+top+'<div class="card" style="margin:0"><div style="font-size:12px;color:var(--text-3);padding:6px 0">No campaign rows in the last '+WIN+' days. If the header says a pull ran, no account delivered anything in the window.</div></div>';return;}
     var byClient={};rows.forEach(function(r){(byClient[r.client_name]=byClient[r.client_name]||[]).push(r);});
     var out=Object.keys(byClient).sort().map(function(cn){
       var cs=byClient[cn];var cur=cs[0].currency;var spend=cs.reduce(function(a,r){return a+Number(r.spend||0);},0);var live=cs.filter(function(r){return r.status==='ACTIVE';}).length;
@@ -15643,7 +15710,7 @@ var BBSET=(function(){
           +'<div class="n">'+num(r.results)+' <span style="color:var(--text-3)">'+esc(r.result_label||'')+'</span></div>'
           +'<div class="n">'+(r.cost_per_result?money(r.cost_per_result,r.currency):'<span style="color:var(--text-3)">none</span>')+'</div>'
           +'<div class="n">'+num(r.clicks)+'</div></div>';}).join('')+'</div>';}).join('');
-    root.innerHTML=head+out;
+    root.innerHTML=head+top+out;
     root.querySelectorAll('.ads-row[data-i]').forEach(function(el){el.addEventListener('click',function(){openAds(el,byClient[el.dataset.c][Number(el.dataset.i)]);});});
   }
   window.bbccAdsWindow=function(n){WIN=n;render();};
