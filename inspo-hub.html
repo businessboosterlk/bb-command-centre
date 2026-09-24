@@ -598,6 +598,23 @@ async function enter(){
   try{await loadAll();}catch(e){$('view').innerHTML='<div class="empty"><b>The shelf did not load</b>'+esc(e.message||e)+'</div>';return;}
   route();
   if(S.intake){const u=S.intake;S.intake=null;openFile({url:u});}
+  if(S.me.is_admin&&!DESK.matches){[400,2500].forEach(t=>setTimeout(sendDiag,t));}
+}
+// An owner's phone reports its own geometry, so a layout fault is read as numbers, never guessed from a photo.
+function sendDiag(){
+  try{
+    const r=el=>{const b=el?el.getBoundingClientRect():null;return b?[Math.round(b.top),Math.round(b.bottom),Math.round(b.height)]:null;};
+    const probe=document.createElement('div');probe.style.cssText='position:fixed;top:0;left:0;width:0;height:100dvh;visibility:hidden';document.body.appendChild(probe);
+    const dvh=probe.getBoundingClientRect().height;probe.remove();
+    const cs=getComputedStyle(document.documentElement);
+    const d={t:new Date().toISOString(),ua:navigator.userAgent.slice(0,90),standalone:!!navigator.standalone||matchMedia('(display-mode: standalone)').matches,
+      inner:[innerWidth,innerHeight],outer:[outerWidth,outerHeight],screen:[screen.width,screen.height],dvh:Math.round(dvh),
+      vv:VV?[Math.round(VV.width),Math.round(VV.height),Math.round(VV.offsetTop),VV.scale]:null,
+      sat:cs.getPropertyValue('--sat').trim(),sab:cs.getPropertyValue('--sab').trim(),
+      html:r(document.documentElement),body:r(document.body),app:r($('app')),bar:r($('bar')),feed:r($('feed')),
+      scroll:[document.documentElement.scrollTop,document.body.scrollTop,window.scrollY],hash:location.hash};
+    rpc('inspo_diag',{p_token:S.token,p:d}).catch(()=>{});
+  }catch(e){}
 }
 function signOut(){const t=S.token;store(TOKEN_KEY,null);S.token=null;S.me=null;showGate();if(t)rpc('inspo_logout',{p_token:t}).catch(()=>{});}
 
