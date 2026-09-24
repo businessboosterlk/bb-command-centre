@@ -75,12 +75,12 @@ select::-ms-expand{display:none}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{position:fixed;left:0;right:0;bottom:var(--kb,0px);height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
+.bar{position:fixed;left:0;right:0;top:var(--barY,calc(100dvh - var(--bar) - var(--sab)));height:calc(var(--bar) + var(--sab));padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
 /* The document never scrolls on a phone. Only #app scrolls, so the browser chrome never collapses
    and the bar never moves. This is what makes it feel like an app rather than a page. */
 @media(max-width:1023px){
   html,body{height:100dvh;overflow:hidden}
-  #app{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab) + var(--kb,0px));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0}
+  #app{position:fixed;left:0;right:0;top:0;height:var(--barY,calc(100dvh - var(--bar) - var(--sab)));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0}
   body.sheet-open #app{overflow:hidden}
 }
 .bar-in{max-width:760px}
@@ -308,7 +308,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
   body.immersive #app{padding:0;max-width:none}
   body.immersive .top{display:none}
   body.immersive .feed-top{display:none}
-  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;bottom:calc(var(--bar) + var(--sab) + var(--kb,0px));height:auto!important;margin:0;border-radius:0}
+  body.immersive .feed-wrap{position:fixed;left:0;right:0;top:0;height:var(--barY,calc(100dvh - var(--bar) - var(--sab)))!important;margin:0;border-radius:0}
   body.immersive .fcard .ftext{bottom:22px}
   body.immersive .fwho{position:fixed;top:calc(var(--sat) + 10px);right:12px;z-index:16;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;font-weight:700;font-size:15px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.25)}
 }
@@ -403,17 +403,23 @@ const DESK=matchMedia('(min-width:1024px)');
 // in --kb: the bar, the app and the feed anchor to where the bottom actually is, not where Safari says.
 const VV=window.visualViewport;
 function vvSync(){
-  if(!VV||DESK.matches)return;
+  if(DESK.matches){document.documentElement.style.removeProperty('--barY');return;}
   window.scrollTo(0,0);
-  let off=Math.round(innerHeight-VV.height-VV.offsetTop);
-  if(Math.abs(off)<=4)off=0;
-  document.documentElement.style.setProperty('--kb',Math.max(-240,Math.min(420,off))+'px');
+  // The one number that is true on every phone: where the visible area ends, from the top.
+  const bottom=VV?Math.round(VV.height+VV.offsetTop):innerHeight;
+  // The bar is hidden until sign in, and a hidden element measures zero. Measuring zero once parks the
+  // bar off the bottom edge and it stays there, which is exactly the fault Thulaib photographed.
+  const h=$('bar')?$('bar').offsetHeight:0, sab=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sab'))||0;
+  const barH=h>40?h:64+sab;
+  document.documentElement.style.setProperty('--barY',Math.max(240,bottom-barH)+'px');
   if($('feed'))sizeFeed();
 }
-if(VV){let vvT;const vvQ=()=>{clearTimeout(vvT);vvT=setTimeout(vvSync,60);};
-  VV.addEventListener('resize',vvQ);VV.addEventListener('scroll',vvQ);
-  addEventListener('focusout',vvQ);addEventListener('pageshow',vvQ);addEventListener('orientationchange',vvQ);
-  setTimeout(vvSync,300);}
+let vvT;const vvQ=()=>{clearTimeout(vvT);vvT=setTimeout(vvSync,60);};
+if(VV){VV.addEventListener('resize',vvQ);VV.addEventListener('scroll',vvQ);}
+addEventListener('resize',vvQ);addEventListener('focusout',vvQ);addEventListener('focusin',vvQ);
+addEventListener('pageshow',vvQ);addEventListener('orientationchange',vvQ);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)vvQ();});
+addEventListener('DOMContentLoaded',vvQ);[0,120,400,1000].forEach(t=>setTimeout(vvSync,t));
 
 const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
   filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:'',feedClient:0};
@@ -592,7 +598,7 @@ function showChangePin(forced){
 }
 async function enter(){
   if(S.me.must_change)return showChangePin(true);
-  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('side').hidden=false;
+  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('side').hidden=false;vvSync();
   $('who-name').textContent=nice(S.me.name);$('side-who').textContent=nice(S.me.name)+' · '+(SEAT_NAME[S.me.seat]||'Team');
   S.ideasView=read(VIEW_KEY)==='board'?'board':'list';
   $('view').innerHTML='<div class="empty">Loading the shelf.</div>';
