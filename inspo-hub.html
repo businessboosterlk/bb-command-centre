@@ -62,7 +62,13 @@ input[type=search]{-webkit-appearance:none;appearance:none}
 input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;width:20px;height:20px;cursor:pointer;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8d96' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E") center/16px 16px no-repeat}
 .lbl{display:block;font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 6px}
 .help{font-size:13px;color:var(--text3);margin-top:6px}
-.err{font-size:13px;color:var(--bad);margin-top:8px}
+.err{font-size:14px;line-height:1.45;color:var(--bad);margin-top:12px}
+.actions .err{grid-column:1/-1;margin:0 0 4px}
+.actions .err .actions{margin-top:12px}
+.steps{margin:10px 0 0 20px;display:grid;gap:10px;font-size:15px;line-height:1.45;color:var(--text2)}
+.steps b{color:var(--text);font-weight:600}
+.kept{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:13px;color:var(--text2);margin-top:10px;padding:4px 4px 4px 14px;border:1px solid var(--line);border-radius:var(--r-sm)}
+.err .btn{color:var(--text)}.err .btn.primary{color:#140a05}
 
 /* BUTTONS */
 .btn{text-decoration:none;display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 16px;border-radius:var(--r-sm);font-weight:600;font-size:15px;border:1px solid var(--line2);background:var(--surface2);width:100%}
@@ -78,7 +84,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 /* SHEET ACTION BAR: primary full width, secondary in equal pairs, quiet cancel last. */
 .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
 .actions .primary,.actions .quiet,.actions .full{grid-column:1/-1}
-.actions.pinned{position:sticky;bottom:calc(-1 * var(--sab) - 20px);background:var(--surface);padding:12px 0 calc(var(--sab) + 20px);margin-bottom:calc(-1 * var(--sab) - 20px);border-top:1px solid var(--line)}
+.actions.pinned{position:sticky;bottom:calc(-1 * var(--sab) - 20px);background:var(--surface);padding:12px 16px calc(var(--sab) + 20px);margin:20px -16px calc(-1 * var(--sab) - 20px);border-top:1px solid var(--line);z-index:2}
 
 /* SHELL */
 #app{max-width:760px;margin:0 auto;padding:calc(var(--sat) + 12px) 16px calc(var(--bar) + var(--sab) + 24px)}
@@ -88,7 +94,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
 .who{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;font-weight:600}
 .who svg{width:16px;height:16px;color:var(--text3)}
-.bar{position:fixed;left:0;right:0;bottom:0;padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,1fr);z-index:20}
+.bar{position:fixed;left:0;right:0;bottom:0;padding-bottom:var(--sab);background:rgba(11,11,12,.85);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:20}
 /* The document never scrolls on a phone. Only #app scrolls, so the browser chrome never collapses
    and the bar never moves. This is what makes it feel like an app rather than a page. */
 @media(max-width:1023px){
@@ -108,7 +114,23 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 @keyframes viewin{from{opacity:.4}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){#view{animation:none}.tab svg{transition:none}}
 .kind-rows .row .name{font-size:16px}
-.tab.file{color:var(--accent)}
+.tab.file{color:#140a05}
+/* FILE, raised in the middle. The one thing the hub exists for is the one thing that stands up out of the bar.
+   The ring is the bar's own colour, so the circle reads as set INTO the bar, not stuck on top of it. */
+.tab.file{justify-content:flex-start}
+.fab{width:56px;height:56px;border-radius:50%;background:var(--accent);display:grid;place-items:center;margin-top:-12px;box-shadow:0 0 0 5px var(--bg),0 8px 18px rgba(0,0,0,.5);transition:transform .15s}
+.tab.file .fab svg{width:26px;height:26px}
+.tab.file:active .fab{transform:scale(.92)}
+.tab.file:active svg{transform:none}
+@media(prefers-reduced-motion:reduce){.fab{transition:none}}
+/* THE FILTER BALL, top left of the feed, the mirror of the account button top right. Round while it shows
+   everything. When a filter is on it opens into a pill that says which, in the accent, so nobody wonders why
+   the feed looks short. */
+.fball{min-width:44px;height:44px;border-radius:22px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0;background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,.25);font-size:14px;font-weight:700;flex:none}
+.fball svg{width:20px;height:20px;flex:none}
+.fball .lbl-in{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.fball.on{padding:0 16px 0 14px;background:var(--accent);border-color:var(--accent);color:#140a05}
+.fball.on .lbl-in{position:static;width:auto;height:auto;overflow:visible;clip-path:none}
 
 h2{font-size:15px;font-weight:700;margin:28px 0 10px}
 h2 .sub{font-weight:500;color:var(--text3);margin-left:6px}
@@ -167,7 +189,7 @@ h2 .sub{font-weight:500;color:var(--text3);margin-left:6px}
 .idea h3{font-size:16px;font-weight:700;line-height:1.3;margin-bottom:6px;overflow-wrap:anywhere}
 .idea .n{font-size:14px;color:var(--text2);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .idea .by{font-size:12px;color:var(--text3);margin-top:10px}
-.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,1fr);gap:12px;overflow-x:auto;margin:14px -16px 0;padding:0 16px 8px;scroll-snap-type:x mandatory}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(280px,1fr);gap:12px;overflow-x:auto;margin:14px -16px 0;padding:0 16px 8px;scroll-snap-type:x mandatory;scroll-padding:0 16px}
 .board .col{scroll-snap-align:start}
 .board .col h4{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px}
 .board .ideas{grid-template-columns:1fr;margin-top:0}
@@ -250,7 +272,7 @@ pre.plan{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,
   .sheet{position:relative;left:auto;right:auto;bottom:auto;width:560px;max-width:100%;max-height:88dvh;border-radius:16px;border:1px solid var(--line2);padding:22px 24px 24px;margin:0}
   .sheet.wide{width:980px}
   .grab{display:none}
-  .actions.pinned{bottom:-24px;margin-bottom:-24px;padding-bottom:24px}
+  .actions.pinned{bottom:-24px;margin:20px -24px -24px;padding:12px 24px 24px}
   .btn:hover{border-color:var(--text3)}
   .btn.primary:hover{filter:brightness(1.08);border-color:var(--accent)}
 }
@@ -268,7 +290,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .tbl tbody tr:hover td{background:var(--surface2)}
 
 /* BULK ADD */
-.bulk-row{display:grid;grid-template-columns:1fr;gap:8px;padding:14px 0;border-top:1px solid var(--line)}
+.bulk-row{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 0;border-top:1px solid var(--line)}
 .bulk-row:first-child{border-top:0}
 .bulk-head{display:flex;align-items:center;gap:10px;min-width:0}
 .bulk-head .u{flex:1;min-width:0;font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -305,7 +327,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .fcard.open .fn{-webkit-line-clamp:14}
 .fcard .fby{font-size:12px;color:rgba(255,255,255,.65);margin-top:10px}
 .fcard .fmore{background:none;color:#fff;font-weight:600;font-size:14px;min-height:44px;padding:0;text-decoration:underline;text-underline-offset:3px}
-.frail{position:absolute;right:10px;bottom:18px;display:flex;flex-direction:column;gap:6px;align-items:center;z-index:3}
+.frail{position:absolute;right:10px;bottom:18px;display:flex;flex-direction:column;gap:8px;align-items:center;z-index:3}
 .fcard .ftext{z-index:3}
 .frail a,.frail button{width:52px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:#fff;font-size:10px;font-weight:600;text-decoration:none;border-radius:12px;background:rgba(0,0,0,.35);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .frail svg{width:22px;height:22px}
@@ -349,15 +371,17 @@ body.immersive .fshield{top:calc(var(--sat) + 64px)}
 .fcaught b{display:block;color:var(--text);font-size:20px;margin-bottom:8px}
 .fclient{color:#fff;text-decoration:underline;text-underline-offset:3px;text-decoration-color:rgba(255,255,255,.4)}
 .feed-filter{display:flex;align-items:center;gap:8px;margin:0 0 8px}
-body.immersive .feed-filter{position:fixed;top:calc(var(--sat) + 12px);left:16px;z-index:15}
+body.immersive .feed-filter{position:fixed;top:calc(var(--sat) + 10px);left:12px;right:68px;z-index:15;margin:0;flex-wrap:nowrap;overflow:hidden}
+body.immersive .feed-filter .chip{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;line-height:42px;flex:0 1 auto}
   body.immersive .feed-filter .chip{background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.25);color:#fff}
 .mine{padding:16px 18px}
 .mine+.week{margin-top:12px}   /* eye fault 20: the two top cards touched */
 .mine .big{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1}
 .mine .big small{font-size:15px;font-weight:600;color:var(--text3);margin-left:6px}
 .mine p{color:var(--text2);font-size:14px;margin-top:6px}
-.qchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:8px 0 0}
+.qchips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 0 8px}
 .qchips::-webkit-scrollbar{display:none}
+@media(max-width:1023px){.qchips,.chips{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),rgba(0,0,0,0));mask-image:linear-gradient(90deg,#000 calc(100% - 36px),rgba(0,0,0,0));padding-right:36px}}
 /* BOARD DRAG */
 .board .col.over{outline:2px dashed var(--accent);outline-offset:6px;border-radius:var(--r)}
 .drag-ghost{position:fixed;z-index:90;pointer-events:none;width:240px;opacity:.9;transform:rotate(2deg);box-shadow:0 20px 40px rgba(0,0,0,.5)}
@@ -399,10 +423,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 
 <aside class="side" id="side" hidden>
   <div class="brand"><img src="bb-logo.png" alt="" onerror="this.hidden=true"><b>Inspo Hub</b></div>
-  <a class="nav" href="#feed" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg>Feed</a>
-  <a class="nav" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
-  <a class="nav" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
-  <a class="nav" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
+  <a class="nav" href="#feed" data-tab="feed"><i data-ic="smartphone" data-sw="1.7"></i>Feed</a>
+  <a class="nav" href="#home" data-tab="home"><i data-ic="house" data-sw="1.7"></i>Counter</a>
+  <a class="nav" href="#ideas" data-tab="ideas"><i data-ic="layout-dashboard" data-sw="1.7"></i>Ideas</a>
+  <a class="nav" href="#used" data-tab="used"><i data-ic="check" data-sw="1.7"></i>Used</a>
   <div class="cta"><button class="btn primary" data-act="file">File an idea</button><button class="btn" data-act="bulk">Bulk add</button></div>
   <div class="foot"><button class="nav" data-act="account" id="side-who"></button></div>
 </aside>
@@ -410,18 +434,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 <div id="app" hidden><div class="inner">
   <div class="top">
     <h1 id="view-title">Inspo Hub</h1>
-    <button class="who phone-only" id="who-btn" data-act="account"><span id="who-name"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button class="who phone-only" id="who-btn" data-act="account"><span id="who-name"></span><i data-ic="chevron-down" data-sw="2"></i></button>
   </div>
   <main id="view"></main>
 </div></div>
 
 <nav class="bar" id="bar" hidden>
-  <a class="tab" href="#feed" data-tab="feed"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M9 18h6"/></svg><span class="badge" id="feed-badge" hidden>0</span>Feed</a>
-  <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
-  <a class="tab" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
-  <a class="tab" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
-  <button class="tab" data-act="kinds" id="tab-kinds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H3" /><path d="M12 19H3" /><path d="M14 3v4" /><path d="M16 17v4" /><path d="M21 12h-9" /><path d="M21 19h-5" /><path d="M21 5h-7" /><path d="M8 10v4" /><path d="M8 12H3" /></svg><span id="kinds-lbl">Filter</span></button>
-  <button class="tab file" data-act="file" aria-label="File an idea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>File</button>
+  <a class="tab" href="#feed" data-tab="feed"><i data-ic="smartphone" data-sw="1.7"></i><span class="badge" id="feed-badge" hidden>0</span>Feed</a>
+  <a class="tab" href="#home" data-tab="home"><i data-ic="house" data-sw="1.7"></i>Counter</a>
+  <button class="tab file" data-act="file" aria-label="File an idea"><span class="fab"><i data-ic="plus" data-sw="2.4"></i></span></button>
+  <a class="tab" href="#ideas" data-tab="ideas"><i data-ic="layout-dashboard" data-sw="1.7"></i>Ideas</a>
+  <a class="tab" href="#used" data-tab="used"><i data-ic="check" data-sw="1.7"></i>Used</a>
 </nav>
 
 <div id="sheet-root"><div class="scrim" data-act="close-sheet"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
@@ -429,12 +452,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 
 <script>
 'use strict';
+/*@@ICONS lucide-static 1.47.0, written by scripts/build-icons.mjs. Never edit by hand.*/
+const ICON={"smartphone":"<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/>","house":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>","layout-dashboard":"<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/>","check":"<path d=\"M20 6 9 17l-5-5\"/>","plus":"<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>","chevron-down":"<path d=\"m6 9 6 6 6-6\"/>","chevron-right":"<path d=\"m9 18 6-6-6-6\"/>","sliders-horizontal":"<path d=\"M10 5H3\"/><path d=\"M12 19H3\"/><path d=\"M14 3v4\"/><path d=\"M16 17v4\"/><path d=\"M21 12h-9\"/><path d=\"M21 19h-5\"/><path d=\"M21 5h-7\"/><path d=\"M8 10v4\"/><path d=\"M8 12H3\"/>","x":"<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>","minus":"<path d=\"M5 12h14\"/>","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>","external-link":"<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>","star":"<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>","info":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>"};
+/*@@END ICONS*/
+// The one place a drawing is assembled. The shapes come from the generated set above.
+const icon=(n,sw,cls)=>'<svg'+(cls?' class="'+cls+'"':'')+' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(sw||2)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>';
+document.querySelectorAll('i[data-ic]').forEach(e=>{e.outerHTML=icon(e.dataset.ic,e.dataset.sw);});
 const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // The anon key is public by design, as in every BB internal system. No PIN, password or
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-27 12:22';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-27 13:12';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -443,7 +472,7 @@ history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
 function unscroll(){window.scrollTo(0,0);}
 // iOS leaves the whole page shifted when the field that holds the keyboard is removed while the keyboard is
-// still up. So the field lets go first, the keyboard is given time to leave, and only then does the screen change.
+// still up. So the field lets go first, the keyboard is given time to leave. Only then does the screen change.
 function keyboardGone(){
   try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
   return new Promise(ok=>{const v=window.visualViewport;let n=0;const t=setInterval(()=>{n++;
@@ -459,6 +488,7 @@ const KIND_BUCKET={'Post idea':'post','Video idea':'video','Video to Create':'vi
 const BUCKETS=[['post','Posts'],['video','Videos'],['design','Design'],['editing','Editing'],['reference','References']];
 const SEAT_NAME={owner:'Owner',social:'Social',graphic:'Graphic',editor:'Video editor',video_head:'Video head',dev:'Development',other:'Team'};
 const LANGS=['English','Sinhala','Tamil'];
+const KIND_SHORT={post:'Posts',video:'Videos',design:'Design',editing:'Editing',reference:'Refs'};
 const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 // ── SMALL HELPERS ──
@@ -580,7 +610,7 @@ function saveCache(){
     links,plays:S.plays.filter(p=>ids.has(p.inspo_link_id)),clients:S.clients,people:S.people,settings:S.settings});
 }
 function readCache(){try{const c=JSON.parse(read(CACHE_KEY)||'null');return c&&c.v===1&&c.me&&c.me.name&&Array.isArray(c.links)?c:null;}catch(e){return null;}}
-function forget(){store(TOKEN_KEY,null);store(CACHE_KEY,null);S.token=null;S.me=null;S.links=[];S.plays=[];S.ready=false;S.stale=false;S.feed=null;reindex();}
+function forget(){store(TOKEN_KEY,null);store(CACHE_KEY,null);store('inspo.draft',null);S.token=null;S.me=null;S.links=[];S.plays=[];S.ready=false;S.stale=false;S.feed=null;reindex();}
 const clientById=id=>IDX.client.get(id);
 const playsOf=id=>IDX.plays.get(id)||NONE;
 const setting=(k,d)=>S.settings[k]==null?d:S.settings[k];
@@ -724,7 +754,7 @@ function showGate(){
     }catch(e){er.textContent='Could not reach the database. Try again';$('log-btn').disabled=false;}
   };
 }
-function chev(){return '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';}
+function chev(){return icon('chevron-right',2,'chev');}
 function showChangePin(forced){
   $('app').hidden=true;$('bar').hidden=true;$('side').hidden=true;$('gate').hidden=false;
   $('gate').innerHTML='<div class="login-card"><div class="login-sub">CHOOSE A PIN</div><p>'+(forced?'Pick four to six digits only you know.':'Pick four to six new digits. This changes the hub only, your other BB systems keep their PIN.')+'</p>'+
@@ -826,17 +856,17 @@ function route(){
 // ── FEED. Everyone's ideas, newest first, one per screen. The door people open on their own. ──
 function feedCard(l,i){
   const c=clientById(l.client_id), used=playsOf(l.id), mine=up(l.added_by)===up(S.me.name), canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine;
-  const ic=(d)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
+  const ic=n=>icon(n,2);
   const emb=embedFor(l.url);
   return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'"':'')+'>'+(l.image_path?'<img class="fpic" '+(i===0?'loading="eager" fetchpriority="high"':'loading="lazy"')+' decoding="async" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
     (emb?'<div class="fshield" data-act="hand"></div>':'')+
     '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<button class="fclient" data-act="feed-client" data-id="'+c.id+'">'+esc(c.name)+'</button>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
     '<div class="fby">Filed by '+esc(nice(l.added_by))+' · '+ago(l.date_added)+'</div>'+(emb?'<div class="fhint">'+(emb.auto?'Playing muted. Open for sound.':'Tap the player to play.')+'</div>':'')+'</div>'+
-    '<div class="frail">'+(emb?'<button data-act="play" data-id="'+l.id+'">'+ic('<path d="M6 4l14 8-14 8z"/>')+'Play</button>':'')+'<a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('<path d="M14 4h6v6M20 4 10 14M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/>')+'Open</a>'+
-    (canStrong?'<button data-act="strong" data-id="'+l.id+'" data-on="'+(l.strong_by?'0':'1')+'" class="'+(l.strong_by?'on':'')+'">'+ic('<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>')+'Strong</button>':'')+
-    '<button data-act="use" data-id="'+l.id+'" class="'+(used.length?'on':'')+'">'+ic('<path d="M20 6 9 17l-5-5"/>')+'Used</button>'+
-    '<button data-act="detail" data-id="'+l.id+'">'+ic('<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>')+'More</button></div></article>';
+    '<div class="frail">'+(emb?'<button data-act="play" data-id="'+l.id+'">'+ic('play')+'Play</button>':'')+'<a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('external-link')+'Open</a>'+
+    (canStrong?'<button data-act="strong" data-id="'+l.id+'" data-on="'+(l.strong_by?'0':'1')+'" class="'+(l.strong_by?'on':'')+'">'+ic('star')+'Strong</button>':'')+
+    '<button data-act="use" data-id="'+l.id+'" class="'+(used.length?'on':'')+'">'+ic('check')+'Used</button>'+
+    '<button data-act="detail" data-id="'+l.id+'">'+ic('info')+'More</button></div></article>';
 }
 // The platform's own player for a link. TikTok and YouTube autoplay muted; Instagram plays on a tap.
 // Nothing is downloaded and nothing is re-hosted: the card shows the platform's player, as their terms allow.
@@ -915,7 +945,7 @@ function renderFeed(){
   $('view-title').textContent='Feed';
   const F=feedItems(), fc=S.feedClient?clientById(S.feedClient):null;
   S.feed={items:F.items,shown:Math.min(F.items.length,FEED_STEP),total:F.total};
-  let h=(DESK.matches?'<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div>':'')+(fc?'<div class="feed-filter"><button class="chip on" data-act="feed-client" data-id="">'+esc(fc.name)+' · clear</button></div>':'')+'<div class="feed-wrap" id="feed">'+
+  let h=(DESK.matches?'<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div>':'')+((fc||!DESK.matches)?'<div class="feed-filter">'+(DESK.matches?'':'<button class="fball'+(S.feedKind?' on':'')+'" id="tab-kinds" data-act="kinds" aria-label="Filter the feed" aria-haspopup="dialog">'+icon('sliders-horizontal',2)+'<span class="lbl-in" id="kinds-lbl">'+(S.feedKind?KIND_SHORT[S.feedKind]:'Filter')+'</span></button>')+(fc?'<button class="chip on" data-act="feed-client" data-id="">'+esc(fc.name)+' · clear</button>':'')+'</div>':'')+'<div class="feed-wrap" id="feed">'+
     (F.fresh?'<div class="fnew">'+F.fresh+(F.fresh===1?' new idea':' new ideas')+' since you last looked</div>':'')+
     F.items.slice(0,S.feed.shown).map(feedHtml).join('')+
     '<div id="feed-more" aria-hidden="true"></div>'+endCard(F.total)+'</div>';
@@ -1105,6 +1135,46 @@ function renderUsed(){
   $('view').innerHTML=h;
 }
 
+// ── SMART FILING. Three things the hub works out so a thumb does not have to. ──
+// 1. THE KIND. A TikTok, a Short or a reel is a video. An Instagram post is a post. Behance and Pinterest are
+//    design. The first kind this seat is allowed to file wins, and a kind the person picked is never overruled.
+function guessKind(url,kinds){
+  let u;try{u=new URL(url);}catch(e){return '';}
+  const h=u.hostname.replace(/^www\.|^m\./,''), p=u.pathname;
+  const video=/tiktok\.com$|youtube\.com$|youtu\.be$|fb\.watch$/.test(h)||(/instagram\.com$/.test(h)&&/^\/(reel|reels|tv)\//.test(p))||(/facebook\.com$/.test(h)&&/\/(reel|videos|watch)/.test(p));
+  const design=/behance\.net$|dribbble\.com$|pin\.it$/.test(h)||/pinterest\./.test(h);
+  const post=/instagram\.com$/.test(h)&&/^\/p\//.test(p);
+  const want=video?['Video idea','Editing idea']:design?['Design idea','Post idea']:post?['Post idea','Design idea']:[];
+  return want.find(k=>kinds.includes(k))||'';
+}
+const NOTE_ASK={'Post idea':'What kind of post is this? Why does it work? Which client does it suit?','Video idea':'What happens in the video? Why does it work? Which client does it suit?','Design idea':'What is the design doing? Layout, type, colour. Which client does it suit?','Editing idea':'Which cut, transition or sound is it? Where would you use it?','Reference':'What did you notice? Why is it worth keeping?'};
+function askFor(){const t=$('f-note'), k=(document.querySelector('#f-kinds .chip.on')||{dataset:{}}).dataset.k;if(t&&NOTE_ASK[k])t.placeholder=NOTE_ASK[k];}
+function applyGuess(url){
+  if(!draft||draft.id||draft.kindTouched||!$('f-kinds'))return;
+  const k=guessKind(url,S.me.kinds);if(!k)return;
+  $('f-kinds').querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.k===k));askFor();
+}
+// 2. AN UNFINISHED IDEA IS KEPT. Somebody goes back to TikTok to check the video, or the phone rings. The link
+//    and the note are on this phone when they come back, for a day. Filing it or Start fresh clears it.
+const DRAFT_KEY='inspo.draft';
+function keepDraft(){
+  if(!draft||draft.id||!$('file-form'))return;
+  const url=$('f-url').value.trim(), note=$('f-note').value;
+  if(!url&&!note.trim())return store(DRAFT_KEY,null);
+  store(DRAFT_KEY,{at:Date.now(),url,note,client:$('f-client').value,kind:(document.querySelector('#f-kinds .chip.on')||{dataset:{}}).dataset.k||'',lang:(document.querySelector('#f-langs .chip.on')||{dataset:{}}).dataset.g||'',touched:!!draft.kindTouched});
+}
+function keptDraft(){try{const d=JSON.parse(read(DRAFT_KEY)||'null');return d&&Date.now()-d.at<86400000&&(d.url||(d.note||'').trim())?d:null;}catch(e){return null;}}
+// 3. SENDING FROM TIKTOK OR INSTAGRAM. On Android the installed hub is in the share list by itself. An iPhone
+//    does not allow that for a web app, so the hub hands out a share button of its own.
+function openShareHelp(){
+  const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua), and=/Android/.test(ua);
+  const iphone='<h2 style="margin-top:20px">On an iPhone</h2><ol class="steps"><li>Tap <b>Add the share button</b> below, then <b>Add Shortcut</b>.</li><li>In TikTok or Instagram tap <b>Share</b>, then <b>More</b>, then <b>Send to Inspo Hub</b>.</li><li>The hub opens in Safari with the link filled in. Sign in there once and it stays signed in.</li></ol><div class="actions"><a class="btn primary" href="inspo-share.shortcut">Add the share button</a></div>';
+  const android='<h2 style="margin-top:20px">On an Android phone</h2><ol class="steps"><li>Open the hub in Chrome, tap the three dots, then <b>Add to Home screen</b>.</li><li>In TikTok or Instagram tap <b>Share</b> and pick <b>Inspo Hub</b> from the list.</li><li>The hub opens with the link filled in.</li></ol>';
+  const any='<h2 style="margin-top:20px">On any phone, nothing to set up</h2><ol class="steps"><li>In TikTok or Instagram tap <b>Share</b>, then <b>Copy link</b>.</li><li>Open the hub, tap the orange button, then <b>Paste</b>.</li></ol>';
+  openSheet('<h2>Send an idea from TikTok or Instagram</h2><p class="lead">See it, share it, write one line. The link, the title and the picture are filled in for you.</p>'+
+    (ios?iphone+any:and?android+any:iphone+android+any)+'<div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+}
+
 // ── FILE AN IDEA. The sheet that decides whether the hub lives. ──
 let fileT0=0, draft=null;
 // The three clients in your rotation this week are one tap away. The list stays underneath for the rest.
@@ -1117,32 +1187,35 @@ function rotaChips(cur){
 function openFile(pre){
   pre=pre||{};let last={};try{last=JSON.parse(read(LAST_KEY)||'{}');}catch(e){}
   const ed=pre.id?S.links.find(l=>l.id===pre.id):null;
-  draft={id:ed?ed.id:null,image_path:ed?ed.image_path:null,title:ed?ed.title:'',unfurled:'',resolved:false};
+  const kept=(!ed&&!pre.url&&!pre.fresh)?keptDraft():null;
+  draft={id:ed?ed.id:null,image_path:ed?ed.image_path:null,title:ed?ed.title:'',unfurled:'',resolved:false,kindTouched:!!(kept&&kept.touched)};
   fileT0=Date.now();
   const kinds=ed?[...new Set(S.me.kinds.concat([ed.category]))]:S.me.kinds;
-  const kind=ed?ed.category:(kinds.includes(last.kind)?last.kind:kinds[0]);
-  const client=ed?(ed.client_id||''):(pre.client||last.client||'');
-  const lang=ed?(ed.language||''):'';
+  const kind=ed?ed.category:(kept&&kinds.includes(kept.kind)?kept.kind:kinds.includes(last.kind)?last.kind:kinds[0]);
+  const client=ed?(ed.client_id||''):(pre.client||(kept&&kept.client)||last.client||'');
+  const lang=ed?(ed.language||''):(kept&&kept.lang||'');
   const mine=S.clients.filter(c=>up(c.assigned_smm)===up(S.me.name)), rest=S.clients.filter(c=>!mine.includes(c));
   const opt=c=>'<option value="'+c.id+'"'+(String(client)===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>';
-  openSheet('<h2>'+(ed?'Edit this idea':'File an idea')+'</h2>'+(ed?'':'<p class="lead">Several links for one client? <button type="button" class="btn quiet inline accent" data-act="bulk">Bulk add</button></p>')+
-    '<form id="file-form" novalidate><label class="lbl" for="f-url">Link</label><div class="urlrow"><input id="f-url" type="url" inputmode="url" placeholder="Paste the link" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(ed?ed.url:(pre.url||''))+'"><button class="btn" type="button" data-act="paste">Paste</button></div>'+
+  openSheet('<h2>'+(ed?'Edit this idea':'File an idea')+'</h2>'+(ed?'':'<p class="lead">Several links for one client? <button type="button" class="btn quiet inline accent" data-act="bulk">Bulk add</button></p>')+(kept?'<div class="kept" id="f-kept"><span>Your unfinished idea is back.</span><button type="button" class="btn quiet inline accent" data-act="fresh">Start fresh</button></div>':'')+
+    '<form id="file-form" novalidate><label class="lbl" for="f-url">Link</label><div class="urlrow"><input id="f-url" type="url" inputmode="url" placeholder="Paste the link" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(ed?ed.url:(pre.url||(kept&&kept.url)||''))+'"><button class="btn" type="button" data-act="paste">Paste</button></div>'+
     '<div class="preview" id="f-prev" hidden></div>'+
     '<label class="lbl" for="f-client">Client</label>'+(ed?'':rotaChips(client))+'<select id="f-client"><option value="">No client, a general reference</option>'+(mine.length?'<optgroup label="Your clients">'+mine.map(opt).join('')+'</optgroup><optgroup label="Everyone else">'+rest.map(opt).join('')+'</optgroup>':S.clients.map(opt).join(''))+'</select>'+
     '<span class="lbl">Kind</span><div class="wrapchips" id="f-kinds">'+kinds.map(k=>'<button type="button" class="chip'+(k===kind?' on':'')+'" data-act="pick-kind" data-k="'+esc(k)+'">'+esc(k)+'</button>').join('')+'</div>'+
-    '<label class="lbl" for="f-note">Note</label><div class="qchips">'+['Hook','Format','Transition','Sound','Design style','Caption'].map(q=>'<button type="button" class="chip" data-act="qnote" data-q="'+q+'">'+q+'</button>').join('')+'</div><textarea id="f-note" enterkeyhint="done" placeholder="What kind of post is this? Why does it work? Which client does it suit?">'+esc(ed?ed.notes||'':'')+'</textarea>'+
+    '<label class="lbl" for="f-note">Note</label><div class="qchips">'+['Hook','Format','Transition','Sound','Design style','Caption'].map(q=>'<button type="button" class="chip" data-act="qnote" data-q="'+q+'">'+q+'</button>').join('')+'</div><textarea id="f-note" enterkeyhint="done" placeholder="What kind of post is this? Why does it work? Which client does it suit?">'+esc(ed?ed.notes||'':(kept&&kept.note||''))+'</textarea>'+
     '<p class="help">A link with no note is a bookmark. The note is what somebody drafting a plan reads in three months, when the link itself may be gone.</p>'+
     '<span class="lbl">Language of the reference</span><div class="wrapchips" id="f-langs">'+LANGS.map(g=>'<button type="button" class="chip'+(g===lang?' on':'')+'" data-act="pick-lang" data-g="'+g+'">'+g+'</button>').join('')+'</div>'+
     '<span class="lbl">Picture</span><input id="f-shot" type="file" accept="image/*" hidden><button class="btn" type="button" data-act="shot" id="f-shot-btn">'+(draft.image_path?'Replace the picture':'Add a screenshot')+'</button>'+
-    '<div class="err" id="f-err" hidden></div>'+
-    '<div class="actions pinned"><button class="btn primary" type="submit" id="f-save">'+(ed?'Save changes':'File it')+'</button><button class="btn quiet" type="button" data-act="close-sheet">Cancel</button></div></form>');
+    '<div class="actions pinned"><div class="err" id="f-err" role="alert" hidden></div><button class="btn primary" type="submit" id="f-save">'+(ed?'Save changes':'File it')+'</button><button class="btn quiet" type="button" data-act="close-sheet">Cancel</button></div></form>');
   $('f-url').addEventListener('change',()=>unfurl($('f-url').value.trim()));
+  $('f-url').addEventListener('input',()=>{$('f-save').hidden=false;$('f-save').disabled=false;$('f-err').hidden=true;});
   $('f-client').addEventListener('change',()=>document.querySelectorAll('#file-form [data-act="pick-client"]').forEach(c=>c.classList.toggle('on',c.dataset.id===$('f-client').value)));
   $('f-url').addEventListener('paste',()=>setTimeout(()=>unfurl($('f-url').value.trim()),0));
   $('f-shot').onchange=ev=>{const f=ev.target.files[0];if(f)uploadShot(f);};
   $('file-form').onsubmit=ev=>{ev.preventDefault();saveFile();};
   if(draft.image_path)showPreview(draft.title,'Picture saved');
-  if(!ed&&pre.url)unfurl(pre.url);
+  askFor();
+  if(!ed)$('file-form').addEventListener('input',keepDraft);
+  if(!ed&&pre.url)unfurl(pre.url);else if(kept&&kept.url)unfurl(kept.url);
 }
 function showPreview(title,sub){
   const p=$('f-prev');if(!p)return;p.hidden=false;
@@ -1164,7 +1237,7 @@ async function askPlatform(url){
 async function unfurl(url){
   if(!/^https?:\/\//i.test(url)||!draft||draft.unfurled===url||draft.id)return;
   if(url!==draft.canonical)draft.resolved=false;   // a new link in the box may be resolved again, the resolved one never twice
-  draft.unfurled=url;showPreview(platformOf(url)+' link','Looking for a title and a picture');
+  draft.unfurled=url;applyGuess(url);showPreview(platformOf(url)+' link','Looking for a title and a picture');
   try{
     const hint=await askPlatform(url);
     const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,url,...hint})});
@@ -1196,7 +1269,7 @@ async function uploadShot(file){
   b.disabled=false;
 }
 async function saveFile(){
-  const er=$('f-err'), say=m=>{er.innerHTML=m;er.hidden=false;er.scrollIntoView({block:'nearest'});};er.hidden=true;
+  const er=$('f-err'), say=m=>{er.innerHTML=m;er.hidden=false;};er.hidden=true;
   const url=$('f-url').value.trim(), note=$('f-note').value.trim();
   const kind=(document.querySelector('#f-kinds .chip.on')||{}).dataset.k, lang=(document.querySelector('#f-langs .chip.on')||{dataset:{}}).dataset.g||'';
   if(!/^https?:\/\//i.test(url))return say('Paste the full link, starting with https.');
@@ -1206,12 +1279,12 @@ async function saveFile(){
   try{
     const r=await rpc('inspo_save_link',{p_token:S.token,p:{id:draft.id||'',url,notes:note,title:draft.title||'',category:kind,client_id:client,platform:platformOf(url),language:lang,image_path:draft.image_path||''}});
     if(!r.ok){btn.disabled=false;
-      if(r.why==='duplicate'){const c=clientById(r.existing.client_id);if(!draft.id){dropShot(draft.image_path);draft.image_path=null;}
+      if(r.why==='duplicate'){const c=clientById(r.existing.client_id);if(!draft.id){dropShot(draft.image_path);draft.image_path=null;}btn.hidden=true;   // filing is refused, so the offer above is the one way on
         return say('This link is already on the shelf, filed by '+esc(nice(r.existing.added_by))+(c?' for '+esc(c.name):'')+'. You noticed the same thing, so add your note to it.<div class="actions" style="margin-top:10px"><button type="button" class="btn primary" data-act="append-note" data-id="'+r.existing.id+'">Add my note to that idea</button><button type="button" class="btn full" data-act="see-existing" data-id="'+r.existing.id+'">Open the one already filed</button></div>');}
       if(r.why==='session')return signOut();
       return say({note:'Add a note before you file it.',url:'Paste the full link, starting with https.',kind:'Your seat cannot file that kind. Pick another or use Reference.',client:'That client is not active any more. Pick another.',not_yours:'Only the person who filed an idea can change it.',change_pin:'Choose your own PIN first.'}[r.why]||'The hub refused that. Try again.');}
     const secs=Math.round((Date.now()-fileT0)/1000), wasEdit=!!draft.id;
-    store(LAST_KEY,{kind,client});
+    store(LAST_KEY,{kind,client});if(!wasEdit)store(DRAFT_KEY,null);
     await after([r.id]);
     closeSheet(()=>{if(wasEdit)patch(Number(r.id));else route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
   }catch(e){btn.disabled=false;say('It did not save: '+esc(e.message||e));}
@@ -1273,8 +1346,7 @@ function openBulk(pre){
     '<span class="lbl">Kind, for all of them</span><div class="wrapchips" id="b-kinds">'+kinds.map(k=>'<button type="button" class="chip'+(k===kind?' on':'')+'" data-act="pick-kind" data-k="'+esc(k)+'">'+esc(k)+'</button>').join('')+'</div>'+
     '<span class="lbl">Language of the references</span><div class="wrapchips" id="b-langs">'+LANGS.map(g=>'<button type="button" class="chip" data-act="pick-lang" data-g="'+g+'">'+g+'</button>').join('')+'</div>'+
     '<label class="lbl" for="b-links">Links, one per line</label><textarea id="b-links" style="min-height:150px" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Paste them all here. Anything that is not a link is ignored."></textarea>'+
-    '<div class="err" id="b-err" hidden></div>'+
-    '<div class="actions pinned"><button class="btn primary" data-act="bulk-read">Read the links</button><button class="btn quiet" data-act="close-sheet">Cancel</button></div>',true);
+    '<div class="actions pinned"><div class="err" id="b-err" role="alert" hidden></div><button class="btn primary" data-act="bulk-read">Read the links</button><button class="btn quiet" data-act="close-sheet">Cancel</button></div>',true);
 }
 function bulkRead(){
   const urls=allUrls($('b-links').value), er=$('b-err');er.hidden=true;
@@ -1298,7 +1370,7 @@ function bulkDraw(){
 function bulkRowHtml(r,i){
   const cls={ok:'ok',dup:'dup',bad:'bad'}[r.state]||'';
   return '<div class="bulk-row'+(r.state==='ok'?' done':'')+'" id="b-row-'+i+'"><div><div class="bulk-head"><span class="u"><b>'+esc(platformOf(r.url))+'</b>'+esc(r.title||r.url.replace(/^https?:\/\/(www\.)?/,''))+'</span>'+
-    (r.state==='ok'?'':'<button class="icon-btn" data-act="bulk-drop" data-i="'+i+'" aria-label="Remove this link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>')+'</div>'+
+    (r.state==='ok'?'':'<button class="icon-btn" data-act="bulk-drop" data-i="'+i+'" aria-label="Remove this link">'+icon('x',2)+'</button>')+'</div>'+
     '<div class="bulk-state '+cls+'" id="b-state-'+i+'">'+esc(r.msg)+'</div></div>'+
     (r.state==='ok'?'<div class="help">'+esc(r.note)+'</div>':'<textarea data-i="'+i+'" aria-label="Note for link '+(i+1)+'" placeholder="Note for this one">'+esc(r.note)+'</textarea>')+'</div>';
 }
@@ -1401,13 +1473,13 @@ function openPlan(id){
 function openAccount(){
   openSheet('<h2>'+esc(nice(S.me.name))+'</h2><p class="lead">'+esc(SEAT_NAME[S.me.seat]||'Team')+(S.me.is_head?', head':'')+'. You can file: '+esc(S.me.kinds.join(', '))+'.</p>'+
     '<p class="help" style="margin-top:10px">Version '+esc(BUILD)+'</p>'+
-    '<div class="actions">'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><button class="btn" data-act="autoplay">'+(read('inspo.autoplay')==='off'?'Previews: tap to play':'Previews: play by themselves')+'</button><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+    '<div class="actions"><button class="btn full" data-act="share-help">Send from TikTok or Instagram</button>'+(S.me.is_admin?'<button class="btn full" data-act="admin">Targets, rotation and logins</button>':'')+'<button class="btn" data-act="bulk">Bulk add</button><button class="btn" data-act="autoplay">'+(read('inspo.autoplay')==='off'?'Previews: tap to play':'Previews: play by themselves')+'</button><button class="btn full" data-act="sign-out">Sign out</button><button class="btn quiet" data-act="close-sheet">Close</button></div>');
 }
 async function openAdmin(){
   openSheet('<h2>Targets and logins</h2><p class="lead">Loading.</p>');
   let r;try{r=await rpc('inspo_admin_roster',{p_token:S.token});}catch(e){r=null;}
   if(!r||!r.ok)return openSheet('<h2>Targets and logins</h2><p class="lead">Only Thulaib and Shiara can open this.</p><div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
-  const step=(key,label,help)=>'<span class="lbl">'+label+'</span><div class="stepper" data-key="'+key+'"><button type="button" data-act="step" data-d="-1" aria-label="Less"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></svg></button><div class="v num">'+esc(setting(key,3))+'</div><button type="button" data-act="step" data-d="1" aria-label="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg></button></div><p class="help">'+help+'</p>';
+  const step=(key,label,help)=>'<span class="lbl">'+label+'</span><div class="stepper" data-key="'+key+'"><button type="button" data-act="step" data-d="-1" aria-label="Less">'+icon('minus',2)+'</button><div class="v num">'+esc(setting(key,3))+'</div><button type="button" data-act="step" data-d="1" aria-label="More">'+icon('plus',2)+'</button></div><p class="help">'+help+'</p>';
   const t=targets();
   openSheet('<h2>Targets and logins</h2><p class="lead">The target is a setting. Change it here and the counter follows straight away.</p>'+
     step('weekly_target_per_client','Ideas per client per week','With '+S.clients.length+' active clients, every client every week would mean '+(t.T*S.clients.length)+' ideas a week. In rotation it is '+(t.T*Object.values(t.rota).flat().length)+'.')+
@@ -1455,9 +1527,7 @@ document.addEventListener('click',async ev=>{
     case 'kind':S.filter.kind=el.dataset.kind;WIN={};renderIdeas();break;
     case 'feed-kind':S.feedKind=el.dataset.kind;renderFeed();break;
     case 'kinds':openKinds();break;
-    case 'kind-pick':{const k=el.dataset.kind;S.feedKind=k;S.filter.kind=k;
-      $('kinds-lbl').textContent=k?{post:'Posts',video:'Videos',design:'Design',editing:'Editing',reference:'Refs'}[k]:'Filter';
-      $('tab-kinds').classList.toggle('on',!!k);
+    case 'kind-pick':{const k=el.dataset.kind;S.feedKind=k;S.filter.kind=k;WIN={};
       closeSheet(()=>{const h=(location.hash||'').slice(1);if(h==='ideas')renderIdeas();else if(h===''||h==='feed')renderFeed();else location.hash='#feed';});break;}
     case 'feed-top':renderFeed();break;
     case 'feed-client':S.feedClient=Number(el.dataset.id)||0;renderFeed();break;
@@ -1468,13 +1538,15 @@ document.addEventListener('click',async ev=>{
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
     case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);WIN={};renderIdeas();break;
     case 'more':showMore(el.dataset.k);break;
-    case 'pick-client':{$('f-client').value=el.dataset.id;el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===el));break;}
-    case 'qnote':{const t=$('f-note'),v=t.value.trim();t.value=(v?v+'\n':'')+el.dataset.q+': ';t.focus();t.setSelectionRange(t.value.length,t.value.length);break;}
+    case 'pick-client':{$('f-client').value=el.dataset.id;el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===el));keepDraft();break;}
+    case 'qnote':{const t=$('f-note'),v=t.value.trim();t.value=(v?v+'\n':'')+el.dataset.q+': ';t.focus();t.setSelectionRange(t.value.length,t.value.length);keepDraft();break;}
     case 'append-note':{const note=$('f-note').value.trim();if(!note){toast('Write your note first, then add it',true);break;}
       const r=await rpc('inspo_append_note',{p_token:S.token,p_id:id,p_note:note}).catch(()=>null);
       if(!r||!r.ok){toast('Could not add your note',true);break;}
-      dropShot(draft&&draft.image_path);draft=null;await after([id]);closeSheet(()=>{patch(id);toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
-    case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');break;}
+      dropShot(draft&&draft.image_path);draft=null;store(DRAFT_KEY,null);await after([id]);closeSheet(()=>{patch(id);toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
+    case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');if(act==='pick-kind'&&draft&&$('file-form')){draft.kindTouched=true;askFor();}keepDraft();break;}
+    case 'fresh':store(DRAFT_KEY,null);openFile({fresh:true});break;
+    case 'share-help':openShareHelp();break;
     case 'shot':$('f-shot').click();break;
     case 'paste':try{const t=await navigator.clipboard.readText(), u=firstUrl(t);if(u){$('f-url').value=u;unfurl(u);}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
     case 'see-existing':openDetail(id);break;
@@ -1546,13 +1618,23 @@ function openFilters(){
 // Keyboard hints applied at focus, because most fields do not exist at boot.
 document.addEventListener('focusin',ev=>{const t=ev.target;if(t.matches&&t.matches('input[type=url],input[inputmode=numeric]')){t.autocapitalize='off';t.spellcheck=false;}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&sheetOpen)closeSheet();});
+// A picture that will not load never leaves a torn icon. The card falls back to its words.
+document.addEventListener('error',ev=>{
+  const im=ev.target;if(!im||im.tagName!=='IMG'||im.closest('.login-card,.brand'))return;
+  const fc=im.closest('.fcard'), ic=im.closest('.idea');
+  if(fc&&im.classList.contains('fpic')){const l=S.links.find(x=>x.id===Number(fc.dataset.id));
+    im.insertAdjacentHTML('afterend','<div class="fquote"><span class="fp">'+esc(l&&l.platform||'Link')+'</span><div class="fq">'+esc(l&&l.notes||'')+'</div></div>');im.remove();fc.classList.add('text');return;}
+  if(ic&&im.classList.contains('pic')){const l=S.links.find(x=>x.id===Number(ic.dataset.id));
+    im.insertAdjacentHTML('afterend','<div class="nopic"><span class="p">'+esc(l&&l.platform||'Link')+'</span><span class="k">The picture did not load</span></div>');im.remove();return;}
+  im.hidden=true;
+},true);
 let ariaT=0;
 function syncAria(){
   ariaT=0;
   document.querySelectorAll('.chip,.seg button,.frail button[data-act="strong"],.frail button[data-act="use"]').forEach(b=>{const on=b.classList.contains('on')?'true':'false';if(b.getAttribute('aria-pressed')!==on)b.setAttribute('aria-pressed',on);});
   document.querySelectorAll('.tab[data-tab],.side .nav[data-tab]').forEach(t=>{if(t.classList.contains('on'))t.setAttribute('aria-current','page');else t.removeAttribute('aria-current');});
 }
-// The observer only asks for a pass. The pass runs once a frame however many changes arrived, and reads no layout.
+// The observer only asks for a pass. The pass runs once a frame however many changes arrived. It reads no layout.
 new MutationObserver(()=>{if(!ariaT)ariaT=requestAnimationFrame(syncAria);}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
 DESK.addEventListener('change',()=>{if(S.me&&!sheetOpen)route();});
 
