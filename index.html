@@ -3450,6 +3450,13 @@ window.__ST_LOG=[];
     <div class="modal-body">
       <div class="form-field"><label class="form-label">Client *</label>
         <select class="form-select" id="fin-inv-client" onchange="finInvClientChanged()"><option value="">Select client</option></select>
+        <!-- ONE OFF WORK IS STILL MONEY. A shoot for somebody who is not on a
+             retainer had no way into this form, so it was either invisible or
+             typed into the database by hand. Three already are: KTH and MFT
+             twice. Choosing "Someone else" reveals this box and the invoice is
+             saved with no client link and the typed name instead. -->
+        <input class="form-input" id="fin-inv-other" placeholder="Who is this invoice for, e.g. Hayman"
+               style="display:none;margin-top:8px">
       </div>
       <div class="field-row">
         <div class="form-field"><label class="form-label">Base Retainer (LKR) *</label><input class="form-input" id="fin-inv-amount" type="number" placeholder="e.g. 90000" oninput="finRecalcTotal()"></div>
@@ -6879,8 +6886,11 @@ function renderFinancePage(){
             const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
             const nm=inv.client_name||(cl?cl.name:'')||'—';
             const isOv=inv.status==='overdue';
+            /* Say it on the row. A named invoice with no client link is one off
+               work and that is a fact worth seeing, not a defect to hide. */
+            const oneOff=!inv.client_id&&(inv.client_name||'').trim();
             return `<div style="display:flex;align-items:center;gap:10px;padding:9px 18px 9px 36px;border-bottom:1px solid var(--border)">
-              <div style="flex:1;font-size:12px;font-weight:600;color:var(--text)">${esc(nm)}</div>
+              <div style="flex:1;font-size:12px;font-weight:600;color:var(--text)">${esc(nm)}${oneOff?' <span style="font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);border:1px solid var(--border);border-radius:20px;padding:1px 7px;margin-left:4px">one off</span>':''}</div>
               <div style="font-size:13px;font-weight:800;color:var(--text)">LKR ${(inv.amount||0).toLocaleString()}</div>
               <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;background:${isOv?'var(--red-soft)':'var(--amber-soft)'};color:${isOv?'var(--red)':'var(--amber)'}">${isOv?'OVERDUE':'PENDING'}</span>
               <button style="font-size:10px;padding:3px 9px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>
@@ -6908,9 +6918,13 @@ function renderFinancePage(){
       let extras=[];
       try{extras=Array.isArray(inv.extras)?inv.extras:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
       const extrasHtml=extras.length?`<div class="fin-extras-breakdown">${extras.map(ex=>`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);padding:1px 0"><span>+ ${esc(ex.desc||'Extra')}</span><span style="color:var(--text-2);font-weight:600">LKR ${(parseInt(ex.amt)||0).toLocaleString()}</span></div>`).join('')}</div>`:'';
+      /* The same mark as the monthly list. Two renderers draw an invoice and
+         both have to say the same thing, or the one you happen to be looking
+         at decides whether a fact is true. */
+      const oneOff=!inv.client_id&&(inv.client_name||'').trim();
       return `<div class="fin-inv-row">
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">${esc(nm)}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${esc(nm)}${oneOff?' <span style="font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);border:1px solid var(--border);border-radius:20px;padding:1px 7px;margin-left:4px;white-space:nowrap">one off</span>':''}</div>
           ${inv.notes?`<div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(inv.notes)}</div>`:''}
           ${extrasHtml}
         </div>
@@ -7013,7 +7027,14 @@ function renderFinRecon(run){
   if(curComp)html+=chip('Costs recorded, '+cur,curComp.pct+'% of base','var(--blue)');
   html+='</div>';
   const fixes=[];
-  nullc.forEach(x=>fixes.push(`Invoice #${x.id} (${esc(x.client_name||'?')}, LKR ${(x.amount||0).toLocaleString()}, ${x.month}) has no client link`));
+  /* A NAMED INVOICE WITH NO CLIENT LINK IS ONE OFF WORK, NOT A BROKEN RECORD.
+     This listed all of them as things to fix, so KTH and MFT have sat on the
+     fix list since April being neither wrong nor removable. A fault is an
+     invoice with no link AND no name, because that one nobody can identify.
+     The rest are counted, so they stay visible without being an accusation. */
+  const oneOffs=nullc.filter(x=>(x.client_name||'').trim());
+  const nameless=nullc.filter(x=>!(x.client_name||'').trim());
+  nameless.forEach(x=>fixes.push(`Invoice #${x.id} (LKR ${(x.amount||0).toLocaleString()}, ${x.month}) has no client and no name, so nobody can tell who it is for`));
   misses.forEach(x=>fixes.push(`${esc(x.name)} has mrr LKR ${(x.mrr||0).toLocaleString()} but no ${cur} invoice`));
   if(Array.isArray(ws.orphan_invoices))ws.orphan_invoices.forEach(x=>fixes.push(`Invoice #${x.id} points at missing client ${x.client_id}`));
   if(Array.isArray(ws.duplicate_invoices))ws.duplicate_invoices.forEach(x=>fixes.push(`Duplicate invoices ${(x.ids||[]).join(', ')} for client ${x.client_id} in ${x.month}`));
@@ -7022,6 +7043,13 @@ function renderFinRecon(run){
     html+=fixes.map(f=>`<div style="font-size:11px;color:var(--text-2);padding:6px 0;border-bottom:1px solid var(--border)">${f}</div>`).join('');
   }else{
     html+='<div style="margin-top:12px;font-size:12px;color:var(--green)">No structural anomalies \u2713</div>';
+  }
+  if(oneOffs.length){
+    const sum=oneOffs.reduce((t,x)=>t+(x.amount||0),0);
+    html+='<div style="margin-top:12px;font-size:11px;color:var(--text-3);line-height:1.5">'
+      +'<b style="color:var(--text-2)">'+oneOffs.length+' one off invoice'+(oneOffs.length>1?'s':'')
+      +'</b>, LKR '+sum.toLocaleString()+', for work that was not on a retainer: '
+      +oneOffs.map(x=>esc(x.client_name)).join(', ')+'. Counted here on purpose, not a fault.</div>';
   }
   document.getElementById('fin-recon-body').innerHTML=html;
 }
@@ -7121,8 +7149,14 @@ function finRecalcTotal(){
   if(el)el.textContent='LKR '+(base+extSum).toLocaleString();
 }
 function finInvClientChanged(){
+  const sel=document.getElementById('fin-inv-client');
+  const oth=document.getElementById('fin-inv-other');
+  const isOther=sel&&sel.value==='__other__';
+  if(oth){ oth.style.display=isOther?'':'none'; if(isOther)setTimeout(()=>oth.focus(),0); else oth.value=''; }
   if(finEditInvId)return; // don't overwrite on edit
-  const cid=parseInt(document.getElementById('fin-inv-client')?.value)||null;
+  /* No retainer to prefill for one off work: it is a price, not a package. */
+  if(isOther)return;
+  const cid=parseInt(sel?.value)||null;
   if(!cid)return;
   const cl=CLIENTS.find(c=>c.id===cid);if(!cl)return;
   const PKG_MRR={Spark:90000,Ignite:150000,Blaze:230000,'SEO Essential':40000,'SEO+Maintenance':50000};
@@ -7138,12 +7172,23 @@ function openFinInvoiceModal(id=null){
   const csel=document.getElementById('fin-inv-client');
   /* you cannot raise an invoice against Business Booster, and you should not be
      able to raise a new one against a client who has already left */
-  csel.innerHTML='<option value="">Select client</option>'+countableClients(CLIENTS).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  csel.innerHTML='<option value="">Select client</option>'
+    +countableClients(CLIENTS).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('')
+    +'<option value="__other__">Someone else, type the name</option>';
   const month=getFinMonth();
+  const oth=document.getElementById('fin-inv-other');
+  if(oth){oth.value='';oth.style.display='none';}
   if(id){
     const inv=FIN_INVOICES.find(x=>x.id===id);
     if(inv){
-      csel.value=inv.client_id||'';
+      /* An invoice with no client link but a name is a one off, not a broken
+         record, so editing it reopens on the typed name rather than blank. */
+      if(!inv.client_id&&(inv.client_name||'').trim()){
+        csel.value='__other__';
+        if(oth){oth.value=inv.client_name;oth.style.display='';}
+      }else{
+        csel.value=inv.client_id||'';
+      }
       document.getElementById('fin-inv-amount').value=inv.amount||'';
       document.getElementById('fin-inv-month').value=inv.month||month;
       document.getElementById('fin-inv-due').value=inv.due_date||'';
@@ -7163,15 +7208,21 @@ function openFinInvoiceModal(id=null){
   document.getElementById('modal-fin-invoice').classList.remove('hidden');
 }
 async function saveFinInvoice(){
-  const cid=parseInt(document.getElementById('fin-inv-client').value)||null;
-  if(!cid)return alert('Please select a client');
+  const pick=document.getElementById('fin-inv-client').value;
+  const isOther=pick==='__other__';
+  const cid=isOther?null:(parseInt(pick)||null);
+  const otherName=(document.getElementById('fin-inv-other')?.value||'').trim();
+  if(!isOther&&!cid)return alert('Pick a client, or choose "Someone else" and type a name');
+  /* A one off with no name is the thing the reconciliation panel cannot tell
+     apart from a broken link, so the name is what makes it deliberate. */
+  if(isOther&&!otherName)return alert('Type who this invoice is for');
   const base=parseInt(document.getElementById('fin-inv-amount').value)||0;
   if(!base)return alert('Please enter a base amount');
   const extras=_finExtras.filter(e=>e.desc&&parseInt(e.amt)>0).map(e=>({desc:e.desc,amt:parseInt(e.amt)||0}));
   const extTotal=extras.reduce((s,e)=>s+e.amt,0);
-  const cl=CLIENTS.find(c=>c.id===cid);
+  const cl=cid?CLIENTS.find(c=>c.id===cid):null;
   const data={
-    client_id:cid,client_name:cl?.name||'',
+    client_id:cid,client_name:isOther?otherName:(cl?.name||''),
     amount:base+extTotal,
     extras:JSON.stringify(extras),
     month:document.getElementById('fin-inv-month').value,
