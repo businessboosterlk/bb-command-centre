@@ -9,12 +9,15 @@
 <meta name="apple-mobile-web-app-title" content="Inspo Hub">
 <meta name="robots" content="noindex,nofollow">
 <title>BB Inspo Hub</title>
-<link rel="manifest" href="inspo-hub.webmanifest?v=6">
+<link rel="manifest" href="inspo-hub.webmanifest?v=7">
 <link rel="icon" type="image/png" sizes="64x64" href="inspo-icon-64.png?v=2">
 <link rel="icon" type="image/png" sizes="192x192" href="inspo-icon-192.png?v=2">
 <link rel="apple-touch-icon" sizes="180x180" href="inspo-icon-180.png?v=2">
+<link rel="preconnect" href="https://yyviiwnqgphyklcoijyd.supabase.co" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- The font never holds up the first paint: it loads as a print sheet and switches itself on. -->
+<link id="font-sheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 /* LEGACY single file, relaunched 21 Sep 2026. Rollback: LANDMINES.md L-CC-016. */
 :root{
@@ -48,6 +51,9 @@ select{-webkit-appearance:none;appearance:none;padding-right:44px;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8d96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 16px center;background-size:14px 14px}
 select::-ms-expand{display:none}
+/* The browser's own blue cross is never shown. The house cross, in the house grey. */
+input[type=search]{-webkit-appearance:none;appearance:none}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;width:20px;height:20px;cursor:pointer;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8d96' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 6l12 12M18 6 6 18'/%3E%3C/svg%3E") center/16px 16px no-repeat}
 .lbl{display:block;font-size:13px;font-weight:600;color:var(--text2);margin:16px 0 6px}
 .help{font-size:13px;color:var(--text3);margin-top:6px}
 .err{font-size:13px;color:var(--bad);margin-top:8px}
@@ -336,6 +342,7 @@ body.immersive .fshield{top:calc(var(--sat) + 64px)}
 body.immersive .feed-filter{position:fixed;top:calc(var(--sat) + 12px);left:16px;z-index:15}
   body.immersive .feed-filter .chip{background:rgba(0,0,0,.4);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-color:rgba(255,255,255,.25);color:#fff}
 .mine{padding:16px 18px}
+.mine+.week{margin-top:12px}   /* eye fault 20: the two top cards touched */
 .mine .big{font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1}
 .mine .big small{font-size:15px;font-weight:600;color:var(--text3);margin-left:6px}
 .mine p{color:var(--text2);font-size:14px;margin-top:6px}
@@ -351,6 +358,25 @@ body.dragging .board .idea{touch-action:none}
 .drag-hint{font-size:12px;color:var(--text3);margin:8px 0 0}
 .dead-chip{color:var(--bad)}
 .rota-pick{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+
+/* FOCUS. A keyboard or a switch control always shows where it is. A finger never sees it. */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
+.sheet:focus,.sheet:focus-visible{outline:none}
+/* SKELETON. The shape of what is coming, never a blank page and never a spinner. */
+.skel{display:block;background:var(--surface2);border-radius:6px;position:relative;overflow:hidden}
+.skel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.07),rgba(255,255,255,0));animation:skel 1.4s ease-in-out infinite}
+@keyframes skel{to{transform:translateX(100%)}}
+@media(prefers-reduced-motion:reduce){.skel::after{animation:none}}
+.fskel{position:relative;height:100%;background:var(--surface)}
+.fskel .ftext{position:absolute;left:16px;right:76px;bottom:22px}
+.skel-card{padding:18px;margin-top:14px}
+.stale{font-size:13px;color:var(--text3);margin:0 0 12px}
+.more-row{margin-top:14px}
+#feed-more{height:0;scroll-snap-align:none}
+/* New ideas arrived while somebody was reading. Say so quietly and let them choose to go. */
+.fpill{position:fixed;top:calc(var(--sat) + 14px);left:50%;transform:translateX(-50%);z-index:16;min-height:44px;padding:0 18px;border-radius:999px;background:var(--accent);color:#140a05;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+@media(min-width:1024px){.fpill{top:96px;left:calc(50% + 124px)}}
 
 /* Desktop toast. Placed AFTER the base rule on purpose: an earlier media block loses to it and leaves top AND bottom set. */
 @media(min-width:1024px){.toast{left:auto;right:28px;top:auto;bottom:28px;width:auto;max-width:380px;margin:0}}
@@ -384,8 +410,8 @@ body.dragging .board .idea{touch-action:none}
   <a class="tab" href="#home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Counter</a>
   <a class="tab" href="#ideas" data-tab="ideas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Ideas</a>
   <a class="tab" href="#used" data-tab="used"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Used</a>
-  <button class="tab" data-act="kinds" id="tab-kinds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H3" /><path d="M12 19H3" /><path d="M14 3v4" /><path d="M16 17v4" /><path d="M21 12h-9" /><path d="M21 19h-5" /><path d="M21 5h-7" /><path d="M8 10v4" /><path d="M8 12H3" /></svg><span id="kinds-lbl">Kinds</span></button>
-  <button class="tab file" data-act="file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>File an idea</button>
+  <button class="tab" data-act="kinds" id="tab-kinds"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H3" /><path d="M12 19H3" /><path d="M14 3v4" /><path d="M16 17v4" /><path d="M21 12h-9" /><path d="M21 19h-5" /><path d="M21 5h-7" /><path d="M8 10v4" /><path d="M8 12H3" /></svg><span id="kinds-lbl">Filter</span></button>
+  <button class="tab file" data-act="file" aria-label="File an idea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>File</button>
 </nav>
 
 <div id="sheet-root"><div class="scrim" data-act="close-sheet"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
@@ -398,16 +424,23 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-24 15:30';   // the app compares this with the live file and reloads itself
-const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId';
+const BUILD='2026-09-27 10:39';   // the app compares this with inspo-version.json and reloads itself
+const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
+// FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
+// so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
+const FIRST=30, PAGE=1000, STEP=30, FEED_STEP=12;
 history.scrollRestoration='manual';
 const DESK=matchMedia('(min-width:1024px)');
-// The bar sits in the normal flow at the foot of a full height column, so nothing measures or moves it.
-// If a browser still manages to scroll the root (a focused field, a scrollIntoView), put it back, late
-// enough to land after the keyboard has finished closing.
 function unscroll(){window.scrollTo(0,0);}
+// iOS leaves the whole page shifted when the field that holds the keyboard is removed while the keyboard is
+// still up. So the field lets go first, the keyboard is given time to leave, and only then does the screen change.
+function keyboardGone(){
+  try{if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();}catch(e){}
+  return new Promise(ok=>{const v=window.visualViewport;let n=0;const t=setInterval(()=>{n++;
+    if(!v||v.height>=innerHeight-60||n>=12){clearInterval(t);unscroll();ok();}},50);});
+}
 
-const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},
+const S={me:null,token:null,links:[],plays:[],clients:[],people:[],settings:{},ready:false,stale:false,cacheAt:0,feed:null,
   filter:{q:'',kind:'',client:'',strong:false,unused:false},ideasView:'list',shelfKind:'',intake:null,sort:{k:'name',dir:1},feedKind:'',feedClient:0};
 
 const KIND_BUCKET={'Post idea':'post','Video idea':'video','Video to Create':'video','Video Style':'video','Hook':'video',
@@ -443,27 +476,108 @@ function store(k,v){try{if(v==null)localStorage.removeItem(k);else localStorage.
 function read(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 
 // ── DATA LAYER ──
+const tmo=ms=>(window.AbortSignal&&AbortSignal.timeout)?AbortSignal.timeout(ms):undefined;
+// Every request has a time limit. A read that fails on the line (not one the server refused) is tried once more.
 async function api(path,opts){
-  const res=await fetch(SUPA_URL+path,{...opts,headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',...(opts&&opts.headers)}});
-  const txt=await res.text();
-  if(!res.ok)throw new Error(res.status+' '+txt.slice(0,200));
-  return txt?JSON.parse(txt):null;
+  const o=opts||{}, safe=!o.method||o.method==='GET';
+  for(let go=0;;go++){
+    try{
+      const res=await fetch(SUPA_URL+path,{method:o.method,body:o.body,signal:tmo(o.ms||20000),headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json',...(o.headers||{})}});
+      const txt=await res.text();
+      if(!res.ok){const e=new Error(res.status+' '+txt.slice(0,200));e.status=res.status;throw e;}
+      return txt?JSON.parse(txt):null;
+    }catch(e){if(safe&&go===0&&!e.status)continue;throw e;}
+  }
 }
 const rpc=(fn,args)=>api('/rest/v1/rpc/'+fn,{method:'POST',body:JSON.stringify(args||{})});
 const get=q=>api('/rest/v1/'+q);
-async function loadAll(){
-  // Named columns only. clients is filtered to active, the person list comes from
-  // team_members where active inside inspo_people(). Never select * on a list.
-  const [links,plays,clients,people,settings]=await Promise.all([
-    get('inspo_links?select=id,title,url,notes,platform,category,client_id,added_by,date_added,language,image_path,strong_by,dead_at&order=date_added.desc'),
-    get('inspo_plays?select=id,inspo_link_id,client_id,date_posted,notes,logged_by,created_at&order=created_at.desc'),
+// Named columns only. clients is filtered to active, the person list comes from
+// team_members where active inside inspo_people(). Never select * on a list.
+const LINK_Q='inspo_links?select=id,title,url,notes,platform,category,client_id,added_by,date_added,language,image_path,strong_by,dead_at';
+const PLAY_Q='inspo_plays?select=id,inspo_link_id,client_id,date_posted,notes,logged_by,created_at';
+const NEWEST='&order=date_added.desc,id.desc', PLAYED='&order=created_at.desc,id.desc';
+const byNewest=(a,b)=>new Date(b.date_added)-new Date(a.date_added)||b.id-a.id;
+// The database never hands over more than 1,000 rows in one answer and it does not say so. Read in pages.
+async function getAll(q,from){
+  let out=[], at=from||0;
+  for(let n=0;n<60;n++){
+    const rows=await get(q+'&limit='+PAGE+'&offset='+at)||[];
+    out=out.concat(rows);if(rows.length<PAGE)break;at+=PAGE;
+  }
+  return out;
+}
+// Look ups are built once per change, so a list of thousands never searches a list of thousands.
+let IDX={client:new Map(),plays:new Map()};
+const NONE=[];
+function reindex(){
+  IDX={client:new Map(S.clients.map(c=>[c.id,c])),plays:new Map()};
+  S.plays.forEach(p=>{const a=IDX.plays.get(p.inspo_link_id);if(a)a.push(p);else IDX.plays.set(p.inspo_link_id,[p]);});
+}
+// The first thirty ideas arrive first so the feed can open. The rest of the shelf follows behind it.
+async function loadAll(onFirst){
+  const [first,plays,clients,people,settings]=await Promise.all([
+    get(LINK_Q+NEWEST+'&limit='+FIRST),getAll(PLAY_Q+PLAYED),
     get('clients?select=id,name,industry,assigned_smm&status=eq.active&order=name.asc'),
     rpc('inspo_people'),rpc('inspo_settings_get')]);
-  S.links=links||[];S.plays=plays||[];S.clients=clients||[];S.people=people||[];S.settings=settings||{};
+  S.links=first||[];S.plays=plays||[];S.clients=clients||[];S.people=people||[];S.settings=settings||{};
+  S.stale=false;S.cacheAt=0;S.ready=S.links.length<FIRST;reindex();saveCache();loadedAt=Date.now();
+  if(S.ready)return;
+  if(onFirst)onFirst();
+  const rest=await getAll(LINK_Q+NEWEST,FIRST), have=new Set(S.links.map(l=>l.id));
+  S.links=S.links.concat(rest.filter(l=>!have.has(l.id))).sort(byNewest);S.ready=true;reindex();loadedAt=Date.now();
 }
-const clientById=id=>S.clients.find(c=>c.id===id);
-const playsOf=id=>S.plays.filter(p=>p.inspo_link_id===id);
+// An installed app stays open for days. When it comes back to the front it asks what changed: which ideas
+// are new, which are gone, which were marked used. Only the numbers of the ideas travel, so it costs almost nothing.
+let loadedAt=0, checking=false;
+async function revalidate(force){
+  if(!S.me||!S.ready||checking||sheetOpen)return;
+  if(!force&&Date.now()-loadedAt<120000)return;
+  checking=true;
+  try{
+    const [ids,pl]=await Promise.all([getAll('inspo_links?select=id&order=id.desc'),getAll('inspo_plays?select=id,inspo_link_id&order=id.desc')]);
+    const live=new Set(ids.map(r=>r.id)), mine=new Set(S.links.map(l=>l.id)), lp=new Set(pl.map(p=>p.id)), mp=new Set(S.plays.map(p=>p.id));
+    const gone=new Set(S.links.filter(l=>!live.has(l.id)).map(l=>l.id)), touched=new Set(ids.filter(r=>!mine.has(r.id)).map(r=>r.id));
+    pl.forEach(p=>{if(!mp.has(p.id))touched.add(p.inspo_link_id);});
+    S.plays.forEach(p=>{if(!lp.has(p.id))touched.add(p.inspo_link_id);});
+    const list=[...touched].filter(id=>live.has(id));
+    if(list.length>400){await loadAll();redraw();}
+    else{
+      if(gone.size){S.links=S.links.filter(l=>!gone.has(l.id));S.plays=S.plays.filter(p=>!gone.has(p.inspo_link_id));reindex();saveCache();}
+      for(let i=0;i<list.length;i+=100)await refreshLinks(list.slice(i,i+100));
+      loadedAt=Date.now();
+      if(gone.size||list.length)redraw();
+    }
+  }catch(e){}
+  checking=false;
+}
+// One idea changed, so one idea is read again. Never the whole shelf.
+async function refreshLinks(ids){
+  ids=[...new Set((ids||[]).map(Number).filter(Boolean))];if(!ids.length)return;
+  const inq='in.('+ids.join(',')+')', gone=new Set(ids);
+  const [rows,plays]=await Promise.all([get(LINK_Q+'&id='+inq),get(PLAY_Q+'&inspo_link_id='+inq+PLAYED)]);
+  S.links=S.links.filter(l=>!gone.has(l.id)).concat(rows||[]).sort(byNewest);
+  S.plays=S.plays.filter(p=>!gone.has(p.inspo_link_id)).concat(plays||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)||b.id-a.id);
+  reindex();saveCache();
+}
+async function after(ids){try{await refreshLinks(ids);}catch(e){try{await loadAll();}catch(e2){}}}
+function dropLocal(id){S.links=S.links.filter(l=>l.id!==id);S.plays=S.plays.filter(p=>p.inspo_link_id!==id);reindex();saveCache();}
+// The last safe shelf is kept on this phone so the hub opens at once and checks for news behind it.
+// It is this person's view only and signing out removes it.
+function saveCache(){
+  if(!S.me)return;
+  const links=S.links.slice(0,FIRST), ids=new Set(links.map(l=>l.id));
+  store(CACHE_KEY,{v:1,at:Date.now(),me:{name:S.me.name,seat:S.me.seat,is_head:!!S.me.is_head,is_admin:!!S.me.is_admin,kinds:S.me.kinds||[]},
+    links,plays:S.plays.filter(p=>ids.has(p.inspo_link_id)),clients:S.clients,people:S.people,settings:S.settings});
+}
+function readCache(){try{const c=JSON.parse(read(CACHE_KEY)||'null');return c&&c.v===1&&c.me&&c.me.name&&Array.isArray(c.links)?c:null;}catch(e){return null;}}
+function forget(){store(TOKEN_KEY,null);store(CACHE_KEY,null);S.token=null;S.me=null;S.links=[];S.plays=[];S.ready=false;S.stale=false;S.feed=null;reindex();}
+const clientById=id=>IDX.client.get(id);
+const playsOf=id=>IDX.plays.get(id)||NONE;
 const setting=(k,d)=>S.settings[k]==null?d:S.settings[k];
+function partialNote(){
+  if(S.ready)return '';
+  return '<p class="stale" role="status">'+(S.stale?'No connection. This is the shelf as this phone last saw it'+(S.cacheAt?', '+ago(S.cacheAt):'')+'.':'Checking the whole shelf.')+'</p>';
+}
 
 // ── THE ROTA AND THE TARGETS ──
 function rota(){
@@ -491,21 +605,25 @@ function personTarget(p,t){
 }
 
 // ── SHEETS. One at a time, Back closes it, the page behind is frozen and out of reach. ──
-let lockedY=0, sheetOpen=false, closing=false, afterClose=null, dirty=false;
+let lockedY=0, sheetOpen=false, closing=false, afterClose=null, dirty=false, opener=null;
 function openSheet(html,wide){
   $('sheet').classList.toggle('wide',!!wide);
   $('sheet').innerHTML='<div class="grab"></div>'+html;$('sheet').scrollTop=0;
+  const ttl=$('sheet').querySelector('h2');if(ttl){ttl.id='sheet-title';$('sheet').setAttribute('aria-labelledby','sheet-title');}else $('sheet').removeAttribute('aria-labelledby');
   if(sheetOpen)return;                       // swapping content keeps the one history entry
+  opener=document.activeElement;
   sheetOpen=true;lockedY=window.scrollY;
   document.body.style.top=-lockedY+'px';document.body.classList.add('sheet-open');
   $('sheet-root').classList.add('on');$('app').inert=true;$('bar').inert=true;$('side').inert=true;
   history.pushState({sheet:true},'');
+  $('sheet').tabIndex=-1;try{$('sheet').focus({preventScroll:true});}catch(e){}
 }
 function hideSheet(){
   if(!sheetOpen)return;sheetOpen=false;
   $('sheet-root').classList.remove('on');$('sheet').innerHTML='';
   $('app').inert=false;$('bar').inert=false;$('side').inert=false;
   document.body.classList.remove('sheet-open');document.body.style.top='';window.scrollTo(0,lockedY);
+  const o=opener;opener=null;if(o&&o.isConnected&&o.focus){try{o.focus({preventScroll:true});}catch(e){}}
 }
 function closeSheet(then){
   if(!sheetOpen){if(then)then();return;}
@@ -514,43 +632,57 @@ function closeSheet(then){
 window.addEventListener('popstate',()=>{
   if(sheetOpen)hideSheet();
   closing=false;const f=afterClose;afterClose=null;
-  if(f)f();else if(dirty&&S.me){dirty=false;route();}
+  if(f)f();else if(dirty&&S.me){const d=dirty;dirty=false;if(d===true)redraw();else patch(d);}
 });
-window.addEventListener('hashchange',()=>{if(S.me&&!sheetOpen)route();});
+window.addEventListener('hashchange',()=>{WIN={};if(S.me&&!sheetOpen)route();});
 
 // ── GATE: pick your name, four digits ──
 // An installed app keeps the first copy of a page for ever unless it is told otherwise. So the hub asks
-// the server for the live file, with caching switched off, and if the build stamp differs it reloads
-// itself on a fresh address. Nobody ever has to delete an icon again.
+// the server for one small file that holds the live build stamp, and reloads itself once when it differs.
+// The page itself is never downloaded a second time just to read one line of it.
+let freshAt=0;
 async function freshen(){
   try{
     if(location.search&&/url=|text=|title=/.test(location.search))return;   // a shared link is being handed in
-    const r=await fetch(location.pathname+'?b='+Date.now(),{cache:'no-store'});
+    if(Date.now()-freshAt<60000)return;freshAt=Date.now();
+    const r=await fetch('inspo-version.json',{cache:'no-store'});
     if(!r.ok)return;
-    const m=(await r.text()).match(/const BUILD='([^']+)'/);
-    if(!m||m[1]===BUILD){try{sessionStorage.removeItem('inspo.updating');}catch(e){}return;}
+    const live=String((await r.json()).build||'');
+    if(!live||live===BUILD){try{sessionStorage.removeItem('inspo.updating');}catch(e){}return;}
     let once=null;try{once=sessionStorage.getItem('inspo.updating');}catch(e){}
     if(once)return;                                    // one reload per session, never a loop
+    // never under somebody's hands: a sheet that is open, or a box with something typed into it
+    const a=document.activeElement, typing=a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&!(a.closest('#gate')&&!($('log-pin')||{}).value);
+    if(sheetOpen||typing){freshAt=0;return;}
     try{sessionStorage.setItem('inspo.updating','1');}catch(e){}
-    location.replace(location.pathname+'?b='+Date.now()+location.hash);
+    location.replace(location.pathname+'?b='+encodeURIComponent(live.replace(/[^0-9]/g,''))+location.hash);
   }catch(e){}
 }
 async function boot(){
   freshen();addEventListener('pageshow',()=>{setTimeout(freshen,1500);});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(freshen,1500);});
+  addEventListener('online',()=>{if(S.me&&S.stale)enter(true);});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')revalidate();});
+  setInterval(()=>{if(document.visibilityState==='visible')revalidate();},180000);
   const p=new URLSearchParams(location.search);
   const shared=p.get('url')||firstUrl(p.get('text'))||firstUrl(p.get('title'));
   if(shared){S.intake=shared;history.replaceState(null,'',location.pathname+location.hash);}
   const hs=(location.hash.match(/^#s=([0-9a-f]{48})$/)||[])[1];
-  if(hs){store(TOKEN_KEY,hs);history.replaceState(null,'',location.pathname+location.search+'#feed');}
+  if(hs){store(TOKEN_KEY,hs);store(CACHE_KEY,null);history.replaceState(null,'',location.pathname+location.search+'#feed');}
   S.token=read(TOKEN_KEY);
-  if(S.token){
-    try{const me=await rpc('inspo_me',{p_token:S.token});if(me&&me.ok){S.me=me;return enter();}}catch(e){return gateError(e);}
-    store(TOKEN_KEY,null);S.token=null;
-  }
-  showGate();
+  if(!S.token)return showGate();
+  // The last safe shelf is drawn at once. The session and the news are checked behind it.
+  const c=readCache();
+  if(c){S.me=c.me;S.links=c.links;S.plays=c.plays||[];S.clients=c.clients||[];S.people=c.people||[];S.settings=c.settings||{};S.cacheAt=c.at;S.ready=false;reindex();showShell();route();}
+  else{$('gate').hidden=true;$('app').hidden=false;$('bar').hidden=false;$('bar').inert=true;$('view').innerHTML=skeleton();}
+  let me=null;
+  try{me=await rpc('inspo_me',{p_token:S.token});}
+  catch(e){if(c){S.stale=true;redraw();toast('No connection. Showing the shelf as this phone last saw it',true);return;}return gateError(e);}
+  if(me&&me.ok){S.me=me;return enter(!!c);}
+  forget();showGate();
 }
 function gateError(e){
-  $('gate').hidden=false;
+  $('app').hidden=true;$('bar').hidden=true;$('side').hidden=true;$('gate').hidden=false;
   $('gate').innerHTML='<div class="login-card"><div class="login-sub">INSPO HUB</div><p>The hub could not reach the database. Check your connection and try again.</p><p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div></div>';
 }
 function showGate(){
@@ -577,7 +709,8 @@ function showGate(){
       S.token=r.token;store(TOKEN_KEY,r.token);store(NAME_KEY,r.name);S.me=r;
       /* the same login log every BB system writes, so the the estate Team page sees the hub */
       api('/rest/v1/team_login_logs',{method:'POST',headers:{'Prefer':'return=minimal'},body:JSON.stringify({member_name:r.name,logged_in_at:new Date().toISOString(),app:'inspo-hub'})}).catch(()=>{});
-      enter();
+      await keyboardGone();
+      await enter();[300,800].forEach(t=>setTimeout(unscroll,t));
     }catch(e){er.textContent='Could not reach the database. Try again';$('log-btn').disabled=false;}
   };
 }
@@ -597,55 +730,95 @@ function showChangePin(forced){
     try{
       const r=await rpc('inspo_change_pin',{p_token:S.token,p_new:a});
       if(!r.ok)return say({same:'That is the PIN you already have. Pick a different one.',too_easy:'That one is too easy to guess. Pick another.',session:'Your session ended. Sign in again.'}[r.why]||'Could not save that PIN.');
-      S.me.must_change=false;toast('PIN saved');enter();
+      S.me.must_change=false;toast('PIN saved');await keyboardGone();enter();
     }catch(e){say('Could not save: '+(e.message||e));}
   };
 }
-async function enter(){
-  if(S.me.must_change)return showChangePin(true);
-  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('side').hidden=false;
+function showShell(){
+  $('gate').hidden=true;$('gate').innerHTML='';$('app').hidden=false;$('bar').hidden=false;$('bar').inert=false;$('side').hidden=false;
   $('who-name').textContent=nice(S.me.name);$('side-who').textContent=nice(S.me.name)+' · '+(SEAT_NAME[S.me.seat]||'Team');
   S.ideasView=read(VIEW_KEY)==='board'?'board':'list';
-  $('view').innerHTML='<div class="empty">Loading the shelf.</div>';
-  try{await loadAll();}catch(e){$('view').innerHTML='<div class="empty"><b>The shelf did not load</b>'+esc(e.message||e)+'</div>';return;}
-  route();
+}
+function skeleton(){
+  const line=(w,h,mt)=>'<span class="skel" style="width:'+w+';height:'+h+'px;margin-top:'+(mt||0)+'px"></span>';
+  const h=(location.hash||'#feed').slice(1).split('/')[0];
+  if(h===''||h==='feed'){
+    if(!DESK.matches)document.body.classList.add('immersive');$('app').classList.add('feedmode');
+    return '<div class="feed-wrap" id="feed" aria-busy="true"><div class="fskel"><div class="ftext">'+line('36%',12)+line('82%',20,12)+line('96%',14,12)+line('70%',14,8)+line('30%',12,14)+'</div></div></div>';
+  }
+  return '<div aria-busy="true">'+[0,1,2].map(()=>'<div class="card skel-card">'+line('44%',14)+line('70%',34,14)+line('90%',12,14)+'</div>').join('')+'</div>';
+}
+// painted: the last safe shelf is already on the screen, so nothing is blanked while the news is fetched.
+async function enter(painted){
+  if(S.me.must_change)return showChangePin(true);
+  showShell();
+  if(painted!==true)$('view').innerHTML=skeleton();
+  let drawn=painted===true;
+  try{await loadAll(()=>{if(drawn)redraw();else{drawn=true;route();}});}
+  catch(e){
+    if(painted===true){S.stale=true;redraw();toast('No connection. Showing the shelf as this phone last saw it',true);return;}
+    document.body.classList.remove('immersive');$('app').classList.remove('feedmode');
+    $('view').innerHTML='<div class="card empty"><b>The shelf did not load</b>Check your connection and try again.<p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div></div>';return;}
+  if(drawn)redraw();else route();
   if(S.intake){const u=S.intake;S.intake=null;openFile({url:u});}
   if(!DESK.matches){[400,2500].forEach(t=>setTimeout(sendDiag,t));}
 }
-// An owner's phone reports its own geometry, so a layout fault is read as numbers, never guessed from a photo.
+// Draw again without moving the person: the feed keeps its card, a page keeps its place, a sheet is left alone.
+function redraw(){
+  if(!S.me)return;
+  if(sheetOpen){dirty=true;return;}
+  const f=$('feed');
+  if(f&&S.feed){
+    const F=feedItems(), sig=x=>JSON.stringify(x.slice(0,S.feed.shown).map(it=>it.l?[it.l.id,it.l.title,it.l.notes,it.l.strong_by,it.l.dead_at,it.l.image_path,it.l.client_id,playsOf(it.l.id).length]:['caught',it.caught]));
+    if(f.scrollTop<8&&sig(F.items)!==sig(S.feed.items)){renderFeed();return;}
+    const shown=S.feed.items.slice(0,S.feed.shown), have=new Set(shown.filter(it=>it.l).map(it=>it.l.id));
+    const known=new Set(S.feed.items.filter(it=>it.l).map(it=>it.l.id)), st=seenState(), news=F.items.filter(it=>it.l&&!known.has(it.l.id)&&!isSeen(it.l,st)).length;
+    S.feed.items=shown.concat(F.items.filter(it=>it.l&&!have.has(it.l.id)));S.feed.total=F.total;
+    const pill=$('feed-pill');if(pill&&news){pill.textContent=news+(news===1?' new idea':' new ideas');pill.hidden=false;}
+    fillEnd();updateFeedBadge();return;
+  }
+  const a=document.activeElement;
+  if(a&&a.id==='q'&&$('ideas-out')){drawIdeas();return;}
+  const y=window.scrollY;route();window.scrollTo(0,y);
+}
+// A phone reports its own geometry, so a layout fault is read as numbers, never guessed from a photo.
+// If the report itself fails, the failure is what gets sent. A silent catch hid a typing mistake for three days.
 function sendDiag(){
+  let d;
   try{
     const r=el=>{const b=el?el.getBoundingClientRect():null;return b?[Math.round(b.top),Math.round(b.bottom),Math.round(b.height)]:null;};
     const probe=document.createElement('div');probe.style.cssText='position:fixed;top:0;left:0;width:0;height:100dvh;visibility:hidden';document.body.appendChild(probe);
     const dvh=probe.getBoundingClientRect().height;probe.remove();
-    const cs=getComputedStyle(document.documentElement);
-    const d={t:new Date().toISOString(),ua:navigator.userAgent.slice(0,90),standalone:!!navigator.standalone||matchMedia('(display-mode: standalone)').matches,
+    const cs=getComputedStyle(document.documentElement), vv=window.visualViewport||null;
+    const fill=document.querySelector('.statusfill');
+    d={t:new Date().toISOString(),build:BUILD,ua:navigator.userAgent.slice(0,90),standalone:!!navigator.standalone||matchMedia('(display-mode: standalone)').matches,
       inner:[innerWidth,innerHeight],outer:[outerWidth,outerHeight],screen:[screen.width,screen.height],dvh:Math.round(dvh),
-      vv:VV?[Math.round(VV.width),Math.round(VV.height),Math.round(VV.offsetTop),VV.scale]:null,
+      vv:vv?[Math.round(vv.width),Math.round(vv.height),Math.round(vv.offsetTop),vv.scale]:null,
       sat:cs.getPropertyValue('--sat').trim(),sab:cs.getPropertyValue('--sab').trim(),
-      html:r(document.documentElement),body:r(document.body),app:r($('app')),bar:r($('bar')),feed:r($('feed')),
+      html:r(document.documentElement),body:r(document.body),app:r($('app')),bar:r($('bar')),feed:r($('feed')),fill:r(fill),
+      fillBg:fill?getComputedStyle(fill).backgroundColor:'',gap:Math.round(innerHeight-$('bar').getBoundingClientRect().bottom),
       scroll:[document.documentElement.scrollTop,document.body.scrollTop,window.scrollY],hash:location.hash};
-    rpc('inspo_diag',{p_token:S.token,p:d}).catch(()=>{});
-  }catch(e){}
+  }catch(e){d={t:new Date().toISOString(),build:BUILD,failed:String(e&&e.message||e).slice(0,200)};}
+  rpc('inspo_diag',{p_token:S.token,p:d}).catch(()=>{});
 }
-function signOut(){const t=S.token;store(TOKEN_KEY,null);S.token=null;S.me=null;showGate();if(t)rpc('inspo_logout',{p_token:t}).catch(()=>{});}
+function signOut(){const t=S.token;forget();document.body.classList.remove('immersive');showGate();if(t)rpc('inspo_logout',{p_token:t}).catch(()=>{});}
 
 // ── ROUTER. The hash is the router. ──
 function route(){
   const h=(location.hash||'#feed').slice(1), parts=h.split('/');
   document.querySelectorAll('.tab[data-tab],.side .nav[data-tab]').forEach(t=>t.classList.toggle('on',t.dataset.tab===(parts[0]==='shelf'?'home':parts[0])));
-  $('app').classList.remove('feedmode');document.body.classList.remove('immersive');if(feedWatch){feedWatch.disconnect();feedWatch=null;}
+  $('app').classList.remove('feedmode');document.body.classList.remove('immersive');if(feedWatch){feedWatch.disconnect();feedWatch=null;}S.feed=null;
   if(parts[0]==='ideas')renderIdeas();else if(parts[0]==='used')renderUsed();else if(parts[0]==='home')renderHome();
   else if(parts[0]==='shelf'&&clientById(Number(parts[1])))renderShelf(Number(parts[1]));else renderFeed();
-  window.scrollTo(0,0);updateFeedBadge();
+  window.scrollTo(0,0);updateFeedBadge();armMore();
 }
 
 // ── FEED. Everyone's ideas, newest first, one per screen. The door people open on their own. ──
-function feedCard(l){
+function feedCard(l,i){
   const c=clientById(l.client_id), used=playsOf(l.id), mine=up(l.added_by)===up(S.me.name), canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine;
   const ic=(d)=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg>';
   const emb=embedFor(l.url);
-  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'"':'')+'>'+(l.image_path?'<img class="fpic" loading="lazy" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
+  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'"':'')+'>'+(l.image_path?'<img class="fpic" '+(i===0?'loading="eager" fetchpriority="high"':'loading="lazy"')+' decoding="async" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
     (emb?'<div class="fshield" data-act="hand"></div>':'')+
     '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<button class="fclient" data-act="feed-client" data-id="'+c.id+'">'+esc(c.name)+'</button>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
@@ -690,29 +863,100 @@ function watchFeed(){
   const auto=read('inspo.autoplay')!=='off';
   feedWatch=new IntersectionObserver(es=>es.forEach(e=>{
     const c=e.target;
-    if(e.intersectionRatio>=.7){if(auto&&c.dataset.auto==='1'){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},500);}}
-    else{clearTimeout(c._t);stopCard(c);}
+    if(e.intersectionRatio>=.7){
+      clearTimeout(c._s);c._s=setTimeout(()=>{if(c.isConnected&&document.visibilityState==='visible')markSeen(Number(c.dataset.id));},900);
+      if(auto&&c.dataset.auto==='1'){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},500);}}
+    else{clearTimeout(c._s);clearTimeout(c._t);stopCard(c);}
   }),{root:w,threshold:[0,.7]});
-  w.querySelectorAll('.fcard[data-embed]').forEach(c=>feedWatch.observe(c));
+  w.querySelectorAll('.fcard').forEach(c=>{c.dataset.w='1';feedWatch.observe(c);});
+  let tick=0;w.addEventListener('scroll',()=>{if(tick)return;tick=requestAnimationFrame(()=>{tick=0;if(w.scrollHeight-w.scrollTop-w.clientHeight<w.clientHeight*3)growFeed();});},{passive:true});
 }
-function renderFeed(){
-  $('view-title').textContent='Feed';
-  const seen=Number(read(SEEN_KEY)||0);
+// SEEN. An idea is seen when its card has been on the screen, not when the feed was opened.
+function seenState(){let ids=[];try{ids=JSON.parse(read(SEENIDS_KEY)||'[]');}catch(e){}return {raw:read(SEEN_KEY),floor:Number(read(SEEN_KEY)||0),ids:new Set(Array.isArray(ids)?ids:[])};}
+const isSeen=(l,s)=>l.id<=s.floor||s.ids.has(l.id);
+function markSeen(id){
+  if(!id)return;const s=seenState();if(id<=s.floor||s.ids.has(id))return;
+  s.ids.add(id);
+  if(S.ready&&!S.links.some(l=>!isSeen(l,s))){store(SEEN_KEY,String(Math.max(s.floor,...S.links.map(l=>l.id))));store(SEENIDS_KEY,null);}
+  else store(SEENIDS_KEY,[...s.ids].slice(-400));
+  updateFeedBadge();
+}
+function feedItems(){
+  const s=seenState();
   let all=(S.feedKind?S.links.filter(l=>bucketOf(l)===S.feedKind):S.links.slice());
   if(S.feedClient)all=all.filter(l=>l.client_id===S.feedClient);
-  all.sort((a,b)=>new Date(b.date_added)-new Date(a.date_added));
-  const fresh=all.filter(l=>l.id>seen), old=all.filter(l=>l.id<=seen), fc=S.feedClient?clientById(S.feedClient):null;
+  all.sort(byNewest);
+  const first=s.raw==null&&!s.ids.size;          // never opened before: nothing is new, it is simply the shelf
+  const fresh=first?[]:all.filter(l=>!isSeen(l,s)), old=first?all:all.filter(l=>isSeen(l,s));
+  const items=fresh.map(l=>({l}));
+  if(fresh.length&&old.length)items.push({caught:fresh.length});
+  old.forEach(l=>items.push({l}));
+  return {items,fresh:fresh.length,total:all.length,first};
+}
+function feedHtml(it,i){
+  return it.l?feedCard(it.l,i):'<div class="fcaught"><div><b>Caught up</b>Those were the '+it.caught+' new since you last looked. Everything below you have seen.</div></div>';
+}
+function endCard(total){
   const weekN=S.links.filter(l=>new Date(l.date_added)>=weekStart()).length;
+  return '<div class="fend"><div>'+(total?'<b>All caught up</b>'+weekN+(weekN===1?' idea':' ideas')+' filed this week. The rotation resets on Monday.':'<b>Nothing here yet</b>The first idea anybody files shows up here for the whole team.')+'<div class="actions" style="max-width:280px;margin:16px auto 0"><button class="btn primary" data-act="file">File an idea</button></div></div></div>';
+}
+function fillEnd(){const e=document.querySelector('#feed .fend');if(e&&S.feed)e.outerHTML=endCard(S.feed.total);}
+function renderFeed(){
+  $('view-title').textContent='Feed';
+  const F=feedItems(), fc=S.feedClient?clientById(S.feedClient):null;
+  S.feed={items:F.items,shown:Math.min(F.items.length,FEED_STEP),total:F.total};
   let h=(DESK.matches?'<div class="feed-top">'+kindChips(S.feedKind,'feed-kind')+'</div>':'')+(fc?'<div class="feed-filter"><button class="chip on" data-act="feed-client" data-id="">'+esc(fc.name)+' · clear</button></div>':'')+'<div class="feed-wrap" id="feed">'+
-    (seen&&fresh.length?'<div class="fnew">'+fresh.length+(fresh.length===1?' new idea':' new ideas')+' since you last looked</div>':'')+
-    (seen?fresh.map(feedCard).join(''):all.map(feedCard).join(''))+
-    (seen&&fresh.length&&old.length?'<div class="fcaught"><div><b>Caught up</b>Those were the '+fresh.length+' new since you last looked. Everything below you have seen.</div></div>':'')+
-    (seen?old.map(feedCard).join(''):'')+
-    '<div class="fend"><div>'+(all.length?'<b>All caught up</b>'+weekN+(weekN===1?' idea':' ideas')+' filed this week. The rotation resets on Monday.':'<b>Nothing here yet</b>The first idea anybody files shows up here for the whole team.')+'<div class="actions" style="max-width:280px;margin:16px auto 0"><button class="btn primary" data-act="file">File an idea</button></div></div></div></div>';
-  h+='<button class="fwho" data-act="account" aria-label="Your account">'+esc(S.me.name[0])+'</button>';
+    (F.fresh?'<div class="fnew">'+F.fresh+(F.fresh===1?' new idea':' new ideas')+' since you last looked</div>':'')+
+    F.items.slice(0,S.feed.shown).map(feedHtml).join('')+
+    '<div id="feed-more" aria-hidden="true"></div>'+endCard(F.total)+'</div>';
+  h+='<button class="fwho" data-act="account" aria-label="Your account">'+esc(S.me.name[0])+'</button><button class="fpill" id="feed-pill" data-act="feed-top" hidden></button>';
   $('view').innerHTML=h;$('app').classList.add('feedmode');document.body.classList.add('immersive');sizeFeed();watchFeed();
-  const top=Math.max(0,...S.links.map(l=>l.id));if(top>seen)store(SEEN_KEY,String(top));
+  if(F.first&&S.links.length)store(SEEN_KEY,String(Math.max(0,...S.links.map(l=>l.id))));
   updateFeedBadge();
+}
+// The feed draws a dozen cards and adds the next dozen as the thumb comes near the end.
+function growFeed(){
+  const f=$('feed'), m=$('feed-more');if(!f||!m||!S.feed)return;
+  const from=S.feed.shown, to=Math.min(S.feed.items.length,from+FEED_STEP);if(to<=from)return;
+  m.insertAdjacentHTML('beforebegin',S.feed.items.slice(from,to).map((it,i)=>feedHtml(it,from+i)).join(''));
+  S.feed.shown=to;
+  if(feedWatch)f.querySelectorAll('.fcard:not([data-w])').forEach(c=>{c.dataset.w='1';feedWatch.observe(c);});
+}
+// One idea changed: redraw that idea where it stands. The feed keeps its card and the page keeps its place.
+function patch(id){
+  const l=S.links.find(x=>x.id===id), f=$('feed');
+  if(f&&S.feed){
+    const c=f.querySelector('.fcard[data-id="'+id+'"]');
+    if(c&&l){
+      const i=[...f.querySelectorAll('.fcard')].indexOf(c);
+      c.insertAdjacentHTML('afterend',feedCard(l,i));const nw=c.nextElementSibling;
+      if(feedWatch)feedWatch.unobserve(c);clearTimeout(c._s);clearTimeout(c._t);c.remove();
+      nw.dataset.w='1';if(feedWatch)feedWatch.observe(nw);
+      const it=S.feed.items.find(x=>x.l&&x.l.id===id);if(it)it.l=l;
+    }else if(c){
+      if(feedWatch)feedWatch.unobserve(c);c.remove();
+      const k=S.feed.items.findIndex(x=>x.l&&x.l.id===id);if(k>=0){S.feed.items.splice(k,1);if(k<S.feed.shown)S.feed.shown--;S.feed.total--;}
+      fillEnd();
+    }else renderFeed();
+    updateFeedBadge();return;
+  }
+  const y=window.scrollY;route();window.scrollTo(0,y);
+}
+// LISTS draw thirty at a time. The button is the way on for a keyboard; a thumb never has to press it.
+let WIN={}, moreWatch=null;
+const winOf=k=>WIN[k]||STEP;
+const firstN=(list,k,fn)=>list.slice(0,winOf(k)).map(fn).join('');
+function moreBtn(list,k){const left=list.length-winOf(k);return left>0?'<button class="btn more-row" data-act="more" data-k="'+k+'">Show '+Math.min(STEP,left)+' more · '+left+' left</button>':'';}
+function armMore(){
+  if(moreWatch)moreWatch.disconnect();
+  const b=document.querySelectorAll('#view [data-act="more"]');if(!b.length||!window.IntersectionObserver)return;
+  moreWatch=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting&&e.target.isConnected)showMore(e.target.dataset.k);}),{rootMargin:'600px 0px'});
+  b.forEach(x=>moreWatch.observe(x));
+}
+function showMore(k){
+  WIN[k]=winOf(k)+STEP;
+  const h=(location.hash||'#feed').slice(1).split('/');
+  if(h[0]==='ideas')drawIdeas();else if(h[0]==='used'){renderUsed();armMore();}else if(h[0]==='shelf'&&clientById(Number(h[1]))){renderShelf(Number(h[1]));armMore();}
 }
 // The feed fills exactly the space between the title and the bar, measured, so the page itself never scrolls.
 function sizeFeed(){const w=$('feed');if(!w)return;if(!DESK.matches){w.style.height='';return;}const bar=DESK.matches?0:$('bar').getBoundingClientRect().height;w.style.height=Math.max(320,Math.floor(innerHeight-w.getBoundingClientRect().top-bar-(DESK.matches?24:0)))+'px';}
@@ -767,8 +1011,9 @@ function renderHome(){
       '<section class="card week stat"><div class="cap">Clients with nothing in '+MONTHS[ms.getMonth()]+'</div><div class="big num '+(starved.length?'is-bad':'is-ok')+'">'+starved.length+'<small>of '+S.clients.length+' active</small></div><p>Worst first in the list below. A shelf that only shows what it has hides what it lacks.</p></section>'+
       '<section class="card week stat"><div class="cap">On the shelf</div><div class="big num">'+S.links.length+'<small>ideas in total</small></div><p>'+t.week.length+' filed since Monday. '+strong+' marked strong by a head. '+used+' used in a plan.</p></section></div>'+
       '<div class="cols2"><div>'+starvedHead+starvedList+'</div><div>'+rotation+people+'</div></div>'+everyHead+every+honest;
+    $('view').insertAdjacentHTML('afterbegin',partialNote());
   }else{
-    $('view').innerHTML=mine+weekCard+starvedHead+starvedList+rotation+people+everyHead+every+honest;
+    $('view').innerHTML=partialNote()+mine+weekCard+starvedHead+starvedList+rotation+people+everyHead+every+honest;
   }
 }
 
@@ -794,30 +1039,39 @@ function applyFilter(list,f){
 function kindChips(cur,act){
   return '<div class="chips">'+[['','All']].concat(BUCKETS).map(([k,n])=>'<button class="chip'+(cur===k?' on':'')+'" data-act="'+act+'" data-kind="'+k+'">'+n+'</button>').join('')+'</div>';
 }
+let qT=0;
 function renderIdeas(){
   $('view-title').textContent='Ideas';
-  const f=S.filter, list=applyFilter(S.links,f), extra=(f.client?1:0)+(f.strong?1:0)+(f.unused?1:0);
+  const f=S.filter, extra=(f.client?1:0)+(f.strong?1:0)+(f.unused?1:0);
   const seg='<div class="seg"><button data-act="view" data-v="list" class="'+(S.ideasView==='list'?'on':'')+'">List</button><button data-act="view" data-v="board" class="'+(S.ideasView==='board'?'on':'')+'">Board</button></div>';
   let h;
   if(DESK.matches){
-    h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas, notes or a name" value="'+esc(f.q)+'" autocomplete="off">'+
+    h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas, notes or a name" aria-label="Search ideas" value="'+esc(f.q)+'" autocomplete="off">'+
       '<select id="fd-client" aria-label="Client"><option value="">Every client</option>'+S.clients.map(c=>'<option value="'+c.id+'"'+(f.client===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select>'+
       '<button class="chip'+(f.strong?' on':'')+'" data-act="ftoggle" data-f="strong">Marked strong</button><button class="chip'+(f.unused?' on':'')+'" data-act="ftoggle" data-f="unused">Not used yet</button>'+seg+'</div>'+
-      kindChips(f.kind,'kind')+'<p class="help" style="margin:10px 0 0">'+list.length+' of '+S.links.length+' ideas</p>';
+      kindChips(f.kind,'kind');
   }else{
-    h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas" value="'+esc(f.q)+'" enterkeyhint="search" autocomplete="off"><button class="btn" data-act="filters">Filters'+(extra?' · '+extra:'')+'</button></div>'+
+    h='<div class="fbar"><input id="q" type="search" placeholder="Search ideas" aria-label="Search ideas" value="'+esc(f.q)+'" enterkeyhint="search" autocomplete="off"><button class="btn" data-act="filters">Filters'+(extra?' · '+extra:'')+'</button></div>'+
       kindChips(f.kind,'kind')+'<div style="margin-top:12px">'+seg+'</div>';
   }
+  $('view').innerHTML=h+'<div id="ideas-out" aria-live="polite"></div>';
+  drawIdeas();
+  // Typing redraws the results only. The box is never rebuilt under the thumb, so the keyboard never flickers.
+  const q=$('q');q.oninput=()=>{clearTimeout(qT);qT=setTimeout(()=>{S.filter.q=q.value;WIN={};drawIdeas();},160);};
+  const fc=$('fd-client');if(fc)fc.onchange=()=>{S.filter.client=fc.value;WIN={};drawIdeas();};
+}
+function drawIdeas(){
+  const o=$('ideas-out');if(!o)return;
+  const f=S.filter, list=applyFilter(S.links,f);
+  let h=partialNote()+(DESK.matches?'<p class="help" style="margin:10px 0 0">'+list.length+' of '+S.links.length+' ideas</p>':'');
   if(!list.length)h+='<div class="card empty" style="margin-top:14px"><b>'+(S.links.length?'Nothing matches':'The shelf is empty')+'</b>'+(S.links.length?'Clear a filter or search for something else.':'Tap File an idea to put the first one in.')+'</div>';
   else if(S.ideasView==='board'){
     const a=list.filter(l=>!playsOf(l.id).length), b=list.filter(l=>playsOf(l.id).length);
-    h+='<div class="board"><div class="col" data-col="not"><h4>Not used yet · '+a.length+'</h4><div class="ideas">'+(a.map(ideaCard).join('')||'<div class="card empty">Nothing here.</div>')+'</div></div>'+
-       '<div class="col" data-col="used"><h4>Used · '+b.length+'</h4><div class="ideas">'+(b.map(ideaCard).join('')||'<div class="card empty">Nothing used yet. Open an idea and tap Mark used.</div>')+'</div></div></div>'+
+    h+='<div class="board"><div class="col" data-col="not"><h4>Not used yet · '+a.length+'</h4><div class="ideas">'+(firstN(a,'not',ideaCard)||'<div class="card empty">Nothing here.</div>')+'</div>'+moreBtn(a,'not')+'</div>'+
+       '<div class="col" data-col="used"><h4>Used · '+b.length+'</h4><div class="ideas">'+(firstN(b,'usedcol',ideaCard)||'<div class="card empty">Nothing used yet. Open an idea and tap Mark used.</div>')+'</div>'+moreBtn(b,'usedcol')+'</div></div>'+
        '<p class="drag-hint">'+(DESK.matches?'Drag a card into Used to mark it. Drag it back to undo.':'Press and hold a card, then drag it into Used to mark it. Drag it back to undo.')+'</p>';
-  }else h+='<div class="ideas">'+list.map(ideaCard).join('')+'</div>';
-  $('view').innerHTML=h;
-  const q=$('q');q.oninput=()=>{S.filter.q=q.value;const pos=q.selectionStart;renderIdeas();const n=$('q');n.focus();n.setSelectionRange(pos,pos);};
-  const fc=$('fd-client');if(fc)fc.onchange=()=>{S.filter.client=fc.value;renderIdeas();};
+  }else h+='<div class="ideas">'+firstN(list,'ideas',ideaCard)+'</div>'+moreBtn(list,'ideas');
+  o.innerHTML=h;armMore();
 }
 function renderShelf(id){
   const c=clientById(id), all=S.links.filter(l=>l.client_id===id);
@@ -826,15 +1080,17 @@ function renderShelf(id){
   let h='<p class="help" style="margin:0 0 12px">'+all.length+' on the shelf · '+all.filter(l=>l.strong_by).length+' strong · '+all.filter(l=>playsOf(l.id).length).length+' used'+(c.assigned_smm?' · '+esc(nice(c.assigned_smm)):'')+'</p>'+
     kindChips(S.shelfKind,'shelf-kind')+
     '<div class="actions" style="margin-top:12px"><button class="btn" data-act="file" data-client="'+id+'">File for '+esc(c.name)+'</button><button class="btn" data-act="plan" data-id="'+id+'">Plan chat text</button><button class="btn full" data-act="bulk" data-client="'+id+'">Bulk add for '+esc(c.name)+'</button></div>';
-  h+=list.length?'<div class="ideas">'+list.map(ideaCard).join('')+'</div>':'<div class="card empty" style="margin-top:14px"><b>'+(all.length?'None of that kind':'Nothing on this shelf yet')+'</b>'+(all.length?'Pick another kind above.':'The next plan for '+esc(c.name)+' starts from a blank page until somebody files here.')+'</div>';
+  h=partialNote()+h;
+  h+=list.length?'<div class="ideas">'+firstN(list,'shelf',ideaCard)+'</div>'+moreBtn(list,'shelf'):'<div class="card empty" style="margin-top:14px"><b>'+(all.length?'None of that kind':'Nothing on this shelf yet')+'</b>'+(all.length?'Pick another kind above.':'The next plan for '+esc(c.name)+' starts from a blank page until somebody files here.')+'</div>';
   $('view').innerHTML=h;
 }
 function renderUsed(){
   $('view-title').textContent='Used';
   const rows=S.plays.slice().sort((a,b)=>new Date(b.date_posted||b.created_at)-new Date(a.date_posted||a.created_at));
   let h='<p class="help" style="margin:0 0 12px">Ideas that went into a client\'s month. This is the number that shows the shelf is being read.</p>';
-  h+=rows.length?'<div class="card rows">'+rows.map(p=>{const l=S.links.find(x=>x.id===p.inspo_link_id), c=clientById(p.client_id);
-    return '<button class="row" data-act="detail" data-id="'+(l?l.id:'')+'"><span class="grow"><span class="name">'+esc(l?l.title:'Idea removed')+'</span><span class="meta">'+esc(c?c.name:'Client no longer active')+' · '+esc(p.date_posted?fmtMonth(p.date_posted):'')+(p.logged_by?' · marked by '+esc(nice(p.logged_by)):'')+'</span></span>'+chev()+'</button>';}).join('')+'</div>'
+  const byId=new Map(S.links.map(l=>[l.id,l]));h=partialNote()+h;
+  h+=rows.length?'<div class="card rows">'+firstN(rows,'used',p=>{const l=byId.get(p.inspo_link_id), c=clientById(p.client_id);
+    return '<button class="row" data-act="detail" data-id="'+(l?l.id:'')+'"><span class="grow"><span class="name">'+esc(l?l.title:'Idea removed')+'</span><span class="meta">'+esc(c?c.name:'Client no longer active')+' · '+esc(p.date_posted?fmtMonth(p.date_posted):'')+(p.logged_by?' · marked by '+esc(nice(p.logged_by)):'')+'</span></span>'+chev()+'</button>';})+'</div>'+moreBtn(rows,'used')
     :'<div class="card empty"><b>Nothing marked used yet</b>Open any idea and tap Mark used once it goes into a plan.</div>';
   $('view').innerHTML=h;
 }
@@ -923,7 +1179,7 @@ async function uploadShot(file){
   const b=$('f-shot-btn');b.disabled=true;b.textContent='Saving the picture';
   try{
     const data=await shrink(file);
-    const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,image_b64:data})});
+    const r=await api('/functions/v1/inspo-unfurl',{method:'POST',ms:60000,body:JSON.stringify({token:S.token,image_b64:data})});
     if(!r||!r.ok)throw new Error((r&&r.why)||'upload refused');
     draft.image_path=r.image_path;showPreview(draft.title||'Your screenshot','Picture saved');b.textContent='Replace the picture';
   }catch(e){b.textContent='Add a screenshot';toast('The picture did not save: '+(e.message||e),true);}
@@ -946,8 +1202,8 @@ async function saveFile(){
       return say({note:'Add a note before you file it.',url:'Paste the full link, starting with https.',kind:'Your seat cannot file that kind. Pick another or use Reference.',client:'That client is not active any more. Pick another.',not_yours:'Only the person who filed an idea can change it.',change_pin:'Choose your own PIN first.'}[r.why]||'The hub refused that. Try again.');}
     const secs=Math.round((Date.now()-fileT0)/1000), wasEdit=!!draft.id;
     store(LAST_KEY,{kind,client});
-    await loadAll();
-    closeSheet(()=>{route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
+    await after([r.id]);
+    closeSheet(()=>{if(wasEdit)patch(Number(r.id));else route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
   }catch(e){btn.disabled=false;say('It did not save: '+esc(e.message||e));}
 }
 
@@ -974,7 +1230,7 @@ async function dragEnd(){
   const mine=playsOf(d.id).filter(p=>up(p.logged_by||'')===up(S.me.name)||S.me.is_admin), others=playsOf(d.id).length-mine.length;
   if(!mine.length)return toast('Only the person who marked it used can undo that',true);
   for(const p of mine){await rpc('inspo_unmark_used',{p_token:S.token,p_play:p.id}).catch(()=>null);}
-  await loadAll();renderIdeas();toast(others?'Undone. Somebody else also marked it used, so it stays in Used':'Moved back to not used');
+  await after([d.id]);renderIdeas();toast(others?'Undone. Somebody else also marked it used, so it stays in Used':'Moved back to not used');
 }
 let pressT=null, pressAt=null;
 document.addEventListener('pointerdown',ev=>{
@@ -1063,19 +1319,19 @@ async function bulkSave(){
   const missing=todo.filter(r=>!r.note.trim());
   if(missing.length){missing.forEach(r=>{r.state='bad';r.msg='This one still needs a note';});const keep=$('b-all').value;bulkDraw();$('b-all').value=keep;
     const first=document.querySelector('.bulk-state.bad');if(first)first.scrollIntoView({block:'center'});return toast(missing.length+(missing.length===1?' link needs':' links need')+' a note before filing',true);}
-  bulk.saving=true;$('b-save').disabled=true;let ok=0,dup=0,bad=0;
+  bulk.saving=true;$('b-save').disabled=true;let ok=0,dup=0,bad=0;const filed=[];
   for(const r of todo){
     $('b-save').textContent='Filing '+(ok+dup+bad+1)+' of '+todo.length;
     try{
       const a=await rpc('inspo_save_link',{p_token:S.token,p:{id:'',url:r.url,notes:r.note.trim(),title:r.title||'',category:bulk.kind,client_id:bulk.client,platform:platformOf(r.url),language:bulk.lang,image_path:r.image_path||''}});
-      if(a.ok){r.state='ok';r.msg='Filed';ok++;}
+      if(a.ok){r.state='ok';r.msg='Filed';ok++;filed.push(a.id);}
       else if(a.why==='duplicate'){r.state='dup';r.msg='Already on the shelf, filed by '+nice(a.existing.added_by);dup++;dropShot(r.image_path);r.image_path='';}
       else if(a.why==='session'){bulk.saving=false;return signOut();}
       else{r.state='bad';r.msg={kind:'Your seat cannot file that kind',client:'That client is not active any more',url:'That is not a full link'}[a.why]||'The hub refused this one';bad++;}
     }catch(e){r.state='bad';r.msg='It did not save. Try again';bad++;}
   }
   bulk.saving=false;store(LAST_KEY,{kind:bulk.kind,client:bulk.client});
-  await loadAll();dirty=true;
+  await after(filed);dirty=true;
   if(!dup&&!bad)return closeSheet(()=>{route();toast('Filed '+ok+(ok===1?' idea':' ideas'));});
   bulkDraw();toast('Filed '+ok+' of '+todo.length+'. '+(dup?dup+' already on the shelf. ':'')+(bad?bad+' need another look.':''),!!bad);
 }
@@ -1186,26 +1442,28 @@ document.addEventListener('click',async ev=>{
     case 'use':openUse(id);break;
     case 'plan':openPlan(id);break;
     case 'filters':openFilters();break;
-    case 'kind':S.filter.kind=el.dataset.kind;renderIdeas();break;
+    case 'kind':S.filter.kind=el.dataset.kind;WIN={};renderIdeas();break;
     case 'feed-kind':S.feedKind=el.dataset.kind;renderFeed();break;
     case 'kinds':openKinds();break;
     case 'kind-pick':{const k=el.dataset.kind;S.feedKind=k;S.filter.kind=k;
-      $('kinds-lbl').textContent=k?{post:'Posts',video:'Videos',design:'Design',editing:'Editing',reference:'Refs'}[k]:'Kinds';
+      $('kinds-lbl').textContent=k?{post:'Posts',video:'Videos',design:'Design',editing:'Editing',reference:'Refs'}[k]:'Filter';
       $('tab-kinds').classList.toggle('on',!!k);
       closeSheet(()=>{const h=(location.hash||'').slice(1);if(h==='ideas')renderIdeas();else if(h===''||h==='feed')renderFeed();else location.hash='#feed';});break;}
+    case 'feed-top':renderFeed();break;
     case 'feed-client':S.feedClient=Number(el.dataset.id)||0;renderFeed();break;
     case 'hand':{const c=el.closest('.fcard');if(!c.classList.contains('playing'))playCard(c);c.classList.add('handed');break;}
     case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
     case 'play':{const c=el.closest('.fcard');if(c.classList.contains('playing'))stopCard(c);else playCard(c);break;}
     case 'autoplay':{const off=read('inspo.autoplay')==='off';store('inspo.autoplay',off?null:'off');toast(off?'Previews will play by themselves':'Previews play only when you tap Play');openAccount();break;}
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
-    case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);renderIdeas();break;
+    case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);WIN={};renderIdeas();break;
+    case 'more':showMore(el.dataset.k);break;
     case 'pick-client':{$('f-client').value=el.dataset.id;el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===el));break;}
     case 'qnote':{const t=$('f-note'),v=t.value.trim();t.value=(v?v+'\n':'')+el.dataset.q+': ';t.focus();t.setSelectionRange(t.value.length,t.value.length);break;}
     case 'append-note':{const note=$('f-note').value.trim();if(!note){toast('Write your note first, then add it',true);break;}
       const r=await rpc('inspo_append_note',{p_token:S.token,p_id:id,p_note:note}).catch(()=>null);
       if(!r||!r.ok){toast('Could not add your note',true);break;}
-      dropShot(draft&&draft.image_path);draft=null;await loadAll();closeSheet(()=>{route();toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
+      dropShot(draft&&draft.image_path);draft=null;await after([id]);closeSheet(()=>{patch(id);toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
     case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');break;}
     case 'shot':$('f-shot').click();break;
     case 'paste':try{const t=await navigator.clipboard.readText(), u=firstUrl(t);if(u){$('f-url').value=u;unfurl(u);}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
@@ -1213,18 +1471,18 @@ document.addEventListener('click',async ev=>{
     case 'use-save':{el.disabled=true;
       const r=await rpc('inspo_mark_used',{p_token:S.token,p_link:id,p_client:Number($('u-client').value),p_month:$('u-month').value,p_note:''}).catch(()=>null);
       if(!r||!r.ok){el.disabled=false;toast('It did not save',true);break;}
-      await loadAll();dirty=true;closeSheet(()=>{const y=$('feed')?$('feed').scrollTop:0;route();if($('feed'))$('feed').scrollTop=y;toast('Marked used');});break;}
+      await after([id]);closeSheet(()=>{patch(id);toast('Marked used');});break;}
     case 'unuse':{const r=await rpc('inspo_unmark_used',{p_token:S.token,p_play:Number(el.dataset.play)}).catch(()=>null);
-      if(!r||!r.ok){toast('Could not undo that',true);break;}await loadAll();openDetail(id);toast('Undone');break;}
+      if(!r||!r.ok){toast('Could not undo that',true);break;}await after([id]);dirty=id;openDetail(id);toast('Undone');break;}
     case 'strong':{const r=await rpc('inspo_mark_strong',{p_token:S.token,p_link:id,p_on:el.dataset.on==='1'}).catch(()=>null);
       if(!r||!r.ok){toast(r&&r.why==='own'?'Somebody else has to mark your own idea strong':'Only heads can mark an idea strong',true);break;}
-      await loadAll();if(sheetOpen)openDetail(id);else{const y=$('feed')?$('feed').scrollTop:0;route();if($('feed'))$('feed').scrollTop=y;}break;}
+      await after([id]);if(sheetOpen){dirty=id;openDetail(id);}else patch(id);break;}
     case 'del':{if(!confirm('Delete this idea for everyone?'))break;
       const gone=(S.links.find(x=>x.id===id)||{}).image_path;
       const r=await rpc('inspo_delete_link',{p_token:S.token,p_id:id}).catch(()=>null);
       if(!r||!r.ok){toast('Could not delete that',true);break;}
       dropShot(gone);
-      await loadAll();closeSheet(()=>{route();toast('Deleted');});break;}
+      dropLocal(id);closeSheet(()=>{patch(id);toast('Deleted');});break;}
     case 'copy-plan':try{await navigator.clipboard.writeText($('plan-text').textContent);toast('Copied');}catch(e){toast('Press and hold the text to copy it',true);}break;
     case 'step':{const box=el.closest('.stepper'), key=box.dataset.key, v=Math.max(0,Math.min(20,Number(setting(key,3))+Number(el.dataset.d)));
       box.querySelector('.v').textContent=v;await saveSetting(key,v);dirty=true;openAdmin();break;}
@@ -1242,7 +1500,7 @@ document.addEventListener('click',async ev=>{
       await saveSetting('rota_override',clean);dirty=true;openAdmin();break;}
     case 'rota-clear':await saveSetting('rota_override',{});dirty=true;openAdmin();break;
     case 'sweep':{el.disabled=true;el.textContent='Checking every link';
-      try{const r=await api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,sweep:true})});
+      try{const r=await api('/functions/v1/inspo-unfurl',{method:'POST',ms:180000,body:JSON.stringify({token:S.token,sweep:true})});
         if(!r||!r.ok)throw new Error((r&&r.why)||'refused');
         await loadAll();dirty=true;toast('Checked '+r.checked+': '+r.alive+' alive, '+r.dead+' gone'+(r.unknown?', '+r.unknown+' could not be reached':'')+(r.pictures_removed?'. '+r.pictures_removed+' leftover pictures cleared':''));openAdmin();
       }catch(e){toast('The sweep did not run: '+(e.message||e),true);el.disabled=false;el.textContent='Check every link now';}break;}
@@ -1251,7 +1509,7 @@ document.addEventListener('click',async ev=>{
     case 'bulk-drop':bulkDrop(Number(el.dataset.i));break;
     case 'bulk-save':bulkSave();break;
     case 'sort':{const k=el.dataset.k;S.sort={k,dir:S.sort.k===k?-S.sort.dir:(k==='name'||k==='smm'?1:-1)};renderHome();break;}
-    case 'ftoggle':S.filter[el.dataset.f]=!S.filter[el.dataset.f];renderIdeas();break;
+    case 'ftoggle':S.filter[el.dataset.f]=!S.filter[el.dataset.f];WIN={};renderIdeas();break;
     case 'f-clear':S.filter={q:S.filter.q,kind:S.filter.kind,client:'',strong:false,unused:false};closeSheet(renderIdeas);break;
     case 'f-apply':S.filter.client=$('fl-client').value;S.filter.strong=$('fl-strong').classList.contains('on');S.filter.unused=$('fl-unused').classList.contains('on');closeSheet(renderIdeas);break;
     case 'toggle':el.classList.toggle('on');break;
@@ -1265,8 +1523,9 @@ function openKinds(){
 }
 function updateFeedBadge(){
   const b=$('feed-badge');if(!b)return;
-  const n=S.links.filter(l=>l.id>Number(read(SEEN_KEY)||0)).length;
+  const s=seenState(), n=(s.raw==null&&!s.ids.size)?0:S.links.filter(l=>!isSeen(l,s)).length;
   b.hidden=!n;b.textContent=n>9?'9+':n;
+  if(n)b.setAttribute('aria-label',n+' new');
 }
 function openFilters(){
   const f=S.filter;
@@ -1277,6 +1536,14 @@ function openFilters(){
 // Keyboard hints applied at focus, because most fields do not exist at boot.
 document.addEventListener('focusin',ev=>{const t=ev.target;if(t.matches&&t.matches('input[type=url],input[inputmode=numeric]')){t.autocapitalize='off';t.spellcheck=false;}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&sheetOpen)closeSheet();});
+let ariaT=0;
+function syncAria(){
+  ariaT=0;
+  document.querySelectorAll('.chip,.seg button,.frail button[data-act="strong"],.frail button[data-act="use"]').forEach(b=>{const on=b.classList.contains('on')?'true':'false';if(b.getAttribute('aria-pressed')!==on)b.setAttribute('aria-pressed',on);});
+  document.querySelectorAll('.tab[data-tab],.side .nav[data-tab]').forEach(t=>{if(t.classList.contains('on'))t.setAttribute('aria-current','page');else t.removeAttribute('aria-current');});
+}
+// The observer only asks for a pass. The pass runs once a frame however many changes arrived, and reads no layout.
+new MutationObserver(()=>{if(!ariaT)ariaT=requestAnimationFrame(syncAria);}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
 DESK.addEventListener('change',()=>{if(S.me&&!sheetOpen)route();});
 
 boot();
