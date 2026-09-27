@@ -464,7 +464,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-27 13:45';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-27 18:09';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -1181,11 +1181,26 @@ function openShareHelp(){
 // 4. COPY, OPEN, TAP. The quickest way in needs nothing set up: copy the link in TikTok or Instagram, open the hub
 //    and tap the orange button. The hub asks the phone for the clipboard in that same tap. An iPhone shows a small
 //    Paste bubble and one more tap fills the box. Nothing on the clipboard, or no permission: nothing happens.
+// A copied link arrives in one of three shapes: as a LINK (Safari, some apps), as plain text (most apps) or as
+// rich text. Asking only for plain text finds nothing when the phone holds a link. Ask once, read every shape.
+async function clipLink(){
+  const c=navigator.clipboard;if(!c)return '';
+  if(c.read){
+    const items=await c.read();
+    for(const t of ['text/uri-list','text/plain','text/html'])for(const it of items){
+      if(!it.types.includes(t))continue;
+      const raw=await (await it.getType(t)).text(), u=t==='text/html'?((raw.match(/https?:\/\/[^\s"'<>]+/i)||[])[0]||''):firstUrl(raw);
+      if(u)return u.replace(/&amp;/g,'&');
+    }
+    return '';
+  }
+  return c.readText?firstUrl(await c.readText()):'';
+}
 async function autoPaste(){
   const box=$('f-url');
-  if(!box||box.value.trim()||!draft||draft.id||!navigator.clipboard||!navigator.clipboard.readText)return;
+  if(!box||box.value.trim()||!draft||draft.id||!navigator.clipboard)return;
   try{
-    const u=firstUrl(await navigator.clipboard.readText()), b=$('f-url');
+    const u=await clipLink(), b=$('f-url');
     if(!u||!b||b.value.trim()||!draft||draft.id)return;
     b.value=u;unfurl(u);keepDraft();toast('Link pasted from your clipboard');
   }catch(e){}
@@ -1564,7 +1579,7 @@ document.addEventListener('click',async ev=>{
     case 'fresh':store(DRAFT_KEY,null);openFile({fresh:true});autoPaste();break;
     case 'share-help':openShareHelp();break;
     case 'shot':$('f-shot').click();break;
-    case 'paste':try{const t=await navigator.clipboard.readText(), u=firstUrl(t);if(u){$('f-url').value=u;unfurl(u);}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
+    case 'paste':try{const u=await clipLink();if(u){$('f-url').value=u;unfurl(u);keepDraft();}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
     case 'see-existing':openDetail(id);break;
     case 'use-save':{el.disabled=true;
       const r=await rpc('inspo_mark_used',{p_token:S.token,p_link:id,p_client:Number($('u-client').value),p_month:$('u-month').value,p_note:''}).catch(()=>null);
