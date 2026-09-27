@@ -463,7 +463,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-27 13:12';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-27 13:20';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -1168,7 +1168,7 @@ function keptDraft(){try{const d=JSON.parse(read(DRAFT_KEY)||'null');return d&&D
 //    does not allow that for a web app, so the hub hands out a share button of its own.
 function openShareHelp(){
   const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua), and=/Android/.test(ua);
-  const iphone='<h2 style="margin-top:20px">On an iPhone</h2><ol class="steps"><li>Tap <b>Add the share button</b> below, then <b>Add Shortcut</b>.</li><li>In TikTok or Instagram tap <b>Share</b>, then <b>More</b>, then <b>Send to Inspo Hub</b>.</li><li>The hub opens in Safari with the link filled in. Sign in there once and it stays signed in.</li></ol><div class="actions"><a class="btn primary" href="inspo-share.shortcut">Add the share button</a></div>';
+  const iphone='<h2 style="margin-top:20px">On an iPhone</h2><ol class="steps"><li>Tap <b>Add the share button</b> below, then <b>Download</b>.</li><li>Open the downloaded file, then tap <b>Add Shortcut</b>.</li><li>In TikTok or Instagram tap <b>Share</b>, then <b>More</b>, then <b>Send to Inspo Hub</b>.</li><li>The hub opens in Safari with the link filled in. Sign in there once and it stays signed in.</li></ol><div class="actions"><a class="btn primary" href="https://businessboosterlk.github.io/bb-command-centre/inspo-share.shortcut" target="_blank" rel="noopener">Add the share button</a></div>';
   const android='<h2 style="margin-top:20px">On an Android phone</h2><ol class="steps"><li>Open the hub in Chrome, tap the three dots, then <b>Add to Home screen</b>.</li><li>In TikTok or Instagram tap <b>Share</b> and pick <b>Inspo Hub</b> from the list.</li><li>The hub opens with the link filled in.</li></ol>';
   const any='<h2 style="margin-top:20px">On any phone, nothing to set up</h2><ol class="steps"><li>In TikTok or Instagram tap <b>Share</b>, then <b>Copy link</b>.</li><li>Open the hub, tap the orange button, then <b>Paste</b>.</li></ol>';
   openSheet('<h2>Send an idea from TikTok or Instagram</h2><p class="lead">See it, share it, write one line. The link, the title and the picture are filled in for you.</p>'+
