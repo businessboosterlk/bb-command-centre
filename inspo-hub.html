@@ -230,6 +230,7 @@ pre.plan{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,
 .login-input{text-align:center;letter-spacing:.18em;font-weight:600;text-transform:uppercase;border-radius:10px;min-height:56px;margin-bottom:12px}
 .login-input::placeholder{color:var(--text3);letter-spacing:.18em}
 .login-btn{width:100%;min-height:56px;border-radius:10px;background:var(--accent);color:#140a05;font-weight:800;font-size:14px;letter-spacing:.24em}
+.login-note{margin:-10px 0 18px!important;padding:12px 14px;border:1px solid var(--accent);border-radius:10px;color:var(--text)!important;font-size:14px;line-height:1.4}
 .login-err{text-align:center;color:var(--bad);font-size:13px;margin-top:14px;min-height:20px}
 .login-card p{color:var(--text2);text-align:center;margin-top:10px}
 @media(max-width:480px){.login-card{padding:36px 24px 28px}}
@@ -463,7 +464,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-27 13:35';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-27 13:45';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -684,6 +685,7 @@ let freshAt=0;
 async function freshen(){
   try{
     if(location.search&&/url=|text=|title=/.test(location.search))return;   // a shared link is being handed in
+    if(S.intake)return;                                                    // a shared link is waiting to be filed
     if(Date.now()-freshAt<60000)return;freshAt=Date.now();
     const r=await fetch('inspo-version.json',{cache:'no-store'});
     if(!r.ok)return;
@@ -706,7 +708,8 @@ async function boot(){
   setInterval(()=>{if(document.visibilityState==='visible')revalidate();},180000);
   const p=new URLSearchParams(location.search);
   const shared=p.get('url')||firstUrl(p.get('text'))||firstUrl(p.get('title'));
-  if(shared){S.intake=shared;history.replaceState(null,'',location.pathname+location.hash);}
+  if(shared){S.intake=shared;try{sessionStorage.setItem(INTAKE_KEY,shared);}catch(e){}history.replaceState(null,'',location.pathname+location.hash);}
+  else{try{S.intake=sessionStorage.getItem(INTAKE_KEY)||null;}catch(e){}}
   const hs=(location.hash.match(/^#s=([0-9a-f]{48})$/)||[])[1];
   if(hs){store(TOKEN_KEY,hs);store(CACHE_KEY,null);history.replaceState(null,'',location.pathname+location.search+'#feed');}
   S.token=read(TOKEN_KEY);
@@ -731,7 +734,7 @@ function showGate(){
   /* remember WHO, never the PIN, so tomorrow is one tap and the digits (the SMM Workspace rule) */
   const last=read(NAME_KEY)||'';
   $('gate').innerHTML='<form class="login-card" id="login-form" autocomplete="off"><img class="login-logo" src="bb-logo.png" alt="Business Booster" onerror="this.hidden=true">'+
-    '<div class="login-sub">INSPO HUB</div><div class="login-date">'+days[d.getDay()]+', '+fmtDate(d)+'</div>'+
+    '<div class="login-sub">INSPO HUB</div><div class="login-date">'+days[d.getDay()]+', '+fmtDate(d)+'</div>'+(S.intake?'<p class="login-note" id="log-note">Your '+esc(platformOf(S.intake)==='General'?'link':platformOf(S.intake)+' link')+' is safe. Sign in and it opens ready to file.</p>':'')+
     '<input class="login-input" id="log-name" placeholder="YOUR NAME" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" enterkeyhint="next" value="'+esc(last)+'">'+
     '<input class="login-input" id="log-pin" type="password" inputmode="numeric" pattern="[0-9]*" autocomplete="off" enterkeyhint="go" placeholder="PIN" maxlength="6">'+
     '<button class="login-btn" type="submit" id="log-btn">ENTER</button><div class="login-err" id="log-err" role="alert"></div></form>';
@@ -800,7 +803,7 @@ async function enter(painted){
     document.body.classList.remove('immersive');$('app').classList.remove('feedmode');
     $('view').innerHTML='<div class="card empty"><b>The shelf did not load</b>Check your connection and try again.<p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div></div>';return;}
   if(drawn)redraw();else route();
-  if(S.intake){const u=S.intake;S.intake=null;openFile({url:u});}
+  if(S.intake){const u=S.intake;S.intake=null;try{sessionStorage.removeItem(INTAKE_KEY);}catch(e){}if(sheetOpen)hideSheet();openFile({url:u});}
   if(!DESK.matches){[400,2500].forEach(t=>setTimeout(sendDiag,t));}
 }
 // Draw again without moving the person: the feed keeps its card, a page keeps its place, a sheet is left alone.
@@ -1156,7 +1159,7 @@ function applyGuess(url){
 }
 // 2. AN UNFINISHED IDEA IS KEPT. Somebody goes back to TikTok to check the video, or the phone rings. The link
 //    and the note are on this phone when they come back, for a day. Filing it or Start fresh clears it.
-const DRAFT_KEY='inspo.draft';
+const DRAFT_KEY='inspo.draft', INTAKE_KEY='inspo.intake';
 function keepDraft(){
   if(!draft||draft.id||!$('file-form'))return;
   const url=$('f-url').value.trim(), note=$('f-note').value;
@@ -1168,11 +1171,24 @@ function keptDraft(){try{const d=JSON.parse(read(DRAFT_KEY)||'null');return d&&D
 //    does not allow that for a web app, so the hub hands out a share button of its own.
 function openShareHelp(){
   const ua=navigator.userAgent, ios=/iPhone|iPad|iPod/.test(ua), and=/Android/.test(ua);
-  const iphone='<h2 style="margin-top:20px">On an iPhone</h2><ol class="steps"><li>Open this page in <b>Safari</b>, tap <b>Add the share button</b> below, then <b>Download</b>.</li><li>Open the <b>Files</b> app, then <b>Downloads</b>, tap <b>Send to Inspo Hub</b>, then <b>Add Shortcut</b>.</li><li>In TikTok or Instagram tap <b>Share</b>, then <b>More</b>, then <b>Send to Inspo Hub</b>. The first time, tap <b>Allow</b>.</li><li>The hub opens in Safari with the link, the title and the picture filled in. Sign in there once and it stays signed in.</li></ol><div class="actions"><a class="btn primary" href="https://businessboosterlk.github.io/bb-command-centre/Send%20to%20Inspo%20Hub.shortcut" target="_blank" rel="noopener">Add the share button</a></div>';
-  const android='<h2 style="margin-top:20px">On an Android phone</h2><ol class="steps"><li>Open the hub in Chrome, tap the three dots, then <b>Add to Home screen</b>.</li><li>In TikTok or Instagram tap <b>Share</b> and pick <b>Inspo Hub</b> from the list.</li><li>The hub opens with the link filled in.</li></ol>';
-  const any='<h2 style="margin-top:20px">On any phone, nothing to set up</h2><ol class="steps"><li>In TikTok or Instagram tap <b>Share</b>, then <b>Copy link</b>.</li><li>Open the hub, tap the orange button, then <b>Paste</b>.</li></ol>';
-  openSheet('<h2>Send an idea from TikTok or Instagram</h2><p class="lead">See it, share it, write one line. The link, the title and the picture are filled in for you.</p>'+
-    (ios?iphone+any:and?android+any:iphone+android+any)+'<div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+  const quick='<h2 style="margin-top:20px">The quick way, nothing to set up</h2><ol class="steps"><li>In TikTok or Instagram tap <b>Share</b>, then <b>Copy link</b>.</li><li>Open the Inspo Hub and tap the <b>orange button</b>.</li><li>'+(and?'The link is filled in for you.':'Tap the small <b>Paste</b> bubble. The link, the title and the picture are filled in.')+'</li></ol>';
+  const iphone='<h2 style="margin-top:24px">A button inside the iPhone share sheet</h2><p class="lead">Set up once, in Safari. It opens the hub in Safari, so sign in there once too.</p><ol class="steps"><li>Tap <b>Add the share button</b> below, then <b>Download</b>.</li><li>Open the <b>Files</b> app, then <b>Downloads</b>. Tap <b>Send to Inspo Hub</b>, then <b>Add Shortcut</b>.</li><li>In TikTok tap <b>Share</b>, then <b>More</b>. Scroll to the <b>bottom</b> of the list and tap <b>Send to Inspo Hub</b>.</li><li>The first time, tap <b>Always Allow</b>.</li><li>To keep it at the top, tap <b>Edit Actions</b> at the foot of that list and press the green plus beside it.</li></ol><div class="actions"><a class="btn" href="https://businessboosterlk.github.io/bb-command-centre/Send%20to%20Inspo%20Hub.shortcut" target="_blank" rel="noopener">Add the share button</a></div>';
+  const android='<h2 style="margin-top:24px">Inside the Android share list</h2><ol class="steps"><li>Open the hub in Chrome, tap the three dots, then <b>Add to Home screen</b>.</li><li>In TikTok or Instagram tap <b>Share</b> and pick <b>Inspo Hub</b> from the list.</li></ol>';
+  openSheet('<h2>Send an idea from TikTok or Instagram</h2><p class="lead">See it, send it, write one line.</p>'+
+    quick+(ios?iphone:and?android:iphone+android)+'<div class="actions"><button class="btn quiet" data-act="close-sheet">Close</button></div>');
+}
+
+// 4. COPY, OPEN, TAP. The quickest way in needs nothing set up: copy the link in TikTok or Instagram, open the hub
+//    and tap the orange button. The hub asks the phone for the clipboard in that same tap. An iPhone shows a small
+//    Paste bubble and one more tap fills the box. Nothing on the clipboard, or no permission: nothing happens.
+async function autoPaste(){
+  const box=$('f-url');
+  if(!box||box.value.trim()||!draft||draft.id||!navigator.clipboard||!navigator.clipboard.readText)return;
+  try{
+    const u=firstUrl(await navigator.clipboard.readText()), b=$('f-url');
+    if(!u||!b||b.value.trim()||!draft||draft.id)return;
+    b.value=u;unfurl(u);keepDraft();toast('Link pasted from your clipboard');
+  }catch(e){}
 }
 
 // ── FILE AN IDEA. The sheet that decides whether the hub lives. ──
@@ -1518,7 +1534,7 @@ document.addEventListener('click',async ev=>{
     case 'sign-out':closeSheet(signOut);break;
     case 'close-sheet':if(draft&&!draft.id&&draft.image_path&&$('file-form')){dropShot(draft.image_path);draft=null;}closeSheet();break;
     case 'go':{const h=el.dataset.hash;closeSheet(()=>{if(location.hash===h)route();else location.hash=h;});break;}
-    case 'file':openFile({client:el.dataset.client||''});break;
+    case 'file':openFile({client:el.dataset.client||''});autoPaste();break;
     case 'edit':openFile({id});break;
     case 'detail':if(id)openDetail(id);break;
     case 'use':openUse(id);break;
@@ -1545,7 +1561,7 @@ document.addEventListener('click',async ev=>{
       if(!r||!r.ok){toast('Could not add your note',true);break;}
       dropShot(draft&&draft.image_path);draft=null;store(DRAFT_KEY,null);await after([id]);closeSheet(()=>{patch(id);toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
     case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');if(act==='pick-kind'&&draft&&$('file-form')){draft.kindTouched=true;askFor();}keepDraft();break;}
-    case 'fresh':store(DRAFT_KEY,null);openFile({fresh:true});break;
+    case 'fresh':store(DRAFT_KEY,null);openFile({fresh:true});autoPaste();break;
     case 'share-help':openShareHelp();break;
     case 'shot':$('f-shot').click();break;
     case 'paste':try{const t=await navigator.clipboard.readText(), u=firstUrl(t);if(u){$('f-url').value=u;unfurl(u);}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
