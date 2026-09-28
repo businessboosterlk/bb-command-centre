@@ -358,6 +358,8 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 @media(max-width:1023px){body.immersive .fwho{display:grid}}
 /* PLAYERS. The platform's own player, muted, while the card is on screen. */
 .fplayer{position:absolute;border:0;background:#000;border-radius:10px}
+.fplayer.pin{background:transparent;border-radius:0;color-scheme:light}
+.fplayer.ig{background:#fff;color-scheme:light}
 .fcard.playing .fpic,.fcard.playing .fquote{visibility:hidden}
 .fcard.playing .fshade{background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0) 70%,rgba(0,0,0,.92) 100%)}
 .fcard.playing .fn,.fcard.playing .fmore{display:none}
@@ -454,7 +456,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible{outline:none}
 <script>
 'use strict';
 /*@@ICONS lucide-static 1.47.0, written by scripts/build-icons.mjs. Never edit by hand.*/
-const ICON={"smartphone":"<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/>","house":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>","layout-dashboard":"<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/>","check":"<path d=\"M20 6 9 17l-5-5\"/>","plus":"<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>","chevron-down":"<path d=\"m6 9 6 6 6-6\"/>","chevron-right":"<path d=\"m9 18 6-6-6-6\"/>","sliders-horizontal":"<path d=\"M10 5H3\"/><path d=\"M12 19H3\"/><path d=\"M14 3v4\"/><path d=\"M16 17v4\"/><path d=\"M21 12h-9\"/><path d=\"M21 19h-5\"/><path d=\"M21 5h-7\"/><path d=\"M8 10v4\"/><path d=\"M8 12H3\"/>","x":"<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>","minus":"<path d=\"M5 12h14\"/>","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>","external-link":"<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>","star":"<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>","info":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>"};
+const ICON={"smartphone":"<rect width=\"14\" height=\"20\" x=\"5\" y=\"2\" rx=\"2\" ry=\"2\"/><path d=\"M12 18h.01\"/>","house":"<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>","layout-dashboard":"<rect width=\"7\" height=\"9\" x=\"3\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"14\" y=\"3\" rx=\"1\"/><rect width=\"7\" height=\"9\" x=\"14\" y=\"12\" rx=\"1\"/><rect width=\"7\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\"/>","check":"<path d=\"M20 6 9 17l-5-5\"/>","plus":"<path d=\"M5 12h14\"/><path d=\"M12 5v14\"/>","chevron-down":"<path d=\"m6 9 6 6 6-6\"/>","chevron-right":"<path d=\"m9 18 6-6-6-6\"/>","sliders-horizontal":"<path d=\"M10 5H3\"/><path d=\"M12 19H3\"/><path d=\"M14 3v4\"/><path d=\"M16 17v4\"/><path d=\"M21 12h-9\"/><path d=\"M21 19h-5\"/><path d=\"M21 5h-7\"/><path d=\"M8 10v4\"/><path d=\"M8 12H3\"/>","x":"<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>","minus":"<path d=\"M5 12h14\"/>","play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\"/>","external-link":"<path d=\"M15 3h6v6\"/><path d=\"M10 14 21 3\"/><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"/>","star":"<path d=\"M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z\"/>","info":"<circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4\"/><path d=\"M12 8h.01\"/>","eye":"<path d=\"M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>"};
 /*@@END ICONS*/
 // The one place a drawing is assembled. The shapes come from the generated set above.
 const icon=(n,sw,cls)=>'<svg'+(cls?' class="'+cls+'"':'')+' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+(sw||2)+'" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+ICON[n]+'</svg>';
@@ -464,7 +466,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-27 18:09';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-28 20:25';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -861,12 +863,12 @@ function feedCard(l,i){
   const c=clientById(l.client_id), used=playsOf(l.id), mine=up(l.added_by)===up(S.me.name), canStrong=(S.me.is_head||S.me.seat==='owner')&&!mine;
   const ic=n=>icon(n,2);
   const emb=embedFor(l.url);
-  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'"':'')+'>'+(l.image_path?'<img class="fpic" '+(i===0?'loading="eager" fetchpriority="high"':'loading="lazy"')+' decoding="async" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
+  return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'" data-kind="'+(emb.kind||'video')+'"':'')+'>'+(l.image_path?'<img class="fpic" '+(i===0?'loading="eager" fetchpriority="high"':'loading="lazy"')+' decoding="async" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
     (emb?'<div class="fshield" data-act="hand"></div>':'')+
     '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<button class="fclient" data-act="feed-client" data-id="'+c.id+'">'+esc(c.name)+'</button>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
-    '<div class="fby">Filed by '+esc(nice(l.added_by))+' · '+ago(l.date_added)+'</div>'+(emb?'<div class="fhint">'+(emb.auto?'Playing muted. Open for sound.':'Tap the player to play.')+'</div>':'')+'</div>'+
-    '<div class="frail">'+(emb?'<button data-act="play" data-id="'+l.id+'">'+ic('play')+'Play</button>':'')+'<a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('external-link')+'Open</a>'+
+    '<div class="fby">Filed by '+esc(nice(l.added_by))+' · '+ago(l.date_added)+'</div>'+(emb?'<div class="fhint">'+(emb.kind==='ig'?'The post, as Instagram shows it. A video starts on a tap.':emb.kind==='pin'?'The pin, as Pinterest shows it.':'Playing muted. Open for sound.')+'</div>':'')+'</div>'+
+    '<div class="frail">'+(emb?'<button data-act="play" data-id="'+l.id+'">'+ic(emb.kind?'eye':'play')+(emb.kind?'View':'Play')+'</button>':'')+'<a href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">'+ic('external-link')+'Open</a>'+
     (canStrong?'<button data-act="strong" data-id="'+l.id+'" data-on="'+(l.strong_by?'0':'1')+'" class="'+(l.strong_by?'on':'')+'">'+ic('star')+'Strong</button>':'')+
     '<button data-act="use" data-id="'+l.id+'" class="'+(used.length?'on':'')+'">'+ic('check')+'Used</button>'+
     '<button data-act="detail" data-id="'+l.id+'">'+ic('info')+'More</button></div></article>';
@@ -881,24 +883,59 @@ function embedFor(url){
   if(/youtube\.com$/.test(h)&&(m=(u.searchParams.get('v')||'').match(/^[\w-]{11}$/)))return {src:'https://www.youtube.com/embed/'+m[0]+'?autoplay=1&mute=1&playsinline=1&loop=1&playlist='+m[0]+'&rel=0&modestbranding=1',auto:true};
   if(/youtube\.com$/.test(h)&&(m=p.match(/\/shorts\/([\w-]{11})/)))return {src:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&playsinline=1&loop=1&playlist='+m[1]+'&rel=0&modestbranding=1',auto:true};
   if(/youtu\.be$/.test(h)&&(m=p.match(/^\/([\w-]{11})/)))return {src:'https://www.youtube.com/embed/'+m[1]+'?autoplay=1&mute=1&playsinline=1&loop=1&playlist='+m[1]+'&rel=0&modestbranding=1',auto:true};
-  if(/instagram\.com$/.test(h)&&(m=p.match(/^\/(?:p|reel|reels)\/([\w-]+)/)))return {src:'https://www.instagram.com/p/'+m[1]+'/embed/',auto:false};
+  // Instagram publishes no player that starts by itself. Its own embed is loaded as the card comes on screen, so the
+  // post is SEEN at once: the picture, or the video's cover with Instagram's play button. One tap plays it.
+  if(/instagram\.com$/.test(h)&&(m=p.match(/^\/(?:[\w.]+\/)?(p|reel|reels|tv)\/([\w-]+)/)))return {src:'https://www.instagram.com/'+(m[1]==='p'?'p':m[1]==='tv'?'tv':'reel')+'/'+m[2]+'/embed/',auto:true,kind:'ig'};
+  // Pinterest: the pin as Pinterest itself draws it. Every country address and both pin shapes, the plain number
+  // and the one with words in front of it.
+  if((/(^|\.)pinterest\.[a-z.]+$/.test(h))&&(m=p.match(/^\/pin\/(?:[^/]*--)?(\d{6,})/)))return {src:'https://assets.pinterest.com/ext/embed.html?id='+m[1],auto:true,kind:'pin'};
   return null;
 }
-// The player gets its own shape (9:16 for TikTok, 16:9 for YouTube, 4:5 for Instagram) centred in the room
-// between the chips and our text. Their chrome stays inside their frame, ours stays outside it.
+// The player gets its own shape, centred in the room between the top buttons and our text. Their chrome stays
+// inside their frame, ours stays outside it. TikTok 9:16. YouTube 16:9. Instagram draws a 54px header, the post in
+// a 4:5 box and a 46px line that links back to it. The header and the line never scale, so the height is worked
+// out from the width and never from a ratio. A pin is as tall as its own picture.
+const IG_HEAD=54, IG_FOOT=46, PIN_FOOT=88;
+const igH=w=>IG_HEAD+w*1.25+IG_FOOT;
 function fitPlayer(card,f){
   const r=card.getBoundingClientRect(), top=(!DESK.matches&&document.body.classList.contains('immersive'))?(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0)+64:12;
-  const availH=Math.max(120,r.height-top-150-8), availW=r.width-16, src=f.src;
-  const ratio=/youtube\.com\/embed/.test(src)?16/9:/instagram\.com/.test(src)?4/5:9/16;
-  let w=Math.min(availW,availH*ratio), h=w/ratio;
-  f.style.width=Math.round(w)+'px';f.style.height=Math.round(h)+'px';f.style.left=Math.round((r.width-w)/2)+'px';f.style.top=Math.round(top+(availH-h)/2)+'px';
+  const availH=Math.max(120,r.height-top-150-8), availW=Math.min(r.width-16,DESK.matches?r.width-16:420), kind=card.dataset.kind||'video', sh=card.querySelector('.fshield');
+  const rail=card.querySelector('.frail'), rr=rail?rail.getBoundingClientRect():null, railLeft=rr?rr.left-r.left:r.width, railTop=rr?rr.top-r.top:r.height;
+  let w,h,ratio=0;
+  if(kind==='pin'){
+    const pic=card.querySelector('img.fpic'), pr=pic&&pic.naturalWidth?pic.naturalWidth/pic.naturalHeight:0;
+    w=Math.min(availW,345);h=pr?Math.min(availH,Math.round(w/pr)+PIN_FOOT):availH;
+    if(pr&&h===availH)w=Math.min(w,Math.max(236,Math.round((availH-PIN_FOOT)*pr)));
+  }else{
+    if(kind==='ig'){w=Math.min(availW,(availH-IG_HEAD-IG_FOOT)/1.25);h=igH(w);}
+    else{ratio=/youtube\.com\/embed/.test(f.src)?16/9:9/16;w=Math.min(availW,availH*ratio);h=w/ratio;}
+  }
+  let left=Math.round((r.width-w)/2), y=Math.round(top+(availH-h)/2);
+  // Their frame never sits under our buttons. If it fits above them it goes there. If it is too tall for that it
+  // moves to the left of them, and Instagram's frame narrows as far as Instagram allows (326px).
+  if(kind!=='video'&&left+w>railLeft-6&&y+h>railTop-6){
+    const room=railTop-8-top;
+    if(h<=room)y=Math.round(top+(room-h)/2);
+    else{
+      if(kind==='ig'){w=Math.max(Math.min(326,availW),Math.min(w,railLeft-14));h=igH(w);}
+      left=Math.max(8,Math.min(left,Math.round(railLeft-6-w)));y=Math.round(top+(availH-h)/2);
+    }
+  }
+  f.style.width=Math.round(w)+'px';f.style.height=Math.round(h)+'px';f.style.left=left+'px';f.style.top=y+'px';
+  f.classList.toggle('pin',kind==='pin');f.classList.toggle('ig',kind==='ig');
+  // The shield keeps the swipe ours. Over Instagram's play button it has a window, so ONE tap plays the video.
+  if(sh){
+    if(kind==='ig'){const cx=left+w/2, cy=(y-top)+IG_HEAD+(w*1.25)/2, a=48, W=r.width, H=Math.max(0,r.height-top-150), p=n=>Math.round(n)+'px';
+      sh.style.clipPath='polygon(evenodd,0 0,'+p(W)+' 0,'+p(W)+' '+p(H)+',0 '+p(H)+',0 0,'+p(cx-a)+' '+p(cy-a)+','+p(cx+a)+' '+p(cy-a)+','+p(cx+a)+' '+p(cy+a)+','+p(cx-a)+' '+p(cy+a)+','+p(cx-a)+' '+p(cy-a)+')';}
+    else sh.style.clipPath='';
+  }
 }
 function playCard(card){
   if(!card||card.classList.contains('playing')||!card.dataset.embed)return;
-  const f=document.createElement('iframe');f.className='fplayer';f.src=card.dataset.embed;fitPlayer(card,f);f.allow='autoplay; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.setAttribute('title','Player');f.loading='eager';
+  const f=document.createElement('iframe');f.className='fplayer';f.src=card.dataset.embed;fitPlayer(card,f);f.allow='autoplay; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.setAttribute('title',card.dataset.kind==='pin'?'The pin on Pinterest':card.dataset.kind==='ig'?'The post on Instagram':'Player');f.setAttribute('scrolling','no');f.loading='eager';
   card.insertBefore(f,card.firstChild);card.classList.add('playing');
 }
-function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer');if(f)f.remove();card.classList.remove('playing');}
+function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer'), sh=card.querySelector('.fshield');if(f)f.remove();if(sh)sh.style.clipPath='';card.classList.remove('playing');}
 let feedWatch=null;
 function watchFeed(){
   if(feedWatch)feedWatch.disconnect();
@@ -908,8 +945,8 @@ function watchFeed(){
     const c=e.target;
     if(e.intersectionRatio>=.7){
       clearTimeout(c._s);c._s=setTimeout(()=>{if(c.isConnected&&document.visibilityState==='visible')markSeen(Number(c.dataset.id));},900);
-      if(auto&&c.dataset.auto==='1'){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},500);}}
-    else{clearTimeout(c._s);clearTimeout(c._t);stopCard(c);}
+      if(auto&&c.dataset.auto==='1'&&!c.dataset.stopped){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},500);}}
+    else{clearTimeout(c._s);clearTimeout(c._t);stopCard(c);delete c.dataset.stopped;}
   }),{root:w,threshold:[0,.7]});
   w.querySelectorAll('.fcard').forEach(c=>{c.dataset.w='1';feedWatch.observe(c);});
   let tick=0;w.addEventListener('scroll',()=>{if(tick)return;tick=requestAnimationFrame(()=>{tick=0;if(w.scrollHeight-w.scrollTop-w.clientHeight<w.clientHeight*3)growFeed();});},{passive:true});
@@ -1564,7 +1601,7 @@ document.addEventListener('click',async ev=>{
     case 'feed-client':S.feedClient=Number(el.dataset.id)||0;renderFeed();break;
     case 'hand':{const c=el.closest('.fcard');if(!c.classList.contains('playing'))playCard(c);c.classList.add('handed');break;}
     case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
-    case 'play':{const c=el.closest('.fcard');if(c.classList.contains('playing'))stopCard(c);else playCard(c);break;}
+    case 'play':{const c=el.closest('.fcard');if(c.classList.contains('playing')){stopCard(c);c.dataset.stopped='1';}else{delete c.dataset.stopped;playCard(c);}break;}
     case 'autoplay':{const off=read('inspo.autoplay')==='off';store('inspo.autoplay',off?null:'off');toast(off?'Previews will play by themselves':'Previews play only when you tap Play');openAccount();break;}
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
     case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);WIN={};renderIdeas();break;
@@ -1650,6 +1687,7 @@ function openFilters(){
 document.addEventListener('focusin',ev=>{const t=ev.target;if(t.matches&&t.matches('input[type=url],input[inputmode=numeric]')){t.autocapitalize='off';t.spellcheck=false;}});
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&sheetOpen)closeSheet();});
 // A picture that will not load never leaves a torn icon. The card falls back to its words.
+document.addEventListener('load',ev=>{const im=ev.target;if(!im||im.tagName!=='IMG'||!im.classList.contains('fpic'))return;const c=im.closest('.fcard.playing[data-kind="pin"]'), f=c&&c.querySelector('.fplayer');if(f)fitPlayer(c,f);},true);
 document.addEventListener('error',ev=>{
   const im=ev.target;if(!im||im.tagName!=='IMG'||im.closest('.login-card,.brand'))return;
   const fc=im.closest('.fcard'), ic=im.closest('.idea');
