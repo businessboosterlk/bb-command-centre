@@ -369,7 +369,12 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .fhint{display:none;font-size:12px;color:rgba(255,255,255,.6);margin-top:6px}
 .fcard.playing .fhint{display:block}
 /* Touch shield: the platform's player never steals the swipe. One tap hands it the finger. */
-.fshield{position:absolute;left:0;right:0;top:12px;bottom:150px;z-index:2}
+/* The shield is FOUR STRIPS, never one sheet with a hole cut in it. A hole relies on the browser passing a tap
+   through a clipped shape, which Chrome does and which was never seen to work on an iPhone. Four strips around
+   the play button leave a real gap, so the tap reaches the player in every browser there is. */
+.fshield{position:absolute;left:0;right:0;top:12px;bottom:150px;z-index:2;pointer-events:none}
+.fshield i{position:absolute;display:none;pointer-events:auto}
+.fshield i:first-child{display:block;inset:0}
 body.immersive .fshield{top:calc(var(--sat) + 64px)}
 .fcard.handed .fshield{display:none}
 .fcaught{height:100%;scroll-snap-align:start;display:grid;place-items:center;text-align:center;color:var(--text2);padding:24px;background:var(--surface)}
@@ -468,7 +473,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-29 07:59';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-29 08:37';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -879,7 +884,7 @@ function feedCard(l,i){
   const ic=n=>icon(n,2);
   const emb=embedFor(l.url);
   return '<article class="fcard'+(l.image_path?'':' text')+'" data-id="'+l.id+'"'+(emb?' data-embed="'+esc(emb.src)+'" data-auto="'+(emb.auto?'1':'0')+'" data-kind="'+(emb.kind||'video')+'"':'')+'>'+(l.image_path?'<img class="fpic" '+(i===0?'loading="eager" fetchpriority="high"':'loading="lazy"')+' decoding="async" alt="" src="'+esc(SHOTS+l.image_path)+'">':'<div class="fquote"><span class="fp">'+esc(l.platform||'Link')+'</span><div class="fq">'+esc(l.notes||'No note on this one. It was filed before notes were required.')+'</div></div>')+'<div class="fshade"></div>'+
-    (emb?'<div class="fshield" data-act="hand"></div>':'')+
+    (emb?'<div class="fshield">'+'<i data-act="hand"></i>'.repeat(4)+'</div>':'')+
     '<div class="ftext"><div class="fk"><span>'+esc(l.category||'Reference')+'</span>'+(c?'<button class="fclient" data-act="feed-client" data-id="'+c.id+'">'+esc(c.name)+'</button>':'')+(l.strong_by?'<span class="strong">Strong</span>':'')+(used.length?'<span class="used">Used</span>':'')+(l.dead_at?'<span class="dead">Link gone</span>':'')+'</div>'+
     '<h3>'+esc(l.title)+'</h3><div class="fn">'+esc(l.notes||'No note on this one.')+'</div>'+(l.notes&&l.notes.length>140?'<button class="fmore" data-act="fmore">more</button>':'')+
     '<div class="fby">Filed by '+esc(nice(l.added_by))+' · '+ago(l.date_added)+'</div>'+(emb?'<div class="fhint">'+(emb.kind==='ig'?'The post, as Instagram shows it. A video starts on a tap.':emb.kind==='pin'?'The pin, as Pinterest shows it.':'Playing muted. Open for sound.')+'</div>':'')+'</div>'+
@@ -938,11 +943,16 @@ function fitPlayer(card,f){
   }
   f.style.width=Math.round(w)+'px';f.style.height=Math.round(h)+'px';f.style.left=left+'px';f.style.top=y+'px';
   f.classList.toggle('pin',kind==='pin');f.classList.toggle('ig',kind==='ig');
-  // The shield keeps the swipe ours. Over Instagram's play button it has a window, so ONE tap plays the video.
+  // The shield keeps the swipe ours. Around Instagram's play button it leaves a gap, so ONE tap plays the video.
+  // Everything is measured from where the shield really is: it starts lower on a phone than on a desk.
   if(sh){
-    if(kind==='ig'){const cx=left+w/2, cy=(y-top)+IG_HEAD+(w*1.25)/2, a=48, W=r.width, H=Math.max(0,r.height-top-150), p=n=>Math.round(n)+'px';
-      sh.style.clipPath='polygon(evenodd,0 0,'+p(W)+' 0,'+p(W)+' '+p(H)+',0 '+p(H)+',0 0,'+p(cx-a)+' '+p(cy-a)+','+p(cx+a)+' '+p(cy-a)+','+p(cx+a)+' '+p(cy+a)+','+p(cx-a)+' '+p(cy+a)+','+p(cx-a)+' '+p(cy-a)+')';}
-    else sh.style.clipPath='';
+    const strips=[...sh.children], sr=sh.getBoundingClientRect();
+    strips.forEach(x=>x.removeAttribute('style'));
+    if(kind==='ig'&&sr.width&&strips.length===4){
+      const W=sr.width, H=sr.height, cx=r.left+left+w/2-sr.left, cy=r.top+y+IG_HEAD+(w*1.25)/2-sr.top, a=56, px=n=>Math.max(0,Math.round(n))+'px';
+      const x1=Math.max(0,cx-a), x2=Math.min(W,cx+a), y1=Math.max(0,cy-a), y2=Math.min(H,cy+a);
+      [[0,0,W,y1],[0,y2,W,H-y2],[0,y1,x1,y2-y1],[x2,y1,W-x2,y2-y1]].forEach((b,n)=>{strips[n].style.cssText='display:block;inset:auto;left:'+px(b[0])+';top:'+px(b[1])+';width:'+px(b[2])+';height:'+px(b[3]);});
+    }
   }
 }
 function playCard(card){
@@ -953,7 +963,7 @@ function playCard(card){
   f.addEventListener('load',land,{once:true});f._t=setTimeout(land,4000);
   card.classList.add('loading');card.insertBefore(f,card.firstChild);
 }
-function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer'), sh=card.querySelector('.fshield');if(f){clearTimeout(f._t);f.remove();}if(sh)sh.style.clipPath='';card.classList.remove('playing','loading');}
+function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer'), sh=card.querySelector('.fshield');if(f){clearTimeout(f._t);f.remove();}if(sh)[...sh.children].forEach(x=>x.removeAttribute('style'));card.classList.remove('playing','loading');}
 // The next card's platform is dialled while this card is being looked at, so its player starts a step ahead.
 const dialled=new Set();
 function dialNext(card){
