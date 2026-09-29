@@ -357,7 +357,9 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px}
 .fwho{display:none}
 @media(max-width:1023px){body.immersive .fwho{display:grid}}
 /* PLAYERS. The platform's own player, muted, while the card is on screen. */
-.fplayer{position:absolute;border:0;background:#000;border-radius:10px}
+.fplayer{position:absolute;border:0;background:#000;border-radius:10px;transition:opacity .18s}
+.fplayer.arriving{opacity:0;pointer-events:none}
+@media(prefers-reduced-motion:reduce){.fplayer{transition:none}}
 .fplayer.pin{background:transparent;border-radius:0;color-scheme:light}
 .fplayer.ig{background:#fff;color-scheme:light}
 .fcard.playing .fpic,.fcard.playing .fquote{visibility:hidden}
@@ -466,7 +468,7 @@ const SUPA_URL='https://yyviiwnqgphyklcoijyd.supabase.co';
 // service key is ever in this file. PINs are hashed in the database and checked there.
 const SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5dmlpd25xZ3BoeWtsY29panlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjE5OTEsImV4cCI6MjA5MTI5Nzk5MX0.I8YiBr-rfLVcc6DE8Z1PxEP2oxXCelv6mxqAY_wY7lc';
 const SHOTS=SUPA_URL+'/storage/v1/object/public/inspo-shots/';
-const BUILD='2026-09-28 20:25';   // the app compares this with inspo-version.json and reloads itself
+const BUILD='2026-09-29 07:59';   // the app compares this with inspo-version.json and reloads itself
 const TOKEN_KEY='inspo.token', LAST_KEY='inspo.last', VIEW_KEY='inspo.ideasView', NAME_KEY='inspo.lastName', SEEN_KEY='inspo.lastSeenId', SEENIDS_KEY='inspo.seenIds', CACHE_KEY='inspo.cache.v1';
 // FIRST is what the first screen needs. PAGE is the most the database hands over in one answer (1,000),
 // so everything is read in pages and nothing is silently cut off. STEP is how many cards a list draws at a time.
@@ -557,7 +559,9 @@ function reindex(){
   S.plays.forEach(p=>{const a=IDX.plays.get(p.inspo_link_id);if(a)a.push(p);else IDX.plays.set(p.inspo_link_id,[p]);});
 }
 // The first thirty ideas arrive first so the feed can open. The rest of the shelf follows behind it.
+let firstDone=false, onFirstPage=null;
 async function loadAll(onFirst){
+  firstDone=false;if(onFirst)onFirstPage=onFirst;
   const [first,plays,clients,people,settings]=await Promise.all([
     get(LINK_Q+NEWEST+'&limit='+FIRST),getAll(PLAY_Q+PLAYED),
     get('clients?select=id,name,industry,assigned_smm&status=eq.active&order=name.asc'),
@@ -565,7 +569,7 @@ async function loadAll(onFirst){
   S.links=first||[];S.plays=plays||[];S.clients=clients||[];S.people=people||[];S.settings=settings||{};
   S.stale=false;S.cacheAt=0;S.ready=S.links.length<FIRST;reindex();saveCache();loadedAt=Date.now();
   if(S.ready)return;
-  if(onFirst)onFirst();
+  firstDone=true;if(onFirstPage)onFirstPage();
   const rest=await getAll(LINK_Q+NEWEST,FIRST), have=new Set(S.links.map(l=>l.id));
   S.links=S.links.concat(rest.filter(l=>!have.has(l.id))).sort(byNewest);S.ready=true;reindex();loadedAt=Date.now();
 }
@@ -603,6 +607,8 @@ async function refreshLinks(ids){
   reindex();saveCache();
 }
 async function after(ids){try{await refreshLinks(ids);}catch(e){try{await loadAll();}catch(e2){}}}
+// A change the database refused is put back where it was, the screen is redrawn and the person is told why.
+function putBack(undo,id,why){undo();reindex();saveCache();if(sheetOpen&&$('sheet').querySelector('[data-act="use"][data-id="'+id+'"]')){dirty=id;openDetail(id);}else if(sheetOpen)dirty=id;else patch(id);toast(why,true);}
 function dropLocal(id){S.links=S.links.filter(l=>l.id!==id);S.plays=S.plays.filter(p=>p.inspo_link_id!==id);reindex();saveCache();}
 // The last safe shelf is kept on this phone so the hub opens at once and checks for news behind it.
 // It is this person's view only and signing out removes it.
@@ -683,7 +689,7 @@ window.addEventListener('hashchange',()=>{WIN={};if(S.me&&!sheetOpen)route();});
 // An installed app keeps the first copy of a page for ever unless it is told otherwise. So the hub asks
 // the server for one small file that holds the live build stamp, and reloads itself once when it differs.
 // The page itself is never downloaded a second time just to read one line of it.
-let freshAt=0;
+let freshAt=0, pending=null;
 async function freshen(){
   try{
     if(location.search&&/url=|text=|title=/.test(location.search))return;   // a shared link is being handed in
@@ -720,11 +726,14 @@ async function boot(){
   const c=readCache();
   if(c){S.me=c.me;S.links=c.links;S.plays=c.plays||[];S.clients=c.clients||[];S.people=c.people||[];S.settings=c.settings||{};S.cacheAt=c.at;S.ready=false;reindex();showShell();route();}
   else{$('gate').hidden=true;$('app').hidden=false;$('bar').hidden=false;$('bar').inert=true;$('view').innerHTML=skeleton();}
+  // The database is a long way away. Asking who this is and asking for the shelf in the SAME moment saves a whole
+  // trip there and back. The shelf is only SHOWN once the session is known to be good.
+  pending=loadAll();pending.catch(()=>{});
   let me=null;
   try{me=await rpc('inspo_me',{p_token:S.token});}
   catch(e){if(c){S.stale=true;redraw();toast('No connection. Showing the shelf as this phone last saw it',true);return;}return gateError(e);}
   if(me&&me.ok){S.me=me;return enter(!!c);}
-  forget();showGate();
+  pending=null;forget();showGate();
 }
 function gateError(e){
   $('app').hidden=true;$('bar').hidden=true;$('side').hidden=true;$('gate').hidden=false;
@@ -799,14 +808,20 @@ async function enter(painted){
   showShell();
   if(painted!==true)$('view').innerHTML=skeleton();
   let drawn=painted===true;
-  try{await loadAll(()=>{if(drawn)redraw();else{drawn=true;route();}});}
+  const first=()=>{if(drawn)redraw();else{drawn=true;route();}}, was=pending;pending=null;
+  try{
+    if(was){onFirstPage=first;if(firstDone&&!S.ready)first();await was;}
+    else await loadAll(first);
+    onFirstPage=null;saveCache();
+  }
   catch(e){
     if(painted===true){S.stale=true;redraw();toast('No connection. Showing the shelf as this phone last saw it',true);return;}
     document.body.classList.remove('immersive');$('app').classList.remove('feedmode');
     $('view').innerHTML='<div class="card empty"><b>The shelf did not load</b>Check your connection and try again.<p class="help">'+esc(e.message||e)+'</p><div class="actions"><button class="btn primary" data-act="reload">Try again</button></div></div>';return;}
   if(drawn)redraw();else route();
   if(S.intake){const u=S.intake;S.intake=null;try{sessionStorage.removeItem(INTAKE_KEY);}catch(e){}if(sheetOpen)hideSheet();openFile({url:u});}
-  if(!DESK.matches){[400,2500].forEach(t=>setTimeout(sendDiag,t));}
+  const day=new Date().toISOString().slice(0,10);
+  if(!DESK.matches&&read('inspo.diagDay')!==day+'|'+BUILD){store('inspo.diagDay',day+'|'+BUILD);setTimeout(sendDiag,2500);}
 }
 // Draw again without moving the person: the feed keeps its card, a page keeps its place, a sheet is left alone.
 function redraw(){
@@ -931,11 +946,22 @@ function fitPlayer(card,f){
   }
 }
 function playCard(card){
-  if(!card||card.classList.contains('playing')||!card.dataset.embed)return;
-  const f=document.createElement('iframe');f.className='fplayer';f.src=card.dataset.embed;fitPlayer(card,f);f.allow='autoplay; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.setAttribute('title',card.dataset.kind==='pin'?'The pin on Pinterest':card.dataset.kind==='ig'?'The post on Instagram':'Player');f.setAttribute('scrolling','no');f.loading='eager';
-  card.insertBefore(f,card.firstChild);card.classList.add('playing');
+  if(!card||card.querySelector('.fplayer')||!card.dataset.embed)return;
+  const f=document.createElement('iframe');f.className='fplayer arriving';f.src=card.dataset.embed;fitPlayer(card,f);f.allow='autoplay; encrypted-media; picture-in-picture';f.setAttribute('allowfullscreen','');f.setAttribute('title',card.dataset.kind==='pin'?'The pin on Pinterest':card.dataset.kind==='ig'?'The post on Instagram':'Player');f.setAttribute('scrolling','no');f.loading='eager';
+  // Our picture and our words stay on screen while the platform's player is on its way. They hand over when it lands.
+  const land=()=>{clearTimeout(f._t);if(!f.isConnected)return;f.classList.remove('arriving');card.classList.remove('loading');card.classList.add('playing');};
+  f.addEventListener('load',land,{once:true});f._t=setTimeout(land,4000);
+  card.classList.add('loading');card.insertBefore(f,card.firstChild);
 }
-function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer'), sh=card.querySelector('.fshield');if(f)f.remove();if(sh)sh.style.clipPath='';card.classList.remove('playing');}
+function stopCard(card){if(!card)return;const f=card.querySelector('.fplayer'), sh=card.querySelector('.fshield');if(f){clearTimeout(f._t);f.remove();}if(sh)sh.style.clipPath='';card.classList.remove('playing','loading');}
+// The next card's platform is dialled while this card is being looked at, so its player starts a step ahead.
+const dialled=new Set();
+function dialNext(card){
+  let n=card.nextElementSibling;while(n&&!n.classList.contains('fcard'))n=n.nextElementSibling;
+  if(!n||!n.dataset.embed)return;let o='';try{o=new URL(n.dataset.embed).origin;}catch(e){return;}
+  if(dialled.has(o))return;dialled.add(o);
+  const l=document.createElement('link');l.rel='preconnect';l.href=o;l.crossOrigin='anonymous';document.head.appendChild(l);
+}
 let feedWatch=null;
 function watchFeed(){
   if(feedWatch)feedWatch.disconnect();
@@ -944,8 +970,8 @@ function watchFeed(){
   feedWatch=new IntersectionObserver(es=>es.forEach(e=>{
     const c=e.target;
     if(e.intersectionRatio>=.7){
-      clearTimeout(c._s);c._s=setTimeout(()=>{if(c.isConnected&&document.visibilityState==='visible')markSeen(Number(c.dataset.id));},900);
-      if(auto&&c.dataset.auto==='1'&&!c.dataset.stopped){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},500);}}
+      clearTimeout(c._s);c._s=setTimeout(()=>{if(c.isConnected&&document.visibilityState==='visible')markSeen(Number(c.dataset.id));},900);dialNext(c);
+      if(auto&&c.dataset.auto==='1'&&!c.dataset.stopped){clearTimeout(c._t);c._t=setTimeout(()=>{if(c.isConnected)playCard(c);},350);}}
     else{clearTimeout(c._s);clearTimeout(c._t);stopCard(c);delete c.dataset.stopped;}
   }),{root:w,threshold:[0,.7]});
   w.querySelectorAll('.fcard').forEach(c=>{c.dataset.w='1';feedWatch.observe(c);});
@@ -1233,6 +1259,8 @@ async function clipLink(){
   }
   return c.readText?firstUrl(await c.readText()):'';
 }
+let wokeAt=0;
+function wake(){if(Date.now()-wokeAt<240000||!S.token)return;wokeAt=Date.now();api('/functions/v1/inspo-unfurl',{method:'POST',body:JSON.stringify({token:S.token,ping:true})}).catch(()=>{});}
 async function autoPaste(){
   const box=$('f-url');
   if(!box||box.value.trim()||!draft||draft.id||!navigator.clipboard)return;
@@ -1281,7 +1309,7 @@ function openFile(pre){
   $('f-shot').onchange=ev=>{const f=ev.target.files[0];if(f)uploadShot(f);};
   $('file-form').onsubmit=ev=>{ev.preventDefault();saveFile();};
   if(draft.image_path)showPreview(draft.title,'Picture saved');
-  askFor();
+  askFor();wake();
   if(!ed)$('file-form').addEventListener('input',keepDraft);
   if(!ed&&pre.url)unfurl(pre.url);else if(kept&&kept.url)unfurl(kept.url);
 }
@@ -1353,8 +1381,11 @@ async function saveFile(){
       return say({note:'Add a note before you file it.',url:'Paste the full link, starting with https.',kind:'Your seat cannot file that kind. Pick another or use Reference.',client:'That client is not active any more. Pick another.',not_yours:'Only the person who filed an idea can change it.',change_pin:'Choose your own PIN first.'}[r.why]||'The hub refused that. Try again.');}
     const secs=Math.round((Date.now()-fileT0)/1000), wasEdit=!!draft.id;
     store(LAST_KEY,{kind,client});if(!wasEdit)store(DRAFT_KEY,null);
-    await after([r.id]);
-    closeSheet(()=>{if(wasEdit)patch(Number(r.id));else route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
+    const nid=Number(r.id), old=S.links.find(l=>l.id===nid);
+    const row=Object.assign({id:nid,title:draft.title||platformOf(url)+' '+String(kind||'link').toLowerCase(),added_by:S.me.name,date_added:new Date().toISOString(),strong_by:null,dead_at:null},old||{},{url,notes:note,category:kind,platform:platformOf(url),client_id:client?Number(client):null,language:lang||null,image_path:draft.image_path||(old&&old.image_path)||null});
+    S.links=S.links.filter(l=>l.id!==nid).concat([row]).sort(byNewest);reindex();saveCache();
+    closeSheet(()=>{if(wasEdit)patch(nid);else route();toast(wasEdit?'Changes saved':'Filed in '+secs+' seconds');});
+    after([nid]).then(()=>{if(!sheetOpen)patch(nid);});
   }catch(e){btn.disabled=false;say('It did not save: '+esc(e.message||e));}
 }
 
@@ -1380,8 +1411,10 @@ async function dragEnd(){
   if(d.over==='used')return openUse(d.id);
   const mine=playsOf(d.id).filter(p=>up(p.logged_by||'')===up(S.me.name)||S.me.is_admin), others=playsOf(d.id).length-mine.length;
   if(!mine.length)return toast('Only the person who marked it used can undo that',true);
-  for(const p of mine){await rpc('inspo_unmark_used',{p_token:S.token,p_play:p.id}).catch(()=>null);}
-  await after([d.id]);renderIdeas();toast(others?'Undone. Somebody else also marked it used, so it stays in Used':'Moved back to not used');
+  const real=mine.filter(p=>p.id>0);if(!real.length)return toast('Still saving that mark. Try again in a moment',true);
+  S.plays=S.plays.filter(p=>!real.includes(p));reindex();saveCache();renderIdeas();
+  Promise.all(real.map(p=>rpc('inspo_unmark_used',{p_token:S.token,p_play:p.id}).then(r=>{if(!r||!r.ok)throw 0;}))).catch(()=>after([d.id]).then(()=>{renderIdeas();toast('Could not move it back. It is still marked used',true);}));
+  toast(others?'Undone. Somebody else also marked it used, so it stays in Used':'Moved back to not used');
 }
 let pressT=null, pressAt=null;
 document.addEventListener('pointerdown',ev=>{
@@ -1472,16 +1505,20 @@ async function bulkSave(){
   bulk.saving=true;$('b-save').disabled=true;let ok=0,dup=0,bad=0;const filed=[];
   // A picture that arrives after its idea was filed belongs to nobody. Let the reading finish first, ten seconds at most.
   if(bulk.job){$('b-save').textContent='Reading the last links';await Promise.race([bulk.job.catch(()=>{}),new Promise(r=>setTimeout(r,10000))]);}
-  for(const r of todo){
-    $('b-save').textContent='Filing '+(ok+dup+bad+1)+' of '+todo.length;
+  // Four at a time. One after another, forty links would take forty trips to the database and back.
+  let out=false;const queue=todo.slice(), one=async r=>{
     try{
       const a=await rpc('inspo_save_link',{p_token:S.token,p:{id:'',url:r.url,notes:r.note.trim(),title:r.title||'',category:bulk.kind,client_id:bulk.client,platform:platformOf(r.url),language:bulk.lang,image_path:r.image_path||''}});
       if(a.ok){r.state='ok';r.msg='Filed';ok++;filed.push(a.id);}
       else if(a.why==='duplicate'){r.state='dup';r.msg='Already on the shelf, filed by '+nice(a.existing.added_by);dup++;dropShot(r.image_path);r.image_path='';}
-      else if(a.why==='session'){bulk.saving=false;return signOut();}
+      else if(a.why==='session'){out=true;}
       else{r.state='bad';r.msg={kind:'Your seat cannot file that kind',client:'That client is not active any more',url:'That is not a full link'}[a.why]||'The hub refused this one';bad++;}
     }catch(e){r.state='bad';r.msg='It did not save. Try again';bad++;}
-  }
+    if($('b-save'))$('b-save').textContent='Filed '+(ok+dup+bad)+' of '+todo.length;
+  };
+  $('b-save').textContent='Filing '+todo.length+(todo.length===1?' idea':' ideas');
+  await Promise.all([0,1,2,3].map(async()=>{while(queue.length&&!out)await one(queue.shift());}));
+  if(out){bulk.saving=false;return signOut();}
   bulk.saving=false;store(LAST_KEY,{kind:bulk.kind,client:bulk.client});
   await after(filed);dirty=true;
   if(!dup&&!bad)return closeSheet(()=>{route();toast('Filed '+ok+(ok===1?' idea':' ideas'));});
@@ -1501,7 +1538,7 @@ function openDetail(id){
     (l.image_path?'<img class="detail-pic" alt="" src="'+esc(SHOTS+l.image_path)+'">':'')+
     '<p class="kv">'+(l.notes?esc(l.notes):'No note. This was filed before notes were required.')+'</p>'+
     '<p class="kv"><b>'+esc(c?c.name:'No client')+'</b> · filed by '+esc(nice(l.added_by))+' on '+fmtDate(l.date_added)+'</p>'+
-    (used.length?'<p class="kv">'+used.map(p=>{const pc=clientById(p.client_id);return 'Used for <b>'+esc(pc?pc.name:'a client')+'</b> in '+esc(fmtMonth(p.date_posted))+(p.logged_by&&(up(p.logged_by)===up(S.me.name)||S.me.is_admin)?' <button class="btn quiet" style="display:inline-flex;width:auto;min-height:44px" data-act="unuse" data-play="'+p.id+'" data-id="'+id+'">Undo</button>':'');}).join('<br>')+'</p>':'')+
+    (used.length?'<p class="kv">'+used.map(p=>{const pc=clientById(p.client_id);return 'Used for <b>'+esc(pc?pc.name:'a client')+'</b> in '+esc(fmtMonth(p.date_posted))+(p.id>0&&p.logged_by&&(up(p.logged_by)===up(S.me.name)||S.me.is_admin)?' <button class="btn quiet" style="display:inline-flex;width:auto;min-height:44px" data-act="unuse" data-play="'+p.id+'" data-id="'+id+'">Undo</button>':'');}).join('<br>')+'</p>':'')+
     '<div class="actions"><a class="btn primary" href="'+esc(l.url)+'" target="_blank" rel="noopener noreferrer">Open the link</a>'+
     '<button class="btn" data-act="use" data-id="'+id+'">Mark used</button>'+
     (canEdit?'<button class="btn" data-act="edit" data-id="'+id+'">Edit</button>':'<button class="btn" data-act="go" data-hash="#shelf/'+(l.client_id||'')+'"'+(c?'':' disabled')+'>See the shelf</button>')+
@@ -1599,9 +1636,9 @@ document.addEventListener('click',async ev=>{
       closeSheet(()=>{const h=(location.hash||'').slice(1);if(h==='ideas')renderIdeas();else if(h===''||h==='feed')renderFeed();else location.hash='#feed';});break;}
     case 'feed-top':renderFeed();break;
     case 'feed-client':S.feedClient=Number(el.dataset.id)||0;renderFeed();break;
-    case 'hand':{const c=el.closest('.fcard');if(!c.classList.contains('playing'))playCard(c);c.classList.add('handed');break;}
+    case 'hand':{const c=el.closest('.fcard');if(!c.querySelector('.fplayer'))playCard(c);c.classList.add('handed');break;}
     case 'fmore':{const c=el.closest('.fcard');c.classList.toggle('open');el.textContent=c.classList.contains('open')?'less':'more';break;}
-    case 'play':{const c=el.closest('.fcard');if(c.classList.contains('playing')){stopCard(c);c.dataset.stopped='1';}else{delete c.dataset.stopped;playCard(c);}break;}
+    case 'play':{const c=el.closest('.fcard');if(c.querySelector('.fplayer')){stopCard(c);c.dataset.stopped='1';}else{delete c.dataset.stopped;playCard(c);}break;}
     case 'autoplay':{const off=read('inspo.autoplay')==='off';store('inspo.autoplay',off?null:'off');toast(off?'Previews will play by themselves':'Previews play only when you tap Play');openAccount();break;}
     case 'shelf-kind':S.shelfKind=el.dataset.kind;route();break;
     case 'view':S.ideasView=el.dataset.v;store(VIEW_KEY,S.ideasView);WIN={};renderIdeas();break;
@@ -1609,9 +1646,12 @@ document.addEventListener('click',async ev=>{
     case 'pick-client':{$('f-client').value=el.dataset.id;el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c===el));keepDraft();break;}
     case 'qnote':{const t=$('f-note'),v=t.value.trim();t.value=(v?v+'\n':'')+el.dataset.q+': ';t.focus();t.setSelectionRange(t.value.length,t.value.length);keepDraft();break;}
     case 'append-note':{const note=$('f-note').value.trim();if(!note){toast('Write your note first, then add it',true);break;}
+      el.disabled=true;
       const r=await rpc('inspo_append_note',{p_token:S.token,p_id:id,p_note:note}).catch(()=>null);
-      if(!r||!r.ok){toast('Could not add your note',true);break;}
-      dropShot(draft&&draft.image_path);draft=null;store(DRAFT_KEY,null);await after([id]);closeSheet(()=>{patch(id);toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});break;}
+      if(!r||!r.ok){el.disabled=false;toast('Could not add your note',true);break;}
+      dropShot(draft&&draft.image_path);draft=null;store(DRAFT_KEY,null);
+      closeSheet(()=>{patch(id);toast('Your note is on the idea '+esc(nice(S.links.find(l=>l.id===id)?S.links.find(l=>l.id===id).added_by:''))+' filed');});
+      after([id]).then(()=>{if(!sheetOpen)patch(id);});break;}
     case 'pick-kind':case 'pick-lang':{const was=el.classList.contains('on');el.parentNode.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));if(act==='pick-kind'||!was)el.classList.add('on');if(act==='pick-kind'&&draft&&$('file-form')){draft.kindTouched=true;askFor();}keepDraft();break;}
     case 'fresh':store(DRAFT_KEY,null);openFile({fresh:true});autoPaste();break;
     case 'share-help':openShareHelp();break;
@@ -1619,20 +1659,32 @@ document.addEventListener('click',async ev=>{
     case 'paste':try{const u=await clipLink();if(u){$('f-url').value=u;unfurl(u);keepDraft();}else toast('There is no link on the clipboard',true);}catch(e){toast('Your phone would not share the clipboard. Press and hold in the box to paste',true);}break;
     case 'see-existing':openDetail(id);break;
     case 'use-save':{el.disabled=true;
-      const r=await rpc('inspo_mark_used',{p_token:S.token,p_link:id,p_client:Number($('u-client').value),p_month:$('u-month').value,p_note:''}).catch(()=>null);
-      if(!r||!r.ok){el.disabled=false;toast('It did not save',true);break;}
-      await after([id]);closeSheet(()=>{patch(id);toast('Marked used');});break;}
-    case 'unuse':{const r=await rpc('inspo_unmark_used',{p_token:S.token,p_play:Number(el.dataset.play)}).catch(()=>null);
-      if(!r||!r.ok){toast('Could not undo that',true);break;}await after([id]);dirty=id;openDetail(id);toast('Undone');break;}
-    case 'strong':{const r=await rpc('inspo_mark_strong',{p_token:S.token,p_link:id,p_on:el.dataset.on==='1'}).catch(()=>null);
-      if(!r||!r.ok){toast(r&&r.why==='own'?'Somebody else has to mark your own idea strong':'Only heads can mark an idea strong',true);break;}
-      await after([id]);if(sheetOpen){dirty=id;openDetail(id);}else patch(id);break;}
+      const client=Number($('u-client').value), month=$('u-month').value;
+      const mark={id:-Date.now(),inspo_link_id:id,client_id:client,date_posted:month+'-01',notes:null,logged_by:S.me.name,created_at:new Date().toISOString()};
+      S.plays.unshift(mark);reindex();saveCache();
+      closeSheet(()=>{patch(id);toast('Marked used');});
+      rpc('inspo_mark_used',{p_token:S.token,p_link:id,p_client:client,p_month:month,p_note:''}).then(r=>{if(!r||!r.ok)throw 0;mark.id=r.id;saveCache();if(!sheetOpen)patch(id);})
+        .catch(()=>putBack(()=>{S.plays=S.plays.filter(p=>p!==mark);},id,'Marking it used did not save. Try again'));
+      break;}
+    case 'unuse':{const pid=Number(el.dataset.play), gone=S.plays.find(p=>p.id===pid);if(!gone)break;
+      S.plays=S.plays.filter(p=>p!==gone);reindex();saveCache();dirty=id;openDetail(id);toast('Undone');
+      rpc('inspo_unmark_used',{p_token:S.token,p_play:pid}).then(r=>{if(!r||!r.ok)throw 0;})
+        .catch(()=>putBack(()=>{S.plays.unshift(gone);},id,'Could not undo that. It is still marked used'));
+      break;}
+    case 'strong':{const l=S.links.find(x=>x.id===id);if(!l)break;
+      if(up(l.added_by)===up(S.me.name)){toast('Somebody else has to mark your own idea strong',true);break;}
+      if(!(S.me.is_head||S.me.seat==='owner')){toast('Only heads can mark an idea strong',true);break;}
+      const was=l.strong_by, on=el.dataset.on==='1';
+      l.strong_by=on?S.me.name:null;saveCache();if(sheetOpen){dirty=id;openDetail(id);}else patch(id);
+      rpc('inspo_mark_strong',{p_token:S.token,p_link:id,p_on:on}).then(r=>{if(!r||!r.ok)throw r;})
+        .catch(r=>putBack(()=>{l.strong_by=was;},id,r&&r.why==='own'?'Somebody else has to mark your own idea strong':r&&r.why?'Only heads can mark an idea strong':'The strong mark did not save. Try again'));
+      break;}
     case 'del':{if(!confirm('Delete this idea for everyone?'))break;
-      const gone=(S.links.find(x=>x.id===id)||{}).image_path;
-      const r=await rpc('inspo_delete_link',{p_token:S.token,p_id:id}).catch(()=>null);
-      if(!r||!r.ok){toast('Could not delete that',true);break;}
-      dropShot(gone);
-      dropLocal(id);closeSheet(()=>{patch(id);toast('Deleted');});break;}
+      const l=S.links.find(x=>x.id===id), marks=S.plays.filter(p=>p.inspo_link_id===id);if(!l)break;
+      dropLocal(id);closeSheet(()=>{patch(id);toast('Deleted');});
+      rpc('inspo_delete_link',{p_token:S.token,p_id:id}).then(r=>{if(!r||!r.ok)throw 0;dropShot(l.image_path);})
+        .catch(()=>putBack(()=>{S.links.push(l);S.links.sort(byNewest);S.plays=S.plays.concat(marks);},id,'Could not delete that. It is back on the shelf'));
+      break;}
     case 'copy-plan':try{await navigator.clipboard.writeText($('plan-text').textContent);toast('Copied');}catch(e){toast('Press and hold the text to copy it',true);}break;
     case 'step':{const box=el.closest('.stepper'), key=box.dataset.key, v=Math.max(0,Math.min(20,Number(setting(key,3))+Number(el.dataset.d)));
       box.querySelector('.v').textContent=v;await saveSetting(key,v);dirty=true;openAdmin();break;}
