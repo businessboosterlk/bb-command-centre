@@ -15788,7 +15788,11 @@ var BBSET=(function(){
     'OK':            {bg:'rgba(34,197,94,.12)',  fg:'#22c55e', label:'Getting alerts'},
     'NOT REACHABLE': {bg:'rgba(239,68,68,.12)',  fg:'#ef4444', label:'No phone set up'},
     'NEVER DELIVERED':{bg:'rgba(239,68,68,.12)', fg:'#ef4444', label:'Never delivered'},
-    'GONE QUIET':    {bg:'rgba(245,158,11,.12)', fg:'#f59e0b', label:'Gone quiet'}
+    'GONE QUIET':    {bg:'rgba(245,158,11,.12)', fg:'#f59e0b', label:'Gone quiet'},
+    /* A laptop only rings while the browser is open, so it cannot carry an alert
+       to somebody away from their desk. Added 2026-09-29 with the phone filter
+       the reach view had lost (L-PUSH-010, lost again through L-PUSH-004). */
+    'DESKTOP ONLY':  {bg:'rgba(245,158,11,.12)', fg:'#f59e0b', label:'Laptop only, no phone'}
   };
   function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function ago(iso){
