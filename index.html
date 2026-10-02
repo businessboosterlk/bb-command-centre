@@ -1320,9 +1320,61 @@ td:last-child{padding-right:18px;text-align:right}
 .fin-stat-val{font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.02em;margin:5px 0 3px}
 .fin-stat-note{font-size:10px;color:var(--text-3)}
 .fin-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+/* Stacked money sections. NO overflow:hidden on the card: it would clip the
+   rounded corners and silently break position:sticky on the header, which is
+   the whole point of this layout. The header carries the radius instead. */
+.fin-stack{display:flex;flex-direction:column;gap:18px}
+/* WHY STICKY FAILED, measured 2 Oct: two .content wrappers above this page are
+   overflow:auto. Any overflow other than visible makes that box the container a
+   sticky element sticks within, and these boxes never scroll themselves (the
+   document does), so the header scrolled away with its rows. overflow-x:clip
+   still stops wide content pushing the page sideways but, unlike auto or
+   hidden, it does NOT create a scroll container, so sticky works again.
+   Scoped to Finance on purpose: changing .content everywhere is a different
+   job with a different blast radius. */
+#page-finance .content{overflow-x:clip;overflow-y:visible}
+/* The OUTER .content wraps every page, so it is only relaxed while Finance is
+   the page on screen. html[data-page] is set by the showPage wrapper below.
+   Measured first: main already clips sideways, so nothing on any other page
+   can change, and this page's own rows wrap rather than run wide. */
+html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
+.fin-sect{padding:0}
+.fin-sect-head{position:sticky;top:var(--fin-sticky-top,0px);z-index:3;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 18px;background:var(--surface);border-bottom:1px solid var(--border);border-radius:var(--r) var(--r) 0 0}
+.fin-sect-name{font-size:13px;font-weight:800;color:var(--text)}
+.fin-sect-name span{font-size:11px;font-weight:600;color:var(--text-3);margin-left:6px}
+.fin-sect-total{font-size:11px;color:var(--text-3);margin-top:2px}
+.fin-sect-total b{color:var(--text);font-weight:800}
+.fin-sect-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.fin-pills{display:inline-flex;border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.fin-pills button{background:none;border:0;color:var(--text-2);padding:6px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;min-height:32px}
+.fin-pills button.on{background:var(--accent-soft);color:var(--accent)}
+.fin-grp{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)}
+.fin-grp-name{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.fin-grp-sum{font-size:13px;font-weight:800}
+.fin-grp-sum span{font-size:10.5px;font-weight:600;color:var(--text-3);margin-left:4px}
+.fin-empty-grp{padding:14px 18px;font-size:12px;color:var(--text-3)}
+/* A thumb needs 44px. A mouse does not, so the desk keeps the compact pill.
+   Measured at 32px on a 375px phone before this. */
+@media (pointer:coarse){ .fin-pills button{min-height:44px;padding:0 14px} }
+@media (max-width:640px){
+  .fin-sect-head{padding:10px 14px;gap:8px}
+  .fin-sect-tools{width:100%;justify-content:space-between}
+  /* ONE ROW CANNOT HOLD SEVEN THINGS AT 375px. Name, note, amount, status and
+     four buttons were squeezed into one line, so the name column collapsed to
+     nothing: the name and the amount were drawn on top of each other, the note
+     wrapped a word per line, and Edit ran off the right edge. On a phone the
+     row now wraps: who and what on the first line at full width, then the
+     amount, the status and the buttons underneath. */
+  .fin-inv-row,.fin-cost-row{flex-wrap:wrap;row-gap:8px;padding:12px 14px}
+  .fin-inv-row > :first-child,.fin-cost-row > :first-child{flex:1 1 100%;min-width:0}
+  .fin-inv-row > :last-child,.fin-cost-row > :last-child{flex-wrap:wrap;margin-left:auto}
+}
 .fin-inv-row{display:flex;align-items:flex-start;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
 .fin-inv-row:last-child{border-bottom:none}
-.fin-extras-breakdown{margin-top:5px;padding:5px 10px;background:var(--surface-2);border-left:2px solid var(--border-strong);border-radius:0 var(--r-sm) var(--r-sm) 0}
+.fin-extras-breakdown{margin-top:5px;padding:5px 10px;background:var(--surface-2);border-left:2px solid var(--border-strong);border-radius:0 var(--r-sm) var(--r-sm) 0;max-width:340px}
+/* Each extra is a label and an amount on ONE line. The box shrank to its
+   widest word, so "+ UMANADA" and "LKR 10,000" fell onto separate lines. */
+.fin-extras-breakdown > div{gap:12px;white-space:nowrap}
 .fin-cost-row{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border)}
 .fin-cost-row:last-child{border-bottom:none}
 .fin-extra-input-row{display:flex;gap:7px;align-items:center;margin-bottom:6px}
@@ -2621,11 +2673,18 @@ window.__ST_LOG=[];
         <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--red-soft);border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px">
             <span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;box-shadow:0 0 6px var(--red)"></span>
-            <span style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Overdue / Delayed Payments</span>
+            <span style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em">Overdue <span id="fin-delayed-count" style="font-weight:600;color:var(--text-3);text-transform:none;letter-spacing:0"></span></span>
           </div>
-          <span style="font-size:12px;font-weight:800;color:var(--red)" id="fin-delayed-total">LKR 0</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:12px;font-weight:800;color:var(--red)" id="fin-delayed-total">LKR 0</span>
+            <button type="button" id="fin-delayed-toggle" class="btn-ghost btn-sm" style="font-size:11px" onclick="finToggleOverdue()">Show</button>
+          </div>
         </div>
-        <div id="fin-delayed-list"></div>
+        <!-- FOLDED BY DEFAULT. This list listed every unpaid invoice in every month
+             and ran to 4,137 pixels, so the invoices themselves started about eight
+             screens down the page. The total and the ageing strip are the part that
+             matters at a glance; the rows are one tap away. -->
+        <div id="fin-delayed-list" style="display:none"></div>
       </div>
     </div>
 
@@ -2655,35 +2714,50 @@ window.__ST_LOG=[];
     </div>
 
     <!-- Monthly View -->
+    <!-- MONEY IN ON TOP, MONEY OUT UNDERNEATH (2 Oct 2026).
+         These were two columns side by side, each its own 500px scrolling box
+         with its filter at the top of the box. Scroll inside a box and the
+         filter was gone, so every change of view meant scrolling back up, on a
+         page that was already scrolling. Thulaib: "I have to always go up to
+         filter. It's so confusing." Now one column, the page scrolls once, the
+         lists are already grouped so filtering is optional, and each section
+         header stays on screen while you read its rows. -->
     <div id="fin-monthly-view">
-      <div class="fin-two-col">
-        <!-- Invoices -->
-        <div class="card" style="padding:0;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border)">
-            <div>
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2)">Payments to Receive</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px">Total: <span id="fin-inv-total" style="color:var(--text);font-weight:700">LKR 0</span></div>
+      <div class="fin-stack">
+        <section class="card fin-sect" id="fin-sect-in">
+          <div class="fin-sect-head">
+            <div class="fin-sect-title">
+              <div class="fin-sect-name">Invoices <span>money coming in</span></div>
+              <div class="fin-sect-total">Total <b id="fin-inv-total">LKR 0</b></div>
             </div>
-            <div style="display:flex;gap:6px;align-items:center">
-              <select class="form-select" style="font-size:11px;padding:4px 8px;width:auto" onchange="finInvFilter=this.value;renderFinancePage()">
-                <option value="">All</option><option value="paid">Paid</option><option value="unpaid">Pending</option><option value="overdue">Overdue</option>
-              </select>
-              <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+</button>
+            <div class="fin-sect-tools">
+              <div class="fin-pills" id="fin-inv-pills">
+                <button type="button" data-f="" onclick="finSetInvFilter('')">All</button>
+                <button type="button" data-f="due" onclick="finSetInvFilter('due')">To collect</button>
+                <button type="button" data-f="paid" onclick="finSetInvFilter('paid')">Collected</button>
+              </div>
+              <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+ Invoice</button>
             </div>
           </div>
-          <div id="fin-invoice-list" style="max-height:500px;overflow-y:auto"></div>
-        </div>
-        <!-- Costs -->
-        <div class="card" style="padding:0;overflow:hidden">
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--border)">
-            <div>
-              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-2)">Costs & Expenses</div>
-              <div style="font-size:10px;color:var(--text-3);margin-top:2px">Total: <span id="fin-cost-total" style="color:var(--red);font-weight:700">LKR 0</span></div>
+          <div id="fin-invoice-list"></div>
+        </section>
+        <section class="card fin-sect" id="fin-sect-out">
+          <div class="fin-sect-head">
+            <div class="fin-sect-title">
+              <div class="fin-sect-name">Costs <span>money going out</span></div>
+              <div class="fin-sect-total">Total <b id="fin-cost-total" style="color:var(--red)">LKR 0</b></div>
             </div>
-            <button class="btn-ghost btn-sm" onclick="openFinCostModal()">+</button>
+            <div class="fin-sect-tools">
+              <div class="fin-pills" id="fin-cost-pills">
+                <button type="button" data-f="" onclick="finSetCostFilter('')">All</button>
+                <button type="button" data-f="due" onclick="finSetCostFilter('due')">Still to pay</button>
+                <button type="button" data-f="paid" onclick="finSetCostFilter('paid')">Paid</button>
+              </div>
+              <button class="btn-ghost btn-sm" onclick="openFinCostModal()">+ Cost</button>
+            </div>
           </div>
-          <div id="fin-cost-list" style="max-height:500px;overflow-y:auto"></div>
-        </div>
+          <div id="fin-cost-list"></div>
+        </section>
       </div>
     </div>
 
@@ -6016,7 +6090,41 @@ async function deleteInv(id){if(!confirm('Delete this invoice?'))return;await SB
 let FIN_INVOICES=[];
 let FIN_COSTS=[];
 let finView='month';
-let finInvFilter='';
+let finInvFilter='';   /* '' all, 'due' unpaid or overdue, 'paid' */
+let finCostFilter='';  /* '' all, 'due' not yet paid, 'paid' */
+function finSetInvFilter(f){ finInvFilter=f; renderFinancePage(); }
+/* Open and close the overdue rows. Remembered for the visit only, so the page
+   always opens folded and the invoices are near the top. */
+let finOverdueOpen=false;
+function finToggleOverdue(){
+  finOverdueOpen=!finOverdueOpen;
+  const l=document.getElementById('fin-delayed-list'), b=document.getElementById('fin-delayed-toggle');
+  if(l)l.style.display=finOverdueOpen?'':'none';
+  if(b)b.textContent=finOverdueOpen?'Hide':'Show';
+}
+function finSetCostFilter(f){ finCostFilter=f; renderFinancePage(); }
+/* Light the pill that matches the filter in force, so the header always says
+   what you are looking at. */
+(function(){
+  /* Say which page is on screen, on <html>, so CSS can scope a page-level fix
+     without touching the shared wrapper for every other page. Wrapped rather
+     than edited, the same way renderTeamPage and loadAgentsPage are. */
+  if(typeof showPage!=='function'||showPage.__pageAttr) return;
+  const orig=showPage;
+  showPage=function(page){ try{ document.documentElement.setAttribute('data-page', page); }catch(e){} return orig.apply(this, arguments); };
+  showPage.__pageAttr=true;
+})();
+function finStickyOffset(){
+  const tb=document.querySelector('.topbar');
+  const pg=document.getElementById('page-finance');
+  if(tb&&pg) pg.style.setProperty('--fin-sticky-top', Math.round(tb.getBoundingClientRect().height)+'px');
+}
+window.addEventListener('resize', ()=>{ try{ finStickyOffset(); }catch(e){} });
+function finPaintPills(id, f){
+  try{ finStickyOffset(); }catch(e){}
+  const box=document.getElementById(id); if(!box) return;
+  box.querySelectorAll('button').forEach(b=>b.classList.toggle('on', (b.dataset.f||'')===f));
+}
 let finEditInvId=null;
 let finEditCostId=null;
 let _finExtras=[];
@@ -6849,13 +6957,27 @@ function renderFinancePage(){
   document.getElementById('fin-inv-total').textContent='LKR '+invTotal.toLocaleString();
   document.getElementById('fin-cost-total').textContent='LKR '+totalCosts.toLocaleString();
 
-  // Delayed payments (all months)
-  const allDelayed=FIN_INVOICES.filter(i=>i.status!=='paid');
+  /* OVERDUE MEANS THE DUE DATE HAS PASSED. This used to be every unpaid invoice
+     in every month, so October, November and December, which nobody owes yet,
+     were counted as late. On 2 Oct 2026 the block said LKR 10,120,500 overdue;
+     the database said 3,848,500, and 6,272,000 was simply not due. A money
+     figure a CEO acts on cannot be inflated 2.6 times by the calendar.
+     The due date is the invoice's own due_date, or the last day of the month it
+     bills, which is the rule the ageing strip below already used. */
+  const fallsDue=i=>{
+    if(i.due_date){const d=new Date(i.due_date);if(!isNaN(d))return d.getTime();}
+    if(i.month){const p=String(i.month).split('-');if(p.length===2)return new Date(Number(p[0]),Number(p[1]),0,23,59,59).getTime();}
+    return null;
+  };
+  const _nowMs=Date.now();
+  const allDelayed=FIN_INVOICES.filter(i=>i.status!=='paid'&&(()=>{const r=fallsDue(i);return r!==null&&r<_nowMs;})());
   const delWrap=document.getElementById('fin-delayed-wrap');
   if(allDelayed.length){
     delWrap.style.display='block';
     const delSum=allDelayed.reduce((s,i)=>s+(i.amount||0),0);
     document.getElementById('fin-delayed-total').textContent='LKR '+delSum.toLocaleString();
+    const _dc=document.getElementById('fin-delayed-count');
+    if(_dc)_dc.textContent=allDelayed.length+' invoice'+(allDelayed.length===1?'':'s')+' past their due date';
     // ── receivables AGING buckets (days outstanding: due_date if set, else end of billed month) ──
     (function(){
       const now=Date.now();
@@ -6903,13 +7025,17 @@ function renderFinancePage(){
   renderFinSmartFlag(month);
 
   // Invoice list
-  let filtered=finInvFilter?invoices.filter(i=>i.status===finInvFilter):invoices;
-  filtered=[...filtered].sort((a,b)=>({overdue:0,unpaid:1,paid:2}[a.status]||3)-({overdue:0,unpaid:1,paid:2}[b.status]||3));
+  /* GROUPED, SO YOU RARELY NEED THE FILTER. What you still have to collect
+     comes first with its own total, overdue at the very top, then what is
+     already in. The filter pills only narrow it to one group. */
+  finPaintPills('fin-inv-pills', finInvFilter);
+  const isDue=i=>i.status!=='paid';
+  const dueRank={overdue:0,unpaid:1};
+  const dueInv=invoices.filter(isDue).sort((a,b)=>(dueRank[a.status]??2)-(dueRank[b.status]??2)||(b.amount||0)-(a.amount||0));
+  const paidInv=invoices.filter(i=>!isDue(i)).sort((a,b)=>(b.amount||0)-(a.amount||0));
+  const sumOf=arr=>arr.reduce((t,i)=>t+(i.amount||0),0);
   const invEl=document.getElementById('fin-invoice-list');
-  if(!filtered.length){
-    invEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No invoices for ${FIN_MONTH_NAMES[month]||month}</div>`;
-  }else{
-    invEl.innerHTML=filtered.map(inv=>{
+  const invRow=inv=>{
       const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
       const nm=inv.client_name||(cl?cl.name:'')||'—';
       const sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
@@ -6937,7 +7063,23 @@ function renderFinancePage(){
           <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteInvoice(${inv.id})">×</button>
         </div>
       </div>`;
-    }).join('')+`<div style="display:flex;justify-content:space-between;padding:9px 18px;background:var(--surface-2);border-top:1px solid var(--border)"><span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Total</span><span style="font-size:13px;font-weight:800">LKR ${invTotal.toLocaleString()}</span></div>`;
+  };
+  if(!invoices.length){
+    invEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No invoices for ${FIN_MONTH_NAMES[month]||month}</div>`;
+  }else{
+    const showDue=finInvFilter!=='paid', showPaid=finInvFilter!=='due';
+    let h='';
+    if(showDue){
+      h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">${dueInv.length?'To collect':'Nothing to collect'}</span>`
+        +`<span class="fin-grp-sum" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">LKR ${sumOf(dueInv).toLocaleString()}<span>${dueInv.length} invoice${dueInv.length===1?'':'s'}</span></span></div>`;
+      h+=dueInv.length?dueInv.map(invRow).join(''):'<div class="fin-empty-grp">Every invoice this month is paid.</div>';
+    }
+    if(showPaid){
+      h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:var(--green)">Collected</span>`
+        +`<span class="fin-grp-sum" style="color:var(--green)">LKR ${sumOf(paidInv).toLocaleString()}<span>${paidInv.length} invoice${paidInv.length===1?'':'s'}</span></span></div>`;
+      h+=paidInv.length?paidInv.map(invRow).join(''):'<div class="fin-empty-grp">Nothing collected yet this month.</div>';
+    }
+    invEl.innerHTML=h;
   }
 
   // Cost list
@@ -6956,20 +7098,14 @@ function renderFinancePage(){
       </div>`;
   }else{
     const sorted=[...costs].sort((a,b)=>(b.amount||0)-(a.amount||0));
-    /* The number the button exists to move. Without it you can tick things off
-       and never see whether you are done. */
+    /* GROUPED THE SAME WAY AS INVOICES. The "Still to pay" total was already
+       here, but every cost sat under it in one list, paid and unpaid mixed, so
+       the total did not match the rows beneath it. Now what you still owe is its
+       own group with its own total, and what is paid sits underneath. */
+    finPaintPills('fin-cost-pills', finCostFilter);
     const _due=sorted.filter(c=>c.paid!==true), _dueAmt=_due.reduce((t,c)=>t+(c.amount||0),0);
-    const _paidAmt=sorted.filter(c=>c.paid===true).reduce((t,c)=>t+(c.amount||0),0);
-    const summary = _due.length
-      ? `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)">
-           <span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Still to pay</span>
-           <span style="font-size:13px;font-weight:800;color:var(--red)">LKR ${_dueAmt.toLocaleString()} <span style="font-size:10px;font-weight:600;color:var(--text-3)">across ${_due.length} of ${sorted.length}</span></span>
-         </div>`
-      : `<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)">
-           <span style="font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em">All paid</span>
-           <span style="font-size:13px;font-weight:800;color:var(--green)">LKR ${_paidAmt.toLocaleString()}</span>
-         </div>`;
-    costEl.innerHTML=summary+sorted.map(cost=>{
+    const _paid=sorted.filter(c=>c.paid===true), _paidAmt=_paid.reduce((t,c)=>t+(c.amount||0),0);
+    const costRow=cost=>{
       const linkedCl=cost.client_id?CLIENTS.find(c=>Number(c.id)===Number(cost.client_id)):null;
       const clientTag=linkedCl?`<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);margin-left:6px">${esc(linkedCl.name)}</span>`:'';
       return `<div class="fin-cost-row">
@@ -6988,7 +7124,20 @@ function renderFinancePage(){
           <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteCost(${cost.id})">×</button>
         </div>
       </div>`;
-    }).join('')+`<div style="display:flex;justify-content:space-between;padding:9px 18px;background:var(--surface-2);border-top:1px solid var(--border)"><span style="font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.06em">Total</span><span style="font-size:13px;font-weight:800;color:var(--red)">LKR ${totalCosts.toLocaleString()}</span></div>`;
+    };
+    const showDue=finCostFilter!=='paid', showPaid=finCostFilter!=='due';
+    let h='';
+    if(showDue){
+      h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:${_due.length?'var(--red)':'var(--green)'}">${_due.length?'Still to pay':'Nothing left to pay'}</span>`
+        +`<span class="fin-grp-sum" style="color:${_due.length?'var(--red)':'var(--green)'}">LKR ${_dueAmt.toLocaleString()}<span>${_due.length} of ${sorted.length}</span></span></div>`;
+      h+=_due.length?_due.map(costRow).join(''):'<div class="fin-empty-grp">Every cost this month is paid.</div>';
+    }
+    if(showPaid){
+      h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:var(--green)">Paid</span>`
+        +`<span class="fin-grp-sum" style="color:var(--green)">LKR ${_paidAmt.toLocaleString()}<span>${_paid.length} cost${_paid.length===1?'':'s'}</span></span></div>`;
+      h+=_paid.length?_paid.map(costRow).join(''):'<div class="fin-empty-grp">Nothing marked paid yet this month.</div>';
+    }
+    costEl.innerHTML=h;
   }
 }
 
