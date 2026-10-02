@@ -7236,7 +7236,14 @@ async function saveFinInvoice(){
     const gi=INVOICES.find(x=>x.id===finEditInvId);if(gi)Object.assign(gi,data);
   }else{
     const r=await SBpost('invoices',data);
-    if(r&&r[0]){FIN_INVOICES.unshift(r[0]);INVOICES.push(r[0]);}
+    /* ONE INVOICE, ONE ROW. loadFinancePage sets INVOICES=FIN_INVOICES, so after
+       the Finance page has loaded the two names point at the SAME list. Pushing
+       into both added every new invoice twice, with one id. The database always
+       held it once, so a reload looked fine, but on screen it doubled, and
+       deleting the "duplicate" deleted the real row, because both copies share
+       an id. That is how adding an invoice looked like it never worked. Push
+       into the second list only when it really is a second list. */
+    if(r&&r[0]){FIN_INVOICES.unshift(r[0]);if(INVOICES!==FIN_INVOICES)INVOICES.push(r[0]);}
   }
   closeModal('modal-fin-invoice');
   renderFinancePage();
