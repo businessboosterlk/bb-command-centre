@@ -10340,9 +10340,9 @@ function openInvoiceGen(invId){
   const pkg='Social Media Package';
   const period=invPeriodLabel(inv.month);
   INVGEN.items=[];
-  if(base>0) INVGEN.items.push({desc:pkg+(period?' — '+period:''),price:base,qty:1});
+  if(base>0) INVGEN.items.push({desc:pkg,price:base,qty:1});
   extras.forEach(e=>INVGEN.items.push({desc:e.desc||'Additional service',price:parseInt(e.amt)||0,qty:1}));
-  if(!INVGEN.items.length) INVGEN.items.push({desc:'Social Media Package'+(period?' — '+period:''),price:inv.amount||0,qty:1});
+  if(!INVGEN.items.length) INVGEN.items.push({desc:'Social Media Package',price:inv.amount||0,qty:1});
   document.getElementById('ig-subtitle').textContent=invNumber(inv)+' · '+(inv.client_name||(cl&&cl.name)||'');
   var _t=document.getElementById('ig-ttl'); if(_t)_t.textContent='Invoice';
   var _h=document.getElementById('ig-hint'); if(_h)_h.textContent='Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)';
