@@ -1685,6 +1685,100 @@ window.__ST_LOG=[];
 
     <div class="content"><div id="page-dashboard" class="page-section" style="display:block">
 
+<!-- @@BBCC_BRIEF_BEGIN@@ -->
+<style>
+#bb-brief{margin:0 0 14px;padding:16px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2)}
+#bb-brief .bbb-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#bb-brief .bbb-hi{font-size:17px;font-weight:800;color:var(--text-1)}
+#bb-brief .bbb-when{font-size:11px;color:var(--text-3)}
+#bb-brief ul{list-style:none;margin:10px 0 0;padding:0}
+#bb-brief li{padding:7px 0;border-top:1px solid var(--border);font-size:13.5px}
+#bb-brief li a{color:var(--text-1);text-decoration:none;display:flex;gap:10px;align-items:baseline}
+#bb-brief li a:hover{color:var(--accent)}
+#bb-brief li .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);min-width:62px}
+#bb-brief li.fail .k{color:#ef4444}
+#bb-brief .bbb-pend{margin-top:12px}
+#bb-brief .bbb-pend h4{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:0 0 4px}
+#bb-brief .bbb-pend li{display:flex;justify-content:space-between;gap:10px}
+#bb-brief .bbb-pend .hint{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap}
+#bb-brief .bbb-act{display:flex;gap:8px;margin-top:12px}
+#bb-brief button{border:1px solid var(--border);background:var(--surface);color:var(--text-1);padding:9px 14px;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer}
+#bb-brief button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+#bb-brief .bbb-empty{color:var(--text-2);font-size:13px;margin-top:6px}
+@media (max-width:640px){#bb-brief{text-align:center}#bb-brief .bbb-top{justify-content:center}#bb-brief li a{justify-content:center}#bb-brief .bbb-act{flex-direction:column}#bb-brief button{width:100%}#bb-brief .bbb-pend li{flex-direction:column;align-items:center}}
+</style>
+<div id="bb-brief" hidden>
+  <div class="bbb-top"><div class="bbb-hi" id="bbb-hi">Morning</div><div class="bbb-when" id="bbb-when"></div></div>
+  <ul id="bbb-lines"></ul>
+  <div class="bbb-pend" id="bbb-pend" hidden><h4>Decisions waiting on you</h4><ul id="bbb-pend-list"></ul></div>
+  <div class="bbb-act"><button class="primary" id="bbb-say" type="button">Read it to me</button><button id="bbb-hush" type="button" hidden>Stop</button></div>
+</div>
+<script>
+/* THE MORNING BRIEF, the Command Centre's front door (2026-10-06, Fable).
+   Thulaib: "when I go into my Command Centre: hi Thulaib, these are the pending things we talked about,
+   and here are the pending things; for me and Shiara". One row per person per day in bb_brief, built by
+   bb_brief_build() in the database at 06:45 Colombo from the live tables, no model, no credits. Decisions
+   waiting come from bb_pending, written by Claude at the end of each sitting. Every line carries a route
+   (the alert deep link contract). The browser's own voice reads it; nothing is sent anywhere.
+   Shows for the CEO and COO roles. Demo mode shows the empty state and never a real line. */
+(function(){
+  const NAME = {th:'THULAIB', sh:'SHIARA'};
+  const box = () => document.getElementById('bb-brief');
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const today = () => { const d = new Date(Date.now() + 5.5*3600e3); return d.toISOString().slice(0,10); };
+  let spoken = '';
+  async function show(role){
+    const el = box(); if (!el) return;
+    const name = NAME[role];
+    if (!name || (typeof DEMO_MODE !== 'undefined' && DEMO_MODE)) { el.hidden = true; return; }
+    el.hidden = false;
+    document.getElementById('bbb-hi').textContent = 'Morning ' + name.charAt(0) + name.slice(1).toLowerCase();
+    document.getElementById('bbb-lines').innerHTML = '<li class="bbb-empty">Reading the brief</li>';
+    const rows = await sb('bb_brief', `?day=eq.${today()}&person_name=eq.${name}&select=lines,spoken,built_at`);
+    const pend = await sb('bb_pending', `?status=eq.open&for_name=eq.${name}&select=item,answer_hint,asked_on&order=asked_on.desc`);
+    const r = rows && rows[0];
+    const lines = r ? (r.lines || []) : [];
+    const ul = document.getElementById('bbb-lines');
+    if (!r) { ul.innerHTML = '<li class="bbb-empty">No brief yet today. It is built at 06:45.</li>'; spoken = 'Morning. No brief has been built yet today.'; }
+    else if (!lines.length) { ul.innerHTML = '<li class="bbb-empty">Nothing is waiting on you.</li>'; spoken = r.spoken; }
+    else { ul.innerHTML = lines.map(l => `<li class="${esc(l.kind)}"><a href="${esc(l.url || '#dashboard')}"><span class="k">${esc(l.kind)}</span><span>${esc(l.text)}</span></a></li>`).join(''); spoken = r.spoken; }
+    const when = document.getElementById('bbb-when');
+    when.textContent = r ? 'built ' + new Date(r.built_at).toLocaleTimeString('en-GB', {timeZone:'Asia/Colombo', hour:'2-digit', minute:'2-digit'}) + ' Colombo' : '';
+    const pb = document.getElementById('bbb-pend'), pl = document.getElementById('bbb-pend-list');
+    if (pend && pend.length) {
+      pb.hidden = false;
+      pl.innerHTML = pend.map(p => `<li><span>${esc(p.item)}</span><span class="hint">${esc(p.answer_hint || '')}</span></li>`).join('');
+      spoken += ' ' + pend.length + (pend.length === 1 ? ' decision is' : ' decisions are') + ' listed below.';
+    } else pb.hidden = true;
+  }
+  function say(){
+    if (!('speechSynthesis' in window) || !spoken) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(spoken);
+    const v = window.speechSynthesis.getVoices().find(x => /en-GB/i.test(x.lang)); if (v) u.voice = v;
+    u.lang = 'en-GB'; u.rate = 0.98;
+    u.onend = () => { document.getElementById('bbb-hush').hidden = true; };
+    document.getElementById('bbb-hush').hidden = false;
+    window.speechSynthesis.speak(u);
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    const s = document.getElementById('bbb-say'), h = document.getElementById('bbb-hush');
+    if (s) s.addEventListener('click', say);
+    /* the CC's hash router only knows #lead=; a brief line names a page, so route it here */
+    document.getElementById('bbb-lines').addEventListener('click', e => {
+      const a = e.target.closest('a'); if (!a) return;
+      const m = /#([a-z]+)$/.exec(a.getAttribute('href') || '');
+      if (m && typeof showPage === 'function' && document.getElementById('page-' + m[1])) { e.preventDefault(); showPage(m[1]); }
+    });
+    if (h) h.addEventListener('click', () => { window.speechSynthesis.cancel(); h.hidden = true; });
+    new MutationObserver(() => show(document.body.getAttribute('data-role'))).observe(document.body, {attributes:true, attributeFilter:['data-role']});
+    if (document.body.getAttribute('data-role')) show(document.body.getAttribute('data-role'));
+  });
+  window.BBBRIEF = { show, say };
+})();
+</script>
+<!-- @@BBCC_BRIEF_END@@ -->
+
       <!-- HERO -->
       <div class="hero">
         <h1 class="hero-title" id="hero-title">Welcome back</h1>
