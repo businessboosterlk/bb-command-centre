@@ -1687,94 +1687,380 @@ window.__ST_LOG=[];
 
 <!-- @@BBCC_BRIEF_BEGIN@@ -->
 <style>
-#bb-brief{margin:0 0 14px;padding:16px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2)}
-#bb-brief .bbb-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
-#bb-brief .bbb-hi{font-size:17px;font-weight:800;color:var(--text-1)}
-#bb-brief .bbb-when{font-size:11px;color:var(--text-3)}
-#bb-brief ul{list-style:none;margin:10px 0 0;padding:0}
-#bb-brief li{padding:7px 0;border-top:1px solid var(--border);font-size:13.5px}
-#bb-brief li a{color:var(--text-1);text-decoration:none;display:flex;gap:10px;align-items:baseline}
-#bb-brief li a:hover{color:var(--accent)}
-#bb-brief li .k{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);min-width:62px}
-#bb-brief li.fail .k{color:#ef4444}
-#bb-brief .bbb-pend{margin-top:12px}
-#bb-brief .bbb-pend h4{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin:0 0 4px}
-#bb-brief .bbb-pend li{display:flex;justify-content:space-between;gap:10px}
-#bb-brief .bbb-pend .hint{font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap}
-#bb-brief .bbb-act{display:flex;gap:8px;margin-top:12px}
-#bb-brief button{border:1px solid var(--border);background:var(--surface);color:var(--text-1);padding:9px 14px;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer}
-#bb-brief button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-#bb-brief .bbb-empty{color:var(--text-2);font-size:13px;margin-top:6px}
-@media (max-width:640px){#bb-brief{text-align:center}#bb-brief .bbb-top{justify-content:center}#bb-brief li a{justify-content:center}#bb-brief .bbb-act{flex-direction:column}#bb-brief button{width:100%}#bb-brief .bbb-pend li{flex-direction:column;align-items:center}}
+/* THE CONSOLE, v2 (2026-10-06). The Command Centre front door for Thulaib and Shiara. Uses the CC's own tokens,
+   so light and dark both work. Data figures in the system monospace, everything else in the CC's Inter. */
+#bb-brief{--c-ok:var(--green);--c-warn:var(--amber);--c-bad:var(--red);--c-line:var(--border);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  margin:0 0 16px;border:1px solid var(--c-line);border-radius:12px;background:var(--surface);overflow:hidden}
+#bb-brief[hidden]{display:none}
+#bb-brief .cx-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:18px 20px 14px;
+  background-image:linear-gradient(var(--c-line) 1px,transparent 1px),linear-gradient(90deg,var(--c-line) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
+#bb-brief .cx-hi{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.2px;line-height:1.15}
+#bb-brief .cx-sub{font-size:12.5px;color:var(--text-2);margin-top:4px}
+#bb-brief .cx-clock{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right;line-height:1}
+#bb-brief .cx-built{font-size:11.5px;color:var(--text-3);margin-top:6px;text-align:right}
+/* status strip */
+#bb-brief .cx-hud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
+#bb-brief .cx-tile{padding:11px 16px;border-right:1px solid var(--c-line);min-width:0}
+#bb-brief .cx-tile:last-child{border-right:0}
+#bb-brief .cx-tile .t{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2)}
+#bb-brief .cx-tile .v{font-family:var(--mono);font-size:14.5px;color:var(--text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bb-brief .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--text-3)}
+#bb-brief .dot.ok{background:var(--c-ok)} #bb-brief .dot.warn{background:var(--c-warn)} #bb-brief .dot.bad{background:var(--c-bad)}
+#bb-brief .dot.live{animation:cxpulse 2.4s ease-in-out infinite}
+@keyframes cxpulse{0%,100%{opacity:1}50%{opacity:.35}}
+/* sections */
+#bb-brief .cx-sec{padding:14px 20px 4px}
+#bb-brief .cx-sec h3{font-size:14px;font-weight:700;color:var(--text);margin:0 0 10px;display:flex;align-items:baseline;gap:8px}
+#bb-brief .cx-sec h3 .n{font-family:var(--mono);font-size:12px;color:var(--text-3);font-weight:500}
+#bb-brief .cx-today a{display:grid;grid-template-columns:10px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--c-line);color:var(--text);text-decoration:none;font-size:14px}
+#bb-brief .cx-today a:first-child{border-top:0}
+#bb-brief .cx-today a:hover .go{color:var(--accent)}
+#bb-brief .go{font-size:12px;color:var(--text-3);white-space:nowrap}
+#bb-brief .go::after{content:"";display:inline-block;width:6px;height:6px;border-right:1.6px solid currentColor;border-top:1.6px solid currentColor;transform:rotate(45deg);margin-left:7px;vertical-align:1px}
+/* filter bar */
+#bb-brief .cx-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
+#bb-brief .cx-search{flex:1 1 220px;min-width:0;font:inherit;font-size:16px;padding:9px 12px;border:1px solid var(--c-line);border-radius:9px;background:var(--surface-2);color:var(--text)}
+#bb-brief .cx-chips{display:flex;gap:6px;flex-wrap:wrap}
+#bb-brief .chip{font:inherit;font-size:12.5px;padding:7px 11px;border:1px solid var(--c-line);border-radius:8px;background:var(--surface-2);color:var(--text-2);cursor:pointer;white-space:nowrap}
+#bb-brief .chip b{font-family:var(--mono);font-weight:600;margin-left:6px;color:var(--text)}
+#bb-brief .chip.on{border-color:var(--accent);color:var(--text);background:var(--surface-3)}
+#bb-brief .cx-filters-btn{display:none}
+/* decisions */
+#bb-brief .dec{border-top:1px solid var(--c-line);padding:11px 0}
+#bb-brief .dec:first-child{border-top:0}
+#bb-brief .dec-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
+#bb-brief .dec-text{font-size:14px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+#bb-brief .dec.open .dec-text{-webkit-line-clamp:unset;display:block}
+#bb-brief .dec-meta{font-size:11.5px;color:var(--text-3);margin-top:4px}
+#bb-brief .dec-meta .area{color:var(--text-2)}
+#bb-brief .dec-ans{font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);border:1px solid var(--c-line);border-radius:8px;padding:6px 11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;cursor:pointer}
+#bb-brief .dec-hint{font-size:12.5px;color:var(--text-2);margin-bottom:8px}
+#bb-brief .dec-hint b{color:var(--text)}
+#bb-brief .dec-form{display:none;margin-top:10px}
+#bb-brief .dec.answering .dec-form{display:block}
+#bb-brief .dec-form textarea{width:100%;box-sizing:border-box;font:inherit;font-size:16px;min-height:64px;padding:10px 12px;border:1px solid var(--c-line);border-radius:9px;background:var(--surface-2);color:var(--text);resize:vertical}
+#bb-brief .bar{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+#bb-brief .bar .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#bb-brief .btn{font:inherit;font-size:13.5px;font-weight:600;min-height:44px;border-radius:10px;border:1px solid var(--c-line);background:var(--surface-2);color:var(--text);cursor:pointer;padding:0 16px}
+#bb-brief .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+#bb-brief .btn.quiet{background:none;border-color:transparent;color:var(--text-3)}
+#bb-brief .cx-more{margin:6px 0 10px}
+#bb-brief .cx-empty{font-size:13.5px;color:var(--text-2);padding:10px 0}
+/* voice dock */
+#bb-brief .cx-voice{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 20px;border-top:1px solid var(--c-line);background:var(--surface-2)}
+#bb-brief .cx-play{display:inline-flex;align-items:center;gap:10px}
+#bb-brief .wave{display:inline-flex;gap:3px;align-items:center;height:16px}
+#bb-brief .wave i{width:3px;height:5px;border-radius:2px;background:currentColor;opacity:.85}
+#bb-brief.speaking .wave i{animation:cxwave .9s ease-in-out infinite}
+#bb-brief.speaking .wave i:nth-child(2){animation-delay:.12s} #bb-brief.speaking .wave i:nth-child(3){animation-delay:.24s}
+#bb-brief.speaking .wave i:nth-child(4){animation-delay:.36s} #bb-brief.speaking .wave i:nth-child(5){animation-delay:.48s}
+@keyframes cxwave{0%,100%{height:4px}50%{height:15px}}
+#bb-brief .cx-now{font-size:12.5px;color:var(--text-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#bb-brief select.cx-voices{-webkit-appearance:none;appearance:none;font:inherit;font-size:13px;color:var(--text);background-color:var(--surface);border:1px solid var(--c-line);border-radius:9px;
+  padding:9px 44px 9px 12px;max-width:240px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8d96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 16px center;background-size:14px 14px}
+#bb-brief select.cx-voices::-ms-expand{display:none}
+/* the phone filters sheet */
+#cx-sheet{position:fixed;inset:0;z-index:9000;display:none}
+#cx-sheet.open{display:block}
+#cx-sheet .mask{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+#cx-sheet .panel{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));border-top:1px solid var(--border)}
+#cx-sheet h4{margin:0 0 10px;font-size:15px;color:var(--text);text-align:center}
+#cx-sheet .opt{display:flex;justify-content:space-between;width:100%;font:inherit;font-size:15px;min-height:48px;align-items:center;padding:0 14px;margin-bottom:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text)}
+#cx-sheet .opt.on{border-color:var(--accent)}
+#cx-sheet .opt b{font-family:ui-monospace,Menlo,monospace}
+#cx-sheet .bar{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+#cx-sheet .btn{font:inherit;font-size:15px;font-weight:600;min-height:48px;width:100%;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer}
+#cx-sheet .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+#cx-sheet .btn.quiet{background:none;border-color:transparent;color:var(--text-3)}
+@media (prefers-reduced-motion:reduce){#bb-brief .dot.live,#bb-brief.speaking .wave i{animation:none}}
+@media (max-width:719px){
+  #bb-brief .cx-head{flex-direction:column;align-items:center;text-align:center}
+  #bb-brief .cx-clock,#bb-brief .cx-built{text-align:center}
+  #bb-brief .cx-hud{grid-template-columns:1fr 1fr}
+  #bb-brief .cx-tile:nth-child(2){border-right:0}
+  #bb-brief .cx-tile:nth-child(-n+2){border-bottom:1px solid var(--c-line)}
+  #bb-brief .cx-sec h3{justify-content:center}
+  #bb-brief .cx-chips{display:none}
+  #bb-brief .cx-filters-btn{display:inline-flex}
+  #bb-brief .dec-row{grid-template-columns:1fr}
+  #bb-brief .dec-ans{justify-self:start;text-align:left}
+  #bb-brief .cx-voice{grid-template-columns:1fr;text-align:center}
+  #bb-brief .cx-play,#bb-brief select.cx-voices{width:100%;max-width:none;justify-content:center}
+  #bb-brief .cx-now{white-space:normal}
+  #bb-brief .cx-more{width:100%}
+}
 </style>
 <div id="bb-brief" hidden>
-  <div class="bbb-top"><div class="bbb-hi" id="bbb-hi">Morning</div><div class="bbb-when" id="bbb-when"></div></div>
-  <ul id="bbb-lines"></ul>
-  <div class="bbb-pend" id="bbb-pend" hidden><h4>Decisions waiting on you</h4><ul id="bbb-pend-list"></ul></div>
-  <div class="bbb-act"><button class="primary" id="bbb-say" type="button">Read it to me</button><button id="bbb-hush" type="button" hidden>Stop</button></div>
+  <div class="cx-head">
+    <div><div class="cx-hi" id="cx-hi">Good morning</div><div class="cx-sub" id="cx-date"></div></div>
+    <div><div class="cx-clock" id="cx-clock">--:--</div><div class="cx-built" id="cx-built"></div></div>
+  </div>
+  <div class="cx-hud" id="cx-hud"></div>
+  <div class="cx-sec"><h3>Today <span class="n" id="cx-today-n"></span></h3><div class="cx-today" id="cx-today"></div></div>
+  <div class="cx-sec">
+    <h3>Decisions waiting on you <span class="n" id="cx-dec-n"></span></h3>
+    <div class="cx-bar">
+      <input class="cx-search" id="cx-q" type="search" placeholder="Search decisions" enterkeyhint="search" autocomplete="off">
+      <div class="cx-chips" id="cx-chips"></div>
+      <button class="chip cx-filters-btn" id="cx-filters" type="button">Filters</button>
+    </div>
+    <div id="cx-decs"></div>
+    <button class="btn cx-more" id="cx-more" type="button" hidden></button>
+  </div>
+  <div class="cx-voice">
+    <button class="btn primary cx-play" id="cx-play" type="button"><span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><span id="cx-play-l">Play brief</span></button>
+    <div class="cx-now" id="cx-now">The best voice on this device is chosen for you</div>
+    <select class="cx-voices" id="cx-voices" aria-label="Voice"></select>
+  </div>
 </div>
+<div id="cx-sheet" aria-hidden="true"><div class="mask"></div><div class="panel"><h4>Filter decisions</h4><div id="cx-sheet-opts"></div><div class="bar"><button class="btn primary" id="cx-sheet-go" type="button">Show</button><button class="btn quiet" id="cx-sheet-x" type="button">Cancel</button></div></div></div>
 <script>
-/* THE MORNING BRIEF, the Command Centre's front door (2026-10-06, Fable).
-   Thulaib: "when I go into my Command Centre: hi Thulaib, these are the pending things we talked about,
-   and here are the pending things; for me and Shiara". One row per person per day in bb_brief, built by
-   bb_brief_build() in the database at 06:45 Colombo from the live tables, no model, no credits. Decisions
-   waiting come from bb_pending, written by Claude at the end of each sitting. Every line carries a route
-   (the alert deep link contract). The browser's own voice reads it; nothing is sent anywhere.
-   Shows for the CEO and COO roles. Demo mode shows the empty state and never a real line. */
+/* THE CONSOLE (v2, 2026-10-06). Thulaib: "really appealing, easy to see, easy to filter, very organised, a little more techy,
+   and a better voice". Reads bb_brief (built 06:45 Colombo in the database, no model) and bb_pending (decisions written by
+   every Claude sitting). A decision is answered here through bb_pending_close(), which only a signed-in session may call;
+   the answer is stored for the next sitting to act on. The voice is the device's best installed voice (Ava Premium or
+   Enhanced first, BB's film voice), chosen once and remembered on this device. Nothing is sent anywhere to speak. */
 (function(){
   const NAME = {th:'THULAIB', sh:'SHIARA'};
-  const box = () => document.getElementById('bb-brief');
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const today = () => { const d = new Date(Date.now() + 5.5*3600e3); return d.toISOString().slice(0,10); };
-  let spoken = '';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const colombo = () => new Date(Date.now() + 5.5 * 3600e3);
+  const today = () => colombo().toISOString().slice(0, 10);
+  const firstName = n => n.charAt(0) + n.slice(1).toLowerCase();
+  const hoursAgo = h => h == null ? 'unknown' : h < 1 ? 'under an hour ago' : h < 48 ? Math.round(h) + ' h ago' : Math.floor(h / 24) + ' days ago';
+  let S = { role: null, name: null, row: null, decs: [], area: 'All', q: '', shown: 6, clients: [] };
+
+  /* reads skip the CC's cache, because a decision closed a second ago must disappear now */
+  async function get(table, q){
+    try{
+      if (typeof bbAuthEnsure === 'function') await bbAuthEnsure();
+      const r = await fetch(`${SB_URL}/rest/v1/${table}${q}`, { headers: { apikey: SB_KEY, Authorization: bbBearer() }, cache: 'no-store' });
+      return r.ok ? r.json() : [];
+    }catch(e){ return []; }
+  }
+
+  /* areas: worked out from the words, never stored, so every chat's decisions sort themselves */
+  const SYS = /routine|brain|business manager|token|feed|pipe\b|drive|gmail|backup|phrase|ceo brief|bug fixer|ad accounts?|thinking|learning gate|command centre|engine|scan memo|scanner|branch|whatsapp pipe|website|coming soon|businessbooster\.lk/i;
+  const TEAM = /designer|junior|shiara|smm|advert|offline|owns bb|hire|who will|the team/i;
+  const STRAT = /2027|arcs?\b|year story|consultancy report|value review|client health|price|package|bet targets?|plan:|q4 plan|engagement question/i;
+  function clientOf(text){
+    const t = text.toLowerCase().replace(/[’']/g, "'");
+    let best = null;
+    for (const c of S.clients) for (const a of c.alias) if (t.includes(a) && (!best || a.length > best.a.length)) best = { name: c.name, a };
+    return best ? best.name : null;
+  }
+  function areaOf(d){
+    const t = d.item + ' ' + (d.source || '');
+    const cl = clientOf(d.item);
+    if (SYS.test(d.item) && !/plan:/i.test(d.item)) return { area: 'Systems', client: cl };
+    if (cl) return { area: 'Clients', client: cl };
+    if (TEAM.test(t)) return { area: 'Team', client: null };
+    if (STRAT.test(t)) return { area: 'Strategy', client: null };
+    return { area: 'Other', client: null };
+  }
+  const NICE = { HOMEDEPOT: 'Home Depot', 'SQUARE 1 AI': 'Square 1 Ai', 'CLOVE WADDUWA': 'Clove Beach', 'CEYLON CARRIER TRAVELS': 'Ceylon Carriers', 'BS WITH LEON': 'BS With Leon', MIRCHIZ: "Mir'chiz", 'BIO SOLV': 'Bio Solv', 'C-CLARKE': 'C-Clarke', 'SHOW CAR DETAILERS': 'Show Car Detailers', 'TT MOBILE': 'TT Mobile', 'SUN ZAPPER': 'Sun Zapper', FUSION: 'Fusion Media' };
+  async function loadClients(){
+    const rows = await get('clients', '?select=name&status=eq.active');
+    S.clients = rows.map(r => {
+      const name = NICE[r.name] || r.name.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+      const al = new Set([r.name.toLowerCase(), name.toLowerCase(), name.toLowerCase().replace(/[^a-z0-9' ]/g, '')]);
+      if (r.name === 'HOMEDEPOT') al.add('home depot');
+      if (r.name === 'SQUARE 1 AI') al.add('square 1');
+      if (r.name === 'CLOVE WADDUWA') al.add('clove');
+      if (r.name === 'MIRCHIZ') { al.add("mir'chiz"); al.add('mirchiz'); }
+      if (r.name === 'BS WITH LEON') al.add('leon');
+      return { name, alias: [...al].filter(a => a.length >= 4) };
+    });
+  }
+
+  function tile(label, value, state, live){ return `<div class="cx-tile"><div class="t"><span class="dot ${state}${live ? ' live' : ''}"></span>${esc(label)}</div><div class="v">${esc(value)}</div></div>`; }
+  function renderHead(){
+    const n = colombo(), h = n.getUTCHours();
+    $('cx-hi').textContent = (h < 12 ? 'Good morning, ' : h < 17 ? 'Good afternoon, ' : 'Good evening, ') + firstName(S.name);
+    $('cx-date').textContent = n.toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'long' }) + ' · Colombo';
+    $('cx-clock').textContent = n.toISOString().slice(11, 16);
+  }
+  function renderHud(){
+    const c = (S.row && S.row.counts) || {};
+    const open = S.decs.length;
+    $('cx-hud').innerHTML =
+      tile('Brain published', c.brain_hours == null ? 'unknown' : hoursAgo(c.brain_hours), c.brain_hours == null ? '' : c.brain_hours > 26 ? 'bad' : 'ok', c.brain_hours != null && c.brain_hours <= 26) +
+      tile('Ads pulled', c.ads_ok ? (c.ads_last ? new Date(c.ads_last).toLocaleTimeString('en-GB', { timeZone: 'Asia/Colombo', hour: '2-digit', minute: '2-digit' }) : 'today') : 'not today', c.ads_ok ? 'ok' : 'bad', !!c.ads_ok) +
+      tile('Last form lead', c.leads_feed_hours == null ? 'unknown' : hoursAgo(c.leads_feed_hours), c.leads_feed_hours == null ? '' : c.leads_feed_hours > 48 ? 'bad' : c.leads_feed_hours > 24 ? 'warn' : 'ok', false) +
+      tile('Decisions', open + ' open', open > 20 ? 'warn' : open ? 'ok' : 'ok', false);
+  }
+  const KIND = { fail: 'bad', stuck: 'warn', behind: 'warn', overdue: 'bad', today: 'warn', pending: 'ok', shoot: 'ok', lead: 'ok' };
+  function renderToday(){
+    const lines = (S.row && S.row.lines) || [];
+    $('cx-today-n').textContent = lines.length ? lines.length + ' items' : '';
+    $('cx-today').innerHTML = !S.row ? '<div class="cx-empty">No brief built yet today. It is built at 06:45 Colombo.</div>'
+      : !lines.length ? '<div class="cx-empty">Nothing is waiting on you.</div>'
+      : lines.map(l => `<a href="${esc(l.url || '#dashboard')}" data-kind="${esc(l.kind)}"><span class="dot ${KIND[l.kind] || ''}"></span><span>${esc(l.text)}</span><span class="go">Open</span></a>`).join('');
+  }
+  function filtered(){
+    const q = S.q.trim().toLowerCase();
+    return S.decs.filter(d => (S.area === 'All' || d._area === S.area) && (!q || (d.item + ' ' + (d.answer_hint || '') + ' ' + (d._client || '') + ' ' + (d.source || '')).toLowerCase().includes(q)));
+  }
+  function counts(){ const c = { All: S.decs.length }; S.decs.forEach(d => c[d._area] = (c[d._area] || 0) + 1); return c; }
+  const AREAS = ['All', 'Systems', 'Clients', 'Team', 'Strategy', 'Other'];
+  function renderChips(){
+    const c = counts();
+    $('cx-chips').innerHTML = AREAS.filter(a => c[a]).map(a => `<button type="button" class="chip${S.area === a ? ' on' : ''}" data-area="${a}">${a}<b>${c[a]}</b></button>`).join('');
+    $('cx-filters').innerHTML = 'Filters' + (S.area !== 'All' ? `<b>${esc(S.area)}</b>` : '');
+  }
+  function renderDecs(){
+    const list = filtered();
+    $('cx-dec-n').textContent = S.decs.length ? (list.length === S.decs.length ? S.decs.length + ' open' : list.length + ' of ' + S.decs.length) : '';
+    const show = list.slice(0, S.shown);
+    $('cx-decs').innerHTML = !S.decs.length ? '<div class="cx-empty">No decision is waiting on you.</div>'
+      : !list.length ? '<div class="cx-empty">Nothing matches. Clear the search or pick All.</div>'
+      : show.map(d => `<div class="dec" data-id="${d.id}">
+          <div class="dec-row"><div><div class="dec-text">${esc(d.item)}</div>
+          <div class="dec-meta"><span class="area">${esc(d._area)}${d._client ? ' · ' + esc(d._client) : ''}</span> · asked ${esc(String(d.asked_on).slice(5).replace('-', '/'))}${d.source ? ' · ' + esc(String(d.source).split(',')[0]) : ''}</div></div>
+          <button type="button" class="dec-ans" data-act="answer" title="${esc(d.answer_hint || '')}">${esc(d.answer_hint && d.answer_hint.length <= 26 ? d.answer_hint : 'Answer')}</button></div>
+          <div class="dec-form">${d.answer_hint ? `<div class="dec-hint">What settles it: <b>${esc(d.answer_hint)}</b></div>` : ''}<textarea placeholder="Your answer, in your words" aria-label="Your answer"></textarea>
+            <div class="bar"><button type="button" class="btn primary" data-act="done">Mark done</button>
+            <div class="pair"><button type="button" class="btn" data-act="drop">Not needed</button><button type="button" class="btn" data-act="close">Later</button></div></div></div>
+        </div>`).join('');
+    const more = $('cx-more');
+    if (list.length > S.shown) { more.hidden = false; more.textContent = 'Show all ' + list.length; } else more.hidden = true;
+  }
+  function renderAll(){ renderHead(); renderHud(); renderToday(); renderChips(); renderDecs(); }
+
+  async function load(){
+    const [rows, decs] = await Promise.all([
+      get('bb_brief', `?day=eq.${today()}&person_name=eq.${S.name}&select=lines,spoken,counts,built_at`),
+      get('bb_pending', `?status=eq.open&for_name=eq.${S.name}&select=id,item,answer_hint,asked_on,source&order=asked_on.asc,id.asc`)
+    ]);
+    if (!S.clients.length) await loadClients();
+    S.row = rows[0] || null;
+    S.decs = decs.map(d => { const a = areaOf(d); return Object.assign(d, { _area: a.area, _client: a.client }); });
+    $('cx-built').textContent = S.row ? 'Brief built ' + new Date(S.row.built_at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Colombo', hour: '2-digit', minute: '2-digit' }) : '';
+    renderAll();
+  }
   async function show(role){
-    const el = box(); if (!el) return;
+    const el = $('bb-brief'); if (!el) return;
     const name = NAME[role];
-    if (!name || (typeof DEMO_MODE !== 'undefined' && DEMO_MODE)) { el.hidden = true; return; }
-    el.hidden = false;
-    document.getElementById('bbb-hi').textContent = 'Morning ' + name.charAt(0) + name.slice(1).toLowerCase();
-    document.getElementById('bbb-lines').innerHTML = '<li class="bbb-empty">Reading the brief</li>';
-    const rows = await sb('bb_brief', `?day=eq.${today()}&person_name=eq.${name}&select=lines,spoken,built_at`);
-    const pend = await sb('bb_pending', `?status=eq.open&for_name=eq.${name}&select=item,answer_hint,asked_on&order=asked_on.desc`);
-    const r = rows && rows[0];
-    const lines = r ? (r.lines || []) : [];
-    const ul = document.getElementById('bbb-lines');
-    if (!r) { ul.innerHTML = '<li class="bbb-empty">No brief yet today. It is built at 06:45.</li>'; spoken = 'Morning. No brief has been built yet today.'; }
-    else if (!lines.length) { ul.innerHTML = '<li class="bbb-empty">Nothing is waiting on you.</li>'; spoken = r.spoken; }
-    else { ul.innerHTML = lines.map(l => `<li class="${esc(l.kind)}"><a href="${esc(l.url || '#dashboard')}"><span class="k">${esc(l.kind)}</span><span>${esc(l.text)}</span></a></li>`).join(''); spoken = r.spoken; }
-    const when = document.getElementById('bbb-when');
-    when.textContent = r ? 'built ' + new Date(r.built_at).toLocaleTimeString('en-GB', {timeZone:'Asia/Colombo', hour:'2-digit', minute:'2-digit'}) + ' Colombo' : '';
-    const pb = document.getElementById('bbb-pend'), pl = document.getElementById('bbb-pend-list');
-    if (pend && pend.length) {
-      pb.hidden = false;
-      pl.innerHTML = pend.map(p => `<li><span>${esc(p.item)}</span><span class="hint">${esc(p.answer_hint || '')}</span></li>`).join('');
-      spoken += ' ' + pend.length + (pend.length === 1 ? ' decision is' : ' decisions are') + ' listed below.';
-    } else pb.hidden = true;
+    const hero = document.querySelector('#page-dashboard .hero');
+    if (!name || (typeof DEMO_MODE !== 'undefined' && DEMO_MODE)) { el.hidden = true; if (hero) hero.style.display = ''; return; }
+    S.role = role; S.name = name; el.hidden = false;
+    if (hero) hero.style.display = 'none';   /* the console replaces the old welcome banner, it does not sit on top of it */
+    renderHead(); await load();
   }
-  function say(){
-    if (!('speechSynthesis' in window) || !spoken) return;
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(spoken);
-    const v = window.speechSynthesis.getVoices().find(x => /en-GB/i.test(x.lang)); if (v) u.voice = v;
-    u.lang = 'en-GB'; u.rate = 0.98;
-    u.onend = () => { document.getElementById('bbb-hush').hidden = true; };
-    document.getElementById('bbb-hush').hidden = false;
-    window.speechSynthesis.speak(u);
+
+  async function close(id, status, answer){
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/bb_pending_close`, { method: 'POST', headers: { apikey: SB_KEY, Authorization: bbBearer(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_id: id, p_answer: answer || null, p_status: status }) });
+    if (!r.ok) {
+      const t = await r.text();
+      const msg = /42501|permission denied|sign in/i.test(t) || r.status === 401 ? 'Sign in as CEO or COO to answer a decision.' : 'Could not save just now. Nothing was changed.';
+      if (typeof toast === 'function') toast(msg); return false;
+    }
+    return true;
   }
-  document.addEventListener('DOMContentLoaded', () => {
-    const s = document.getElementById('bbb-say'), h = document.getElementById('bbb-hush');
-    if (s) s.addEventListener('click', say);
-    /* the CC's hash router only knows #lead=; a brief line names a page, so route it here */
-    document.getElementById('bbb-lines').addEventListener('click', e => {
+
+  /* VOICE: the best voice the device carries. Ava first (BB's film voice), then any Premium, Enhanced, Natural or
+     Neural voice in English, then the plain English ones. The choice is remembered on this device only. */
+  /* the Mac ships novelty and 1980s voices beside the good ones; none of them ever reads a brief */
+  const JOKE = /^(albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|fred|junior|kathy|ralph|grandma|grandpa|eddy|flo|reed|rocko|sandy|shelley|deranged|hysterical|pipe organ)\b/i;
+  const RANK = v => {
+    const n = v.name, en = /^en[-_]/i.test(v.lang);
+    if (!en || JOKE.test(n)) return -1;
+    let s = 0;
+    if (/premium|enhanced|natural|neural/i.test(n)) s += 50;
+    if (/\bava\b/i.test(n)) s += 30;
+    if (/zoe|serena|evan|daniel|samantha|jamie|google uk english female|libby|sonia/i.test(n)) s += 12;
+    if (/en[-_](gb|us)/i.test(v.lang)) s += 4;
+    if (v.localService === false) s += 2;
+    return s;
+  };
+  let voices = [];
+  function loadVoices(){
+    if (!('speechSynthesis' in window)) { $('cx-now').textContent = 'This browser cannot speak'; return; }
+    voices = speechSynthesis.getVoices().filter(v => RANK(v) >= 0).sort((a, b) => RANK(b) - RANK(a));
+    const sel = $('cx-voices'); if (!voices.length) return;
+    let saved = null; try { saved = localStorage.getItem('bb_brief_voice'); } catch (e) {}
+    sel.innerHTML = voices.slice(0, 14).map(v => `<option value="${esc(v.name)}"${v.name === saved ? ' selected' : ''}>${esc(v.name.replace(/\s*\(.*?\)\s*/g, ' ').trim())}${/premium|enhanced|natural|neural/i.test(v.name) ? ' · high quality' : ''}</option>`).join('');
+    if (!saved || !voices.some(v => v.name === saved)) sel.value = voices[0].name;
+    const best = voices.find(v => v.name === sel.value);
+    $('cx-now').textContent = best && /premium|enhanced|natural|neural/i.test(best.name) ? 'High quality voice ready' : 'For a better voice: System Settings, Accessibility, Spoken Content, Manage Voices, add Ava (Premium)';
+  }
+  function script(){
+    const n = colombo().getUTCHours(), name = firstName(S.name);
+    const out = [(n < 12 ? 'Good morning, ' : n < 17 ? 'Good afternoon, ' : 'Good evening, ') + name + '.'];
+    const lines = (S.row && S.row.lines) || [];
+    if (!lines.length) out.push('Nothing is waiting on you right now.');
+    else { out.push('Here is where things stand.'); lines.forEach(l => out.push(l.text.replace(/\.$/, '') + '.')); }
+    if (S.decs.length) {
+      const first = S.decs[0];
+      out.push('The oldest decision, from ' + new Date(first.asked_on + 'T00:00:00Z').toLocaleDateString('en-GB', { timeZone: 'UTC', day: 'numeric', month: 'long' }) + ': ' + first.item.split(/[(:;]/)[0].trim().replace(/\.$/, '') + '.');
+      if (first.answer_hint) out.push('One word settles it: ' + first.answer_hint.replace(/\.$/, '') + '.');
+    }
+    out.push('That is everything.');
+    return out;
+  }
+  let speaking = false;
+  function stop(){ if ('speechSynthesis' in window) speechSynthesis.cancel(); speaking = false; $('bb-brief').classList.remove('speaking'); $('cx-play-l').textContent = 'Play brief'; }
+  function play(){
+    if (!('speechSynthesis' in window)) return;
+    if (speaking) return stop();
+    speechSynthesis.cancel();
+    const v = voices.find(x => x.name === $('cx-voices').value) || voices[0];
+    const parts = script(); speaking = true;
+    $('bb-brief').classList.add('speaking'); $('cx-play-l').textContent = 'Stop';
+    parts.forEach((p, i) => {
+      const u = new SpeechSynthesisUtterance(p);
+      if (v) { u.voice = v; u.lang = v.lang; }
+      u.rate = 1.0; u.pitch = 1.0;
+      u.onstart = () => { $('cx-now').textContent = p; };
+      if (i === parts.length - 1) u.onend = () => { stop(); loadVoices(); };
+      speechSynthesis.speak(u);
+    });
+  }
+
+  function wire(){
+    $('cx-play').addEventListener('click', play);
+    $('cx-voices').addEventListener('change', e => { try { localStorage.setItem('bb_brief_voice', e.target.value); } catch (x) {} loadVoices(); });
+    $('cx-q').addEventListener('input', e => { S.q = e.target.value; S.shown = 6; renderDecs(); });
+    $('cx-chips').addEventListener('click', e => { const b = e.target.closest('[data-area]'); if (!b) return; S.area = b.dataset.area; S.shown = 6; renderChips(); renderDecs(); });
+    $('cx-more').addEventListener('click', () => { S.shown = 999; renderDecs(); });
+    $('cx-today').addEventListener('click', e => {
       const a = e.target.closest('a'); if (!a) return;
       const m = /#([a-z]+)$/.exec(a.getAttribute('href') || '');
       if (m && typeof showPage === 'function' && document.getElementById('page-' + m[1])) { e.preventDefault(); showPage(m[1]); }
     });
-    if (h) h.addEventListener('click', () => { window.speechSynthesis.cancel(); h.hidden = true; });
-    new MutationObserver(() => show(document.body.getAttribute('data-role'))).observe(document.body, {attributes:true, attributeFilter:['data-role']});
+    $('cx-decs').addEventListener('click', async e => {
+      const card = e.target.closest('.dec'); if (!card) return;
+      const id = Number(card.dataset.id), act = (e.target.closest('[data-act]') || {}).dataset ? e.target.closest('[data-act]') && e.target.closest('[data-act]').dataset.act : null;
+      if (e.target.closest('.dec-text')) { card.classList.toggle('open'); return; }
+      if (act === 'answer') { card.classList.toggle('answering'); const t = card.querySelector('textarea'); if (card.classList.contains('answering')) t.focus(); return; }
+      if (act === 'close') { card.classList.remove('answering'); return; }
+      if (act === 'done' || act === 'drop') {
+        const ans = card.querySelector('textarea').value.trim();
+        const btns = card.querySelectorAll('button'); btns.forEach(b => b.disabled = true);
+        const keep = S.decs; S.decs = S.decs.filter(d => d.id !== id); renderAll();   /* the screen changes at the tap */
+        if (!(await close(id, act === 'done' ? 'done' : 'dropped', ans))) { S.decs = keep; renderAll(); }
+        else if (typeof toast === 'function') toast(act === 'done' ? 'Marked done. The next chat will see your answer.' : 'Dropped.');
+      }
+    });
+    const sheet = $('cx-sheet');
+    let pick = 'All';
+    const openSheet = () => { pick = S.area; const c = counts(); $('cx-sheet-opts').innerHTML = AREAS.filter(a => c[a]).map(a => `<button type="button" class="opt${pick === a ? ' on' : ''}" data-area="${a}"><span>${a}</span><b>${c[a]}</b></button>`).join(''); $('cx-sheet-go').textContent = 'Show ' + (counts()[pick] || 0); sheet.classList.add('open'); sheet.setAttribute('aria-hidden', 'false'); document.body.style.overflow = 'hidden'; };
+    const shut = () => { sheet.classList.remove('open'); sheet.setAttribute('aria-hidden', 'true'); document.body.style.overflow = ''; };
+    $('cx-filters').addEventListener('click', openSheet);
+    $('cx-sheet-opts').addEventListener('click', e => { const b = e.target.closest('[data-area]'); if (!b) return; pick = b.dataset.area; [...$('cx-sheet-opts').children].forEach(x => x.classList.toggle('on', x === b)); $('cx-sheet-go').textContent = 'Show ' + (counts()[pick] || 0); });
+    $('cx-sheet-go').addEventListener('click', () => { S.area = pick; S.shown = 6; renderChips(); renderDecs(); shut(); });
+    $('cx-sheet-x').addEventListener('click', shut);
+    sheet.querySelector('.mask').addEventListener('click', shut);
+    if ('speechSynthesis' in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+    setInterval(() => { if (!$('bb-brief').hidden) $('cx-clock').textContent = colombo().toISOString().slice(11, 16); }, 15000);
+    new MutationObserver(() => show(document.body.getAttribute('data-role'))).observe(document.body, { attributes: true, attributeFilter: ['data-role'] });
     if (document.body.getAttribute('data-role')) show(document.body.getAttribute('data-role'));
-  });
-  window.BBBRIEF = { show, say };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  window.BBBRIEF = { show, play, stop, reload: load };
 })();
 </script>
 <!-- @@BBCC_BRIEF_END@@ -->
