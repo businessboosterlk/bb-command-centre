@@ -1691,52 +1691,59 @@ window.__ST_LOG=[];
 <!-- @@BBCC_BRIEF_BEGIN@@ -->
 <style>
 /* THE CONSOLE, v2 (2026-10-06). The Command Centre front door for Thulaib and Shiara. Uses the CC's own tokens,
-   so light and dark both work. Data figures in the system monospace, everything else in the CC's Inter. */
-#bb-brief{--c-ok:var(--green);--c-warn:var(--amber);--c-bad:var(--red);--c-line:var(--border);--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+   so light and dark both work. 7 Oct: one family. Figures in Inter 600 with tabular lining numerals, a big number beside a
+   small unit, no terminal font and no grid paper (Thulaib: "you didn't even change the font for the numbers"). */
+#bb-brief{--c-ok:var(--green);--c-warn:var(--amber);--c-bad:var(--red);--c-line:var(--border);--num:Inter,-apple-system,BlinkMacSystemFont,sans-serif;
   margin:0 0 16px;border:1px solid var(--c-line);border-radius:14px;background:var(--surface);overflow:hidden}
 #bb-brief[hidden]{display:none}
-#bb-brief .cx-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:18px 20px 14px;
-  background-image:linear-gradient(var(--c-line) 1px,transparent 1px),linear-gradient(90deg,var(--c-line) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
-#bb-brief .cx-hi{font-size:22px;font-weight:700;color:var(--text);letter-spacing:-.2px;line-height:1.15}
-#bb-brief .cx-sub{font-size:12.5px;color:var(--text-2);margin-top:4px}
-#bb-brief .cx-clock{font-family:var(--mono);font-size:24px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right;line-height:1}
-#bb-brief .cx-built{font-size:11.5px;color:var(--text-3);margin-top:6px;text-align:right}
+#bb-brief .cx-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;padding:22px 24px 18px;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface))}
+#bb-brief .cx-clock,#bb-brief .cx-tile .v,#bb-brief .n,#bb-brief .chip b,#cx-sheet .opt b{font-family:var(--num);font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1,'cv11' 1}
+#bb-brief .cx-hi{font-size:26px;font-weight:600;color:var(--text);letter-spacing:-.02em;line-height:1.15}
+#bb-brief .cx-sub{font-size:13px;color:var(--text-2);margin-top:6px}
+#bb-brief .cx-clock{font-size:34px;font-weight:600;color:var(--text);letter-spacing:-.03em;text-align:right;line-height:1}
+#bb-brief .cx-built{font-size:12px;color:var(--text-3);margin-top:8px;text-align:right}
 /* status strip */
 #bb-brief .cx-hud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--c-line);border-bottom:1px solid var(--c-line)}
-#bb-brief .cx-tile{padding:11px 16px;border-right:1px solid var(--c-line);min-width:0}
+#bb-brief .cx-tile{padding:16px 24px 18px;border-right:1px solid var(--c-line);min-width:0}
 #bb-brief .cx-tile:last-child{border-right:0}
-#bb-brief .cx-tile .t{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2)}
-#bb-brief .cx-tile .v{font-family:var(--mono);font-size:14.5px;color:var(--text);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bb-brief .cx-tile .t{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:var(--text-2)}
+#bb-brief .cx-tile .v{display:flex;align-items:baseline;gap:6px;margin-top:8px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bb-brief .cx-tile .v .big{font-size:24px;font-weight:600;letter-spacing:-.025em;line-height:1}
+#bb-brief .cx-tile .v .unit{font-size:13px;font-weight:500;color:var(--text-2)}
+#bb-brief .cx-tile .v .word{font-size:15px;font-weight:600;letter-spacing:-.01em}
 #bb-brief .dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--text-3)}
 #bb-brief .dot.ok{background:var(--c-ok)} #bb-brief .dot.warn{background:var(--c-warn)} #bb-brief .dot.bad{background:var(--c-bad)}
 #bb-brief .dot.live{animation:cxpulse 2.4s ease-in-out infinite}
 @keyframes cxpulse{0%,100%{opacity:1}50%{opacity:.35}}
 /* sections */
-#bb-brief .cx-sec{padding:14px 20px 4px}
-#bb-brief .cx-sec h3{font-size:14px;font-weight:700;color:var(--text);margin:0 0 10px;display:flex;align-items:baseline;gap:8px}
-#bb-brief .cx-sec h3 .n{font-family:var(--mono);font-size:12px;color:var(--text-3);font-weight:500}
-#bb-brief .cx-today a{display:grid;grid-template-columns:10px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--c-line);color:var(--text);text-decoration:none;font-size:14px}
+#bb-brief .cx-sec{padding:18px 24px 6px}
+#bb-brief .cx-sec h3{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--text);margin:0 0 10px;display:flex;align-items:center;gap:8px}
+#bb-brief .cx-sec h3 .n{font-size:12px;font-weight:600;color:var(--text-2);background:var(--surface-3);border-radius:999px;padding:2px 9px;line-height:18px}
+#bb-brief .cx-sec h3 .n:empty{display:none}
+#bb-brief .cx-today a{display:grid;grid-template-columns:10px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--c-line);color:var(--text);text-decoration:none;font-size:14.5px}
 #bb-brief .cx-today a:first-child{border-top:0}
 #bb-brief .cx-today a:hover .go{color:var(--accent)}
 #bb-brief .go{font-size:12px;color:var(--text-3);white-space:nowrap}
 #bb-brief .go::after{content:"";display:inline-block;width:6px;height:6px;border-right:1.6px solid currentColor;border-top:1.6px solid currentColor;transform:rotate(45deg);margin-left:7px;vertical-align:1px}
 /* filter bar */
 #bb-brief .cx-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px}
-#bb-brief .cx-search{flex:1 1 220px;min-width:0;font:inherit;font-size:16px;padding:9px 12px;border:1px solid var(--c-line);border-radius:10px;background:var(--surface-2);color:var(--text)}
+#bb-brief .cx-search{flex:1 1 220px;min-width:0;font:inherit;font-size:16px;padding:10px 14px;border:1px solid var(--c-line);border-radius:999px;background:var(--surface-2);color:var(--text)}
 #bb-brief .cx-chips{display:flex;gap:6px;flex-wrap:wrap}
-#bb-brief .chip{font:inherit;font-size:12.5px;padding:7px 11px;border:1px solid var(--c-line);border-radius:8px;background:var(--surface-2);color:var(--text-2);cursor:pointer;white-space:nowrap}
-#bb-brief .chip b{font-family:var(--mono);font-weight:600;margin-left:6px;color:var(--text)}
+#bb-brief .chip{font:inherit;font-size:13px;font-weight:500;padding:8px 13px;border:1px solid var(--c-line);border-radius:999px;background:var(--surface-2);color:var(--text-2);cursor:pointer;white-space:nowrap}
+#bb-brief .chip b{font-weight:600;margin-left:7px;color:var(--text-3)}
+#bb-brief .chip.on b{color:var(--accent)}
 #bb-brief .chip.on{border-color:var(--accent);color:var(--text);background:var(--surface-3)}
 #bb-brief .cx-filters-btn{display:none}
 /* decisions */
 #bb-brief .dec{border-top:1px solid var(--c-line);padding:11px 0}
 #bb-brief .dec:first-child{border-top:0}
 #bb-brief .dec-row{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:start}
-#bb-brief .dec-text{font-size:14px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
+#bb-brief .dec-text{font-size:14.5px;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;cursor:pointer}
 #bb-brief .dec.open .dec-text{-webkit-line-clamp:unset;display:block}
 #bb-brief .dec-meta{font-size:11.5px;color:var(--text-3);margin-top:4px}
 #bb-brief .dec-meta .area{color:var(--text-2)}
-#bb-brief .dec-ans{font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);border:1px solid var(--c-line);border-radius:8px;padding:6px 11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;cursor:pointer}
+#bb-brief .dec-ans{font:inherit;font-size:13px;font-weight:600;color:var(--accent);border:1px solid var(--c-line);border-radius:999px;padding:7px 14px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;cursor:pointer}
 #bb-brief .dec-hint{font-size:12.5px;color:var(--text-2);margin-bottom:8px}
 #bb-brief .talk{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:8px}
 #bb-brief .talk .rec{width:10px;height:10px;border-radius:50%;background:var(--c-bad);opacity:.45}
@@ -1777,7 +1784,7 @@ window.__ST_LOG=[];
 #cx-sheet h4{margin:0 0 10px;font-size:15px;color:var(--text);text-align:center}
 #cx-sheet .opt{display:flex;justify-content:space-between;width:100%;font:inherit;font-size:15px;min-height:48px;align-items:center;padding:0 14px;margin-bottom:6px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text)}
 #cx-sheet .opt.on{border-color:var(--accent)}
-#cx-sheet .opt b{font-family:ui-monospace,Menlo,monospace}
+#cx-sheet .opt b{font-weight:600}
 #cx-sheet .bar{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 #cx-sheet .btn{font:inherit;font-size:15px;font-weight:600;min-height:48px;width:100%;border-radius:10px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer}
 #cx-sheet .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -1837,7 +1844,7 @@ window.__ST_LOG=[];
   const colombo = () => new Date(Date.now() + 5.5 * 3600e3);
   const today = () => colombo().toISOString().slice(0, 10);
   const firstName = n => n.charAt(0) + n.slice(1).toLowerCase();
-  const hoursAgo = h => h == null ? 'unknown' : h < 1 ? 'under an hour ago' : h < 48 ? Math.round(h) + ' h ago' : Math.floor(h / 24) + ' days ago';
+  const hoursAgo = h => h == null ? 'unknown' : h < 1 ? 'under an hour ago' : h < 48 ? Math.round(h) + (Math.round(h) === 1 ? ' hour ago' : ' hours ago') : Math.floor(h / 24) + ' days ago';
   let S = { role: null, name: null, row: null, decs: [], area: 'All', q: '', shown: 6, clients: [] };
 
   /* reads skip the CC's cache, because a decision closed a second ago must disappear now */
@@ -1883,7 +1890,9 @@ window.__ST_LOG=[];
     });
   }
 
-  function tile(label, value, state, live){ return `<div class="cx-tile"><div class="t"><span class="dot ${state}${live ? ' live' : ''}"></span>${esc(label)}</div><div class="v">${esc(value)}</div></div>`; }
+  /* a figure reads as a big number beside a small unit; a word with no number reads as a word */
+  function valueHtml(v){ const m = String(v).match(/^(\d[\d:.,]*)\s*(.*)$/); return m ? `<span class="big">${esc(m[1])}</span>${m[2] ? `<span class="unit">${esc(m[2])}</span>` : ''}` : `<span class="word">${esc(v)}</span>`; }
+  function tile(label, value, state, live){ return `<div class="cx-tile"><div class="t"><span class="dot ${state}${live ? ' live' : ''}"></span>${esc(label)}</div><div class="v">${valueHtml(value)}</div></div>`; }
   function renderHead(){
     const n = colombo(), h = n.getUTCHours();
     $('cx-hi').textContent = (h < 12 ? 'Good morning, ' : h < 17 ? 'Good afternoon, ' : 'Good evening, ') + firstName(S.name);
@@ -1902,10 +1911,15 @@ window.__ST_LOG=[];
   const KIND = { fail: 'bad', stuck: 'warn', behind: 'warn', overdue: 'bad', today: 'warn', pending: 'ok', shoot: 'ok', lead: 'ok' };
   function renderToday(){
     const lines = (S.row && S.row.lines) || [];
-    $('cx-today-n').textContent = lines.length ? lines.length + ' items' : '';
+    $('cx-today-n').textContent = lines.length ? String(lines.length) : '';
     $('cx-today').innerHTML = !S.row ? '<div class="cx-empty">No brief built yet today. It is built at 06:45 Colombo.</div>'
       : !lines.length ? '<div class="cx-empty">Nothing is waiting on you.</div>'
-      : lines.map(l => `<a href="${esc(l.url || '#dashboard')}" data-kind="${esc(l.kind)}"><span class="dot ${KIND[l.kind] || ''}"></span><span>${esc(l.text)}</span><span class="go">Open</span></a>`).join('');
+      : lines.map(l => `<a href="${esc(l.url || '#dashboard')}" data-kind="${esc(l.kind)}"><span class="dot ${KIND[l.kind] || ''}"></span><span>${esc(liveText(l))}</span><span class="go">Open</span></a>`).join('');
+  }
+  /* the 06:45 brief counted decisions at 06:45; the list below is live, so the line says the live number */
+  function liveText(l){
+    if (l.kind === 'pending') { const n = S.decs.length; return n + (n === 1 ? ' decision is' : ' decisions are') + ' waiting on you'; }
+    return l.text;
   }
   function filtered(){
     const q = S.q.trim().toLowerCase();
@@ -1920,7 +1934,7 @@ window.__ST_LOG=[];
   }
   function renderDecs(){
     const list = filtered();
-    $('cx-dec-n').textContent = S.decs.length ? (list.length === S.decs.length ? S.decs.length + ' open' : list.length + ' of ' + S.decs.length) : '';
+    $('cx-dec-n').textContent = S.decs.length ? (list.length === S.decs.length ? String(S.decs.length) : list.length + ' of ' + S.decs.length) : '';
     const show = list.slice(0, S.shown);
     $('cx-decs').innerHTML = !S.decs.length ? '<div class="cx-empty">No decision is waiting on you.</div>'
       : !list.length ? '<div class="cx-empty">Nothing matches. Clear the search or pick All.</div>'
