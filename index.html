@@ -13374,7 +13374,10 @@ if('serviceWorker' in navigator){
           updateFab();
           // show daily check-in after 4s if due
           setTimeout(function(){
-            if (shouldShowCheckin()) openCheckin();
+            /* 2026-10-07, Thulaib: no pop-up for him or Shiara. The console's Today line already names overdue tasks.
+               Still opens by hand from the command bar (Daily Check-In). */
+            var _r = document.body.getAttribute('data-role');
+            if (_r !== 'th' && _r !== 'sh' && shouldShowCheckin()) openCheckin();
           }, 4000);
         }, 1200);
       }
