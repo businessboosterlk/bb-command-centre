@@ -2417,10 +2417,12 @@ window.__ST_LOG=[];
         <div class="stat-card"><div class="stat-lbl">Red</div><div class="stat-val red" id="st-red">—</div><div class="stat-note">Act now</div></div>
       </div>
       <div class="toolbar">
-        <div class="tab-group">
+        <div class="tab-group" style="max-width:100%;overflow-x:auto">
           <button class="tab-btn active" id="tab-all" onclick="setTab('all')">All Clients</button>
           <button class="tab-btn" id="tab-sm" onclick="setTab('sm')">Social Media</button>
           <button class="tab-btn" id="tab-web" onclick="setTab('web')">Website &amp; SEO</button>
+          <!-- 7 Oct 2026: an ended client left the list the day after and could not be opened again, so a mis-tap on End client could only be undone in SQL. Ended lists them so Edit client can set them back to active. -->
+          <button class="tab-btn" id="tab-ended" onclick="setTab('ended')">Ended</button>
         </div>
         <div class="search-wrap">
           <svg class="search-ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -3907,7 +3909,9 @@ window.__ST_LOG=[];
   <div class="modal"><div class="modal-head"><div class="modal-title">Edit Client</div><button class="modal-close" onclick="closeModal('modal-edit-client')">×</button></div>
   <div class="modal-body">
     <div class="field-row"><div class="form-field"><label class="form-label">Client Name *</label><input class="form-input" id="ec-name"></div><div class="form-field" style="max-width:130px"><label class="form-label">Type</label><select class="form-select" id="ec-type"><option value="sm">Social Media</option><option value="web">Website/SEO</option><option value="both">SM + Web</option></select></div></div>
-    <p style="font-size:11px;color:var(--text-3);margin:0;padding:4px 0">All other fields (health, package, retainer, posts/videos target, owner, dates) are editable directly in the fields bar on the profile. This modal handles name and type changes only.</p>
+    <!-- 7 Oct 2026: End client promised "set them back to active later" and nothing could. Status here writes status; Active also clears ended_on. -->
+    <div class="field-row"><div class="form-field" style="max-width:160px"><label class="form-label">Status</label><select class="form-select" id="ec-status"><option value="active">Active</option><option value="internal">Internal</option><option value="churned">Ended</option></select></div></div>
+    <p style="font-size:11px;color:var(--text-3);margin:0;padding:4px 0">All other fields (health, package, retainer, posts/videos target, owner, dates) are editable directly in the fields bar on the profile. This modal handles name, type and status only.</p>
   </div>
   <div class="modal-foot"><!-- 6 Oct 2026: was Delete Client, a hard delete; now End client marks the row churned --><button class="btn-danger-sm" onclick="deleteCurrentClient()">End client</button><button class="btn-ghost" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn-primary" onclick="saveClientEdit()">Save</button></div></div>
 </div>
@@ -6099,6 +6103,10 @@ async function autoScoreClientHealth(){
       SBget('invoices','?select=client_id,status,due_date'),
       SBget('content_plans','?select=client_id,posted,scheduled_date&order=scheduled_date.desc')
     ]);
+    /* 7 Oct 2026: sbC now returns null for a failed read. (null||[]) scored it as an
+       empty list, so a timed out invoices read rewrote amber clients green. No rescore
+       unless all three reads came back as lists. */
+    if(![allTasks,allInvoices,allContent].every(Array.isArray)){console.warn('[Health] read failed, no rescore');return;}
     const clients = D.clients || [];
     const updates = [];
     clients.forEach(c => {
@@ -6155,11 +6163,13 @@ function renderClientStats(){
   const _cg=mrrUnknownCount(c);
   document.getElementById('clients-sub').textContent=`${c.length} active clients · ${fmtK(c.reduce((s,x)=>s+getMRR(x),0))}/month`+(_cg?` · ${_cg} fee${_cg===1?'':'s'} not recorded`:'');
 }
-function setTab(t){tabFilter=t;['all','sm','web'].forEach(x=>document.getElementById('tab-'+x)?.classList.toggle('active',x===t));renderTable();}
+function setTab(t){tabFilter=t;['all','sm','web','ended'].forEach(x=>document.getElementById('tab-'+x)?.classList.toggle('active',x===t));renderTable();}
 function toggleHF(h){healthFilter=healthFilter===h?null:h;['green','amber','red'].forEach(c=>{document.getElementById('fchip-'+c).className='filter-chip'+(c===healthFilter?' active-'+c:'');});renderTable();}
 function renderTable(){
   const q=(document.getElementById('client-search').value||'').toLowerCase();
-  let cs=countableClients(CLIENTS);
+  /* 7 Oct 2026: Ended shows the rows the count leaves out (not Business Booster itself),
+     so an ended client can still be opened and set back to active. */
+  let cs=tabFilter==='ended'?(CLIENTS||[]).filter(c=>c&&c.status!=='internal'&&!isCountableClient(c)):countableClients(CLIENTS);
   if(tabFilter==='sm')cs=cs.filter(c=>!c.client_type||c.client_type==='sm'||c.client_type==='both');
   else if(tabFilter==='web')cs=cs.filter(c=>c.client_type==='web'||c.client_type==='both'||['SEO Essential','SEO+Maintenance'].includes(c.package));
   if(healthFilter)cs=cs.filter(c=>c.health===healthFilter);
@@ -6178,7 +6188,7 @@ function renderTable(){
       <td style="text-align:center"><span class="content-num ${c.monthly_stories?'posts':'dash'}">${c.monthly_stories||'—'}</span></td>
       <td style="text-align:center"><span class="content-num ${c.monthly_videos?'videos':'dash'}">${c.monthly_videos||'—'}</span></td>
       <td><span class="task-cell ${od?'has-overdue':open?'has-tasks':'clear'}">${open?open+' open'+(od?' · '+od+' od':''):'—'}</span></td>
-      <td onclick="event.stopPropagation()"><button class="del-row-btn" title="End client" aria-label="End client" onclick="confirmDeleteClient(${c.id},'${esc(c.name)}')">×</button></td>
+      <td onclick="event.stopPropagation()">${tabFilter==='ended'?'':`<button class="del-row-btn" title="End client" aria-label="End client" onclick="confirmDeleteClient(${Number(c.id)})">×</button>`}</td>
     </tr>`;
   }).join('');
 }
@@ -7829,8 +7839,14 @@ function finInvClientChanged(){
      prices (90K, 150K, 230K) for any client saved without a fee. Prefill from cl.mrr only,
      otherwise leave the amount empty for a person to type. */
   const mrr=Number(cl.mrr)||0;
-  document.getElementById('fin-inv-amount').value=mrr?mrr:'';finRecalcTotal();
+  /* 7 Oct 2026: a client with no mrr wiped an amount the person had already typed. Write
+     the field only with a fee; clear it only when it still holds the last client's prefill. */
+  const amt=document.getElementById('fin-inv-amount');
+  if(mrr>0){amt.value=mrr;_finInvPrefill=String(mrr);}
+  else if(_finInvPrefill&&amt.value===_finInvPrefill){amt.value='';_finInvPrefill='';}
+  finRecalcTotal();
 }
+let _finInvPrefill='';
 
 // ── Invoice modal ──
 function openFinInvoiceModal(id=null){
@@ -7867,6 +7883,7 @@ function openFinInvoiceModal(id=null){
   }else{
     csel.value='';
     ['fin-inv-amount','fin-inv-notes'].forEach(x=>{const el=document.getElementById(x);if(el)el.value='';});
+    _finInvPrefill=''; // 7 Oct 2026: a fresh form has no prefill to clear
     document.getElementById('fin-inv-month').value=month;
     document.getElementById('fin-inv-due').value='';
     document.getElementById('fin-inv-status').value='unpaid';
@@ -7967,10 +7984,17 @@ async function saveFinCost(){
 }
 
 // ── Yearly view ──
+/* 7 Oct 2026: the Yearly view showed the current Colombo year only, so on 1 January the year
+   just closed vanished during the year end close. A switch shows this year or last year;
+   January opens on last year. */
+let _finYearPick=null;
+function setFinYear(y){_finYearPick=String(y);renderFinYearly();}
 function renderFinYearly(){
   const el=document.getElementById('fin-yearly-view');if(!el)return;
   /* 6 Oct 2026: was the 2026 keys of FIN_MONTH_NAMES; now the twelve months of the current Colombo year. */
-  const _fy=bbCurMonthKey().slice(0,4);
+  const _cur=bbCurMonthKey(),_cy=_cur.slice(0,4),_py=String(Number(_cy)-1);
+  if(_finYearPick!==_cy&&_finYearPick!==_py)_finYearPick=_cur.slice(5,7)==='01'?_py:_cy;
+  const _fy=_finYearPick;
   const months=Array.from({length:12},(_,i)=>_fy+'-'+String(i+1).padStart(2,'0'));
   let totRev=0,totCost=0;
   const rows=months.map(m=>{
@@ -7989,6 +8013,7 @@ function renderFinYearly(){
   }).filter(Boolean).join('');
   const totPft=totRev-totCost;const totMg=totRev>0?Math.round(totPft/totRev*100):0;
   el.innerHTML=`
+    <div class="tab-group" style="display:inline-flex;margin-bottom:12px">${[_py,_cy].map(y=>`<button class="tab-btn${y===_fy?' active':''}" onclick="setFinYear('${y}')">${y}</button>`).join('')}</div>
     <div class="fin-stats" style="margin-bottom:16px">
       <div class="fin-stat" style="border-top:2px solid var(--green)"><div class="fin-stat-lbl">Revenue ${_fy}</div><div class="fin-stat-val" style="color:var(--green)">LKR ${totRev.toLocaleString()}</div></div>
       <div class="fin-stat" style="border-top:2px solid var(--red)"><div class="fin-stat-lbl">Costs ${_fy}</div><div class="fin-stat-val" style="color:var(--red)">LKR ${totCost.toLocaleString()}</div></div>
@@ -8436,7 +8461,12 @@ async function loadNotifications(){
   if(ROLE==='demo') return;
   try{
     const today=new Date().toISOString().split('T')[0];
-    NOTIFS=(await SBget('cc_notifications','?select=*&order=created_at.desc&limit=20').catch(()=>[]))||[];
+    /* 7 Oct 2026: a failed read now comes back null; ||[] left NOTIFS empty, so the
+       login and pillar checks found no earlier alert and posted duplicates every 5
+       minutes while the database struggled. No dedupe list, no alert checks. */
+    const n=await SBget('cc_notifications','?select=*&order=created_at.desc&limit=20').catch(()=>null);
+    if(!Array.isArray(n))return;
+    NOTIFS=n;
     // Check pillar alerts (2 PM rule)
     await checkPillarAlert();
     // Check today's login events
@@ -8637,12 +8667,26 @@ async function saveNewClient(){
 function openEditClientModal(){
   const c=CLIENTS.find(x=>Number(x.id)===currentId);if(!c)return;
   document.getElementById('ec-name').value=c.name||'';document.getElementById('ec-type').value=c.client_type||'sm';
+  /* 7 Oct 2026: a row past its ended_on shows as Ended even if its status still says active. */
+  document.getElementById('ec-status').value=c.status==='internal'?'internal':(c.status==='churned'||!isCountableClient(c))?'churned':'active';
   document.getElementById('modal-edit-client').classList.remove('hidden');
 }
 async function saveClientEdit(){
   const name=(document.getElementById('ec-name').value||'').trim();if(!name)return;
   const data={name,client_type:document.getElementById('ec-type').value};
-  await SBpatch('clients',currentId,data);const c=CLIENTS.find(x=>Number(x.id)===currentId);if(c)Object.assign(c,data);
+  const c=CLIENTS.find(x=>Number(x.id)===currentId);
+  /* 7 Oct 2026: status was not editable, so End client could not be undone. Active clears
+     ended_on so the client counts again; Ended keeps an existing last day or sets today in
+     Colombo, the same as End client. A refused save keeps the form open. */
+  const st=document.getElementById('ec-status').value;
+  const was=c?(c.status==='internal'?'internal':(c.status==='churned'||!isCountableClient(c))?'churned':'active'):'';
+  if(st!==was){
+    data.status=st;
+    if(st==='active')data.ended_on=null;
+    else if(st==='churned'&&!(c&&c.ended_on))data.ended_on=new Date(Date.now()+19800000).toISOString().slice(0,10);
+  }
+  const res=await SBpatch('clients',currentId,data);if(res===null)return;
+  [CLIENTS,(typeof D!=='undefined'&&D&&D.clients)||[]].forEach(list=>{const x=list.find(y=>Number(y.id)===currentId);if(x)Object.assign(x,data);});
   closeModal('modal-edit-client');openProfile(currentId);
 }
 /* 6 Oct 2026: Delete client was a hard DELETE. It cascaded plans, journal and targets
@@ -8652,8 +8696,10 @@ async function saveClientEdit(){
    billable day, so isCountableClient keeps the client in the list today and drops it
    tomorrow, the same way every other churned client left. The function names stay so the
    existing buttons keep working. */
-function _endClientAsk(nm){return confirm(`Mark ${nm} as ended? Their history stays and you can set them back to active later.`);}
-function confirmDeleteClient(id,name){const c=CLIENTS.find(x=>Number(x.id)===Number(id));if(!_endClientAsk(c?c.name:name))return;deleteClient(id);}
+/* 7 Oct 2026: the old copy promised a way back that did not exist. It now names the real one.
+   The row button passes the id only, so an apostrophe in a name cannot break the click. */
+function _endClientAsk(nm){return confirm(`Mark ${nm} as ended? Their history stays. To undo, open Clients, then Ended, open them and set Status to Active in Edit client.`);}
+function confirmDeleteClient(id,name){const c=CLIENTS.find(x=>Number(x.id)===Number(id));if(!_endClientAsk(c?c.name:(name||'this client')))return;deleteClient(id);}
 async function deleteClient(id){
   const ended_on=new Date(Date.now()+19800000).toISOString().slice(0,10);
   const res=await SBpatch('clients',id,{status:'churned',ended_on});
@@ -9197,7 +9243,7 @@ function vpDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('dr
 async function moveVideoStage(id,newStage){
   const v=VP_videos.find(x=>x.id===id);
   if(!v||v.current_stage===newStage)return;
-  const oldStage=v.current_stage;
+  const oldStage=v.current_stage,oldUpdated=v.updated_at; // 7 Oct 2026: kept so a refused move can put both back
   const now=new Date().toISOString();const user=vpUser();
 
   // Optimistic update
@@ -9216,7 +9262,8 @@ async function moveVideoStage(id,newStage){
     if(newStage==='add_to_drive')_vpUp.completed_at=now;
     else if(oldStage==='add_to_drive'||oldStage==='posted')_vpUp.completed_at=null;
     const moved=await sbC('video_projects','PATCH',_vpUp,`?id=eq.${id}`);
-    if(moved===null){v.current_stage=oldStage;renderVideoPipeline();if(VP_detailId===id)openVideoDetail(id);return;}
+    /* 7 Oct 2026: a refused move put the stage back but left the new updated_at on screen. */
+    if(moved===null){v.current_stage=oldStage;v.updated_at=oldUpdated;renderVideoPipeline();if(VP_detailId===id)openVideoDetail(id);return;}
     // 1. Close previous open history row
     /* 6 Oct 2026: the close ran only when the open row was in VP_history, which holds the
        newest 1,000 rows at most, so 97 live videos got a second open row on their next
@@ -9453,6 +9500,7 @@ async function loadArchivedVideos(){
   try{
     const archived=await sb('video_projects','?select=*,clients(name)&is_archived=eq.true&order=updated_at.desc');
     const tbody=document.getElementById('vp-archive-tbody');if(!tbody)return;
+    _vpArchStage={};(archived||[]).forEach(v=>{_vpArchStage[v.id]=v.current_stage;}); // 7 Oct 2026: restoreVideo reads the stored stage
     if(!archived||!archived.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-3);font-size:12px">No archived projects</td></tr>';return;}
     tbody.innerHTML=archived.map(v=>`<tr style="border-bottom:1px solid var(--border)">
       <td style="padding:10px 12px;font-size:12px;font-weight:600;color:var(--text)">${esc(v.title||'Untitled')}</td>
@@ -9462,9 +9510,17 @@ async function loadArchivedVideos(){
     </tr>`).join('');
   }catch(e){console.error('loadArchivedVideos',e);}
 }
+/* 7 Oct 2026: the board has no Sent to Client or Posted column since those stages retired,
+   so a restored video at one of them left the archive and showed nowhere. It comes back
+   at the stage the Video System uses now: Client Review (Add to Drive for Posted). */
+let _vpArchStage={};
 async function restoreVideo(id){
   try{
-    await sbC('video_projects','PATCH',{is_archived:false,updated_at:new Date().toISOString()},`?id=eq.${id}`);
+    const data={is_archived:false,updated_at:new Date().toISOString()};
+    const st=_vpArchStage[id];
+    if(VP_RETIRED.includes(st))data.current_stage=st==='posted'?'add_to_drive':'client_review';
+    const res=await sbC('video_projects','PATCH',data,`?id=eq.${id}`);
+    if(res===null)return; // refused: the toast has shown and the video stays in the archive
     await loadArchivedVideos();
     await loadVideoPipeline();
   }catch(e){console.error('restoreVideo',e);}
@@ -10130,7 +10186,12 @@ function openCpEditModal(id){
   const cf=document.getElementById('cp-f-client');
   if(cf)cf.innerHTML='<option value="">Select client</option>'+CP_clients_list.map(c=>`<option value="${c.id}" data-name="${esc(c.name)}" ${Number(c.id)===Number(item.client_id)?'selected':''}>${esc(c.name)}</option>`).join('');
   const mSel=document.getElementById('cp-f-month');
-  if(mSel&&mSel.querySelector(`option[value="${item.month}"]`))mSel.value=item.month;
+  /* 7 Oct 2026: content_plans.month is an integer and the options are YYYY-MM, so the edit
+     form never showed the plan's month and Save wrote whatever the picker last held. Build
+     the key from year and month (month_str as a fallback) and add it when the picker's 12
+     back to 6 ahead window does not hold it, so Save writes back the month the form shows. */
+  const _ck=(item.year&&item.month)?String(item.year)+'-'+String(item.month).padStart(2,'0'):(/^\d{4}-\d{2}$/.test(item.month_str||'')?item.month_str:'');
+  if(mSel&&_ck){if(![...mSel.options].some(o=>o.value===_ck))mSel.add(new Option(bbMonthLabel(_ck),_ck));mSel.value=_ck;}
   document.getElementById('cp-f-type').value=item.type||'post';
   document.getElementById('cp-f-platform').value=item.platform||'instagram';
   document.getElementById('cp-f-title').value=item.title||'';
