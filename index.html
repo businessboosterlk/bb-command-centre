@@ -4802,7 +4802,9 @@ function renderVideoStrip(){
   document.getElementById('vid-active').textContent=v.length;
   document.getElementById('vid-editing').textContent=v.filter(x=>x.current_stage==='editing').length;
   document.getElementById('vid-review').textContent=v.filter(x=>['team_review','changes'].includes(x.current_stage)).length;
-  document.getElementById('vid-sent').textContent=v.filter(x=>x.current_stage==='sent_to_client').length;
+  /* 7 Oct 2026: the Video System has no Sent to Client stage, so videos waiting on a client sit at
+     client_review. Counting sent_to_client alone read 0 for good after VP_STAGES was aligned. */
+  document.getElementById('vid-sent').textContent=v.filter(x=>x.current_stage==='client_review'||x.current_stage==='sent_to_client').length;
   /* 6 Oct 2026: counted Posted only, a stage nothing reaches now; finished is Add to Drive or Posted. */
   document.getElementById('vid-posted').textContent=v.filter(x=>(x.current_stage==='add_to_drive'||x.current_stage==='posted')&&x.target_month===nm&&x.target_year===ny).length;
   const _vpLbl=document.getElementById('vid-posted').nextElementSibling;if(_vpLbl)_vpLbl.textContent='Finished '+MS[nm-1];
@@ -8746,7 +8748,10 @@ async function deleteClient(id){
      good and counted them again for the rest of the day. An existing ended_on on a churned row
      is kept, the same as saveClientEdit. */
   const prev=CLIENTS.find(x=>Number(x.id)===Number(id));
-  const ended_on=(prev&&prev.status==='churned'&&prev.ended_on)?prev.ended_on:new Date(Date.now()+19800000).toISOString().slice(0,10);
+  /* 7 Oct 2026, review: keep a recorded last day only when it has already passed; a future one would
+     keep the client counted after they were ended today. */
+  const _todayCmb=new Date(Date.now()+19800000).toISOString().slice(0,10);
+  const ended_on=(prev&&prev.status==='churned'&&prev.ended_on&&String(prev.ended_on)<_todayCmb)?prev.ended_on:_todayCmb;
   const res=await SBpatch('clients',id,{status:'churned',ended_on});
   if(res===null)return; // refused: sbC has shown the toast and nothing on screen changes
   const lists=[CLIENTS,(typeof D!=='undefined'&&D&&D.clients)||[]];
