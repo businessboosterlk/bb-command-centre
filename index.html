@@ -1351,6 +1351,12 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 .fin-pills{display:inline-flex;border:1px solid var(--border);border-radius:20px;overflow:hidden}
 .fin-pills button{background:none;border:0;color:var(--text-2);padding:6px 13px;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;min-height:32px}
 .fin-pills button.on{background:var(--accent-soft);color:var(--accent)}
+.fin-pill-n:not(:empty){display:inline-block;margin-left:5px;min-width:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;line-height:17px;text-align:center}
+#fin-sect-in{scroll-margin-top:calc(var(--fin-sticky-top,56px) + 10px)}
+.fin-late{font-size:10.5px;font-weight:600;color:var(--red);margin-top:1px}
+.fin-grp-month{background:var(--surface)}
+.fin-grp-month .fin-grp-name{color:var(--text)}
+.fin-grp-month .fin-grp-sum{color:var(--text-2)}
 .fin-grp{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 18px;background:var(--surface-2);border-bottom:1px solid var(--border)}
 .fin-grp-name{font-size:11px;font-weight:600;letter-spacing:0}
 .fin-grp-sum{font-size:13px;font-weight:600}
@@ -3107,7 +3113,7 @@ window.__ST_LOG=[];
           </div>
           <div style="display:flex;align-items:center;gap:10px">
             <span style="font-size:12px;font-weight:600;color:var(--red)" id="fin-delayed-total">LKR 0</span>
-            <button type="button" id="fin-delayed-toggle" class="btn-ghost btn-sm" style="font-size:11px" onclick="finToggleOverdue()">Show</button>
+            <button type="button" id="fin-delayed-toggle" class="btn-ghost btn-sm" style="font-size:11px" onclick="finShowOverdueByMonth()">See who, by month</button>
           </div>
         </div>
         <!-- FOLDED BY DEFAULT. This list listed every unpaid invoice in every month
@@ -3165,6 +3171,7 @@ window.__ST_LOG=[];
                 <button type="button" data-f="" onclick="finSetInvFilter('')">All</button>
                 <button type="button" data-f="due" onclick="finSetInvFilter('due')">To collect</button>
                 <button type="button" data-f="paid" onclick="finSetInvFilter('paid')">Collected</button>
+                <button type="button" data-f="overdue" onclick="finSetInvFilter('overdue')">Overdue<span id="fin-ov-count" class="fin-pill-n"></span></button>
               </div>
               <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+ Invoice</button>
             </div>
@@ -6585,6 +6592,13 @@ function finToggleOverdue(){
   if(l)l.style.display=finOverdueOpen?'':'none';
   if(b)b.textContent=finOverdueOpen?'Hide':'Show';
 }
+/* "I click overdue and see each month who is still pending" (Thulaib, 7 Oct 2026). One tap from
+   the overdue box lands on the Invoices list showing every past-due invoice of every month,
+   grouped by month, oldest first. No month picker, no search, no second list to unfold. */
+function finShowOverdueByMonth(){
+  finInvFilter='overdue'; renderFinancePage();
+  setTimeout(()=>{ const s=document.getElementById('fin-sect-in'); if(s) s.scrollIntoView({behavior:'smooth',block:'start'}); },60);
+}
 function finSetCostFilter(f){ finCostFilter=f; renderFinancePage(); }
 /* Light the pill that matches the filter in force, so the header always says
    what you are looking at. */
@@ -7559,12 +7573,14 @@ function renderFinancePage(){
   const paidInv=invoices.filter(i=>!isDue(i)).sort((a,b)=>(b.amount||0)-(a.amount||0));
   const sumOf=arr=>arr.reduce((t,i)=>t+(i.amount||0),0);
   const invEl=document.getElementById('fin-invoice-list');
-  const invRow=inv=>{
+  const invRow=(inv,late)=>{
       const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
       const nm=inv.client_name||(cl?cl.name:'')||'—';
-      const sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
-      const sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
-      const sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||inv.status.toUpperCase();
+      let sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
+      let sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
+      let sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||inv.status.toUpperCase();
+      /* in the overdue view every row is past its due date, so it says so, whatever the stored status */
+      if(typeof late==='string'){ sl='OVERDUE'; sc='var(--red)'; sb='var(--red-soft)'; }
       let extras=[];
       try{extras=Array.isArray(inv.extras)?inv.extras:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
       const extrasHtml=extras.length?`<div class="fin-extras-breakdown">${extras.map(ex=>`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);padding:1px 0"><span>+ ${esc(ex.desc||'Extra')}</span><span style="color:var(--text-2);font-weight:600">LKR ${(parseInt(ex.amt)||0).toLocaleString()}</span></div>`).join('')}</div>`:'';
@@ -7575,6 +7591,7 @@ function renderFinancePage(){
       return `<div class="fin-inv-row">
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:700;color:var(--text)">${esc(nm)}${oneOff?' <span style="font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--text-3);border:1px solid var(--border);border-radius:20px;padding:1px 7px;margin-left:4px;white-space:nowrap">one off</span>':''}</div>
+          ${typeof late==='string'?`<div class="fin-late">${late}</div>`:''}
           ${inv.notes?`<div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(inv.notes)}</div>`:''}
           ${extrasHtml}
         </div>
@@ -7588,7 +7605,26 @@ function renderFinancePage(){
         </div>
       </div>`;
   };
-  if(!invoices.length){
+  const _ovN=document.getElementById('fin-ov-count'); if(_ovN) _ovN.textContent=allDelayed.length?String(allDelayed.length):'';
+  if(finInvFilter==='overdue'){
+    /* EVERY MONTH AT ONCE, ignoring the month picker: who owes, month by month, oldest first,
+       the same past-due rule as the overdue box above, so the two totals always agree. */
+    const byMonth={};
+    allDelayed.forEach(i=>{ (byMonth[i.month||'']=byMonth[i.month||'']||[]).push(i); });
+    const ovSum=sumOf(allDelayed);
+    document.getElementById('fin-inv-total').textContent='LKR '+ovSum.toLocaleString();
+    const lateTxt=i=>{ const d=Math.max(0,Math.floor((_nowMs-fallsDue(i))/86400000)); return d===0?'Due today':d===1?'1 day late':d+' days late'; };
+    let h=`<div class="fin-grp"><span class="fin-grp-name" style="color:${allDelayed.length?'var(--red)':'var(--green)'}">${allDelayed.length?'Overdue, all months':'Nobody is overdue'}</span>`
+      +`<span class="fin-grp-sum" style="color:${allDelayed.length?'var(--red)':'var(--green)'}">LKR ${ovSum.toLocaleString()}<span>${allDelayed.length} invoice${allDelayed.length===1?'':'s'}</span></span></div>`;
+    Object.keys(byMonth).sort().forEach(mk=>{
+      const rows=byMonth[mk].sort((a,b)=>(b.amount||0)-(a.amount||0));
+      h+=`<div class="fin-grp fin-grp-month"><span class="fin-grp-name">${FIN_MONTH_NAMES[mk]||mk||'No month'}</span>`
+        +`<span class="fin-grp-sum">LKR ${sumOf(rows).toLocaleString()}<span>${rows.length} client${rows.length===1?'':'s'}</span></span></div>`;
+      h+=rows.map(i=>invRow(i,lateTxt(i))).join('');
+    });
+    if(!allDelayed.length) h+='<div class="fin-empty-grp">Every invoice that has fallen due is paid.</div>';
+    invEl.innerHTML=h;
+  }else if(!invoices.length){
     invEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No invoices for ${FIN_MONTH_NAMES[month]||month}</div>`;
   }else{
     const showDue=finInvFilter!=='paid', showPaid=finInvFilter!=='due';
