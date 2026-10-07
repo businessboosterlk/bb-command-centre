@@ -1222,7 +1222,7 @@ td:last-child{padding-right:18px;text-align:right}
 .stage-cards.drop-target{background:var(--accent-soft,rgba(255,149,0,.06))}
 .stage-empty{padding:20px 10px;text-align:center;color:var(--text-3);font-size:11px;font-style:italic}
 .stage-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block}
-.stage-dot.s-video_shot{background:#3b82f6}.stage-dot.s-cutting_color_grading{background:#06b6d4}.stage-dot.s-rendering{background:#8b5cf6}.stage-dot.s-editing{background:#f59e0b}.stage-dot.s-video_head_review{background:#7c3aed}.stage-dot.s-team_review{background:#a855f7}.stage-dot.s-changes{background:#ef4444}.stage-dot.s-coo_check{background:#ec4899}.stage-dot.s-client_changes{background:#f97316}.stage-dot.s-sent_to_client{background:#22c55e}.stage-dot.s-add_to_drive{background:#14b8a6}.stage-dot.s-posted{background:#64748b}
+.stage-dot.s-video_shot{background:#3b82f6}.stage-dot.s-cutting_color_grading{background:#06b6d4}.stage-dot.s-rendering{background:#8b5cf6}.stage-dot.s-editing{background:#f59e0b}.stage-dot.s-video_head_review{background:#7c3aed}.stage-dot.s-team_review{background:#a855f7}.stage-dot.s-changes{background:#ef4444}.stage-dot.s-coo_check{background:#ec4899}.stage-dot.s-client_review{background:#2563eb}/* 6 Oct 2026: Client Review column, same colour as the Video System */.stage-dot.s-client_changes{background:#f97316}.stage-dot.s-sent_to_client{background:#22c55e}.stage-dot.s-add_to_drive{background:#14b8a6}.stage-dot.s-posted{background:#64748b}
 .vp-card{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:13px;cursor:grab;transition:all .18s;border-left:3px solid #64748b;position:relative}
 .vp-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.15)}
 .vp-card.dragging{opacity:.4;transform:scale(.95)}
@@ -1735,6 +1735,11 @@ window.__ST_LOG=[];
 #bb-brief .dec-meta .area{color:var(--text-2)}
 #bb-brief .dec-ans{font:inherit;font-size:12.5px;font-weight:600;color:var(--accent);border:1px solid var(--c-line);border-radius:8px;padding:6px 11px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;cursor:pointer}
 #bb-brief .dec-hint{font-size:12.5px;color:var(--text-2);margin-bottom:8px}
+#bb-brief .talk{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-bottom:8px}
+#bb-brief .talk .rec{width:10px;height:10px;border-radius:50%;background:var(--c-bad);opacity:.45}
+#bb-brief .dec.listening .talk{border-color:var(--c-bad);color:var(--text)}
+#bb-brief .dec.listening .talk .rec{opacity:1;animation:cxpulse 1.1s ease-in-out infinite}
+#bb-brief .talk-note{font-size:11.5px;color:var(--text-3);margin:-2px 0 8px;text-align:center}
 #bb-brief .dec-hint b{color:var(--text)}
 #bb-brief .dec-form{display:none;margin-top:10px}
 #bb-brief .dec.answering .dec-form{display:block}
@@ -1920,12 +1925,49 @@ window.__ST_LOG=[];
           <div class="dec-row"><div><div class="dec-text">${esc(d.item)}</div>
           <div class="dec-meta"><span class="area">${esc(d._area)}${d._client ? ' · ' + esc(d._client) : ''}</span> · asked ${esc(String(d.asked_on).slice(5).replace('-', '/'))}${d.source ? ' · ' + esc(String(d.source).split(',')[0]) : ''}</div></div>
           <button type="button" class="dec-ans" data-act="answer" title="${esc(d.answer_hint || '')}">${esc(d.answer_hint && d.answer_hint.length <= 26 ? d.answer_hint : 'Answer')}</button></div>
-          <div class="dec-form">${d.answer_hint ? `<div class="dec-hint">What settles it: <b>${esc(d.answer_hint)}</b></div>` : ''}<textarea placeholder="Your answer, in your words" aria-label="Your answer"></textarea>
+          <div class="dec-form">${d.answer_hint ? `<div class="dec-hint">What settles it: <b>${esc(d.answer_hint)}</b></div>` : ''}${TALK ? `<button type="button" class="btn talk" data-act="talk"><span class="rec" aria-hidden="true"></span><span class="talk-l">Talk your answer</span></button>` : `<div class="talk-note">To talk, use the microphone key on your keyboard</div>`}<textarea placeholder="Your answer, in your words" aria-label="Your answer"></textarea>
             <div class="bar"><button type="button" class="btn primary" data-act="done">Mark done</button>
             <div class="pair"><button type="button" class="btn" data-act="drop">Not needed</button><button type="button" class="btn" data-act="close">Later</button></div></div></div>
         </div>`).join('');
     const more = $('cx-more');
     if (list.length > S.shown) { more.hidden = false; more.textContent = 'Show all ' + list.length; } else more.hidden = true;
+  }
+  /* TALK YOUR ANSWER (Thulaib, 7 Oct 2026: "add a voice message option so I can just talk"). The browser's own
+     dictation (Safari and Chrome): words appear in the box as he speaks, he reads them, then presses Mark done.
+     Nothing is recorded or stored as audio; only the text he saves. */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const TALK = !!SR;
+  let rec = null, recCard = null;
+  function stopTalk(){
+    if (rec) { try { rec.stop(); } catch (e) {} }
+    if (recCard) { recCard.classList.remove('listening'); const l = recCard.querySelector('.talk-l'); if (l) l.textContent = 'Talk your answer'; }
+    rec = null; recCard = null;
+  }
+  function startTalk(card){
+    if (rec) { const same = recCard === card; stopTalk(); if (same) return; }
+    if (speaking) stop();
+    const box = card.querySelector('textarea'), base = box.value.trim();
+    rec = new SR(); recCard = card;
+    rec.lang = 'en-GB'; rec.interimResults = true; rec.continuous = true;
+    let finalText = '';
+    rec.onresult = e => {
+      let interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const t = e.results[i][0].transcript;
+        if (e.results[i].isFinal) finalText += t.trim() + ' '; else interim += t;
+      }
+      box.value = [base, (finalText + interim).trim()].filter(Boolean).join(' ');
+    };
+    rec.onerror = e => {
+      const why = e.error === 'not-allowed' || e.error === 'service-not-allowed' ? 'Allow the microphone for this site, then tap Talk again.'
+        : e.error === 'no-speech' ? 'Nothing was heard. Tap Talk and speak.' : 'Dictation stopped. Tap Talk to try again.';
+      if (typeof toast === 'function') toast(why);
+      stopTalk();
+    };
+    rec.onend = () => { if (recCard === card) stopTalk(); };
+    card.classList.add('listening');
+    const l = card.querySelector('.talk-l'); if (l) l.textContent = 'Listening. Tap to stop';
+    try { rec.start(); } catch (e) { stopTalk(); }
   }
   function renderAll(){ renderHead(); renderHud(); renderToday(); renderChips(); renderDecs(); }
 
@@ -2035,9 +2077,11 @@ window.__ST_LOG=[];
       const card = e.target.closest('.dec'); if (!card) return;
       const id = Number(card.dataset.id), act = (e.target.closest('[data-act]') || {}).dataset ? e.target.closest('[data-act]') && e.target.closest('[data-act]').dataset.act : null;
       if (e.target.closest('.dec-text')) { card.classList.toggle('open'); return; }
-      if (act === 'answer') { card.classList.toggle('answering'); const t = card.querySelector('textarea'); if (card.classList.contains('answering')) t.focus(); return; }
-      if (act === 'close') { card.classList.remove('answering'); return; }
+      if (act === 'answer') { if (recCard === card) stopTalk(); card.classList.toggle('answering'); const t = card.querySelector('textarea'); if (card.classList.contains('answering')) t.focus(); return; }
+      if (act === 'talk') { startTalk(card); return; }
+      if (act === 'close') { if (recCard === card) stopTalk(); card.classList.remove('answering'); return; }
       if (act === 'done' || act === 'drop') {
+        if (recCard === card) stopTalk();
         const ans = card.querySelector('textarea').value.trim();
         const btns = card.querySelectorAll('button'); btns.forEach(b => b.disabled = true);
         const keep = S.decs; S.decs = S.decs.filter(d => d.id !== id); renderAll();   /* the screen changes at the tap */
@@ -2139,7 +2183,7 @@ window.__ST_LOG=[];
         <div class="strip-stat"><div class="strip-val blue" id="vid-editing">—</div><div class="strip-lbl">Editing</div></div>
         <div class="strip-stat"><div class="strip-val amber" id="vid-review">—</div><div class="strip-lbl">In Review</div></div>
         <div class="strip-stat"><div class="strip-val red" id="vid-sent">—</div><div class="strip-lbl">Sent / Waiting</div></div>
-        <div class="strip-stat"><div class="strip-val green" id="vid-posted">—</div><div class="strip-lbl">Posted May</div></div>
+        <div class="strip-stat"><div class="strip-val green" id="vid-posted">—</div><div class="strip-lbl">Finished</div></div>
         <div class="strip-div"></div>
         <div class="ed-list" id="ed-list"><div class="skel" style="width:80px;height:24px;border-radius:20px"></div></div>
       </div>
@@ -3003,21 +3047,7 @@ window.__ST_LOG=[];
           <button class="fin-vtab" id="fvt-client" onclick="setFinView('client')">By Client</button>
           <button class="fin-vtab" id="fvt-reports" onclick="setFinView('reports')">Reports</button>
         </div>
-        <select class="form-select" id="fin-month-sel" style="width:150px;font-size:12px" onchange="renderFinancePage()">
-          <option value="2025-12">Dec 2025</option>
-          <option value="2026-01">Jan 2026</option>
-          <option value="2026-02">Feb 2026</option>
-          <option value="2026-03">Mar 2026</option>
-          <option value="2026-04">Apr 2026</option>
-          <option value="2026-05">May 2026</option>
-          <option value="2026-06" selected>Jun 2026</option>
-          <option value="2026-07">Jul 2026</option>
-          <option value="2026-08">Aug 2026</option>
-          <option value="2026-09">Sep 2026</option>
-          <option value="2026-10">Oct 2026</option>
-          <option value="2026-11">Nov 2026</option>
-          <option value="2026-12">Dec 2026</option>
-        </select>
+        <select class="form-select" id="fin-month-sel" style="width:150px;font-size:12px" onchange="renderFinancePage()"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
         <button class="btn-ghost btn-sm" onclick="openFinCostModal()">+ Add Cost</button>
         <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+ Add Invoice</button>
       </div>
@@ -3158,12 +3188,7 @@ window.__ST_LOG=[];
         <div style="font-size:12px;color:var(--text-3);margin-top:3px" id="tm-sub">6 active members</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <select class="form-select" id="tm-month-sel" style="width:130px;font-size:12px" onchange="renderTeamPage()">
-          <option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option><option value="2026-03">Mar 2026</option>
-          <option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option><option value="2026-06">Jun 2026</option>
-          <option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option><option value="2026-09">Sep 2026</option>
-          <option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
-        </select>
+        <select class="form-select" id="tm-month-sel" style="width:130px;font-size:12px" onchange="renderTeamPage()"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
       </div>
     </div>
     <!-- Team grid by department -->
@@ -3181,12 +3206,7 @@ window.__ST_LOG=[];
         <div style="font-size:12px;color:var(--text-3);margin-top:3px">Monthly content calendar — all clients, all types</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <select class="form-select" id="cp-month-sel" style="width:140px;font-size:12px" onchange="renderContentPlans()">
-          <option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option><option value="2026-03">Mar 2026</option>
-          <option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option><option value="2026-06" selected>Jun 2026</option>
-          <option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option><option value="2026-09">Sep 2026</option>
-          <option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
-        </select>
+        <select class="form-select" id="cp-month-sel" style="width:140px;font-size:12px" onchange="renderContentPlans()"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
         <select class="form-select" id="cp-filter-client" style="width:160px;font-size:12px" onchange="renderContentPlans()"><option value="">All clients</option></select>
         <select class="form-select" id="cp-filter-type" style="width:130px;font-size:12px" onchange="renderContentPlans()">
           <option value="">All types</option>
@@ -3225,10 +3245,7 @@ window.__ST_LOG=[];
       </div>
       <div class="form-row">
         <label class="form-label">Month</label>
-        <select class="form-input" id="cp-f-month">
-          <option value="2026-06">Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
-          <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
-        </select>
+        <select class="form-input" id="cp-f-month"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-row">
@@ -3874,7 +3891,7 @@ window.__ST_LOG=[];
     <div class="field-row"><div class="form-field"><label class="form-label">Client Name *</label><input class="form-input" id="ec-name"></div><div class="form-field" style="max-width:130px"><label class="form-label">Type</label><select class="form-select" id="ec-type"><option value="sm">Social Media</option><option value="web">Website/SEO</option><option value="both">SM + Web</option></select></div></div>
     <p style="font-size:11px;color:var(--text-3);margin:0;padding:4px 0">All other fields (health, package, retainer, posts/videos target, owner, dates) are editable directly in the fields bar on the profile. This modal handles name and type changes only.</p>
   </div>
-  <div class="modal-foot"><button class="btn-danger-sm" onclick="deleteCurrentClient()">Delete Client</button><button class="btn-ghost" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn-primary" onclick="saveClientEdit()">Save</button></div></div>
+  <div class="modal-foot"><!-- 6 Oct 2026: was Delete Client, a hard delete; now End client marks the row churned --><button class="btn-danger-sm" onclick="deleteCurrentClient()">End client</button><button class="btn-ghost" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn-primary" onclick="saveClientEdit()">Save</button></div></div>
 </div>
 <!-- Add/Edit Content Item -->
 <div class="modal-overlay hidden" id="modal-content">
@@ -3915,12 +3932,7 @@ window.__ST_LOG=[];
       <div class="field-row">
         <div class="form-field"><label class="form-label">Base Retainer (LKR) *</label><input class="form-input" id="fin-inv-amount" type="number" placeholder="e.g. 90000" oninput="finRecalcTotal()"></div>
         <div class="form-field"><label class="form-label">Month *</label>
-          <select class="form-select" id="fin-inv-month">
-            <option value="2025-12">Dec 2025</option><option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option>
-            <option value="2026-03">Mar 2026</option><option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option>
-            <option value="2026-06">Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
-            <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
-          </select>
+          <select class="form-select" id="fin-inv-month"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
         </div>
       </div>
       <!-- Extras -->
@@ -3958,12 +3970,7 @@ window.__ST_LOG=[];
       <div class="field-row">
         <div class="form-field"><label class="form-label">Amount (LKR) *</label><input class="form-input" id="fin-cost-amount" type="number" placeholder="e.g. 8500"></div>
         <div class="form-field"><label class="form-label">Month *</label>
-          <select class="form-select" id="fin-cost-month">
-            <option value="2025-12">Dec 2025</option><option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option>
-            <option value="2026-03">Mar 2026</option><option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option>
-            <option value="2026-06">Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
-            <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
-          </select>
+          <select class="form-select" id="fin-cost-month"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
         </div>
       </div>
       <div class="form-field"><label class="form-label">Category</label>
@@ -3990,12 +3997,7 @@ window.__ST_LOG=[];
         <div class="field-row">
           <div class="form-field"><label class="form-label">Base Retainer (LKR) *</label><input class="form-input" id="inv-amount" type="number" placeholder="e.g. 90000"></div>
           <div class="form-field"><label class="form-label">Month *</label>
-            <select class="form-select" id="inv-month">
-              <option value="2025-12">Dec 2025</option><option value="2026-01">Jan 2026</option><option value="2026-02">Feb 2026</option>
-              <option value="2026-03">Mar 2026</option><option value="2026-04">Apr 2026</option><option value="2026-05">May 2026</option>
-              <option value="2026-06" selected>Jun 2026</option><option value="2026-07">Jul 2026</option><option value="2026-08">Aug 2026</option>
-              <option value="2026-09">Sep 2026</option><option value="2026-10">Oct 2026</option><option value="2026-11">Nov 2026</option><option value="2026-12">Dec 2026</option>
-            </select>
+            <select class="form-select" id="inv-month"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
           </div>
         </div>
         <div class="field-row">
@@ -4768,7 +4770,9 @@ function renderVideoStrip(){
   document.getElementById('vid-editing').textContent=v.filter(x=>x.current_stage==='editing').length;
   document.getElementById('vid-review').textContent=v.filter(x=>['team_review','changes'].includes(x.current_stage)).length;
   document.getElementById('vid-sent').textContent=v.filter(x=>x.current_stage==='sent_to_client').length;
-  document.getElementById('vid-posted').textContent=v.filter(x=>x.current_stage==='posted'&&x.target_month===nm&&x.target_year===ny).length;
+  /* 6 Oct 2026: counted Posted only, a stage nothing reaches now; finished is Add to Drive or Posted. */
+  document.getElementById('vid-posted').textContent=v.filter(x=>(x.current_stage==='add_to_drive'||x.current_stage==='posted')&&x.target_month===nm&&x.target_year===ny).length;
+  const _vpLbl=document.getElementById('vid-posted').nextElementSibling;if(_vpLbl)_vpLbl.textContent='Finished '+MS[nm-1];
   const edMap={};
   v.forEach(x=>{if(x.assigned_editor_id)edMap[x.assigned_editor_id]=(edMap[x.assigned_editor_id]||0)+1;});
   const edNames={};
@@ -5098,7 +5102,12 @@ async function saveTop3(who,items){
       // row exists in memory but no id — try matching by who
       const res=await sbC('pillars','PATCH',payload,`?who=eq.${who}`);
       // if nothing patched, create
-      if(!res||(Array.isArray(res)&&!res.length)){
+      /* 6 Oct 2026: sbC now returns true for a PATCH that saved and null for one that was
+         refused. return=minimal cannot say whether a row matched, so look before creating,
+         and create nothing when the PATCH was refused. */
+      const have=res?await SBget('pillars',`?who=eq.${who}&select=id`):null;
+      if(Array.isArray(have)&&have[0]&&have[0].id){row.id=have[0].id;}
+      else if(Array.isArray(have)){
         const created=await sbC('pillars','POST',{who:who,top3:JSON.stringify(clean),done_ids:'[]'},'');
         if(Array.isArray(created)&&created[0]&&created[0].id){row.id=created[0].id;}
       }
@@ -5674,12 +5683,17 @@ async function savePipeline(){
   };
   if(!data.name){alert('Business name required');return;}
   try{
+    /* 6 Oct 2026: a refused save used to close the modal and change the row on screen
+       anyway. sbC returns null when Postgres refuses; keep the modal open and the
+       list as it was (sbC has shown the toast). */
     if(editId){
-      await SBpatch('pipeline',editId,data);
+      const saved=await SBpatch('pipeline',editId,data);
+      if(saved===null)return;
       const p=D.pipeline.find(x=>String(x.id)===String(editId));
       if(p)Object.assign(p,data);
     } else {
       const created=await SBpost('pipeline',data);
+      if(created===null)return;
       if(Array.isArray(created)&&created[0])D.pipeline.push(created[0]);
     }
   }catch(e){console.error('savePipeline',e);}
@@ -5941,20 +5955,48 @@ async function saveCalEvent(){
 
 
 /* ── SUPABASE ── */
-async function sbC(table,method='GET',body=null,query='?order=id.asc'){
+/* 6 Oct 2026: sbC never tested r.ok. A refused write came back as the Postgres
+   error body and every caller carried on as if it had saved; a failed read came
+   back as the error object and was treated as a list. Now a refusal is logged
+   with its table, method, status and code, a write also shows this toast, and
+   both return null. A write that saved returns its body, or true when the body
+   is empty (PATCH and DELETE send return=minimal), so callers can tell. */
+let _sbToastTimer=null;
+function sbWriteToast(msg,ok){
+  try{
+    /* One toast element, reused, so a burst of refusals shows one line and not a pile. */
+    let t=document.getElementById('sb-write-toast');
+    if(!t){t=document.createElement('div');t.id='sb-write-toast';document.body.appendChild(t);}
+    t.setAttribute('role','status');
+    t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);max-width:calc(100vw - 32px);background:var(--surface,#1e293b);border:1px solid var(--border);border-left:3px solid '+(ok?'#6366f1':'#ef4444')+';color:var(--text,#f1f5f9);padding:10px 18px;border-radius:8px;font-size:12px;font-weight:600;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.4)';
+    t.textContent=msg;
+    clearTimeout(_sbToastTimer);_sbToastTimer=setTimeout(()=>t.remove(),5000);
+  }catch(e){}
+}
+async function sbC(table,method='GET',body=null,query='?order=id.asc',prefer=null){
   if(DEMO_MODE){ return method==='GET' ? demoRows(table) : { status:'demo-noop' }; }
   const ck=table+'|'+query;
   if(method==='GET'){const hit=_sbCacheGet(ck);if(hit)return hit;}
   try{
     await bbAuthEnsure();
-    const mk=()=>{const o={method,headers:{'apikey':SB_KEY,'Authorization':bbBearer(),'Content-Type':'application/json','Prefer':method==='POST'?'return=representation':'return=minimal'}};if(body)o.body=JSON.stringify(body);return o;};
+    const mk=()=>{const o={method,headers:{'apikey':SB_KEY,'Authorization':bbBearer(),'Content-Type':'application/json','Prefer':prefer||(method==='POST'?'return=representation':'return=minimal')}};if(body)o.body=JSON.stringify(body);return o;};
     let r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk());
     if(r.status===401 && AUTH_ROLE){ await bbAuthEnsure(); r=await fetch(`${SB_URL}/rest/v1/${table}${query}`,mk()); }
-    const t=await r.text();const d=t?JSON.parse(t):null;
-    if(method==='GET'&&r.ok&&d)_sbCacheSet(ck,d);
-    if(method!=='GET')_sbCacheInvalidate(table);
+    const t=await r.text();
+    if(!r.ok){
+      let code='';try{code=(JSON.parse(t)||{}).code||'';}catch(e){}
+      /* error_log is written by the console.error catcher itself: a refusal there is only
+         warned, so it cannot loop back into another error_log write or toast. */
+      if(table==='error_log'){console.warn('sbC refused',table,method,r.status,code);return null;}
+      console.error('sbC refused',table,method,r.status,code);
+      if(method!=='GET')sbWriteToast('Not saved: '+table+' was refused ('+r.status+')');
+      return null;
+    }
+    const d=t?JSON.parse(t):null;
+    if(method==='GET'&&d)_sbCacheSet(ck,d);
+    if(method!=='GET'){_sbCacheInvalidate(table);return d===null?true:d;}
     return d;
-  }catch(e){console.error(e);return null;}
+  }catch(e){console.error(e);if(method!=='GET'&&table!=='error_log')sbWriteToast('Not saved: '+table+' could not be reached');return null;}
 }
 const SBget=(t,q)=>sbC(t,'GET',null,q||'?order=id.asc');
 const SBpost=(t,d)=>sbC(t,'POST',d,'');
@@ -6114,7 +6156,7 @@ function renderTable(){
       <td style="text-align:center"><span class="content-num ${c.monthly_stories?'posts':'dash'}">${c.monthly_stories||'—'}</span></td>
       <td style="text-align:center"><span class="content-num ${c.monthly_videos?'videos':'dash'}">${c.monthly_videos||'—'}</span></td>
       <td><span class="task-cell ${od?'has-overdue':open?'has-tasks':'clear'}">${open?open+' open'+(od?' · '+od+' od':''):'—'}</span></td>
-      <td onclick="event.stopPropagation()"><button class="del-row-btn" onclick="confirmDeleteClient(${c.id},'${esc(c.name)}')">×</button></td>
+      <td onclick="event.stopPropagation()"><button class="del-row-btn" title="End client" aria-label="End client" onclick="confirmDeleteClient(${c.id},'${esc(c.name)}')">×</button></td>
     </tr>`;
   }).join('');
 }
@@ -6538,11 +6580,33 @@ let finEditInvId=null;
 let finEditCostId=null;
 let _finExtras=[];
 
-const FIN_MONTH_NAMES={'2025-12':'Dec 2025','2026-01':'Jan 2026','2026-02':'Feb 2026','2026-03':'Mar 2026',
-  '2026-04':'Apr 2026','2026-05':'May 2026','2026-06':'Jun 2026','2026-07':'Jul 2026',
-  '2026-08':'Aug 2026','2026-09':'Sep 2026','2026-10':'Oct 2026','2026-11':'Nov 2026','2026-12':'Dec 2026'};
+/* 6 Oct 2026: every month picker was a hard-coded list or map that stopped at December
+   2026, so from December nobody could raise a January invoice and the yearly view ignored
+   2027. One helper builds the months from 12 back to 6 ahead of the current Colombo month,
+   as 'YYYY-MM', and every picker, map and label below reads it. */
+function bbCurMonthKey(){return new Date(Date.now()+19800000).toISOString().slice(0,7);}
+function bbMonthKeys(){
+  const n=new Date(Date.now()+19800000),y=n.getUTCFullYear(),m=n.getUTCMonth(),out=[];
+  for(let i=-12;i<=6;i++){const d=new Date(Date.UTC(y,m+i,1));out.push(d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0'));}
+  return out;
+}
+function bbMonthLabel(k,short){
+  const y=String(k||'').slice(0,4),mo=parseInt(String(k||'').slice(5,7),10);
+  if(!/^\d{4}$/.test(y)||!(mo>=1&&mo<=12))return String(k||'');
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mo-1]+' '+(short?y.slice(2):y);
+}
+function bbFillMonthSelects(){
+  const keys=bbMonthKeys(),cur=bbCurMonthKey();
+  ['fin-month-sel','fin-inv-month','fin-cost-month','inv-month','tm-month-sel','cp-month-sel','cp-f-month'].forEach(id=>{
+    const sel=document.getElementById(id);if(!sel)return;
+    sel.innerHTML=keys.map(k=>`<option value="${k}">${bbMonthLabel(k)}</option>`).join('');
+    sel.value=cur;
+  });
+}
+bbFillMonthSelects();
+const FIN_MONTH_NAMES=Object.fromEntries(bbMonthKeys().map(k=>[k,bbMonthLabel(k)]));
 
-function getFinMonth(){return document.getElementById('fin-month-sel')?.value||'2026-06';}
+function getFinMonth(){return document.getElementById('fin-month-sel')?.value||bbCurMonthKey();}
 
 async function loadFinancePage(){
   try{
@@ -6792,7 +6856,15 @@ async function markAlertReadFull(id){
 
 async function markAllAlertsRead(){
   try{
-    await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},'?read_at=is.null');
+    /* 6 Oct 2026: this PATCHed agent_alerts?read_at=is.null with no id filter, so one tap
+       here marked every system's alerts read for everyone, in the Video, SMM and design apps
+       too. It now marks only the alerts on screen, by id. */
+    const ids=[];
+    document.querySelectorAll('[id^="alert-group-"]').forEach(c=>(c.getAttribute('data-ids')||'').split(',').filter(Boolean).forEach(i=>ids.push(i)));
+    document.querySelectorAll('[id^="alert-card-"]').forEach(c=>{const i=c.id.slice('alert-card-'.length);if(/^\d+$/.test(i))ids.push(i);});
+    if(!ids.length)return;
+    const done=await sbC('agent_alerts','PATCH',{read_at:new Date().toISOString()},'?id=in.('+[...new Set(ids)].join(',')+')');
+    if(done===null)return;
     document.querySelectorAll('.alert-new-badge').forEach(b=>b.remove());
     document.querySelectorAll('[id^="alert-card-"]').forEach(c=>c.style.borderLeftColor='var(--border)');
     updateAgentsUnreadBadge();
@@ -7663,7 +7735,10 @@ async function finMarkPaid(id){
 }
 async function finDeleteInvoice(id){
   if(!confirm('Delete this invoice?'))return;
-  await SBdel('invoices',id);
+  /* 6 Oct 2026: a refused delete used to vanish from the list anyway. Keep it on screen
+     when sbC returns null (sbC has shown the toast). */
+  const gone=await SBdel('invoices',id);
+  if(gone===null)return;
   FIN_INVOICES=FIN_INVOICES.filter(i=>i.id!==id);
   INVOICES=FIN_INVOICES;
   renderFinancePage();
@@ -7717,9 +7792,11 @@ function finInvClientChanged(){
   const cid=parseInt(sel?.value)||null;
   if(!cid)return;
   const cl=CLIENTS.find(c=>c.id===cid);if(!cl)return;
-  const PKG_MRR={Spark:90000,Ignite:150000,Blaze:230000,'SEO Essential':40000,'SEO+Maintenance':50000};
-  const mrr=cl.mrr||PKG_MRR[cl.package]||0;
-  if(mrr){document.getElementById('fin-inv-amount').value=mrr;finRecalcTotal();}
+  /* 6 Oct 2026: a local PKG_MRR fallback here prefilled the retired Spark, Ignite and Blaze
+     prices (90K, 150K, 230K) for any client saved without a fee. Prefill from cl.mrr only,
+     otherwise leave the amount empty for a person to type. */
+  const mrr=Number(cl.mrr)||0;
+  document.getElementById('fin-inv-amount').value=mrr?mrr:'';finRecalcTotal();
 }
 
 // ── Invoice modal ──
@@ -7788,12 +7865,17 @@ async function saveFinInvoice(){
     status:document.getElementById('fin-inv-status').value,
     notes:document.getElementById('fin-inv-notes').value.trim()||null
   };
+  /* 6 Oct 2026: a refused save used to close the modal and show the invoice as saved.
+     When sbC returns null keep the modal open and the list as it was (sbC has shown
+     the toast). */
   if(finEditInvId){
-    await SBpatch('invoices',finEditInvId,data);
+    const saved=await SBpatch('invoices',finEditInvId,data);
+    if(saved===null)return;
     const i=FIN_INVOICES.find(x=>x.id===finEditInvId);if(i)Object.assign(i,data);
     const gi=INVOICES.find(x=>x.id===finEditInvId);if(gi)Object.assign(gi,data);
   }else{
     const r=await SBpost('invoices',data);
+    if(r===null)return;
     /* ONE INVOICE, ONE ROW. loadFinancePage sets INVOICES=FIN_INVOICES, so after
        the Finance page has loaded the two names point at the SAME list. Pushing
        into both added every new invoice twice, with one id. The database always
@@ -7854,7 +7936,9 @@ async function saveFinCost(){
 // ── Yearly view ──
 function renderFinYearly(){
   const el=document.getElementById('fin-yearly-view');if(!el)return;
-  const months=Object.keys(FIN_MONTH_NAMES).filter(m=>m.startsWith('2026'));
+  /* 6 Oct 2026: was the 2026 keys of FIN_MONTH_NAMES; now the twelve months of the current Colombo year. */
+  const _fy=bbCurMonthKey().slice(0,4);
+  const months=Array.from({length:12},(_,i)=>_fy+'-'+String(i+1).padStart(2,'0'));
   let totRev=0,totCost=0;
   const rows=months.map(m=>{
     const rev=FIN_INVOICES.filter(i=>String(i.month)===m).reduce((s,i)=>s+(i.amount||0),0);
@@ -7863,7 +7947,7 @@ function renderFinYearly(){
     totRev+=rev;totCost+=cost;
     const pft=rev-cost;const mg=rev>0?Math.round(pft/rev*100):0;
     return `<tr>
-      <td style="font-weight:700">${FIN_MONTH_NAMES[m]}</td>
+      <td style="font-weight:700">${bbMonthLabel(m)}</td>
       <td style="color:var(--green)">${rev?'LKR '+rev.toLocaleString():'—'}</td>
       <td style="color:var(--red)">${cost?'LKR '+cost.toLocaleString():'—'}</td>
       <td style="color:${pft>=0?'var(--green)':'var(--red)'};font-weight:700">${rev||cost?'LKR '+pft.toLocaleString():'—'}</td>
@@ -7873,15 +7957,15 @@ function renderFinYearly(){
   const totPft=totRev-totCost;const totMg=totRev>0?Math.round(totPft/totRev*100):0;
   el.innerHTML=`
     <div class="fin-stats" style="margin-bottom:16px">
-      <div class="fin-stat" style="border-top:2px solid var(--green)"><div class="fin-stat-lbl">Revenue 2026</div><div class="fin-stat-val" style="color:var(--green)">LKR ${totRev.toLocaleString()}</div></div>
-      <div class="fin-stat" style="border-top:2px solid var(--red)"><div class="fin-stat-lbl">Costs 2026</div><div class="fin-stat-val" style="color:var(--red)">LKR ${totCost.toLocaleString()}</div></div>
-      <div class="fin-stat" style="border-top:2px solid var(--accent)"><div class="fin-stat-lbl">Net Profit 2026</div><div class="fin-stat-val" style="color:${totPft>=0?'var(--green)':'var(--red)'}">LKR ${totPft.toLocaleString()}</div></div>
-      <div class="fin-stat" style="border-top:2px solid var(--amber)"><div class="fin-stat-lbl">Avg Margin 2026</div><div class="fin-stat-val" style="color:var(--amber)">${totMg}%</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--green)"><div class="fin-stat-lbl">Revenue ${_fy}</div><div class="fin-stat-val" style="color:var(--green)">LKR ${totRev.toLocaleString()}</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--red)"><div class="fin-stat-lbl">Costs ${_fy}</div><div class="fin-stat-val" style="color:var(--red)">LKR ${totCost.toLocaleString()}</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--accent)"><div class="fin-stat-lbl">Net Profit ${_fy}</div><div class="fin-stat-val" style="color:${totPft>=0?'var(--green)':'var(--red)'}">LKR ${totPft.toLocaleString()}</div></div>
+      <div class="fin-stat" style="border-top:2px solid var(--amber)"><div class="fin-stat-lbl">Avg Margin ${_fy}</div><div class="fin-stat-val" style="color:var(--amber)">${totMg}%</div></div>
     </div>
     <div class="card" style="padding:0;overflow:hidden">
       <table class="fin-yr-table">
         <thead><tr><th>Month</th><th>Revenue</th><th>Costs</th><th>Profit</th><th>Margin</th></tr></thead>
-        <tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">No data yet for 2026</td></tr>'}</tbody>
+        <tbody>${rows||'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-3)">No data yet for ${_fy}</td></tr>'}</tbody>
         <tfoot><tr><td>TOTAL</td><td style="color:var(--green)">LKR ${totRev.toLocaleString()}</td><td style="color:var(--red)">LKR ${totCost.toLocaleString()}</td><td style="color:${totPft>=0?'var(--green)':'var(--red)'}">LKR ${totPft.toLocaleString()}</td><td style="color:var(--amber)">${totMg}%</td></tr></tfoot>
       </table>
     </div>`;
@@ -7901,7 +7985,7 @@ function renderFinByClient(){
   });
   const sorted=Object.values(grouped).sort((a,b)=>b.invoices.reduce((s,i)=>s+(i.amount||0),0)-a.invoices.reduce((s,i)=>s+(i.amount||0),0));
   if(!sorted.length){el.innerHTML='<div class="card" style="text-align:center;padding:32px;color:var(--text-3)">No invoice data yet</div>';return;}
-  const MNS={'2026-01':'Jan 26','2026-02':'Feb 26','2026-03':'Mar 26','2026-04':'Apr 26','2026-05':'May 26','2026-06':'Jun 26','2026-07':'Jul 26','2026-08':'Aug 26','2026-09':'Sep 26','2026-10':'Oct 26','2026-11':'Nov 26','2026-12':'Dec 26','2025-12':'Dec 25'};
+  /* 6 Oct 2026: the MNS month map stopped at Dec 2026; bbMonthLabel(k,true) gives the same 'Jan 26' label for any month. */
   el.innerHTML=sorted.map(g=>{
     const total=g.invoices.reduce((s,i)=>s+(i.amount||0),0);
     const paid=g.invoices.filter(i=>i.status==='paid').reduce((s,i)=>s+(i.amount||0),0);
@@ -7921,7 +8005,7 @@ function renderFinByClient(){
         const sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
         const sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||'—';
         return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">
-          <div style="font-size:11px;color:var(--text-3);font-weight:700;min-width:60px">${MNS[inv.month]||inv.month||'—'}</div>
+          <div style="font-size:11px;color:var(--text-3);font-weight:700;min-width:60px">${inv.month?bbMonthLabel(inv.month,true):'—'}</div>
           <div style="flex:1;font-size:12px;color:var(--text-2)">${inv.notes?esc(inv.notes):'—'}</div>
           <div style="font-size:13px;font-weight:800">LKR ${(inv.amount||0).toLocaleString()}</div>
           <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:4px;background:${sb};color:${sc};min-width:56px;text-align:center">${sl}</span>
@@ -7949,6 +8033,12 @@ function taskIsFor(t,m){
 let TM_TASKS=[];
 let TM_VIDEOS=[];
 let TM_TIMELOGS=[];
+/* 6 Oct 2026: finished means completed, not Posted. 161 live videos sit at Add to Drive
+   with completed_at stamped and none at Posted, so every editor read zero finished. For a
+   month, a video is finished when completed_at falls inside that month in Colombo time;
+   for an at a glance count with no month, when it sits at Add to Drive or Posted. */
+function tmCompletedYM(v){const t=v&&v.completed_at?new Date(v.completed_at).getTime():NaN;return isNaN(t)?'':new Date(t+19800000).toISOString().slice(0,7);}
+function tmIsFinished(v){return !!v&&(v.current_stage==='add_to_drive'||v.current_stage==='posted');}
 let TM_selectedId=null;
 
 const TM_ROLE_ORDER=['Social Media Manager','Video Head','Video Editor','Graphic Designer'];
@@ -8016,8 +8106,8 @@ function renderTeamPage(){
       <div class="tm-dept-hd">${dept} <span style="font-weight:400;letter-spacing:0;text-transform:none">(${members.length})</span></div>
       <div class="tm-cards">${members.map(m=>{
         const vids=TM_VIDEOS.filter(v=>Number(v.assigned_editor_id)===m.id&&Number(v.target_month)===mNum&&Number(v.target_year)===yNum);
-        const done=vids.filter(v=>v.current_stage==='posted').length;
-        const inProg=vids.filter(v=>v.current_stage!=='posted').length;
+        const done=TM_VIDEOS.filter(v=>Number(v.assigned_editor_id)===m.id&&tmCompletedYM(v)===month).length; // 6 Oct 2026: completed in the selected month
+        const inProg=vids.filter(v=>!tmIsFinished(v)).length;
         const color=TM_COLORS[m.role]||'var(--accent)';
         const initials=m.name.substring(0,2);
         const isActive=TM_selectedId===m.id;
@@ -8028,7 +8118,7 @@ function renderTeamPage(){
           ${m.role==='Video Head'||m.role==='Video Editor'?`
           <div class="tm-stat-row">
             <div class="tm-stat-mini"><div class="tm-stat-mini-val">${vids.length}</div><div class="tm-stat-mini-lbl">Assigned</div></div>
-            <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:var(--green)">${done}</div><div class="tm-stat-mini-lbl">Posted</div></div>
+            <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:var(--green)">${done}</div><div class="tm-stat-mini-lbl">Finished</div></div>
             <div class="tm-stat-mini"><div class="tm-stat-mini-val" style="color:${inProg>0?'var(--amber)':'var(--text-3)'}">${inProg}</div><div class="tm-stat-mini-lbl">In Progress</div></div>
           </div>`:`
           ${(()=>{
@@ -8083,17 +8173,17 @@ async function renderTeamMemberDetail(id){
 
   // Per-member month selector HTML
   const monthSelHtml=`<select class="form-select" style="width:120px;font-size:11px;padding:4px 8px" onchange="setTmDetailMonth(this.value)">
-    ${['2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'].map(mv=>
-      `<option value="${mv}" ${mv===month?'selected':''}>${MNS[parseInt(mv.split('-')[1])]} ${mv.split('-')[0]}</option>`
+    ${bbMonthKeys().map(mv=> /* 6 Oct 2026: was a hard-coded 2026 list */
+      `<option value="${mv}" ${mv===month?'selected':''}>${bbMonthLabel(mv)}</option>`
     ).join('')}
   </select>`;
 
   if(m.role==='Video Head'||m.role==='Video Editor'){
     const allVids=TM_VIDEOS.filter(v=>Number(v.assigned_editor_id)===id);
     const monthVids=allVids.filter(v=>Number(v.target_month)===mNum&&Number(v.target_year)===yNum);
-    const posted=monthVids.filter(v=>v.current_stage==='posted').length;
-    const inProg=monthVids.filter(v=>v.current_stage!=='posted').length;
-    const overdue=allVids.filter(v=>v.deadline&&v.deadline<today&&v.current_stage!=='posted'&&!v.is_archived);
+    const posted=allVids.filter(v=>tmCompletedYM(v)===month).length; // 6 Oct 2026: finished = completed in the selected month
+    const inProg=monthVids.filter(v=>!tmIsFinished(v)).length;
+    const overdue=allVids.filter(v=>v.deadline&&v.deadline<today&&!tmIsFinished(v)&&!v.is_archived);
     const timeLogs=TM_TIMELOGS.filter(t=>Number(t.team_member_id)===id);
     const monthTimeSecs=timeLogs.filter(t=>{
       const d=new Date(t.started_at||t.created_at);
@@ -8216,9 +8306,9 @@ async function renderTeamMemberDetail(id){
         ${window.BBWORK?BBWORK.summarySlot('video',id,month,m.name):`
         <div class="tm-detail-stats">
           <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--text)">${monthVids.length}</div><div class="tm-detail-stat-lbl">Assigned</div></div>
-          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--green)">${posted}</div><div class="tm-detail-stat-lbl">Posted</div></div>
+          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--green)">${posted}</div><div class="tm-detail-stat-lbl">Finished</div></div>
           <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--amber)">${inProg}</div><div class="tm-detail-stat-lbl">In Progress</div></div>
-          <div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--blue)">${hrs}h ${mins}m</div><div class="tm-detail-stat-lbl">Time Logged</div></div>
+          ${timeLogs.length?`<div class="tm-detail-stat"><div class="tm-detail-stat-val" style="color:var(--blue)">${hrs}h ${mins}m</div><div class="tm-detail-stat-lbl">Time Logged</div></div>`:''}
         </div>`}
 
         ${overdueHtml}
@@ -8522,9 +8612,26 @@ async function saveClientEdit(){
   await SBpatch('clients',currentId,data);const c=CLIENTS.find(x=>Number(x.id)===currentId);if(c)Object.assign(c,data);
   closeModal('modal-edit-client');openProfile(currentId);
 }
-function confirmDeleteClient(id,name){if(!confirm(`Delete "${name}"? Cannot be undone.`))return;deleteClient(id);}
-async function deleteClient(id){await SBdel('clients',id);CLIENTS=CLIENTS.filter(c=>Number(c.id)!==Number(id));if(currentId===Number(id))backToClients();else{renderTable();renderClientStats();}}
-async function deleteCurrentClient(){const c=CLIENTS.find(x=>Number(x.id)===currentId);if(!c||!confirm(`Delete "${c.name}"?`))return;closeModal('modal-edit-client');await deleteClient(currentId);}
+/* 6 Oct 2026: Delete client was a hard DELETE. It cascaded plans, journal and targets
+   and left the client's invoices pointing at an id that no longer existed; on most clients
+   Postgres refused it and the row vanished from the screen anyway. End client marks the
+   row churned with ended_on today in Colombo and deletes nothing. ended_on is the last
+   billable day, so isCountableClient keeps the client in the list today and drops it
+   tomorrow, the same way every other churned client left. The function names stay so the
+   existing buttons keep working. */
+function _endClientAsk(nm){return confirm(`Mark ${nm} as ended? Their history stays and you can set them back to active later.`);}
+function confirmDeleteClient(id,name){const c=CLIENTS.find(x=>Number(x.id)===Number(id));if(!_endClientAsk(c?c.name:name))return;deleteClient(id);}
+async function deleteClient(id){
+  const ended_on=new Date(Date.now()+19800000).toISOString().slice(0,10);
+  const res=await SBpatch('clients',id,{status:'churned',ended_on});
+  if(res===null)return; // refused: sbC has shown the toast and nothing on screen changes
+  const lists=[CLIENTS,(typeof D!=='undefined'&&D&&D.clients)||[]];
+  let nm='';
+  lists.forEach(list=>{const c=list.find(x=>Number(x.id)===Number(id));if(c){Object.assign(c,{status:'churned',ended_on});nm=c.name||nm;}});
+  if(currentId===Number(id))backToClients();else{renderTable();renderClientStats();}
+  sbWriteToast((nm||'The client')+' is marked as ended and leaves the client list after today.',true);
+}
+async function deleteCurrentClient(){const c=CLIENTS.find(x=>Number(x.id)===currentId);if(!c||!_endClientAsk(c.name))return;closeModal('modal-edit-client');await deleteClient(currentId);}
 
 /* ── NAV ── */
 function backToClients(){currentId=null;document.getElementById('profile-page').classList.remove('active');document.getElementById('clients-page').classList.remove('hidden');document.getElementById('topbar-title').textContent='Clients';renderTable();renderClientStats();}
@@ -8961,7 +9068,12 @@ let VP_videos=[],VP_links=[],VP_comments=[],VP_history=[];
 let VP_detailId=null;
 let vpBulkMode=false,vpSelected=new Set();
 let vpCommentImage=null;
-const VP_STAGES=['video_shot','cutting_color_grading','rendering','editing','video_head_review','team_review','changes','coo_check','sent_to_client','client_changes','add_to_drive','posted'];
+/* 6 Oct 2026: this list had sent_to_client and posted and lacked client_review, so the 23
+   live videos at Client Review had no column here, and a video moved to Posted dropped off
+   the Video System board. It now equals const STAGES in bb-video-system/index.html exactly.
+   VP_LABEL keeps the two retired stages so old history rows still render. */
+const VP_STAGES=['video_shot','cutting_color_grading','rendering','editing','video_head_review','team_review','changes','coo_check','client_review','client_changes','add_to_drive'];
+const VP_RETIRED=['sent_to_client','posted'];
 const VP_LABEL={video_shot:'Video Shot',cutting_color_grading:'Cutting & Color',rendering:'Rendering',editing:'Editing',video_head_review:'Video Head Review',team_review:'Team Review',changes:'Changes',coo_check:'COO Check',client_review:'Client Review',sent_to_client:'Sent to Client',client_changes:'Client Changes',add_to_drive:'Add to Drive',posted:'Posted'};
 const VP_PUB=['posted','add_to_drive','sent_to_client'];
 const VP_PROD=['cutting_color_grading','rendering','editing'];
@@ -9060,21 +9172,28 @@ async function moveVideoStage(id,newStage){
   renderVideoPipeline();
 
   try{
-    // 1. Close previous open history row
-    const openRow=VP_history.find(h=>h.video_project_id===id&&!h.exited_at);
-    if(openRow){
-      const dur=Math.floor((new Date(now)-new Date(openRow.entered_at))/1000);
-      await sbC('video_stage_history','PATCH',{exited_at:now,duration_seconds:dur},`?video_project_id=eq.${id}&exited_at=is.null`);
-      openRow.exited_at=now;openRow.duration_seconds=dur;
-    }
     // 2. Update project stage
     /* Same finish rule as the Video System: stamp it on the way into Add to Drive and
        clear it on the way out. This writer set neither, which is where most of the 115
        finished videos with no completion date came from. 2026-09-30. */
+    /* 6 Oct 2026: the stage PATCH now runs first. A refused move used to leave the card in
+       its new column and close the history row anyway. When sbC returns null the card
+       goes back to its old stage and nothing else is written (sbC has shown the toast). */
     const _vpUp={current_stage:newStage,updated_at:now};
     if(newStage==='add_to_drive')_vpUp.completed_at=now;
     else if(oldStage==='add_to_drive'||oldStage==='posted')_vpUp.completed_at=null;
-    await sbC('video_projects','PATCH',_vpUp,`?id=eq.${id}`);
+    const moved=await sbC('video_projects','PATCH',_vpUp,`?id=eq.${id}`);
+    if(moved===null){v.current_stage=oldStage;renderVideoPipeline();if(VP_detailId===id)openVideoDetail(id);return;}
+    // 1. Close previous open history row
+    /* 6 Oct 2026: the close ran only when the open row was in VP_history, which holds the
+       newest 1,000 rows at most, so 97 live videos got a second open row on their next
+       move. Always close by video and exited_at is null; set duration_seconds only when
+       the open row is known here. */
+    const openRow=VP_history.find(h=>h.video_project_id===id&&!h.exited_at);
+    const _closeUp={exited_at:now};
+    if(openRow)_closeUp.duration_seconds=Math.floor((new Date(now)-new Date(openRow.entered_at))/1000);
+    await sbC('video_stage_history','PATCH',_closeUp,`?video_project_id=eq.${id}&exited_at=is.null`);
+    if(openRow){openRow.exited_at=now;openRow.duration_seconds=_closeUp.duration_seconds;}
     // 3. Insert new history row
     const newRow=await sbC('video_stage_history','POST',{video_project_id:id,stage:newStage,moved_by:user},'');
     if(newRow&&newRow[0])VP_history.unshift(newRow[0]);
@@ -9094,7 +9213,8 @@ function openVideoDetail(id){
   const finalLinks=links.filter(l=>l.tag==='final_cut');
   const comments=VP_comments.filter(c=>c.video_project_id===id).sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
   const history=VP_history.filter(h=>h.video_project_id===id);
-  const stageOpts=VP_STAGES.map(st=>`<option value="${st}" ${v.current_stage===st?'selected':''}>${VP_LABEL[st]}</option>`).join('');
+  /* 6 Oct 2026: a video still sitting at a retired stage keeps that stage as its selected option. */
+  const stageOpts=(VP_STAGES.includes(v.current_stage)||!v.current_stage?VP_STAGES:[v.current_stage,...VP_STAGES]).map(st=>`<option value="${st}" ${v.current_stage===st?'selected':''}>${VP_LABEL[st]||st}</option>`).join('');
   const priOpts=['low','medium','high','urgent'].map(p=>`<option value="${p}" ${v.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('');
   function fmtDur(s){if(!s&&s!==0)return'—';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);if(h>0)return h+'h '+m+'m';return m+'m';}
   function relTime(d){if(!d)return'';const ms=Date.now()-new Date(d).getTime();const days=Math.floor(ms/86400000);if(days<1)return'today';if(days===1)return'1d ago';return days+'d ago';}
@@ -9127,7 +9247,7 @@ function openVideoDetail(id){
   // TIME TRACKING section
   const stageTime={};const activeSt=history.find(h=>!h.exited_at);
   history.forEach(h=>{const dur=h.exited_at?(h.duration_seconds||0):Math.floor((Date.now()-new Date(h.entered_at))/1000);stageTime[h.stage]=(stageTime[h.stage]||0)+dur;});
-  const ttStages=VP_STAGES.filter(st=>stageTime[st]!==undefined);
+  const ttStages=[...VP_STAGES,...VP_RETIRED].filter(st=>stageTime[st]!==undefined); // 6 Oct 2026: retired stages still show their time
   if(ttStages.length){
     html+=`<div class="vp-detail-sec"><div class="vp-detail-sec-hd">Time Tracking</div><div class="vp-tt-grid">`;
     ttStages.forEach(st=>{
@@ -10575,13 +10695,18 @@ async function deleteMission(id){
     if(!confirm('Clear all error logs? This cannot be undone.')) return;
     try{
       // Delete all rows — Supabase requires a filter, use id>0
-      await sbC('error_log','DELETE',null,'?id=gt.0');
+      /* 6 Oct 2026: error_log has no DELETE policy, so this removed 0 rows and still said
+         Cleared. Ask for the removed rows back and report the real number. */
+      const gone = await sbC('error_log','DELETE',null,'?id=gt.0','return=representation');
+      if(gone === null) return;
+      const removed = Array.isArray(gone) ? gone.length : 0;
+      if(!removed){ alert('Nothing was removed'); return; }
       _errCount = 0;
       const badge = document.getElementById(BADGE_ID);
       if(badge) badge.style.display = 'none';
       // Refresh viewer
       const list = document.getElementById('bb-err-list');
-      if(list) list.innerHTML = '<div style="color:rgba(255,255,255,.4);font-size:13px;text-align:center;margin-top:20px">\u2713 Cleared</div>';
+      if(list) list.innerHTML = '<div style="color:rgba(255,255,255,.4);font-size:13px;text-align:center;margin-top:20px">\u2713 ' + removed + ' removed</div>';
       document.getElementById('bb-err-count-badge').textContent = '';
     }catch(e){ alert('Clear failed: '+e.message); }
   };
@@ -13041,17 +13166,18 @@ if('serviceWorker' in navigator){
     updateCheckinProgress();
     if (cb.checked) {
       // Mark done in Supabase
-      fetch(SB_URL+'/rest/v1/tasks?id=eq.'+id, {
-        method:'PATCH',
-        headers:{'apikey':AK,'Authorization':'Bearer '+AK,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body:JSON.stringify({done:true})
-      }).catch(function(){});
-      // Update in-memory D.tasks if present
-      if (window.D && window.D.tasks) {
-        var t = window.D.tasks.find(function(x){ return String(x.id)===String(id); });
-        if (t) t.done = true;
-        if (typeof window.renderTaskBook === 'function') try{ window.renderTaskBook(); }catch(e){}
-      }
+      /* 6 Oct 2026: was a fetch with the anon key as the bearer whose answer was thrown away
+         by .catch(function(){}), and it wrote in demo mode. SBpatch uses the signed in token,
+         is a no-op in DEMO_MODE and returns null when refused; then the tick is undone. */
+      Promise.resolve(SBpatch('tasks', id, {done:true})).then(function(res){
+        if (res === null) { cb.checked = false; if (row) row.style.opacity = ''; updateCheckinProgress(); return; }
+        // Update in-memory D.tasks if present
+        if (window.D && window.D.tasks) {
+          var t = window.D.tasks.find(function(x){ return String(x.id)===String(id); });
+          if (t) t.done = true;
+          if (typeof window.renderTaskBook === 'function') try{ window.renderTaskBook(); }catch(e){}
+        }
+      });
     }
   }
 
@@ -13901,11 +14027,11 @@ async function twQuickStatus(id, sys, status){
   const table = TW_SYS_TABLE[sys];
   if(!table) return;
   try{
-    await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${id}`, {
-      method:'PATCH',
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body: JSON.stringify({status, updated_at: new Date().toISOString()})
-    });
+    /* 6 Oct 2026: this fetch built its own headers with the anon key as the bearer, ignored
+       the answer and still wrote in demo mode. SBpatch uses the signed in token, is a no-op
+       in DEMO_MODE and returns null when refused (sbC shows the toast). */
+    const saved=await SBpatch(table,id,{status, updated_at: new Date().toISOString()});
+    if(saved===null)return;
     _sbCacheInvalidate(table);
     // Update local data
     const t = twAllTasks.find(x=>x.id===id&&x._sys===sys);
@@ -13983,20 +14109,17 @@ async function twSaveTask(){
     updated_at: new Date().toISOString()
   };
   try{
+    /* 6 Oct 2026: both writes were fetch calls with the anon key as the bearer that ignored
+       the answer and still wrote in demo mode. SBpatch and SBpost use the signed in token,
+       are no-ops in DEMO_MODE and return null when refused, so the modal stays open. */
+    let saved;
     if(twEditId){
-      await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${twEditId}`, {
-        method:'PATCH',
-        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body: JSON.stringify(data)
-      });
+      saved=await SBpatch(table,twEditId,data);
     } else {
       data.created_by = (typeof currentUser!=='undefined'&&currentUser&&currentUser.name)?currentUser.name:'CEO';
-      await fetch(`${SB_URL}/rest/v1/${table}`, {
-        method:'POST',
-        headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-        body: JSON.stringify(data)
-      });
+      saved=await SBpost(table,data);
     }
+    if(saved===null)return;
     _sbCacheInvalidate(table);
     closeModal('modalTwTask');
     twLoadWeek();
@@ -14008,10 +14131,10 @@ async function twDeleteTask(){
   if(!confirm('Delete this task?')) return;
   const table = TW_SYS_TABLE[twEditSys];
   try{
-    await fetch(`${SB_URL}/rest/v1/${table}?id=eq.${twEditId}`, {
-      method:'DELETE',
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'return=minimal'}
-    });
+    /* 6 Oct 2026: was a fetch with the anon key as the bearer that ignored the answer and
+       still deleted in demo mode. SBdel uses the signed in token and returns null when refused. */
+    const gone=await SBdel(table,twEditId);
+    if(gone===null)return;
     _sbCacheInvalidate(table);
     closeModal('modalTwTask');
     twLoadWeek();
