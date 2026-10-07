@@ -27,6 +27,8 @@ BUILTINS = {
     'parseInt','parseFloat','JSON','Math','Date','Object','Array','String','Number','Boolean',
     'event','this','window','document','localStorage','sessionStorage','fetch','Promise',
     'requestAnimationFrame','encodeURIComponent','decodeURIComponent','isNaN','return','if','for',
+    # browser constructors used inside handlers (new Event('change') on the Finance month picker, 7 Oct 2026)
+    'Event','CustomEvent','KeyboardEvent','MouseEvent','Set','Map','URL','URLSearchParams','RegExp','Error',
     'while','typeof','new','void','delete','await','async','function','true','false','null','undefined',
     # CSS functions that appear inside inline style="" strings set within handlers
     'var','calc','rgb','rgba','hsl','hsla','url','translate','translateX','translateY','scale','rotate','linear',
