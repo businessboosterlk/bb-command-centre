@@ -3913,7 +3913,7 @@ window.__ST_LOG=[];
     <div class="field-row"><div class="form-field" style="max-width:160px"><label class="form-label">Status</label><select class="form-select" id="ec-status"><option value="active">Active</option><option value="internal">Internal</option><option value="churned">Ended</option></select></div></div>
     <p style="font-size:11px;color:var(--text-3);margin:0;padding:4px 0">All other fields (health, package, retainer, posts/videos target, owner, dates) are editable directly in the fields bar on the profile. This modal handles name, type and status only.</p>
   </div>
-  <div class="modal-foot"><!-- 6 Oct 2026: was Delete Client, a hard delete; now End client marks the row churned --><button class="btn-danger-sm" onclick="deleteCurrentClient()">End client</button><button class="btn-ghost" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn-primary" onclick="saveClientEdit()">Save</button></div></div>
+  <div class="modal-foot"><!-- 6 Oct 2026: was Delete Client, a hard delete; now End client marks the row churned --><!-- 7 Oct 2026: an ended client opened from the Ended tab still had this button; one tap overwrote the real last day. openEditClientModal hides it for them. --><button class="btn-danger-sm" id="ec-end-btn" onclick="deleteCurrentClient()">End client</button><button class="btn-ghost" onclick="closeModal('modal-edit-client')">Cancel</button><button class="btn-primary" onclick="saveClientEdit()">Save</button></div></div>
 </div>
 <!-- Add/Edit Content Item -->
 <div class="modal-overlay hidden" id="modal-content">
@@ -8669,6 +8669,11 @@ function openEditClientModal(){
   document.getElementById('ec-name').value=c.name||'';document.getElementById('ec-type').value=c.client_type||'sm';
   /* 7 Oct 2026: a row past its ended_on shows as Ended even if its status still says active. */
   document.getElementById('ec-status').value=c.status==='internal'?'internal':(c.status==='churned'||!isCountableClient(c))?'churned':'active';
+  /* 7 Oct 2026: End client stayed in this footer for a client already ended, so one tap
+     overwrote the real last day with today and put them back in the count. Same rule as the
+     row button: only a client that still counts and is not churned can be ended here. */
+  const endBtn=document.getElementById('ec-end-btn');
+  if(endBtn)endBtn.style.display=(!isCountableClient(c)||c.status==='churned')?'none':'';
   document.getElementById('modal-edit-client').classList.remove('hidden');
 }
 async function saveClientEdit(){
@@ -8701,14 +8706,19 @@ async function saveClientEdit(){
 function _endClientAsk(nm){return confirm(`Mark ${nm} as ended? Their history stays. To undo, open Clients, then Ended, open them and set Status to Active in Edit client.`);}
 function confirmDeleteClient(id,name){const c=CLIENTS.find(x=>Number(x.id)===Number(id));if(!_endClientAsk(c?c.name:(name||'this client')))return;deleteClient(id);}
 async function deleteClient(id){
-  const ended_on=new Date(Date.now()+19800000).toISOString().slice(0,10);
+  /* 7 Oct 2026: ending a client already churned wrote today over the real last day, lost it for
+     good and counted them again for the rest of the day. An existing ended_on on a churned row
+     is kept, the same as saveClientEdit. */
+  const prev=CLIENTS.find(x=>Number(x.id)===Number(id));
+  const ended_on=(prev&&prev.status==='churned'&&prev.ended_on)?prev.ended_on:new Date(Date.now()+19800000).toISOString().slice(0,10);
   const res=await SBpatch('clients',id,{status:'churned',ended_on});
   if(res===null)return; // refused: sbC has shown the toast and nothing on screen changes
   const lists=[CLIENTS,(typeof D!=='undefined'&&D&&D.clients)||[]];
   let nm='';
   lists.forEach(list=>{const c=list.find(x=>Number(x.id)===Number(id));if(c){Object.assign(c,{status:'churned',ended_on});nm=c.name||nm;}});
   if(currentId===Number(id))backToClients();else{renderTable();renderClientStats();}
-  sbWriteToast((nm||'The client')+' is marked as ended and leaves the client list after today.',true);
+  // 7 Oct 2026: "after today" was wrong when an earlier last day was kept.
+  sbWriteToast((nm||'The client')+(String(ended_on)<todayStr()?' is marked as ended and keeps the last day already recorded.':' is marked as ended and leaves the client list after today.'),true);
 }
 async function deleteCurrentClient(){const c=CLIENTS.find(x=>Number(x.id)===currentId);if(!c||!_endClientAsk(c.name))return;closeModal('modal-edit-client');await deleteClient(currentId);}
 
