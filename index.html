@@ -16097,15 +16097,23 @@ renderReadinessTab=async function(c){
    month (the view is over 1,000 rows unfiltered), bb_month_close for the period,
    bb_shot_not_logged. No polling. A failed read says so; it never draws a zero.
 
-   Writes: only the COO signature and its note on bb_month_close, through sbC, for
-   ROLE th or sh. The SMM close is written in the SMM Workspace, never here. The
+   Writes: only the COO signature and its note on bb_month_close, for ROLE th or sh
+   (Shiara signs each close, Thulaib signs when she is away). They go through
+   owWrite and not sbC, because sbC drops the database's message and a refused
+   signature must show that message in its cell (trigger bb_month_close_guard,
+   42501). The SMM close is written in the SMM Workspace, never here. The
    database also refuses a COO signature without an SMM close.
+
+   7 Oct 2026 review fixes: a failed close read says "Close not read" in every
+   cell; a refused signature keeps the typed note (OW.notes, keyed client|period)
+   and shows the refusal (OW.refused); the demo role gets one sentence, not zero
+   tiles; a sentence under the totals names clients made beyond their quota.
 
    published comes from Posting Plan ticks (smm_publish_log). A missing tick reads
    "not marked posted", never "not posted".
    ════════════════════════════════════════════════════════════════════════ */
 var CC_DL_MODE='owed', CC_DL_HOST='';
-var OW={ym:'',smm:'ALL',behind:false,rootId:'',rows:null,close:null,shots:null,err:'',edit:null,busy:null,loadedYm:'',tok:0};
+var OW={ym:'',smm:'ALL',behind:false,rootId:'',rows:null,close:null,shots:null,err:'',edit:null,busy:null,loadedYm:'',tok:0,notes:{},refused:{}};
 var OW_KINDS=[['post','Posts'],['story','Stories'],['video','Videos']];
 var OW_BUCKETS=[['not_logged','not logged'],['in_making','in making'],['with_us','with us'],['with_client','with the client'],['made_not_posted','made not posted']];
 var OW_SMM_ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)'};
@@ -16135,6 +16143,9 @@ function owCanSign(){
   return typeof ROLE!=='undefined'&&(ROLE==='th'||ROLE==='sh');
 }
 function owSigner(){return ROLE==='th'?'THULAIB':'SHIARA';}
+/* One key per client and period, for the typed notes and the refusals. */
+function owKey(cid){return String(Number(cid))+'|'+OW.ym;}
+function owKeep(cid,v){OW.notes[owKey(cid)]=String(v==null?'':v);}
 
 /* ── the Delivery segment host: the two-mode switch, then the chosen view ── */
 function ccDeliveryHost(rootId){
@@ -16169,6 +16180,11 @@ async function owLoad(){
 async function renderCcOwed(rootId){
   if(rootId) OW.rootId=rootId;
   var root=document.getElementById(OW.rootId); if(!root) return;
+  /* The demo serves sample rows and has no ledger: say so, never draw zero tiles. */
+  if(typeof DEMO_MODE!=='undefined'&&DEMO_MODE){
+    root.innerHTML='<div class="ow"><div class="ow-head"><h2>Owed vs delivered</h2></div><div class="ow-empty">Owed vs delivered reads the live ledger and is not available in the demo.</div></div>';
+    return;
+  }
   if(!OW.ym||owMonths().indexOf(OW.ym)<0) OW.ym=owCurYm();
   if(OW.loadedYm!==OW.ym){
     root.innerHTML='<div class="ow"><div class="ow-empty">Reading '+owMonthName(OW.ym)+'…</div></div>';
@@ -16176,7 +16192,7 @@ async function renderCcOwed(rootId){
   }
   owDraw();
 }
-function owSetMonth(v){ OW.ym=v; OW.edit=null; renderCcOwed(); }
+function owSetMonth(v){ OW.ym=v; OW.edit=null; OW.refused={}; renderCcOwed(); }
 function owSetSmm(v){ OW.smm=v; owDraw(); }
 function owToggleBehind(){ OW.behind=!OW.behind; owDraw(); }
 function owRetry(){ OW.loadedYm=''; renderCcOwed(); }
@@ -16218,8 +16234,13 @@ function owKindCell(r,pastDue){
     +(b?'<div class="ow-b">'+b+'</div>':'')+'</td>';
 }
 function owCloseCell(c){
-  var mc=owCloseFor(c.id), can=owCanSign(), today=owToday();
+  /* A failed bb_month_close read is not "not closed": say it was not read, in every cell. */
+  if(OW.close===null) return '<td class="ow-mc"><div class="ow-mute">Close not read</div></td>';
+  var mc=owCloseFor(c.id), can=owCanSign(), today=owToday(), k=owKey(c.id);
   var closeBy=owWorkDayAfter(OW.ym,2), signBy=owWorkDayAfter(OW.ym,3);
+  var typed=Object.prototype.hasOwnProperty.call(OW.notes,k)?OW.notes[k]:null;
+  var keep=' oninput="owKeep('+Number(c.id)+',this.value)"';
+  var refused=OW.refused[k]?'<div class="ow-late ow-s" role="alert" style="margin-top:6px">'+owEsc(OW.refused[k])+'</div>':'';
   var h='';
   if(mc&&mc.smm_closed_at){
     h+='<div class="ow-ok">Closed by '+owEsc(mc.smm_closed_by)+' on '+owDay(mc.smm_closed_at)+'</div>';
@@ -16231,7 +16252,8 @@ function owCloseCell(c){
   if(mc&&mc.coo_signed_at){
     h+='<div class="ow-ok" style="margin-top:8px">Signed by '+owEsc(mc.coo_signed_by)+' on '+owDay(mc.coo_signed_at)+'</div>';
     if(String(OW.edit)===String(c.id)&&can){
-      h+='<input type="text" maxlength="500" data-ow-note="'+c.id+'" value="'+owEsc(mc.coo_note||'')+'" placeholder="Note" aria-label="COO note">'
+      h+='<input type="text" maxlength="500" data-ow-note="'+c.id+'" value="'+owEsc(typed!==null?typed:(mc.coo_note||''))+'" placeholder="Note" aria-label="COO note"'+keep+'>'
+        +refused
         +'<div class="ow-acts"><button type="button" class="btn btn-sm" '+(busy?'disabled':'')+' onclick="owSaveNote('+Number(c.id)+')">'+(busy?'Saving…':'Save note')+'</button>'
         +'<button type="button" class="ow-quiet" onclick="owCancelEdit()">Cancel</button></div>';
     }else{
@@ -16239,10 +16261,11 @@ function owCloseCell(c){
       if(can) h+='<div class="ow-acts"><button type="button" class="btn btn-sm btn-ghost" onclick="owEdit('+Number(c.id)+')">Edit note</button></div>';
     }
   }else if(mc&&mc.smm_closed_at){
-    h+='<div class="'+(today>signBy?'ow-late':'ow-due')+'" style="margin-top:8px">Not signed</div><div class="ow-s">COO signs by '+owIsoDay(signBy)+'</div>';
+    h+='<div class="'+(today>signBy?'ow-late':'ow-due')+'" style="margin-top:8px">Not signed</div><div class="ow-s">Shiara signs by '+owIsoDay(signBy)+'. Thulaib signs when she is away.</div>';
     if(can){
-      h+='<input type="text" maxlength="500" data-ow-note="'+c.id+'" placeholder="Note (optional)" aria-label="COO note">'
-        +'<div class="ow-acts"><button type="button" class="btn btn-sm" '+(busy?'disabled':'')+' onclick="owSign('+Number(c.id)+')">'+(busy?'Signing…':'Sign')+'</button></div>';
+      h+='<input type="text" maxlength="500" data-ow-note="'+c.id+'" value="'+owEsc(typed||'')+'" placeholder="Note (optional)" aria-label="COO note"'+keep+'>'
+        +refused
+        +'<div class="ow-acts"><button type="button" class="btn btn-sm" '+(busy?'disabled':'')+' onclick="owSign('+Number(c.id)+')">'+(busy?'Signing…':'Sign as '+(ROLE==='th'?'Thulaib':'Shiara'))+'</button></div>';
     }
   }
   return '<td class="ow-mc">'+h+'</td>';
@@ -16273,13 +16296,21 @@ function owDraw(){
   h+='<div class="ow-tot">'+tile('Owed','contracted')+tile('Logged','logged')+tile('Finished','completed')
     +tile('Marked posted','published',T.published.all>=T.contracted.all?'ow-ok':(past?'ow-late':'ow-due'))
     +tile('Not logged','not_logged')+tile('In making','in_making')+tile('With us','with_us')+tile('With the client','with_client')+tile('Made not posted','made_not_posted')+'</div>';
+  /* Work made beyond the quota still sits in a place (made not posted, mostly), so the
+     place tiles can add up to more than Owed. Name the clients where that happens. */
+  var over=shown.filter(function(c){ return OW_KINDS.some(function(k){ var r=c.kinds[k[0]]; if(!r||r.owed!=='owed') return false;
+    var placed=owNum(r.published); OW_BUCKETS.forEach(function(x){placed+=owNum(r[x[0]]);}); return placed>owNum(r.contracted); }); })
+    .map(function(c){return owEsc(c.name);});
+  var overList=over.length>1?over.slice(0,-1).join(', ')+' and '+over[over.length-1]:(over[0]||'');
+  h+='<div class="ow-s" style="margin:-4px 0 10px">Work made beyond a client\'s quota is counted too, so the places the rest sits can add up to more than owed'
+    +(over.length?' ('+overList+' in '+owMonthName(ym).split(' ')[0]+')':'')+'.</div>';
 
   var closedN=owing.filter(function(c){var m=owCloseFor(c.id);return m&&m.smm_closed_at;}).length;
   var signedN=owing.filter(function(c){var m=owCloseFor(c.id);return m&&m.coo_signed_at;}).length;
   h+='<div class="ow-note">Totals count the '+shown.length+' client'+(shown.length===1?'':'s')+' shown (P posts, S stories, V videos). '
     +'<b>Marked posted</b> counts a Posting Plan tick in the SMM Workspace. An item with no tick reads here as not marked posted, which does not mean it was never posted. '
     +'Posts and stories before October were not logged in the Graphic System, so earlier months read mostly not logged. For those months the 7 October backlog list is the record.'
-    +'<br><b>Month close:</b> '+(OW.close?closedN+' of '+owing.length+' closed by the SMM, '+signedN+' signed by the COO. The SMM closes by the 2nd working day of the next month and Shiara signs by the 3rd.':'could not be read, so no close is shown.')
+    +'<br><b>Month close:</b> '+(OW.close?closedN+' of '+owing.length+' closed by the SMM, '+signedN+' signed. The SMM closes by the 2nd working day of the next month. Shiara signs each close by the 3rd and Thulaib signs when she is away.':'could not be read, so every close below reads Close not read.')
     +(notOwed||undecided?'<br><b>Left out:</b> '+(notOwed?notOwed+' client'+(notOwed===1?' owes':'s owe')+' nothing this month':'')+(notOwed&&undecided?'; ':'')+(undecided?undecided+' client'+(undecided===1?' has':'s have')+' no settled quota yet':'')+'.':'')
     +'</div>';
 
@@ -16316,35 +16347,60 @@ function owDraw(){
   root.innerHTML=h+'</div>';
 }
 
-/* ── the COO signature: insert or update through sbC, never before the SMM close ── */
+/* ── the COO signature: insert or update, never before the SMM close ──
+   owWrite is sbC's write path for bb_month_close only, kept here because sbC returns
+   null and drops the message. The cell must show the database's own words when the
+   guard refuses (42501): "Only a signed in Command Centre user can sign a month close". */
+async function owWrite(method,body,query,prefer){
+  if(typeof DEMO_MODE!=='undefined'&&DEMO_MODE) return {ok:false,code:'',msg:'The demo does not save.'};
+  try{
+    await bbAuthEnsure();
+    var mk=function(){return {method:method,headers:{'apikey':SB_KEY,'Authorization':bbBearer(),'Content-Type':'application/json','Prefer':prefer},body:JSON.stringify(body)};};
+    var url=SB_URL+'/rest/v1/bb_month_close'+query;
+    var r=await fetch(url,mk());
+    if(r.status===401&&AUTH_ROLE){ await bbAuthEnsure(); r=await fetch(url,mk()); }
+    var t=await r.text(), j=null; try{ j=t?JSON.parse(t):null; }catch(e){}
+    if(!r.ok){
+      var code=(j&&j.code)||'';
+      console.error('owWrite refused','bb_month_close',method,r.status,code);
+      return {ok:false,code:code,msg:(j&&j.message)?String(j.message):'the database refused it ('+r.status+').'};
+    }
+    if(typeof _sbCacheInvalidate==='function') _sbCacheInvalidate('bb_month_close');
+    return {ok:true,rows:Array.isArray(j)?j:[]};
+  }catch(e){ console.error(e); return {ok:false,code:'',msg:'the database could not be reached.'}; }
+}
+/* What the cell says when a write is refused: the guard's own message, or why it failed. */
+function owRefusal(res){ return (res.code==='42501'?'Refused: ':'Not saved: ')+res.msg; }
 function owNoteValue(cid){
-  var root=document.getElementById(OW.rootId); if(!root) return null;
-  var el=root.querySelector('[data-ow-note="'+Number(cid)+'"]');
-  var v=el?String(el.value||'').trim():''; return v||null;
+  var k=owKey(cid), v=Object.prototype.hasOwnProperty.call(OW.notes,k)?OW.notes[k]:null;
+  if(v===null){ var root=document.getElementById(OW.rootId), el=root&&root.querySelector('[data-ow-note="'+Number(cid)+'"]'); v=el?el.value:''; }
+  v=String(v||'').trim(); return v||null;
 }
 async function owSign(cid){
   if(!owCanSign()||OW.busy!==null) return;
-  var mc=owCloseFor(cid);
+  var mc=owCloseFor(cid), k=owKey(cid);
   if(!mc||!mc.smm_closed_at){ alert('The SMM has not closed this month yet, so it cannot be signed.'); return; }
   if(mc.coo_signed_at) return;
   var now=new Date().toISOString();
   var body={client_id:Number(cid),period:OW.ym+'-01',coo_signed_by:owSigner(),coo_signed_at:now,coo_note:owNoteValue(cid),updated_at:now};
-  OW.busy=cid; owDraw();
-  var res=await sbC('bb_month_close','POST',body,'?on_conflict=client_id,period','resolution=merge-duplicates,return=representation');
+  OW.busy=cid; delete OW.refused[k]; owDraw();
+  var res=await owWrite('POST',body,'?on_conflict=client_id,period','resolution=merge-duplicates,return=representation');
   OW.busy=null;
-  if(Array.isArray(res)&&res[0]) owPutClose(res[0]);   /* a refusal is already toasted by sbC and nothing changes here */
+  if(res.ok&&res.rows[0]){ owPutClose(res.rows[0]); delete OW.notes[k]; }
+  else OW.refused[k]=res.ok?'Not saved: the database sent nothing back. Try again in a minute.':owRefusal(res);   /* the typed note stays in OW.notes */
   owDraw();
 }
-function owEdit(cid){ if(!owCanSign()) return; OW.edit=cid; owDraw(); }
-function owCancelEdit(){ OW.edit=null; owDraw(); }
+function owEdit(cid){ if(!owCanSign()) return; var mc=owCloseFor(cid); OW.edit=cid; OW.notes[owKey(cid)]=(mc&&mc.coo_note)||''; delete OW.refused[owKey(cid)]; owDraw(); }
+function owCancelEdit(){ if(OW.edit!==null){ delete OW.notes[owKey(OW.edit)]; delete OW.refused[owKey(OW.edit)]; } OW.edit=null; owDraw(); }
 async function owSaveNote(cid){
   if(!owCanSign()||OW.busy!==null) return;
-  var mc=owCloseFor(cid); if(!mc||!mc.coo_signed_at) return;
+  var mc=owCloseFor(cid), k=owKey(cid); if(!mc||!mc.coo_signed_at) return;
   var body={coo_note:owNoteValue(cid),updated_at:new Date().toISOString()};
-  OW.busy=cid; owDraw();
-  var res=await sbC('bb_month_close','PATCH',body,'?client_id=eq.'+Number(cid)+'&period=eq.'+OW.ym+'-01','return=representation');
+  OW.busy=cid; delete OW.refused[k]; owDraw();
+  var res=await owWrite('PATCH',body,'?client_id=eq.'+Number(cid)+'&period=eq.'+OW.ym+'-01','return=representation');
   OW.busy=null;
-  if(Array.isArray(res)&&res[0]){ owPutClose(res[0]); OW.edit=null; }
+  if(res.ok&&res.rows[0]){ owPutClose(res.rows[0]); OW.edit=null; delete OW.notes[k]; }
+  else OW.refused[k]=res.ok?'Not saved: the database sent nothing back. Try again in a minute.':owRefusal(res);
   owDraw();
 }
 </script>
