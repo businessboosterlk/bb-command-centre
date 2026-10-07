@@ -11310,19 +11310,44 @@ function gpDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move';e.cur
 function gpDragLeave(e){e.currentTarget.classList.remove('drop-target');}
 function gpDrop(e,stage){e.preventDefault();e.currentTarget.classList.remove('drop-target');if(gpDragId)moveGraphicStage(gpDragId,stage);gpDragId=null;}
 
+/* Decision 98 review fix, 7 Oct 2026 (L-CC-046). The database refuses Approved for a post that
+   has not been through Head Review (trigger gfx_guard_approved). sbC returns null on a refusal and
+   does not throw, so the move still wrote an 'approved' history row and the card stayed in
+   Approved until a reload. That false row became the post's current visit in bb_stage_intervals.
+   Now the same check as gfxApproveBlock in the Graphic System runs first, with the trigger's own
+   proofs: in Head Review now, a head_review row or an approved row from before the gate went
+   live. A refused write puts the card back and writes no history. */
+const GP_GATE_AT=Date.parse('2026-10-07T04:04:00Z');
+async function gpApproveBlock(p){
+  if(ROLE!=='th'&&ROLE!=='sh')return 'Only a head or an SMM can approve a post. Move it to Head Review instead';
+  if(p.current_stage==='head_review')return null;
+  const q='?graphic_project_id=eq.'+p.id+'&stage=in.(head_review,approved)&select=stage,entered_at&limit=50';
+  delete _sbCache['graphic_stage_history|'+q];             // a fresh read, never the cached one
+  const r=await sbC('graphic_stage_history','GET',null,q);
+  if(!Array.isArray(r))return 'Could not check the history of this post, so it was not approved. Try again';
+  const proof=r.some(h=>h&&(h.stage==='head_review'||(h.stage==='approved'&&Date.parse(h.entered_at)<GP_GATE_AT)));
+  return proof?null:'This post has not been through Head Review yet, so it cannot be Approved';
+}
 async function moveGraphicStage(id,newStage){
   const p=GP_projects.find(x=>x.id===id);
   if(!p||p.current_stage===newStage)return;
-  const oldStage=p.current_stage; const now=new Date().toISOString();
+  const oldStage=p.current_stage, oldUpdated=p.updated_at; const now=new Date().toISOString();
+  if(newStage==='approved'){
+    const why=await gpApproveBlock(p);
+    if(why){ renderGraphicPipeline(); sbWriteToast(why); return; }
+  }
   p.current_stage=newStage; p.updated_at=now;               // optimistic
   renderGraphicPipeline();
-  try{
-    const upd={current_stage:newStage,updated_at:now};
-    if(newStage==='approved')upd.completed_at=now;
-    await sbC('graphic_projects','PATCH',upd,'?id=eq.'+id);
-    const row=await sbC('graphic_stage_history','POST',{graphic_project_id:id,stage:newStage,entered_by:gpUser(),notes:'Moved from '+GP_LABEL[oldStage]},'');
-    if(row&&row[0])GP_history.unshift(row[0]);
-  }catch(e){console.error('moveGraphicStage',e); p.current_stage=oldStage; renderGraphicPipeline(); alert('Could not move project: check connection.');}
+  const upd={current_stage:newStage,updated_at:now};
+  if(newStage==='approved')upd.completed_at=now;
+  const okMove=await sbC('graphic_projects','PATCH',upd,'?id=eq.'+id);
+  if(!okMove){                                              // sbC has already said why
+    p.current_stage=oldStage; p.updated_at=oldUpdated; renderGraphicPipeline();
+    if(GP_detailId===id)openGraphicDetail(id);
+    return;
+  }
+  const row=await sbC('graphic_stage_history','POST',{graphic_project_id:id,stage:newStage,entered_by:gpUser(),notes:'Moved from '+GP_LABEL[oldStage]},'');
+  if(row&&row[0])GP_history.unshift(row[0]);
   if(GP_detailId===id)openGraphicDetail(id);
 }
 
@@ -11391,13 +11416,15 @@ async function gpSaveDetail(id){
   const newStage=g('gd-f-stage');
   const data={title:g('gd-f-title')||p.title,type:g('gd-f-type'),assigned_designer:g('gd-f-designer')||null,priority:g('gd-f-priority'),deadline:g('gd-f-deadline')||null,brief_notes:g('gd-f-notes')||null,updated_at:new Date().toISOString()};
   const stageChanged=newStage&&newStage!==p.current_stage;
-  try{
-    if(stageChanged){ data.current_stage=newStage; if(newStage==='approved')data.completed_at=new Date().toISOString(); }
-    await sbC('graphic_projects','PATCH',data,'?id=eq.'+id);
-    Object.assign(p,data);
-    if(stageChanged){ const row=await sbC('graphic_stage_history','POST',{graphic_project_id:id,stage:newStage,entered_by:gpUser(),notes:'Updated in CC'},''); if(row&&row[0])GP_history.unshift(row[0]); }
-    closeModal('modal-graphic-detail'); renderGraphicPipeline();
-  }catch(e){console.error('gpSaveDetail',e);alert('Save failed: check connection.');}
+  /* Decision 98 review fix, 7 Oct 2026 (L-CC-046): the same gate as moveGraphicStage. A refusal
+     keeps the form open with nothing changed on screen and writes no history row. */
+  if(stageChanged&&newStage==='approved'){ const why=await gpApproveBlock(p); if(why){ sbWriteToast(why); return; } }
+  if(stageChanged){ data.current_stage=newStage; if(newStage==='approved')data.completed_at=new Date().toISOString(); }
+  const okSave=await sbC('graphic_projects','PATCH',data,'?id=eq.'+id);
+  if(!okSave)return;                                        // sbC has already said why
+  Object.assign(p,data);
+  if(stageChanged){ const row=await sbC('graphic_stage_history','POST',{graphic_project_id:id,stage:newStage,entered_by:gpUser(),notes:'Updated in CC'},''); if(row&&row[0])GP_history.unshift(row[0]); }
+  closeModal('modal-graphic-detail'); renderGraphicPipeline();
 }
 async function gpArchive(id){
   if(!confirm('Archive this project? It will leave the board.'))return;
@@ -15751,6 +15778,23 @@ async function runSelfTest(opts){
    const miss=want.filter(n=>T.indexOf(n)<0);
    ok('Catcher: its own tables are in the anon-read walk',miss.length===0,
       miss.length?('missing: '+miss.join(', ')):'both watched');
+  })();
+
+  /* Decision 98 review fix, 7 Oct 2026 (L-CC-046). Read only, no write: both graphic stage writers
+     ask the approve gate first and stop on a refused write before any history row. It fails on the
+     shape of the fault, so a new writer that copies the old pattern is caught too. */
+  (function(){
+   const bad=[];
+   [['moveGraphicStage',typeof moveGraphicStage==='function'?moveGraphicStage:null],
+    ['gpSaveDetail',typeof gpSaveDetail==='function'?gpSaveDetail:null]].forEach(function(w){
+     const f=w[1]?w[1].toString():'';
+     if(!f){bad.push(w[0]+' is missing');return;}
+     if(f.indexOf('gpApproveBlock(')<0)bad.push(w[0]+' skips the approve gate');
+     const patch=f.indexOf("'PATCH'"), stop=f.search(/if\(!ok\w*\)/), hist=f.indexOf("'graphic_stage_history','POST'");
+     if(patch<0||stop<0||hist<0||!(patch<stop&&stop<hist))bad.push(w[0]+' can write history after a refused write');
+   });
+   ok('Graphic: a refused stage write writes no history row (L-CC-046)',bad.length===0,
+      bad.length?bad.join('; '):'both writers stop first');
   })();
 
  }catch(e){
