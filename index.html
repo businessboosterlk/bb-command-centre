@@ -5268,7 +5268,8 @@ function showPage(page) {
     loadShootCalendar();
   } else if (page === 'delivery') {
     document.getElementById('topbar-title').textContent = 'Delivery';
-    renderCcDelivery();
+    /* 7 Oct 2026: the owed vs delivered switch (@@BBCC_OWED@@); the tick board is its second mode. */
+    if(typeof ccDeliveryHost==='function') ccDeliveryHost('cc-dl-root'); else renderCcDelivery('cc-dl-root');
   } else if (page === 'onboarding') {
     document.getElementById('topbar-title').textContent = 'Onboarding';
     loadOnboarding();
@@ -14812,7 +14813,8 @@ function prodRender(){
        but only on the hidden page-delivery route, so nobody could reach it.
        Render it here instead of duplicating a second board. */
     body.innerHTML='<div id="prod-dl-root"></div>';
-    renderCcDelivery('prod-dl-root');
+    /* 7 Oct 2026: Owed vs delivered (default) and the tick board, one switch (@@BBCC_OWED@@). */
+    if(typeof ccDeliveryHost==='function') ccDeliveryHost('prod-dl-root'); else renderCcDelivery('prod-dl-root');
   }
   else body.innerHTML=prodSmmHTML();
 }
@@ -15164,7 +15166,15 @@ else buildNavGroups();
     {name:'bb_ads_pull_log',core:false},
     {name:'bb_ads_campaign_7d',core:false,col:'campaign_id'},
     {name:'bb_harness_runs',core:false},
-    {name:'bb_bug_clusters',core:false,col:'app'}
+    {name:'bb_bug_clusters',core:false,col:'app'},
+    /* Owed vs delivered (7 Oct 2026, @@BBCC_OWED@@). The ledger and the shot list are VIEWS
+       over many tables: nocount keeps the watcher from asking Postgres to count every row of
+       them on each sign-in (the 7 Oct outage came from too many reads). bb_month_close has no
+       id column. */
+    {name:'bb_commitment_ledger',core:false,col:'client_id',nocount:true},
+    {name:'bb_month_close',core:false,col:'client_id'},
+    {name:'bb_shot_not_logged',core:false,col:'shoot_id',nocount:true},
+    {name:'bb_delivery',core:false}
   ];
   /* Exposed for the self-test harness. The anon-read check (L-CC-001) walks this
      exact list, and on its first run it FAILED with "NO TABLES LIST" because the
@@ -15226,7 +15236,8 @@ else buildNavGroups();
   function headCount(t){
     var table=(typeof t==='string')?t:t.name;
     var col=(typeof t==='string')?'id':(t.col||'id');
-    return fetch(SB_URL+'/rest/v1/'+table+'?select='+col+'&limit=1',{method:'GET',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Prefer':'count=exact','Range':'0-0'}}).then(function(r){var cr=r.headers.get('content-range');var total=null;if(cr&&cr.indexOf('/')>-1){var t=cr.split('/')[1];total=(t==='*')?null:parseInt(t,10);}return r.text().then(function(body){return {ok:r.ok,status:r.status,count:total,body:body};});}).catch(function(e){return {ok:false,status:0,count:null,body:String(e&&e.message||e)};});
+    var hd={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};if(!(t&&t.nocount)){hd.Prefer='count=exact';hd.Range='0-0';}
+    return fetch(SB_URL+'/rest/v1/'+table+'?select='+col+'&limit=1',{method:'GET',headers:hd}).then(function(r){var cr=r.headers.get('content-range');var total=null;if(cr&&cr.indexOf('/')>-1){var t=cr.split('/')[1];total=(t==='*')?null:parseInt(t,10);}return r.text().then(function(body){return {ok:r.ok,status:r.status,count:total,body:body};});}).catch(function(e){return {ok:false,status:0,count:null,body:String(e&&e.message||e)};});
   }
   function checkHealth(){
     TABLES.forEach(function(t){headCount(t).then(function(res){
@@ -16006,6 +16017,338 @@ renderReadinessTab=async function(c){
 };
 </script>
 <!-- @@BBCC_PUBTRACK_END@@ -->
+<!-- @@BBCC_OWED_BEGIN@@ -->
+<style>
+/* OWED VS DELIVERED (7 Oct 2026). Scoped to .ow and .ow-mode. Rules: ~/bb-systems/delivery-ledger/RULES.md */
+.ow-mode{display:inline-flex;margin:0 0 16px}
+.ow-mode .tab-btn{padding:7px 16px;font-size:12px}
+.ow{color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif}
+.ow-head h2{font-size:20px;font-weight:600;margin:0;color:var(--text)}
+.ow-head p{margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--text-2);max-width:760px}
+.ow-bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}
+.ow-bar .tab-group{display:inline-flex}
+.ow-bar .tab-btn{padding:7px 14px;font-size:12px}
+.ow select.ow-sel{-webkit-appearance:none;appearance:none;font:inherit;font-size:13px;color:var(--text);background-color:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:8px 40px 8px 12px;min-width:160px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238a8d96' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:14px 14px}
+.ow select.ow-sel::-ms-expand{display:none}
+.ow select.ow-sel:focus{outline:none;border-color:var(--accent)}
+.ow-tot{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin:0 0 10px}
+.ow-tile{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;min-width:0}
+.ow-tile .l{font-size:11px;font-weight:600;color:var(--text-3)}
+.ow-tile .v{font-size:22px;font-weight:600;margin-top:4px;line-height:1}
+.ow-tile .s{font-size:10.5px;color:var(--text-3);margin-top:6px}
+.ow-note{font-size:12.5px;line-height:1.55;color:var(--text-2);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:0 0 12px}
+.ow-note b{color:var(--text)}
+.ow-shots{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:0 0 12px}
+.ow-shots h3{margin:0 0 6px;font-size:13px;font-weight:600;color:var(--red)}
+.ow-shot{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;padding:7px 0;border-top:1px solid var(--border);font-size:12.5px}
+.ow-shot:first-of-type{border-top:none}
+.ow-shot .c{font-weight:600;min-width:150px}
+.ow-shot .m{color:var(--text-3)}
+.ow-grp{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;margin:20px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.ow-grp .g{font-size:14px;font-weight:600;letter-spacing:.04em}
+.ow-grp .m{font-size:12px;color:var(--text-3)}
+.ow-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;background:var(--surface);border:1px solid var(--border);border-radius:11px;max-width:100%}
+.ow-t{border-collapse:collapse;width:100%;min-width:860px}
+.ow-t th{font-size:11px;font-weight:600;color:var(--text-2);text-align:left;padding:8px 10px;background:var(--surface-2);vertical-align:bottom}
+.ow-t th span{display:block;font-weight:500;color:var(--text-3);font-size:10px}
+.ow-t td{padding:9px 10px;border-top:1px solid var(--border);vertical-align:top;font-size:12px}
+.ow-t th:last-child,.ow-t td:last-child{text-align:left}
+.ow-t .ow-c{position:sticky;left:0;z-index:1;background:var(--surface);min-width:150px;max-width:190px}
+.ow-t th.ow-c{background:var(--surface-2);z-index:2}
+.ow-cn{font-weight:600;font-size:12.5px}
+.ow-dn{font-size:10.5px;color:var(--text-3);margin-top:3px}
+.ow-n{font-size:15px;font-weight:600;line-height:1.2}
+.ow-n span{font-size:11px;font-weight:500;color:var(--text-3)}
+.ow-s{font-size:10.5px;color:var(--text-3);margin-top:2px}
+.ow-b{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.ow-b span{font-size:10px;line-height:1;padding:3px 6px;border-radius:6px;border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
+.ow-b span b{color:var(--text);font-weight:600}
+.ow-ok{color:var(--green)}.ow-late{color:var(--red)}.ow-due{color:var(--amber)}.ow-mute{color:var(--text-3)}
+.ow-mc{min-width:210px}
+.ow-mc .q{font-size:11px;color:var(--text-2);margin-top:3px;font-style:italic;white-space:pre-wrap;word-break:break-word}
+.ow-mc input{width:100%;box-sizing:border-box;margin-top:6px;padding:7px 9px;font:inherit;font-size:16px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text)}
+.ow-mc .ow-acts{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.ow-mc .ow-acts .btn{width:100%;justify-content:center}
+.ow-quiet{background:none;border:none;color:var(--text-3);font:inherit;font-size:12px;cursor:pointer;padding:4px;text-decoration:underline}
+.ow-empty{padding:30px 12px;text-align:center;color:var(--text-3);font-size:13px}
+@media(max-width:640px){
+  .ow-mode{display:flex;width:100%}
+  .ow-mode .tab-btn,.ow-bar .tab-btn{flex:1}
+  .ow-head{text-align:center}
+  .ow-head p{margin-left:auto;margin-right:auto}
+  .ow-bar{flex-direction:column;align-items:stretch}
+  .ow-bar .tab-group{display:flex;width:100%}
+  .ow select.ow-sel{width:100%}
+  .ow-tot{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ow-grp{justify-content:center}
+}
+</style>
+<script>
+/* ════════════════════════════════════════════════════════════════════════════
+   OWED VS DELIVERED (7 Oct 2026, after the July to September backlog of 90 posts,
+   228 stories and 138 videos that nobody saw). The ONE wording of the rules is
+   ~/bb-systems/delivery-ledger/RULES.md; this screen quotes it and never retypes
+   a time limit.
+
+   Reads, three per month and no more: bb_commitment_ledger filtered by year AND
+   month (the view is over 1,000 rows unfiltered), bb_month_close for the period,
+   bb_shot_not_logged. No polling. A failed read says so; it never draws a zero.
+
+   Writes: only the COO signature and its note on bb_month_close, through sbC, for
+   ROLE th or sh. The SMM close is written in the SMM Workspace, never here. The
+   database also refuses a COO signature without an SMM close.
+
+   published comes from Posting Plan ticks (smm_publish_log). A missing tick reads
+   "not marked posted", never "not posted".
+   ════════════════════════════════════════════════════════════════════════ */
+var CC_DL_MODE='owed', CC_DL_HOST='';
+var OW={ym:'',smm:'ALL',behind:false,rootId:'',rows:null,close:null,shots:null,err:'',edit:null,busy:null,loadedYm:'',tok:0};
+var OW_KINDS=[['post','Posts'],['story','Stories'],['video','Videos']];
+var OW_BUCKETS=[['not_logged','not logged'],['in_making','in making'],['with_us','with us'],['with_client','with the client'],['made_not_posted','made not posted']];
+var OW_SMM_ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)'};
+
+function owEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function owNum(x){var n=Number(x);return isFinite(n)?n:0;}
+function owToday(){return new Date(Date.now()+19800000).toISOString().slice(0,10);}
+function owCurYm(){return (typeof bbCurMonthKey==='function')?bbCurMonthKey():owToday().slice(0,7);}
+function owMonthName(k){var M=['January','February','March','April','May','June','July','August','September','October','November','December'];return M[parseInt(k.slice(5,7),10)-1]+' '+k.slice(0,4);}
+function owDay(t){return t?new Date(t).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric',timeZone:'Asia/Colombo'}):'';}
+function owIsoDay(d){return new Date(d+'T00:00:00Z').toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'});}
+/* The months the picker offers: this Colombo month back to May 2026. */
+function owMonths(){
+  var out=[], k=owCurYm(), y=+k.slice(0,4), m=+k.slice(5,7);
+  while(y>2026||(y===2026&&m>=5)){ out.push(y+'-'+String(m).padStart(2,'0')); m--; if(m<1){m=12;y--;} }
+  return out;
+}
+/* The nth working day (Monday to Friday) of the month after period ym, as YYYY-MM-DD.
+   RULES.md section 5: the SMM closes by the 2nd working day, Shiara signs by the 3rd. */
+function owWorkDayAfter(ym,n){
+  var y=+ym.slice(0,4), m=+ym.slice(5,7), d=new Date(Date.UTC(y,m,1)), c=0;
+  for(var i=0;i<31;i++){ var w=d.getUTCDay(); if(w!==0&&w!==6){ c++; if(c===n) return d.toISOString().slice(0,10); } d.setUTCDate(d.getUTCDate()+1); }
+  return d.toISOString().slice(0,10);
+}
+function owCanSign(){
+  if(typeof DEMO_MODE!=='undefined'&&DEMO_MODE) return false;
+  return typeof ROLE!=='undefined'&&(ROLE==='th'||ROLE==='sh');
+}
+function owSigner(){return ROLE==='th'?'THULAIB':'SHIARA';}
+
+/* ── the Delivery segment host: the two-mode switch, then the chosen view ── */
+function ccDeliveryHost(rootId){
+  if(rootId) CC_DL_HOST=rootId;
+  var id=CC_DL_HOST||'cc-dl-root';
+  /* Both hosts must never hold the view at once: the owed view looks its note
+     fields up inside its root, and the tick board keeps one root id. */
+  var other=document.getElementById(id==='prod-dl-root'?'cc-dl-root':'prod-dl-root'); if(other) other.innerHTML='';
+  var root=document.getElementById(id); if(!root) return;
+  var b=function(m,t){return '<button type="button" class="tab-btn'+(CC_DL_MODE===m?' active':'')+'" aria-pressed="'+(CC_DL_MODE===m)+'" onclick="ccDlMode(\''+m+'\')">'+t+'</button>';};
+  root.innerHTML='<div class="tab-group ow-mode">'+b('owed','Owed vs delivered')+b('board','Tick board')+'</div><div id="'+id+'-body"></div>';
+  if(CC_DL_MODE==='board') renderCcDelivery(id+'-body'); else renderCcOwed(id+'-body');
+}
+function ccDlMode(m){ CC_DL_MODE=(m==='board')?'board':'owed'; ccDeliveryHost(CC_DL_HOST); }
+
+/* ── reads ── */
+async function owLoad(){
+  var ym=OW.ym, tok=++OW.tok, y=+ym.slice(0,4), m=+ym.slice(5,7);
+  var r=await Promise.all([
+    SBget('bb_commitment_ledger','?year=eq.'+y+'&month=eq.'+m+'&select=client_id,client_name,smm_book,kind,owed,contracted,logged,completed,published,date_note,not_logged,in_making,with_us,with_client,made_not_posted&order=client_name.asc'),
+    SBget('bb_month_close','?period=eq.'+ym+'-01&select=client_id,period,smm_closed_by,smm_closed_at,smm_note,coo_signed_by,coo_signed_at,coo_note'),
+    SBget('bb_shot_not_logged','?select=shoot_id,client_id,client,smm,shoot_date,videos_shot,videos_logged,days_since&order=shoot_date.asc')
+  ]);
+  if(tok!==OW.tok) return false;
+  OW.rows=Array.isArray(r[0])?r[0]:null;
+  OW.close=Array.isArray(r[1])?r[1]:null;
+  OW.shots=Array.isArray(r[2])?r[2]:null;
+  OW.err=OW.rows?'':'Could not read the ledger for '+owMonthName(ym)+'. Nothing below is a zero. Try again in a minute.';
+  OW.loadedYm=OW.rows?ym:'';
+  return true;
+}
+async function renderCcOwed(rootId){
+  if(rootId) OW.rootId=rootId;
+  var root=document.getElementById(OW.rootId); if(!root) return;
+  if(!OW.ym||owMonths().indexOf(OW.ym)<0) OW.ym=owCurYm();
+  if(OW.loadedYm!==OW.ym){
+    root.innerHTML='<div class="ow"><div class="ow-empty">Reading '+owMonthName(OW.ym)+'…</div></div>';
+    if(!(await owLoad())) return;
+  }
+  owDraw();
+}
+function owSetMonth(v){ OW.ym=v; OW.edit=null; renderCcOwed(); }
+function owSetSmm(v){ OW.smm=v; owDraw(); }
+function owToggleBehind(){ OW.behind=!OW.behind; owDraw(); }
+function owRetry(){ OW.loadedYm=''; renderCcOwed(); }
+
+/* ── shape the rows into one record per client ── */
+function owClients(){
+  var by={}, order=[];
+  (OW.rows||[]).forEach(function(r){
+    var k=String(r.client_id);
+    if(!by[k]){ by[k]={id:r.client_id,name:r.client_name||'',smm:String(r.smm_book||'').trim()||'No SMM assigned',kinds:{},note:''}; order.push(k); }
+    by[k].kinds[r.kind]=r;
+    if(r.date_note&&!by[k].note) by[k].note=r.date_note;
+  });
+  return order.map(function(k){
+    var c=by[k], owedKinds=OW_KINDS.filter(function(x){var r=c.kinds[x[0]];return r&&r.owed==='owed';});
+    c.owes=owedKinds.length>0;
+    c.undecided=!c.owes&&OW_KINDS.some(function(x){var r=c.kinds[x[0]];return r&&r.owed==='undecided';});
+    c.behind=owedKinds.some(function(x){var r=c.kinds[x[0]];return owNum(r.published)<owNum(r.contracted);});
+    return c;
+  });
+}
+function owCloseFor(cid){ var l=OW.close||[]; for(var i=0;i<l.length;i++){ if(String(l[i].client_id)===String(cid)) return l[i]; } return null; }
+function owPutClose(row){
+  if(!row) return; OW.close=OW.close||[];
+  for(var i=0;i<OW.close.length;i++){ if(String(OW.close[i].client_id)===String(row.client_id)){ OW.close[i]=row; return; } }
+  OW.close.push(row);
+}
+
+/* ── draw ── */
+function owKindCell(r,pastDue){
+  if(!r) return '<td class="ow-mute">No row</td>';
+  if(r.owed==='not owed') return '<td class="ow-mute">Not owed</td>';
+  if(r.owed!=='owed') return '<td class="ow-mute">Undecided</td>';
+  var owed=owNum(r.contracted), pub=owNum(r.published);
+  var cls=pub>=owed?'ow-ok':(pastDue?'ow-late':'ow-due');
+  var b=OW_BUCKETS.filter(function(x){return owNum(r[x[0]])>0;}).map(function(x){return '<span>'+x[1]+' <b>'+owNum(r[x[0]])+'</b></span>';}).join('');
+  return '<td><div class="ow-n '+cls+'">'+pub+' <span>of '+owed+'</span></div>'
+    +'<div class="ow-s">logged '+owNum(r.logged)+' · finished '+owNum(r.completed)+'</div>'
+    +(b?'<div class="ow-b">'+b+'</div>':'')+'</td>';
+}
+function owCloseCell(c){
+  var mc=owCloseFor(c.id), can=owCanSign(), today=owToday();
+  var closeBy=owWorkDayAfter(OW.ym,2), signBy=owWorkDayAfter(OW.ym,3);
+  var h='';
+  if(mc&&mc.smm_closed_at){
+    h+='<div class="ow-ok">Closed by '+owEsc(mc.smm_closed_by)+' on '+owDay(mc.smm_closed_at)+'</div>';
+    if(mc.smm_note) h+='<div class="q">'+owEsc(mc.smm_note)+'</div>';
+  }else{
+    h+='<div class="'+(today>closeBy?'ow-late':'ow-mute')+'">Not closed</div><div class="ow-s">SMM closes by '+owIsoDay(closeBy)+'</div>';
+  }
+  var busy=String(OW.busy)===String(c.id);
+  if(mc&&mc.coo_signed_at){
+    h+='<div class="ow-ok" style="margin-top:8px">Signed by '+owEsc(mc.coo_signed_by)+' on '+owDay(mc.coo_signed_at)+'</div>';
+    if(String(OW.edit)===String(c.id)&&can){
+      h+='<input type="text" maxlength="500" data-ow-note="'+c.id+'" value="'+owEsc(mc.coo_note||'')+'" placeholder="Note" aria-label="COO note">'
+        +'<div class="ow-acts"><button type="button" class="btn btn-sm" '+(busy?'disabled':'')+' onclick="owSaveNote('+Number(c.id)+')">'+(busy?'Saving…':'Save note')+'</button>'
+        +'<button type="button" class="ow-quiet" onclick="owCancelEdit()">Cancel</button></div>';
+    }else{
+      if(mc.coo_note) h+='<div class="q">'+owEsc(mc.coo_note)+'</div>';
+      if(can) h+='<div class="ow-acts"><button type="button" class="btn btn-sm btn-ghost" onclick="owEdit('+Number(c.id)+')">Edit note</button></div>';
+    }
+  }else if(mc&&mc.smm_closed_at){
+    h+='<div class="'+(today>signBy?'ow-late':'ow-due')+'" style="margin-top:8px">Not signed</div><div class="ow-s">COO signs by '+owIsoDay(signBy)+'</div>';
+    if(can){
+      h+='<input type="text" maxlength="500" data-ow-note="'+c.id+'" placeholder="Note (optional)" aria-label="COO note">'
+        +'<div class="ow-acts"><button type="button" class="btn btn-sm" '+(busy?'disabled':'')+' onclick="owSign('+Number(c.id)+')">'+(busy?'Signing…':'Sign')+'</button></div>';
+    }
+  }
+  return '<td class="ow-mc">'+h+'</td>';
+}
+function owDraw(){
+  var root=document.getElementById(OW.rootId); if(!root) return;
+  var ym=OW.ym, cur=owCurYm(), past=ym<cur;
+  var h='<div class="ow"><div class="ow-head"><h2>Owed vs delivered</h2>'
+    +'<p>Every client, '+owMonthName(ym)+': what the quota owes, what is logged and finished, what is marked posted and where the rest sits.</p></div>';
+  h+='<div class="ow-bar">'
+    +'<select class="ow-sel" aria-label="Month" onchange="owSetMonth(this.value)">'+owMonths().map(function(k){return '<option value="'+k+'"'+(k===ym?' selected':'')+'>'+owMonthName(k)+'</option>';}).join('')+'</select>'
+    +'<div class="tab-group" role="group" aria-label="SMM">'+[['ALL','All'],['NIRVANA','Nirvana'],['TIANA','Tiana']].map(function(s){return '<button type="button" class="tab-btn'+(OW.smm===s[0]?' active':'')+'" aria-pressed="'+(OW.smm===s[0])+'" onclick="owSetSmm(\''+s[0]+'\')">'+s[1]+'</button>';}).join('')+'</div>'
+    +'<div class="tab-group"><button type="button" class="tab-btn'+(OW.behind?' active':'')+'" aria-pressed="'+OW.behind+'" onclick="owToggleBehind()">Only clients behind</button></div>'
+    +'</div>';
+  if(OW.err||!OW.rows){
+    root.innerHTML=h+'<div class="ow-empty ow-late">'+owEsc(OW.err||'Not read yet.')+'<div style="margin-top:12px"><button type="button" class="btn btn-sm" onclick="owRetry()">Try again</button></div></div></div>';
+    return;
+  }
+  var all=owClients(), owing=all.filter(function(c){return c.owes;});
+  var notOwed=all.filter(function(c){return !c.owes&&!c.undecided;}).length, undecided=all.filter(function(c){return c.undecided;}).length;
+  var shown=owing.filter(function(c){return (OW.smm==='ALL'||c.smm===OW.smm)&&(!OW.behind||c.behind);});
+
+  /* totals: summed from exactly the owed rows of the clients on screen */
+  var T={}; ['contracted','logged','completed','published'].concat(OW_BUCKETS.map(function(x){return x[0];})).forEach(function(f){T[f]={all:0,post:0,story:0,video:0};});
+  shown.forEach(function(c){ OW_KINDS.forEach(function(k){ var r=c.kinds[k[0]]; if(!r||r.owed!=='owed') return;
+    Object.keys(T).forEach(function(f){ var v=owNum(r[f]); T[f].all+=v; T[f][k[0]]+=v; }); }); });
+  var tile=function(l,f,cls){var t=T[f];return '<div class="ow-tile"><div class="l">'+l+'</div><div class="v '+(cls||'')+'">'+t.all+'</div><div class="s">P '+t.post+' · S '+t.story+' · V '+t.video+'</div></div>';};
+  h+='<div class="ow-tot">'+tile('Owed','contracted')+tile('Logged','logged')+tile('Finished','completed')
+    +tile('Marked posted','published',T.published.all>=T.contracted.all?'ow-ok':(past?'ow-late':'ow-due'))
+    +tile('Not logged','not_logged')+tile('In making','in_making')+tile('With us','with_us')+tile('With the client','with_client')+tile('Made not posted','made_not_posted')+'</div>';
+
+  var closedN=owing.filter(function(c){var m=owCloseFor(c.id);return m&&m.smm_closed_at;}).length;
+  var signedN=owing.filter(function(c){var m=owCloseFor(c.id);return m&&m.coo_signed_at;}).length;
+  h+='<div class="ow-note">Totals count the '+shown.length+' client'+(shown.length===1?'':'s')+' shown (P posts, S stories, V videos). '
+    +'<b>Marked posted</b> counts a Posting Plan tick in the SMM Workspace. An item with no tick reads here as not marked posted, which does not mean it was never posted. '
+    +'Posts and stories before October were not logged in the Graphic System, so earlier months read mostly not logged. For those months the 7 October backlog list is the record.'
+    +'<br><b>Month close:</b> '+(OW.close?closedN+' of '+owing.length+' closed by the SMM, '+signedN+' signed by the COO. The SMM closes by the 2nd working day of the next month and Shiara signs by the 3rd.':'could not be read, so no close is shown.')
+    +(notOwed||undecided?'<br><b>Left out:</b> '+(notOwed?notOwed+' client'+(notOwed===1?' owes':'s owe')+' nothing this month':'')+(notOwed&&undecided?'; ':'')+(undecided?undecided+' client'+(undecided===1?' has':'s have')+' no settled quota yet':'')+'.':'')
+    +'</div>';
+
+  /* shoots with videos missing: Ushane logs videos the same day as the shoot (RULES.md section 2) */
+  if(OW.shots===null){
+    h+='<div class="ow-shots"><h3>Shot, videos missing</h3><div class="ow-s">Could not read the shoot list.</div></div>';
+  }else{
+    var sh=OW.shots.filter(function(s){return OW.smm==='ALL'||String(s.smm||'').toUpperCase()===OW.smm;});
+    if(sh.length){
+      h+='<div class="ow-shots"><h3>Shot, videos missing ('+sh.length+')</h3><div class="ow-s" style="margin-bottom:4px">Videos go into the Video System the same day as the shoot. Owner: Ushane.</div>'
+        +sh.map(function(s){return '<div class="ow-shot"><span class="c">'+owEsc(s.client)+'</span><span>Shot '+(s.shoot_date?owIsoDay(String(s.shoot_date).slice(0,10)):'')+'</span>'
+          +'<span class="ow-late">'+owNum(s.videos_shot)+' shot, '+owNum(s.videos_logged)+' logged</span><span class="m">'+owNum(s.days_since)+' days ago'+(s.smm?' · '+owEsc(s.smm):'')+'</span></div>';}).join('')+'</div>';
+    }
+  }
+
+  if(!owing.length){
+    root.innerHTML=h+'<div class="ow-empty">No client owes anything on record for '+owMonthName(ym)+'.</div></div>';
+    return;
+  }
+  var known=['NIRVANA','TIANA'], extras=[];
+  shown.forEach(function(c){ if(known.indexOf(c.smm)<0&&extras.indexOf(c.smm)<0) extras.push(c.smm); });
+  var groups=known.concat(extras.sort()).map(function(g){return {g:g,list:shown.filter(function(c){return c.smm===g;})};}).filter(function(x){return x.list.length;});
+  if(!groups.length) h+='<div class="ow-empty">No client matches this filter.</div>';
+  var head='<tr><th class="ow-c">Client</th>'+OW_KINDS.map(function(k){return '<th>'+k[1]+'<span>marked posted of owed</span></th>';}).join('')+'<th>Month close</th></tr>';
+  groups.forEach(function(gr){
+    var beh=gr.list.filter(function(c){return c.behind;}).length;
+    h+='<div class="ow-grp"><span class="g" style="color:'+(OW_SMM_ACC[gr.g]||'var(--text)')+'">'+owEsc(gr.g)+'</span><span class="m">'+gr.list.length+' client'+(gr.list.length===1?'':'s')+' · '+beh+' behind</span></div>';
+    h+='<div class="ow-scroll"><table class="ow-t"><thead>'+head+'</thead><tbody>'
+      +gr.list.map(function(c){
+        return '<tr data-ow-client="'+Number(c.id)+'"><td class="ow-c"><div class="ow-cn">'+owEsc(c.name)+'</div>'+(c.note?'<div class="ow-dn">'+owEsc(c.note)+'</div>':'')+'</td>'
+          +OW_KINDS.map(function(k){return owKindCell(c.kinds[k[0]],past);}).join('')+owCloseCell(c)+'</tr>';
+      }).join('')+'</tbody></table></div>';
+  });
+  root.innerHTML=h+'</div>';
+}
+
+/* ── the COO signature: insert or update through sbC, never before the SMM close ── */
+function owNoteValue(cid){
+  var root=document.getElementById(OW.rootId); if(!root) return null;
+  var el=root.querySelector('[data-ow-note="'+Number(cid)+'"]');
+  var v=el?String(el.value||'').trim():''; return v||null;
+}
+async function owSign(cid){
+  if(!owCanSign()||OW.busy!==null) return;
+  var mc=owCloseFor(cid);
+  if(!mc||!mc.smm_closed_at){ alert('The SMM has not closed this month yet, so it cannot be signed.'); return; }
+  if(mc.coo_signed_at) return;
+  var now=new Date().toISOString();
+  var body={client_id:Number(cid),period:OW.ym+'-01',coo_signed_by:owSigner(),coo_signed_at:now,coo_note:owNoteValue(cid),updated_at:now};
+  OW.busy=cid; owDraw();
+  var res=await sbC('bb_month_close','POST',body,'?on_conflict=client_id,period','resolution=merge-duplicates,return=representation');
+  OW.busy=null;
+  if(Array.isArray(res)&&res[0]) owPutClose(res[0]);   /* a refusal is already toasted by sbC and nothing changes here */
+  owDraw();
+}
+function owEdit(cid){ if(!owCanSign()) return; OW.edit=cid; owDraw(); }
+function owCancelEdit(){ OW.edit=null; owDraw(); }
+async function owSaveNote(cid){
+  if(!owCanSign()||OW.busy!==null) return;
+  var mc=owCloseFor(cid); if(!mc||!mc.coo_signed_at) return;
+  var body={coo_note:owNoteValue(cid),updated_at:new Date().toISOString()};
+  OW.busy=cid; owDraw();
+  var res=await sbC('bb_month_close','PATCH',body,'?client_id=eq.'+Number(cid)+'&period=eq.'+OW.ym+'-01','return=representation');
+  OW.busy=null;
+  if(Array.isArray(res)&&res[0]){ owPutClose(res[0]); OW.edit=null; }
+  owDraw();
+}
+</script>
+<!-- @@BBCC_OWED_END@@ -->
 <!-- @@BB_WORKTIME_BEGIN@@ -->
 <!-- BB WORK TIME. Cast from ~/bb-systems/stage-age/bb-work-time.CANON.html by cast_work.py.
      Never edit this block inside an app: edit the canon and cast again.
