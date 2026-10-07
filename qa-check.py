@@ -60,6 +60,25 @@ for i in ids:
 for d in sorted(dupes):
     problems.append(f"DUPLICATE id  id=\"{d}\" appears more than once")
 
+# ---- 5. every inline <script> must parse (added 2026-10-07) ------------------
+# The platform restyle swapped a font name inside a single-quoted JS string and
+# one bad quote killed the whole script block: 20 functions vanished, every page
+# blank. Checks 1 to 4 cannot see that. node --check can.
+import shutil, subprocess, tempfile, os
+node = shutil.which("node") or os.path.expanduser("~/.local/node/bin/node")
+if os.path.exists(node):
+    blocks = re.findall(r'<script(?![^>]*\bsrc=)(?![^>]*type="(?:application/ld\+json|application/json)")[^>]*>(.*?)</script>', src, re.S)
+    with tempfile.TemporaryDirectory() as tmp:
+        for n, body in enumerate(blocks):
+            f = pathlib.Path(tmp) / f"s{n}.js"
+            f.write_text(body, encoding="utf-8")
+            r = subprocess.run([node, "--check", str(f)], capture_output=True, text=True)
+            if r.returncode:
+                msg = [l for l in r.stderr.splitlines() if "Error" in l][:1]
+                problems.append(f"SCRIPT DOES NOT PARSE  inline script {n}: {(msg or ['?'])[0][:120]}")
+else:
+    problems.append("SCRIPT PARSE CHECK SKIPPED  node not found; install it or fix the path")
+
 # ---- report -----------------------------------------------------------------
 problems = sorted(set(problems))
 if problems:
