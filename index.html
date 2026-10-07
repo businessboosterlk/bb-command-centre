@@ -4064,7 +4064,7 @@ function _sbCacheInvalidate(table){Object.keys(_sbCache).filter(k=>k.startsWith(
 
 /* ══════════════════════════════════════
    REAL AUTH (Supabase GoTrue) — Thulaib + Shiara
-   The typed PIN (1031/1006) gates the UI; behind it we obtain a real
+   The person types their own password; with it we obtain a real
    authenticated JWT so the database can reject anyone without a login.
 ══════════════════════════════════════ */
 /* THE TYPED CREDENTIAL. The password a person types IS the password the
@@ -4211,7 +4211,7 @@ async function sb(table,q=''){
    LOGIN — CARD SELECT + PASSWORD
 ══════════════════════════════════════ */
 /* THE PIN MAP IS GONE ON PURPOSE. It used to read
-   { th:'1031', sh:'1006', demo:'0000' } in a page anyone can view-source, so
+   a role-to-PIN map in a page anyone can view-source (numbers removed 7 Oct), so
    it was never a lock, only a label on a door. The real check now happens at
    Supabase against a password that exists nowhere in this file. */
 
@@ -13501,7 +13501,7 @@ var KB=[
   {keys:['calendar','events','schedule'],
    ans:'<strong>📅 Calendar:</strong><br><br>Month view with colour-coded dots for different event types.<br>Click any day to see details. Add events with the + button.'},
   {keys:['login','pin','password','sign in','credentials'],
-   ans:'<strong>🔐 Logins:</strong><br><br>• <strong>Thulaib (CEO):</strong> PIN 1031<br>• <strong>Shiara (COO):</strong> PIN 1006<br>• <strong>Demo:</strong> PIN 0000<br><br>Sessions persist in localStorage: you stay logged in between browser sessions. Click "Switch" in the sidebar to log out.'},
+   ans:'<strong>🔐 Logins:</strong><br><br>• <strong>Thulaib and Shiara</strong> sign in with their own password on their card<br>• <strong>Anyone else</strong> can open Preview System to see the app with sample data<br>• Forgotten password: Thulaib resets it in Supabase<br><br>Sessions persist in localStorage: you stay logged in between browser sessions. Click "Switch" in the sidebar to log out.'},
   {keys:['my day','today','daily','morning'],
    ans:'<strong>☀️ My Day:</strong><br><br>Focused view of your tasks for today.<br><br>• Overdue tasks first (sorted by how many days late)<br>• Due today section below<br>• Tick a task to mark it done<br>• Red count badge shows how many are overdue<br><br>Start every day on My Day to know exactly what\'s on your plate.'},
   {keys:['not working','broken','error','bug','issue','problem','blank','loading','not loading'],
