@@ -1354,6 +1354,8 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 .fin-pill-n:not(:empty){display:inline-block;margin-left:5px;min-width:18px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;line-height:17px;text-align:center}
 #fin-sect-in{scroll-margin-top:calc(var(--fin-sticky-top,56px) + 10px)}
 .fin-late{font-size:10.5px;font-weight:600;color:var(--red);margin-top:1px}
+.fin-sent-btn{font-size:10px;padding:3px 8px;background:transparent;border:1px solid var(--border-strong);color:var(--text-3);border-radius:var(--r-sm);cursor:pointer;font-weight:600;white-space:nowrap;font-family:inherit}
+.fin-sent-btn.on{background:var(--blue-soft);border-color:var(--blue);color:var(--blue)}
 .fin-grp-month{background:var(--surface)}
 .fin-grp-month .fin-grp-name{color:var(--text)}
 .fin-grp-month .fin-grp-sum{color:var(--text-2)}
@@ -7601,7 +7603,7 @@ function renderFinancePage(){
         <div style="font-size:14px;font-weight:600;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);flex-shrink:0">LKR ${(inv.amount||0).toLocaleString()}</div>
         <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:6px;background:${sb};color:${sc};flex-shrink:0;min-width:58px;text-align:center">${sl}</span>
         <div style="display:flex;gap:4px;flex-shrink:0">
-          ${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>`:''}
+          ${finSentBtn(inv)}${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>`:''}
           <button style="font-size:10px;padding:3px 8px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="openInvoiceGen(${inv.id})" title="Generate a branded PDF invoice">Invoice</button>
           <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px" onclick="openFinInvoiceModal(${inv.id})">Edit</button>
           <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteInvoice(${inv.id})">×</button>
@@ -7634,7 +7636,7 @@ function renderFinancePage(){
     let h='';
     if(showDue){
       h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">${dueInv.length?'To collect':'Nothing to collect'}</span>`
-        +`<span class="fin-grp-sum" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">LKR ${sumOf(dueInv).toLocaleString()}<span>${dueInv.length} invoice${dueInv.length===1?'':'s'}</span></span></div>`;
+        +`<span class="fin-grp-sum" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">LKR ${sumOf(dueInv).toLocaleString()}<span>${dueInv.length} invoice${dueInv.length===1?'':'s'}${(()=>{const n=dueInv.filter(i=>!i.sent_at).length;return n?`, ${n} not sent`:'';})()}</span></span></div>`;
       h+=dueInv.length?dueInv.map(invRow).join(''):'<div class="fin-empty-grp">Every invoice this month is paid.</div>';
     }
     if(showPaid){
@@ -7808,6 +7810,26 @@ async function finQuickAddExtra(invId,desc,amt){
   await loadFinancePage();
 }
 
+/* SENT, Thulaib 9 Oct 2026: "right next to the paid button ... we click, we have sent this already to
+   the client". invoices.sent_at holds when. The screen changes at the tap and goes back if the
+   database refuses (sbC returns null and shows "Not saved"). Paid invoices need no Sent button. */
+function finSentDay(v){ const d=new Date(v); return isNaN(d)?'':d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}); }
+function finSentBtn(inv){
+  if(inv.status==='paid') return '';
+  return inv.sent_at
+    ? `<button class="fin-sent-btn on" title="Sent to the client on ${finSentDay(inv.sent_at)}. Tap to undo." onclick="finMarkSent(${inv.id},false)">Sent ${finSentDay(inv.sent_at)}</button>`
+    : `<button class="fin-sent-btn" title="Tap once the invoice has gone to the client" onclick="finMarkSent(${inv.id},true)">Mark sent</button>`;
+}
+async function finMarkSent(id,on){
+  const rows=[...(FIN_INVOICES||[]),...(typeof INVOICES!=='undefined'&&INVOICES!==FIN_INVOICES?INVOICES:[])].filter(x=>x.id===id);
+  if(!rows.length) return;
+  if(!on && !confirm('Mark this invoice as NOT sent yet?')) return;
+  const before=rows[0].sent_at||null, val=on?new Date().toISOString():null;
+  const paint=()=>{ renderFinancePage(); if(typeof finView!=='undefined'&&finView==='client') renderFinByClient(); };
+  rows.forEach(x=>x.sent_at=val); paint();
+  const ok=await SBpatch('invoices',id,{sent_at:val});
+  if(!ok){ rows.forEach(x=>x.sent_at=before); paint(); }
+}
 async function finMarkPaid(id){
   await SBpatch('invoices',id,{status:'paid'});
   const i=FIN_INVOICES.find(x=>x.id===id);if(i)i.status='paid';
@@ -8106,7 +8128,7 @@ function renderFinByClient(){
           <div style="flex:1;font-size:12px;color:var(--text-2)">${inv.notes?esc(inv.notes):'—'}</div>
           <div style="font-size:13px;font-weight:600">LKR ${(inv.amount||0).toLocaleString()}</div>
           <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:6px;background:${sb};color:${sc};min-width:56px;text-align:center">${sl}</span>
-          ${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>`:''}
+          ${finSentBtn(inv)}${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>`:''}
         </div>`;
       }).join('')}
     </div>`;
