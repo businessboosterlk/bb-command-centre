@@ -3505,6 +3505,7 @@ window.__ST_LOG=[];
         <button class="btn btn-sm btn-ghost" data-tab="graphic" onclick="prodTab('graphic')">Graphic</button>
         <button class="btn btn-sm btn-ghost" data-tab="smm" onclick="prodTab('smm')">SMM</button>
         <button class="btn btn-sm btn-ghost" data-tab="delivery" onclick="prodTab('delivery')">Delivery</button>
+        <button class="btn btn-sm btn-ghost" data-tab="morningbriefs" onclick="prodTab('morningbriefs')">Morning briefs</button>
       </div>
     </div>
     <div id="prod-body"></div>
@@ -14865,6 +14866,11 @@ function prodRender(){
     /* 7 Oct 2026: Owed vs delivered (default) and the tick board, one switch (@@BBCC_OWED@@). */
     if(typeof ccDeliveryHost==='function') ccDeliveryHost('prod-dl-root'); else renderCcDelivery('prod-dl-root');
   }
+  else if(prodCurrentTab==='morningbriefs'){
+    /* 12 Oct 2026: the team morning brief, read-only (@@BBCC_TEAMBRIEF@@). */
+    body.innerHTML='<div id="prod-mb-root"></div>';
+    if(typeof ccTmbHost==='function') ccTmbHost('prod-mb-root');
+  }
   else body.innerHTML=prodSmmHTML();
 }
 
@@ -16471,6 +16477,128 @@ async function owSaveNote(cid){
 }
 </script>
 <!-- @@BBCC_OWED_END@@ -->
+<!-- @@BBCC_TEAMBRIEF_BEGIN@@
+     TEAM MORNING BRIEF, read-only (Thulaib, 12 Oct 2026). Every head records a
+     morning check-in per person in their own system (Video, Graphic, SMM); the
+     table is morning_briefs. This screen shows the COO and CEO today's briefs
+     by head, with a red mark on any head who has not finished by 09:00 Colombo.
+     Nothing here writes. Every class carries the mb- prefix. -->
+<style>
+.mb-wrap{max-width:860px}
+.mb-note{font-size:13px;color:var(--text-3);margin-bottom:14px}
+.mb-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px}
+.mb-head{display:flex;align-items:center;gap:12px;min-height:56px;padding:12px 16px;cursor:pointer}
+.mb-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.mb-chiprow{font-size:12px;color:var(--text-3)}
+.mb-body{border-top:1px solid var(--border);padding:4px 16px 12px}
+.mb-member{padding:10px 0;border-bottom:1px solid var(--border)}
+.mb-member:last-child{border-bottom:0}
+.mb-k{font-size:11px;color:var(--text-3);margin-top:6px}
+.mb-v{font-size:13px;color:var(--text);white-space:pre-wrap}
+</style>
+<script>
+(function(){
+  'use strict';
+  var MB = { open: {}, cache: null };
+  function escM(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function colomboNow(){ return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Colombo' })); }
+  function colomboDay(){ var d = colomboNow(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  function dateLabel(){ return colomboNow().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).replace(',', ''); }
+  async function mbGet(table, q){
+    /* Uncached, like the Brief's own reader: a today screen must not serve a stale cache. */
+    var headers = { apikey: SB_KEY, Authorization: (typeof bbBearer === 'function') ? bbBearer() : ('Bearer ' + SB_KEY) };
+    try {
+      if (typeof bbAuthEnsure === 'function') { await bbAuthEnsure(); headers.Authorization = (typeof bbBearer === 'function') ? bbBearer() : headers.Authorization; }
+      var r = await fetch(SB_URL + '/rest/v1/' + table + q, { headers: headers, cache: 'no-store' });
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) { return null; }
+  }
+  function teamOf(head, all){
+    /* The same member rules the heads' own pillars use.
+       MATHUSHAN (id 27) has left but still read active on 12 Oct 2026 (bb_pending).
+       HITHESH has no assigned head yet, so he counts for both SMM heads. */
+    var role = String(head.role || '');
+    if (role === 'video_head') return all.filter(function(m){ return m.role === 'editor' && m.id !== 27; });
+    if (role === 'Graphic Designer') return all.filter(function(m){ return m.role === 'Graphic Designer' && !m.is_head; });
+    if (role === 'Social Media Manager') return all.filter(function(m){ return m.role === 'Social Media Manager' && !m.is_head; });
+    return [];
+  }
+  function teamLabel(role){
+    return role === 'video_head' ? 'Video' : role === 'Graphic Designer' ? 'Graphics' : 'SMM';
+  }
+  window.ccTmbHost = async function(rootId, fromCache){
+    var root = document.getElementById(rootId); if (!root) return;
+    if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) { root.innerHTML = '<div class="mb-note" style="padding:20px">The morning briefs are not part of the demo.</div>'; return; }
+    var all, rows;
+    /* Two capped reads per visit; a fold or unfold repaints from the cache. */
+    if (fromCache && MB.cache && MB.cache.day === colomboDay()) { all = MB.cache.all; rows = MB.cache.rows; }
+    else {
+      root.innerHTML = '<div class="mb-note" style="padding:20px">Loading today\'s briefs…</div>';
+      all = await mbGet('team_members', '?active=eq.true&select=id,name,role,is_head');
+      rows = await mbGet('morning_briefs', '?brief_date=eq.' + colomboDay() + '&select=*');
+      if (!Array.isArray(all) || !Array.isArray(rows)) { root.innerHTML = '<div class="mb-note" style="padding:20px">The briefs could not be read. Try again in a minute.</div>'; return; }
+      MB.cache = { day: colomboDay(), all: all, rows: rows };
+    }
+    /* The heads Thulaib named on 12 Oct 2026: video, graphics and the two SMM
+       heads. KISHINI (dev) deliberately left out: the Dev System has no brief
+       pillar yet (bb_pending holds that decision). */
+    var heads = all.filter(function(m){ return m.is_head && ['video_head', 'Graphic Designer', 'Social Media Manager'].indexOf(m.role) > -1; });
+    var now = colomboNow();
+    var pastNine = (now.getHours() > 9) || (now.getHours() === 9 && now.getMinutes() > 0);
+    var membersById = {}; all.forEach(function(m){ membersById[m.id] = m; });
+    var html = '<div class="mb-wrap"><div class="mb-note">' + dateLabel() + '. Each head speaks to their team every morning and records it in their own system, then sends one message to the staff chat. Read-only here. A red mark means the head had not finished by 09:00.</div>';
+    heads.sort(function(a, b){ return teamLabel(a.role).localeCompare(teamLabel(b.role)) || a.name.localeCompare(b.name); });
+    heads.forEach(function(h){
+      var team = teamOf(h, all);
+      var hr = rows.filter(function(r){ return r.head === h.id; });
+      var briefedIds = {}; hr.forEach(function(r){ briefedIds[r.member] = r; });
+      var briefed = team.filter(function(m){ return briefedIds[m.id]; }).length;
+      var complete = team.length > 0 && briefed === team.length;
+      var late = pastNine && !complete;
+      var dot = complete ? 'background:#2f9e63' : late ? 'background:var(--red,#d64545)' : 'background:var(--text-3)';
+      var state = complete ? 'Briefed' : late ? 'Not briefed by 09:00' : 'In progress';
+      var blockers = hr.filter(function(r){ return (r.blocker || '').trim(); }).length;
+      var isOpen = !!MB.open[h.id];
+      html += '<div class="mb-card">'
+        + '<div class="mb-head" data-mb-head="' + h.id + '">'
+        + '<span class="mb-dot" style="' + dot + '"></span>'
+        + '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text)">' + escM(h.name) + ' · ' + teamLabel(h.role) + '</div>'
+        + '<div class="mb-chiprow">' + briefed + ' of ' + team.length + ' briefed · ' + state + (blockers ? ' · ' + blockers + ' blocker' + (blockers === 1 ? '' : 's') : '') + '</div></div>'
+        + '<span style="font-size:12px;color:var(--text-3)">' + (isOpen ? 'Hide' : 'View') + '</span>'
+        + '</div>';
+      if (isOpen) {
+        html += '<div class="mb-body">';
+        if (!hr.length) html += '<div class="mb-note" style="margin:10px 0 6px">No check-ins recorded yet today.</div>';
+        team.forEach(function(m){
+          var r = briefedIds[m.id];
+          html += '<div class="mb-member"><div style="font-size:13px;font-weight:600;color:var(--text)">' + escM(m.name)
+            + (r ? (r.on_track ? ' · on track' : ' · <span style="color:var(--red,#d64545)">not on track</span>') : ' · <span style="color:var(--text-3)">not briefed</span>') + '</div>';
+          if (r) {
+            if ((r.yesterday_done || '').trim()) html += '<div class="mb-k">Yesterday</div><div class="mb-v">' + escM(r.yesterday_done) + '</div>';
+            if ((r.today_plan || '').trim()) html += '<div class="mb-k">Today</div><div class="mb-v">' + escM(r.today_plan) + '</div>';
+            if ((r.questions || '').trim()) html += '<div class="mb-k">Questions</div><div class="mb-v">' + escM(r.questions) + '</div>';
+            if ((r.blocker || '').trim()) html += '<div class="mb-k">Blocker</div><div class="mb-v">' + escM(r.blocker) + ((r.alternative || '').trim() ? '. Alternative: ' + escM(r.alternative) : '') + '</div>';
+          }
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    root.innerHTML = html;
+    root.querySelectorAll('[data-mb-head]').forEach(function(el){
+      el.addEventListener('click', function(){
+        var id = parseInt(el.getAttribute('data-mb-head'), 10);
+        MB.open[id] = !MB.open[id];
+        window.ccTmbHost(rootId, true);
+      });
+    });
+  };
+})();
+</script>
+<!-- @@BBCC_TEAMBRIEF_END@@ -->
 <!-- @@BB_WORKTIME_BEGIN@@ -->
 <!-- BB WORK TIME. Cast from ~/bb-systems/stage-age/bb-work-time.CANON.html by cast_work.py.
      Never edit this block inside an app: edit the canon and cast again.
