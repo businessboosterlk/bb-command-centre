@@ -14649,10 +14649,18 @@ async function renderCcDelivery(rootId){
 
 async function ccBbdTog(id,k){
   var r=BBD_ROWS.filter(function(x){return String(x.id)===String(id);})[0]; if(!r) return;
-  r.vals=r.vals||{}; r.vals[k]=!r.vals[k];
+  r.vals=r.vals||{}; r.vals[k]=!r.vals[k]; var want=r.vals[k];
   renderCcDelivery();                                   // optimistic
   try{
-    await SBpatch('bb_delivery',id,{vals:r.vals,updated_at:new Date().toISOString()});
+    /* A CHANGE, NEVER A COPY. The SMM Workspace and the standalone tracker tick
+       this same row. Writing this tab's whole vals erased any box they ticked
+       since this tab loaded. Fresh read past the cache, change box k only. */
+    _sbCacheInvalidate('bb_delivery');
+    var fr=await SBget('bb_delivery','?id=eq.'+id+'&select=vals');
+    if(!Array.isArray(fr)||!fr[0]) throw new Error('could not read the row');
+    var fresh=Object.assign({}, fr[0].vals||{}); fresh[k]=want;
+    await SBpatch('bb_delivery',id,{vals:fresh,updated_at:new Date().toISOString()});
+    r.vals=fresh;
     _sbCacheInvalidate('bb_delivery');
   }catch(e){
     console.error('ccBbdTog',e); r.vals[k]=!r.vals[k]; renderCcDelivery();
