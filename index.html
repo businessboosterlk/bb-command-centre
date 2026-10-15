@@ -4110,7 +4110,7 @@ const ASK_BB_URL = 'http://127.0.0.1:4691/ask-bb/';
 /* Booster S4 (15 Oct 2026): the drawer. ASK_BB_DRAWER_ON is THE FLAG, off until Thulaib's yes; off, the item opens the preview in a tab as
    before. On, the drawer script loads once from the Booster host (the Railway address replaces ASK_BB_HOST) and the client on screen
    travels as a hint the server checks under the person's own permissions. The CC still reads as anon: no policy is widened here. */
-const ASK_BB_DRAWER_ON = false, ASK_BB_HOST = 'https://booster-production-3b2e.up.railway.app/ask-bb/';   /* the Railway host, made 15 Oct 2026; the flag stays off until Thulaib's yes */
+const ASK_BB_DRAWER_ON = true, ASK_BB_HOST = 'https://booster-production-3b2e.up.railway.app/ask-bb/';   /* the Railway host, made 15 Oct 2026; the flag stays off until Thulaib's yes */
 function openAskBB(){
   const hint = { client_id: (typeof currentId !== 'undefined' && currentId) ? currentId : null };
   if(!ASK_BB_DRAWER_ON){ window.open(ASK_BB_URL,'_blank'); return; }
