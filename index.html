@@ -106,6 +106,8 @@ body{
 /* ── ROLE VISIBILITY ── */
 [data-role="th"] .coo-only{display:none!important}
 [data-role="sh"] .ceo-only{display:none!important}
+/* Booster (S4, 15 Oct 2026): the drawer item is for the CEO and COO. ceo-only hides from Shiara, so a new class */
+body:not([data-role="th"]):not([data-role="sh"]) .owners-only{display:none!important}
 
 /* ══════════════════════════════
    LOGIN SCREEN
@@ -1200,6 +1202,8 @@ td:last-child{padding-right:18px;text-align:right}
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 [data-role="th"] .coo-only{display:none!important}
 [data-role="sh"] .ceo-only{display:none!important}
+/* Booster (S4, 15 Oct 2026): the drawer item is for the CEO and COO. ceo-only hides from Shiara, so a new class */
+body:not([data-role="th"]):not([data-role="sh"]) .owners-only{display:none!important}
 ::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:6px}
 /* Logo always visible in both themes */
 /* Logo: original PNG is light/white (designed for dark sidebar)
@@ -1654,7 +1658,7 @@ window.__ST_LOG=[];
       <div class="nav-item" id="nav-team" onclick="showPage('team')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
       <div class="nav-item" id="nav-brain" onclick="window.open('https://businessboosterlk.github.io/bb-brain/','_blank')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="1.6"/><circle cx="19" cy="7" r="1.6"/><circle cx="5" cy="17" r="1.6"/><circle cx="19" cy="17" r="1.6"/><path d="M6.4 8 10 10.6M17.6 8 14 10.6M6.4 16 10 13.4M17.6 16 14 13.4"/></svg></span>Digital Brain</div>
-      <div class="nav-item ceo-only" id="nav-askbb" onclick="window.open(ASK_BB_URL,'_blank')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg></span>Ask BB</div>
+      <div class="nav-item owners-only" id="nav-askbb" onclick="openAskBB()"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg></span>Booster</div>
       <div class="nav-item" id="nav-agents" onclick="showPage('agents')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>Agents <span class="sb-badge" id="agents-unread-badge" style="display:none"></span></div>
       <div class="nav-item" id="nav-teamweekly" onclick="showPage('teamweekly')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>Team Weekly</div>
     </div>
@@ -4103,6 +4107,20 @@ function _sbCacheInvalidate(table){Object.keys(_sbCache).filter(k=>k.startsWith(
 const BB_EMAIL = { th:'thulaib@bb-leads.app', sh:'shiara@bb-leads.app' };
 /* Ask BB, 14 Oct 2026: the Mac preview until it has a Pages address (bb_pending 381). Dead for anyone else, by design. */
 const ASK_BB_URL = 'http://127.0.0.1:4691/ask-bb/';
+/* Booster S4 (15 Oct 2026): the drawer. ASK_BB_DRAWER_ON is THE FLAG, off until Thulaib's yes; off, the item opens the preview in a tab as
+   before. On, the drawer script loads once from the Booster host (the Railway address replaces ASK_BB_HOST) and the client on screen
+   travels as a hint the server checks under the person's own permissions. The CC still reads as anon: no policy is widened here. */
+const ASK_BB_DRAWER_ON = false, ASK_BB_HOST = ASK_BB_URL;
+function openAskBB(){
+  const hint = { client_id: (typeof currentId !== 'undefined' && currentId) ? currentId : null };
+  if(!ASK_BB_DRAWER_ON){ window.open(ASK_BB_URL,'_blank'); return; }
+  if(window.AskBBDrawer){ window.AskBBDrawer.open(hint); return; }
+  const s = document.createElement('script'); s.src = ASK_BB_HOST + 'embed/drawer.js'; s.dataset.app = 'command-centre'; s.dataset.button = 'none';
+  if(hint.client_id) s.dataset.client = String(hint.client_id);
+  s.onload = function(){ if(window.AskBBDrawer) window.AskBBDrawer.open(hint); };
+  s.onerror = function(){ window.open(ASK_BB_URL,'_blank'); };
+  document.body.appendChild(s);
+}
 let AUTH_TOKEN=null, AUTH_REFRESH=null, AUTH_EXP=0, AUTH_ROLE=null;
 
 async function bbAuthLogin(role, typedPassword){
