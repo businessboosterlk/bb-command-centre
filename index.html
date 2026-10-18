@@ -1554,6 +1554,45 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 @media(max-width:760px){.us-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.us-table thead{display:none}.us-table,.us-table tbody,.us-table tr,.us-table td{display:block;width:100%}.us-table tr{border-bottom:1px solid var(--border);padding:6px 0}.us-table td{border:0;padding:4px 12px}.us-filters,.us-filters .form-input,.us-filters .form-select{width:100%}}
 </style>
 <script>
+/* THE FEE GUARD (decision 485, Thulaib yes 18 Oct 2026). clients.mrr is owner only: no signed-in account reads it straight from the
+   table, so a whole-table read (select=*) would fail for everyone. Every request this page makes to /rest/v1/clients passes here:
+   select=* becomes the named columns, a select naming mrr loses it, and the fees come back through bb_client_fees(), which answers
+   only the CEO and the COO (everyone else gets the rows with mrr empty). One guard in front of every helper (get, sb, SBget, sbC,
+   SBpost, SBpatch, sbQuery, sbGet), because the 15 Oct lock blanked pages through helpers a search did not find. */
+(function(){
+  var COLS = 'id,name,package,month,health,industry,contact,start_date,renewal,notes,created_at,client_type,assigned_smm,plan_ready,monthly_posts,monthly_videos,monthly_stories,status,ended_on';
+  var _fetch = window.fetch.bind(window), cache = { at: 0, key: '', map: null };
+  function hdr(init, name){ try { return new Headers((init && init.headers) || {}).get(name) || ''; } catch(e){ return ''; } }
+  async function fees(base, init){
+    var auth = hdr(init, 'Authorization'), key = hdr(init, 'apikey');
+    if (cache.map && cache.key === auth && Date.now() - cache.at < 60000) return cache.map;
+    try {
+      var r = await _fetch(base + '/rpc/bb_client_fees', { method: 'POST', headers: { apikey: key, Authorization: auth, 'Content-Type': 'application/json' }, body: '{}' });
+      if (!r.ok) return null; var rows = await r.json(); var m = new Map(); rows.forEach(function(x){ m.set(String(x.id), x.mrr); });
+      cache = { at: Date.now(), key: auth, map: m }; return m;
+    } catch(e){ return null; }
+  }
+  window.fetch = async function(input, init){
+    var url = typeof input === 'string' ? input : (input && input.url) || String(input || '');
+    if (!/\/rest\/v1\/clients(\?|$)/.test(url)) return _fetch(input, init);
+    var u = new URL(url, location.href), method = String((init && init.method) || 'GET').toUpperCase();
+    var reads = method === 'GET' || /return=representation/i.test(hdr(init, 'Prefer'));
+    if (!reads) return _fetch(input, init);
+    var sel = u.searchParams.get('select'), wants = false;
+    if (!sel || sel.trim() === '*') { u.searchParams.set('select', COLS); wants = true; }
+    else { var cols = sel.split(',').map(function(c){ return c.trim(); }); if (cols.indexOf('mrr') >= 0) { wants = true; cols = cols.filter(function(c){ return c !== 'mrr'; }); if (cols.indexOf('id') < 0) cols.unshift('id'); u.searchParams.set('select', cols.join(',')); } }
+    var res = await _fetch(u.toString(), init);
+    if (!wants || !res.ok) return res;
+    var body; try { body = await res.clone().json(); } catch(e){ return res; }
+    var m = await fees(u.origin + '/rest/v1', init);
+    var put = function(row){ var o = Object.assign({}, row); o.mrr = m && m.has(String(row.id)) ? m.get(String(row.id)) : null; return o; };
+    var out = Array.isArray(body) ? body.map(put) : (body && typeof body === 'object' ? put(body) : body);
+    var h = new Headers(res.headers); h.delete('content-length'); h.delete('content-encoding');
+    return new Response(JSON.stringify(out), { status: res.status, statusText: res.statusText, headers: h });
+  };
+})();
+</script>
+<script>
 /* @@BBCC_SELFTEST_LOG_BEGIN@@
    Console-error recorder. Ported from the Video System, where it sits at line 7
    for the same reason: the harness check "zero console errors since load" can
