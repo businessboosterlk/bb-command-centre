@@ -1533,6 +1533,25 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 .tw-status-chip.pending{background:rgba(245,158,11,0.12);color:#f59e0b}
 .tw-emp-summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
 @media(max-width:900px){.tw-cell-td{min-width:130px}.tw-emp-td{min-width:120px;width:120px}}
+
+/* USAGE PAGE (18 Oct 2026) */
+.us-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.us-title{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:600;margin:0;color:var(--text)}
+.us-saved{font-size:12px;color:var(--text-3);margin-top:3px;max-width:520px}
+.us-filters{flex-wrap:wrap}.us-filters .form-input{min-width:200px}
+.us-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.us-sub{font-size:11.5px;color:var(--text-3);margin-top:6px}
+.us-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.us-table th{text-align:left;font-size:11.5px;font-weight:700;color:var(--text-3);padding:10px 12px;border-bottom:1px solid var(--border)}
+.us-table td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text-2);vertical-align:top}
+.us-table tr:last-child td{border-bottom:0}
+.us-task{color:var(--text);font-weight:600}.us-date{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.us-num{display:inline-block;min-width:52px;font-variant-numeric:tabular-nums;color:var(--text)}
+.us-track{display:inline-block;vertical-align:middle;width:90px;height:6px;border-radius:99px;background:var(--surface-3);margin-left:8px;overflow:hidden}
+.us-bar{display:block;height:100%;border-radius:99px}.us-bar-claude{background:var(--accent)}.us-bar-crew{background:var(--blue)}
+.us-empty{padding:28px;text-align:center;color:var(--text-3);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.us-foot{font-size:11.5px;color:var(--text-3);margin-top:10px}
+@media(max-width:760px){.us-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.us-table thead{display:none}.us-table,.us-table tbody,.us-table tr,.us-table td{display:block;width:100%}.us-table tr{border-bottom:1px solid var(--border);padding:6px 0}.us-table td{border:0;padding:4px 12px}.us-filters,.us-filters .form-input,.us-filters .form-select{width:100%}}
 </style>
 <script>
 /* @@BBCC_SELFTEST_LOG_BEGIN@@
@@ -1659,6 +1678,7 @@ window.__ST_LOG=[];
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
       <div class="nav-item" id="nav-brain" onclick="window.open('https://businessboosterlk.github.io/bb-brain/','_blank')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="1.6"/><circle cx="19" cy="7" r="1.6"/><circle cx="5" cy="17" r="1.6"/><circle cx="19" cy="17" r="1.6"/><path d="M6.4 8 10 10.6M17.6 8 14 10.6M6.4 16 10 13.4M17.6 16 14 13.4"/></svg></span>Digital Brain</div>
       <div class="nav-item owners-only" id="nav-askbb" onclick="openAskBB()"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg></span>Booster</div>
+      <div class="nav-item owners-only" id="nav-usage" onclick="showPage('usage')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></span>Usage</div>
       <div class="nav-item" id="nav-agents" onclick="showPage('agents')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="12" y1="16" x2="12" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg></span>Agents <span class="sb-badge" id="agents-unread-badge" style="display:none"></span></div>
       <div class="nav-item" id="nav-teamweekly" onclick="showPage('teamweekly')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>Team Weekly</div>
     </div>
@@ -3231,6 +3251,21 @@ window.__ST_LOG=[];
     <div id="tm-detail" style="display:none"></div>
   </div>
 </div>
+<!-- ══════════════ USAGE PAGE (18 Oct 2026, Thulaib: "the usage thing we made yesterday ... in another section on the left").
+     Owners only. Reads the newest bb_usage_snapshot row as the signed in owner; Claude saves a row at the end of each sitting.
+     The render is bb-crew part U1 (crew built, mould/usage-cc/U1/check.test.mjs); the page, the filters and the styles are the wiring. -->
+<div id="page-usage" class="page-section owners-only" style="display:none">
+  <div class="content">
+    <div class="us-head">
+      <div><h1 class="us-title">Usage</h1><div class="us-saved" id="us-saved">Claude's share of the weekly limit and the crew's DeepInfra spend, job by job.</div></div>
+      <div class="filter-bar us-filters">
+        <input class="form-input" id="us-q" type="search" placeholder="Search jobs" aria-label="Search jobs" oninput="renderUsagePage()">
+        <select class="form-select" id="us-cat" aria-label="Kind of job" onchange="renderUsagePage()"><option value="">All kinds</option></select>
+      </div>
+    </div>
+    <div id="us-body"><div class="us-empty">Reading the usage…</div></div>
+  </div>
+</div>
 <!-- ══════════════ CONTENT PLANS PAGE ══════════════ -->
 <div id="page-contentplans" class="page-section" style="display:none">
   <div class="content">
@@ -4115,7 +4150,7 @@ function openAskBB(){
   const hint = { client_id: (typeof currentId !== 'undefined' && currentId) ? currentId : null };
   if(!ASK_BB_DRAWER_ON){ window.open(ASK_BB_URL,'_blank'); return; }
   if(window.AskBBDrawer){ window.AskBBDrawer.open(hint); return; }
-  const s = document.createElement('script'); s.src = ASK_BB_HOST + 'embed/drawer.js'; s.dataset.app = 'command-centre'; s.dataset.button = 'none';
+  const s = document.createElement('script'); s.src = ASK_BB_HOST + 'embed/drawer.js'; s.dataset.app = 'command-centre'; s.dataset.button = 'none'; s.dataset.size = 'full'; /* 18 Oct 2026, Thulaib: the whole screen, not half */
   if(hint.client_id) s.dataset.client = String(hint.client_id);
   s.onload = function(){ if(window.AskBBDrawer) window.AskBBDrawer.open(hint); };
   s.onerror = function(){ window.open(ASK_BB_URL,'_blank'); };
@@ -5260,6 +5295,9 @@ function showPage(page) {
   if (page === 'week') {
     document.getElementById('topbar-title').textContent = 'The Week';
     loadBbWeek();
+  } else if (page === 'usage') {
+    document.getElementById('topbar-title').textContent = 'Usage';
+    loadUsagePage();
   } else if (page === 'dashboard') {
     document.getElementById('topbar-title').textContent = 'Dashboard';
     loadAll();
@@ -6059,6 +6097,130 @@ async function sbC(table,method='GET',body=null,query='?order=id.asc',prefer=nul
   }catch(e){console.error(e);if(method!=='GET'&&table!=='error_log')sbWriteToast('Not saved: '+table+' could not be reached');return null;}
 }
 const SBget=(t,q)=>sbC(t,'GET',null,q||'?order=id.asc');
+/* ══ USAGE PAGE (18 Oct 2026). bbUsageHTML and bbUsageCats are bb-crew part U1, pasted unchanged but for the two names. ══ */
+// Command Centre Usage section (part U1, 18 Oct 2026): pure HTML from the usage snapshot. Built by the crew; checked by check.test.mjs.
+
+function usEsc(s) { s = s ?? "";
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function usKindLabel(cat) {
+  const map = {
+    'system-build': 'System build',
+    'client-plan': 'Client plan',
+    'client-film': 'Client film',
+    'client-content': 'Client content',
+    'team-plan': 'Team plan',
+    'machine': 'Machine',
+    'meeting': 'Meeting',
+    'sales': 'Sales',
+    'finance': 'Finance',
+    'other': 'Other'
+  };
+  return map[cat] || 'Other';
+}
+
+function usWhoLabel(who) {
+  const map = {
+    'Claude only': 'Claude only',
+    'both': 'Crew and Claude',
+    'crew': 'Crew built',
+    'crew, not code': 'Crew ran it, no code'
+  };
+  return map[who] || 'Not known';
+}
+
+function usDateLabel(dateStr) {
+  if (!dateStr) return '';
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const day = parseInt(dateStr.slice(8, 10), 10);
+  const month = months[parseInt(dateStr.slice(5, 7), 10) - 1];
+  return day + ' ' + month;
+}
+
+function bbUsageCats(snap) {
+  if (!snap || !Array.isArray(snap.jobs)) return [];
+  const cats = [...new Set(snap.jobs.map(j => j.cat))].sort();
+  return cats.map(cat => ({ value: cat, label: usKindLabel(cat) }));
+}
+
+function bbUsageHTML(snap, f) {
+  if (!snap || !Array.isArray(snap.jobs)) {
+    return '<div class="us-empty">No usage saved yet. Claude saves it at the end of each sitting.</div>';
+  }
+
+  const jobs = snap.jobs;
+  const claude = snap.claude || { week: 0, fable: 0, five: 0, at: '' };
+  const totals = snap.totals || { crew_usd: 0, crew_calls: 0 };
+
+  const kpis =
+    '<div class="kpi-row us-kpis">' +
+    '<div class="kpi"><div class="kpi-lbl">Claude this week</div><div class="kpi-val">' + claude.week + '%</div><div class="us-sub">of the weekly limit</div></div>' +
+    '<div class="kpi"><div class="kpi-lbl">Fable this week</div><div class="kpi-val">' + claude.fable + '%</div><div class="us-sub">of the Fable limit</div></div>' +
+    '<div class="kpi"><div class="kpi-lbl">Five hour window</div><div class="kpi-val">' + claude.five + '%</div><div class="us-sub">used so far</div></div>' +
+    '<div class="kpi"><div class="kpi-lbl">Crew this week</div><div class="kpi-val">$' + totals.crew_usd.toFixed(4) + '</div><div class="us-sub">' + totals.crew_calls + ' calls on DeepInfra</div></div>' +
+    '</div>';
+
+  const q = (f && f.q) ? f.q.trim().toLowerCase() : '';
+  const catFilter = (f && f.cat) ? f.cat : '';
+
+  const rows = jobs.filter(job => {
+    if (catFilter && job.cat !== catFilter) return false;
+    if (q && !job.task.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  let body = kpis;
+
+  if (rows.length === 0) {
+    body += '<div class="us-empty">No jobs match these filters.</div>';
+  } else {
+    const maxP = Math.max(0, ...rows.map(j => j.points === null ? 0 : j.points));
+    const maxC = Math.max(0, ...rows.map(j => j.crew_usd));
+
+    let table = '<table class="us-table"><thead><tr><th>Task</th><th>Kind</th><th>Claude points</th><th>Crew dollars</th><th>Who built</th></tr></thead><tbody>';
+
+    for (const job of rows) {
+      let claudeCell;
+      if (job.points === null) {
+        claudeCell = job.open ? 'still running' : 'not metered';
+      } else {
+        const w = maxP > 0 ? Math.round(job.points / maxP * 100) : 0;
+        claudeCell = '<span class="us-num">' + job.points + '</span><span class="us-track"><span class="us-bar us-bar-claude" style="width:' + w + '%"></span></span>';
+      }
+
+      const crewW = maxC > 0 ? Math.round(job.crew_usd / maxC * 100) : 0;
+      const crewCell = '<span class="us-num">$' + job.crew_usd.toFixed(4) + '</span><span class="us-track"><span class="us-bar us-bar-crew" style="width:' + crewW + '%"></span></span>';
+
+      table += '<tr class="us-row"><td><div class="us-task">' + usEsc(job.task) + '</div><div class="us-date">' + usDateLabel(job.start_at) + '</div></td><td>' + usEsc(usKindLabel(job.cat)) + '</td><td>' + claudeCell + '</td><td>' + crewCell + '</td><td>' + usEsc(usWhoLabel(job.who)) + '</td></tr>';
+    }
+
+    table += '</tbody></table>';
+    body += table;
+  }
+
+  body += '<div class="us-foot">Showing ' + rows.length + ' of ' + jobs.length + ' jobs. Points are per cent of Claude\'s weekly limit; dollars are the crew\'s DeepInfra spend.</div>';
+
+  return body;
+}
+
+let US_SNAP=null;
+async function loadUsagePage(){
+  const body=document.getElementById('us-body'); if(!body) return;
+  if(!(typeof ROLE!=='undefined' && (ROLE==='th'||ROLE==='sh'))){ body.innerHTML='<div class="us-empty">Usage is for Thulaib and Shiara.</div>'; return; }
+  const rows=await SBget('bb_usage_snapshot','?select=read_at,data&order=id.desc&limit=1');
+  US_SNAP=Array.isArray(rows)&&rows[0]?rows[0].data:null;
+  const sel=document.getElementById('us-cat'), keep=sel.value;
+  sel.innerHTML='<option value="">All kinds</option>'+bbUsageCats(US_SNAP).map(c=>'<option value="'+c.value+'">'+c.label+'</option>').join(''); sel.value=keep;
+  const saved=document.getElementById('us-saved');
+  if(US_SNAP&&US_SNAP.read_at){ const d=new Date(US_SNAP.read_at); saved.textContent='Saved by Claude '+d.toLocaleString('en-GB',{timeZone:'Asia/Colombo',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',hourCycle:'h23'})+' Colombo. It moves on at the end of each Claude sitting.'; }
+  renderUsagePage();
+}
+function renderUsagePage(){
+  const body=document.getElementById('us-body'); if(!body) return;
+  body.innerHTML=bbUsageHTML(US_SNAP,{q:(document.getElementById('us-q')||{}).value||'',cat:(document.getElementById('us-cat')||{}).value||''});
+}
+
 const SBpost=(t,d)=>sbC(t,'POST',d,'');
 const SBpatch=(t,id,d)=>sbC(t,'PATCH',d,`?id=eq.${id}`);
 const SBdel=(t,id)=>sbC(t,'DELETE',null,`?id=eq.${id}`);
