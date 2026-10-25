@@ -14179,7 +14179,7 @@ async function twLoadWeek(){
     const q = '?week_start=eq.'+ws+'&order=created_at.asc';
     const [cc, smm, gd, vid, team, cl] = await Promise.all([
       sb('cc_weekly_plan', q),
-      sb('smm_weekly_plan', q + '&or=(task_type.is.null,task_type.neq.lunch)'),   /* an SMM's lunch is her or his own break, never a task on this board (24 Oct 2026) */
+      sb('smm_weekly_plan', q + '&or=(task_type.is.null,and(task_type.neq.lunch,task_type.not.like.lock_*))'),   /* an SMM's lunch and the three team slots are never tasks on this board (24 Oct 2026) */
       sb('graphic_weekly_plan', q),
       sb('video_weekly_plan', q),
       sb('team_members', '?select=name,role&active=eq.true'),
