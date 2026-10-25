@@ -11953,7 +11953,7 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 </script>
 <!-- @@BB_HUB_PANEL_BEGIN@@ -->
 <script>/* THE HUB PANEL: a client's own app, run from this system. Cast by ~/bb-systems/hub-panel/cast.py, never edit here. */
-window.bbHub = window.bbHub || {}; bbHub.cfg = { api: '', getToken: function(){ return Promise.resolve(typeof AUTH_TOKEN !== 'undefined' && AUTH_TOKEN ? AUTH_TOKEN : ''); } };</script>
+window.bbHub = window.bbHub || {}; bbHub.cfg = { api: 'https://the-hub-production-dc56.up.railway.app', getToken: function(){ return Promise.resolve(typeof AUTH_TOKEN !== 'undefined' && AUTH_TOKEN ? AUTH_TOKEN : ''); } };</script>
 <script>
 /* THE HUB PANEL, PART H1: the core. One state, one connection, the live ear. Plain JavaScript, no library. */
 (function () {
@@ -12299,15 +12299,14 @@ window.bbHub = window.bbHub || {}; bbHub.cfg = { api: '', getToken: function(){ 
 
     if (msg.photos && msg.photos.length) {
       for (const id of msg.photos) {
-        const url = bbHub.fileUrl(id);
-        html += '<a href="' + bbHub.esc(url) + '" target="_blank" rel="noopener"><img class="bbh-msg-photo" src="' + bbHub.esc(url) + '" alt="Photo"></a>';
+        /* the signed address arrives later: part H6 fills every data-bbh-file once it has it (Claude, 25 Oct) */
+        html += '<a data-bbh-file="' + bbHub.esc(id) + '" target="_blank" rel="noopener"><img class="bbh-msg-photo" data-bbh-file="' + bbHub.esc(id) + '" alt="Photo"></a>';
       }
     }
 
     if (msg.voice) {
-      const url = bbHub.fileUrl(msg.voice.media);
       html += '<div class="bbh-voice-note">Voice note · ' + bbHub.esc(String(msg.voice.secs)) + 's</div>';
-      html += '<audio controls src="' + bbHub.esc(url) + '"></audio>';
+      html += '<audio controls data-bbh-file="' + bbHub.esc(msg.voice.media) + '"></audio>';
     }
 
     html += '<div class="bbh-msg-time">' + timeLabel(msg.at) + '</div>';
@@ -12507,7 +12506,7 @@ window.bbHub = window.bbHub || {}; bbHub.cfg = { api: '', getToken: function(){ 
   function thumb(post) {
     const last = post.versions[post.versions.length - 1];
     if (last.art) {
-      return '<img class="bbh-thumb" src="' + esc(bbHub.fileUrl(last.art)) + '" alt="">';
+      return '<img class="bbh-thumb" data-bbh-file="' + esc(last.art) + '" alt="">';
     }
     const letter = (post.head || '?').charAt(0).toUpperCase();
     return '<span class="bbh-thumb bbh-thumb-brand">' + esc(letter) + '</span>';
@@ -12543,7 +12542,7 @@ window.bbHub = window.bbHub || {}; bbHub.cfg = { api: '', getToken: function(){ 
     const liveBtn = p.status === 'live' ? '' :
       '<button type="button" class="bbh-btn" data-act="hub-post-live">Mark live</button>';
     const artHtml = last.art ?
-      '<img class="bbh-art-large" src="' + esc(bbHub.fileUrl(last.art)) + '" alt="">' :
+      '<img class="bbh-art-large" data-bbh-file="' + esc(last.art) + '" alt="">' :
       '<span class="bbh-art-large bbh-art-large-brand">' + esc((last.head || '?').charAt(0).toUpperCase()) + '</span>';
     el.innerHTML = '<div class="bbh-pane">' +
       '<div class="bbh-pane-head"><button type="button" class="bbh-btn" data-act="hub-post-back">Back</button></div>' +
@@ -13557,12 +13556,51 @@ window.bbHub = window.bbHub || {}; bbHub.cfg = { api: '', getToken: function(){ 
   const s = document.createElement('style'); s.id = 'bbh-open-style';
   s.textContent = '.bbh-open{min-height:32px;padding:0 12px;margin-left:6px;border-radius:999px;border:1px solid currentColor;background:none;color:inherit;font:inherit;font-size:12px;cursor:pointer}@media (pointer:coarse){.bbh-open{min-height:44px}}';
   if (!document.getElementById('bbh-open-style')) document.head.appendChild(s);
+  /* only clients that HAVE an app get the button: the list is asked for once per open of the system */
+  let hubsP = null;
+  function hubs() {
+    if (!hubsP) hubsP = Promise.resolve(bbHub.cfg.getToken())
+      .then(tok => fetch(bbHub.cfg.api + '/api/bb/staff/hubs', { headers: { Authorization: 'Bearer ' + tok } }))
+      .then(r => r.ok ? r.json() : [])
+      .then(list => new Set((Array.isArray(list) ? list : []).map(h => String(h.clientId))))
+      .catch(() => { hubsP = null; return new Set(); });
+    return hubsP;
+  }
   window.bbHubButton = function (el, c) {
     if (!el || !c || !bbHub.cfg || !bbHub.cfg.api) return;   /* hidden until the Hub server is online */
+    hubs().then(set => { if (set.has(String(c.id)) && !el.querySelector('.bbh-open')) el.appendChild(button(c)); });
+  };
+  function button(c) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'bbh-open'; b.dataset.act = 'hub-open'; b.textContent = 'Their app';
     b.addEventListener('click', function (e) { e.stopPropagation(); bbHub.show(String(c.id), c.name); });
-    el.appendChild(b);
-  };
+    return b;
+  }
+})();
+/* (3) ONE VIEW AT A TIME: every view registers a redraw and none ever left, so after a tab change the old view kept drawing
+   into the shared pane (the Tasks tab showed the posts list). A redraw now runs only while its view still holds the pane.
+   (4) FILES BY SIGNED ADDRESS: the views wrote a promise where an address belonged; they now mark data-bbh-file and this
+   fills each one when the server's signed address arrives. */
+(function () {
+  const on = bbHub.on; let gen = 0;
+  bbHub.on = function (fn) { const g = gen; on(function () { if (g === gen) fn(); }); };
+  ['renderChat', 'renderPosts', 'renderTasks'].forEach(function (k) {
+    const f = bbHub[k]; if (typeof f !== 'function') return;
+    bbHub[k] = function (el) {
+      gen++; const r = f(el);
+      /* the tasks view drew once and never again, so a request told a moment later never showed: it now redraws when told,
+         except while someone is typing in it (a nudge must never wipe half typed words) */
+      if (k === 'renderTasks') bbHub.on(function () { const a = document.activeElement; if (a && el.contains(a) && /INPUT|TEXTAREA|SELECT/.test(a.tagName)) return; f(el); });
+      return r;
+    };
+  });
+  bbHub.closeView = function () { gen++; };
+  function fill() {
+    document.querySelectorAll('.bbh-root [data-bbh-file]:not([data-bbh-done])').forEach(function (el) {
+      el.setAttribute('data-bbh-done', '1');
+      bbHub.fileUrl(el.getAttribute('data-bbh-file')).then(function (u) { if (el.tagName === 'A') el.href = u; else el.src = u; }).catch(function () {});
+    });
+  }
+  new MutationObserver(fill).observe(document.documentElement, { childList: true, subtree: true });
 })();
 
 </script>
