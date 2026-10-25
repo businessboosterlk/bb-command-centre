@@ -6446,6 +6446,7 @@ function openProfile(id){
   document.getElementById('profile-name').textContent=c.name;
   document.getElementById('profile-meta').textContent=[c.industry,c.contact,c.renewal?'Renews '+fmtDate(c.renewal):''].filter(Boolean).join(' · ')||'No contact set';
   document.getElementById('profile-pills').innerHTML=`${hpill(c.health)} ${pkgPill(c.package)} ${typePill(c.client_type)} ${c.plan_ready?'<span class="pill pill-green">Plan Ready \u2713</span>':'<span class="pill pill-neutral">Plan Pending</span>'}`;
+  if (window.bbHubButton) bbHubButton(document.getElementById('profile-pills'), c); /* @@BB_HUB_PANEL_BUTTON@@ */
   // Fill all fields bar inputs
   document.getElementById('cpf-month').value=c.month||1;
   document.getElementById('cpf-mrr').value=c.mrr||'';
@@ -11950,6 +11951,1622 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
   },true);
 })();
 </script>
+<!-- @@BB_HUB_PANEL_BEGIN@@ -->
+<script>/* THE HUB PANEL: a client's own app, run from this system. Cast by ~/bb-systems/hub-panel/cast.py, never edit here. */
+window.bbHub = window.bbHub || {}; bbHub.cfg = { api: '', getToken: function(){ return Promise.resolve(typeof AUTH_TOKEN !== 'undefined' && AUTH_TOKEN ? AUTH_TOKEN : ''); } };</script>
+<script>
+/* THE HUB PANEL, PART H1: the core. One state, one connection, the live ear. Plain JavaScript, no library. */
+(function () {
+  window.bbHub = window.bbHub || {};
+
+  const cfg = window.bbHub.cfg;
+
+  const listeners = [];
+  let liveSocket = null;
+  let liveTimer = null;
+  let liveDelay = 1000;
+  let liveClosed = false;
+  let liveRef = 0;
+  let liveHeartbeat = null;
+  let liveJoined = false;
+  let hubToken = '';
+  let hubSlug = '';
+  let hubName = '';
+  let hubMe = null;
+  let hubClientId = '';
+  const fileCache = new Map();
+
+  function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function state() {
+    return window.bbHub.state;
+  }
+
+  function on(fn) {
+    listeners.push(fn);
+  }
+
+  function emit() {
+    listeners.forEach(function (fn) { fn(); });
+  }
+
+  async function staff(path, opts) {
+    const token = await cfg.getToken();
+    const res = await fetch(cfg.api + '/api/bb/staff/' + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: opts ? JSON.stringify(opts) : undefined
+    });
+    const answer = await res.json().catch(function () { return {}; });
+    if (!res.ok) {
+      throw new Error(answer.error || 'The Hub did not answer. Try again.');
+    }
+    return answer;
+  }
+
+  async function open(clientId) {
+    try {
+      const answer = await staff('token', { clientId });
+      hubToken = answer.token;
+      hubSlug = answer.slug;
+      hubName = answer.name;
+      hubMe = answer.me;
+      hubClientId = clientId;
+      const st = state();
+      st.clientId = clientId;
+      st.slug = answer.slug;
+      st.name = answer.name;
+      st.me = answer.me;
+      st.error = '';
+      await reload();
+      if (answer.live) {
+        startLive(answer.live);
+      }
+      emit();
+    } catch (err) {
+      const st = state();
+      st.error = err.message;
+      emit();
+    }
+  }
+
+  function close() {
+    stopLive();
+    hubToken = '';
+    hubSlug = '';
+    hubName = '';
+    hubMe = null;
+    hubClientId = '';
+    const st = state();
+    st.clientId = '';
+    st.slug = '';
+    st.name = '';
+    st.me = null;
+    st.msgs = [];
+    st.tasks = [];
+    st.posts = [];
+    st.error = '';
+    emit();
+  }
+
+  async function call(method, path, body) {
+    const res = await fetch(cfg.api + '/api/' + hubSlug + '/work' + path, {
+      method: method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + hubToken },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    if (res.status === 204) return null;
+    const answer = await res.json().catch(function () { return {}; });
+    if (!res.ok) {
+      throw new Error(answer.error || 'That did not save. Try again.');
+    }
+    return answer;
+  }
+
+  async function reload() {
+    const data = await call('GET', '');
+    const st = state();
+    st.msgs = data.msgs || [];
+    st.tasks = data.tasks || [];
+    st.posts = data.posts || [];
+    if (data.me) st.me = data.me;
+    emit();
+  }
+
+  async function told(kind, id) {
+    try {
+      const row = await call('GET', '/one?kind=' + encodeURIComponent(kind) + '&id=' + encodeURIComponent(id));
+      const st = state();
+      if (kind === 'msg') {
+        const idx = st.msgs.findIndex(function (m) { return m.id === id; });
+        if (idx >= 0) {
+          st.msgs[idx] = row;
+        } else {
+          st.msgs.push(row);
+        }
+        st.msgs.sort(function (a, b) { return new Date(a.at) - new Date(b.at); });
+      } else if (kind === 'task') {
+        const idx = st.tasks.findIndex(function (t) { return t.id === id; });
+        if (idx >= 0) {
+          st.tasks[idx] = row;
+        } else {
+          st.tasks.unshift(row);
+        }
+      } else if (kind === 'post') {
+        const idx = st.posts.findIndex(function (p) { return p.id === id; });
+        if (idx >= 0) {
+          st.posts[idx] = row;
+        } else {
+          st.posts.unshift(row);
+        }
+      }
+      emit();
+    } catch (err) {
+      if (err.message === 'That did not save. Try again.') {
+        const st = state();
+        if (kind === 'task') {
+          st.tasks = st.tasks.filter(function (t) { return t.id !== id; });
+          emit();
+        }
+      }
+    }
+  }
+
+  async function upload(file, kind) {
+    const mime = file.type.split(';')[0] || 'image/jpeg';
+    const answer = await call('POST', '/files', { kind: kind, mime: mime, bytes: file.size });
+    const uploadUrl = answer.upload.url.startsWith('/') ? cfg.api + answer.upload.url : answer.upload.url;
+    const putRes = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': mime },
+      body: file
+    });
+    if (!putRes.ok) {
+      throw new Error('That file did not upload. Try again.');
+    }
+    return answer.id;
+  }
+
+  async function fileUrl(id) {
+    const cached = fileCache.get(id);
+    if (cached && cached.expires > Date.now()) {
+      return cached.url;
+    }
+    const answer = await call('GET', '/files/' + encodeURIComponent(id));
+    const url = answer.url.startsWith('/') ? cfg.api + answer.url : answer.url;
+    fileCache.set(id, { url: url, expires: Date.now() + 50 * 60 * 1000 });
+    return url;
+  }
+
+  function startLive(live) {
+    liveClosed = false;
+    liveDelay = 1000;
+    liveJoined = false;
+    const wsUrl = live.url.replace('http', 'ws') + '/realtime/v1/websocket?apikey=' + encodeURIComponent(live.key) + '&vsn=1.0.0';
+    const ws = new WebSocket(wsUrl);
+    liveSocket = ws;
+
+    ws.onopen = function () {
+      liveRef = 0;
+      const ref = String(++liveRef);
+      ws.send(JSON.stringify({
+        topic: 'realtime:' + live.topic,
+        event: 'phx_join',
+        payload: {
+          config: {
+            broadcast: { ack: false, self: false },
+            presence: { key: '' },
+            private: false
+          }
+        },
+        ref: ref,
+        join_ref: ref
+      }));
+      liveHeartbeat = setInterval(function () {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            topic: 'phoenix',
+            event: 'heartbeat',
+            payload: {},
+            ref: String(++liveRef)
+          }));
+        }
+      }, 25000);
+    };
+
+    ws.onmessage = function (event) {
+      let data;
+      try {
+        data = JSON.parse(event.data);
+      } catch (e) {
+        return;
+      }
+      if (data.event === 'phx_reply' && data.payload && data.payload.status === 'ok' && !liveJoined) {
+        liveJoined = true;
+        reload().catch(function () {});
+      }
+      if (data.event === 'broadcast' && data.payload && data.payload.event === 'change') {
+        const kind = data.payload.payload.kind;
+        const id = String(data.payload.payload.id || '');
+        if ((kind === 'msg' || kind === 'task' || kind === 'post') && id.length >= 1 && id.length <= 64) {
+          told(kind, id).catch(function () {});
+        }
+      }
+    };
+
+    ws.onclose = function () {
+      if (liveHeartbeat) {
+        clearInterval(liveHeartbeat);
+        liveHeartbeat = null;
+      }
+      if (!liveClosed) {
+        liveTimer = setTimeout(function () {
+          startLive(live);
+        }, liveDelay);
+        liveDelay = Math.min(liveDelay * 2, 30000);
+      }
+    };
+
+    ws.onerror = function () {
+      ws.close();
+    };
+  }
+
+  function stopLive() {
+    liveClosed = true;
+    if (liveTimer) {
+      clearTimeout(liveTimer);
+      liveTimer = null;
+    }
+    if (liveHeartbeat) {
+      clearInterval(liveHeartbeat);
+      liveHeartbeat = null;
+    }
+    if (liveSocket) {
+      liveSocket.onclose = null;
+      liveSocket.close();
+      liveSocket = null;
+    }
+  }
+
+  window.bbHub.esc = esc;
+  window.bbHub.state = window.bbHub.state || {};
+  window.bbHub.on = on;
+  window.bbHub.emit = emit;
+  window.bbHub.staff = staff;
+  window.bbHub.open = open;
+  window.bbHub.close = close;
+  window.bbHub.call = call;
+  window.bbHub.upload = upload;
+  window.bbHub.fileUrl = fileUrl;
+  window.bbHub.reload = reload;
+  window.bbHub.told = told;
+  window.bbHub.live = { start: startLive, stop: stopLive };
+})();
+
+/* THE HUB PANEL, PART H2: the chat with the client. The team's words on the right, the client's on the left. */
+
+(function () {
+  const DAY_MS = 24 * 60 * 60 * 1000;
+
+  function dayLabel(date) {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMsg = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diffDays = Math.round((startOfToday - startOfMsg) / DAY_MS);
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return days[date.getDay()] + ' ' + date.getDate() + ' ' + months[date.getMonth()];
+  }
+
+  function timeLabel(iso) {
+    const d = new Date(iso);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  function eventWords(ev) {
+    switch (ev) {
+      case 'task-made': return 'made a task';
+      case 'task-accepted': return 'accepted a task';
+      case 'task-outside': return 'said a request is outside the package';
+      case 'task-late': return 'gave a new date';
+      case 'task-done': return 'finished a task';
+      case 'approved': return 'approved a post';
+      case 'change': return 'asked for a change';
+      case 'comment': return 'commented';
+      default: return '';
+    }
+  }
+
+  function bubbleHTML(msg) {
+    const isClient = msg.side === 'client';
+    const align = isClient ? 'left' : 'right';
+    let html = '<div class="bbh-msg-row bbh-msg-' + align + '">';
+
+    if (msg.by && msg.role) {
+      html += '<div class="bbh-msg-by">' + bbHub.esc(msg.by) + ' · ' + bbHub.esc(msg.role) + '</div>';
+    }
+
+    html += '<div class="bbh-bubble' + (isClient ? ' bbh-bubble-client' : ' bbh-bubble-bb') + '">';
+
+    if (msg.text) {
+      html += '<div class="bbh-msg-text">' + bbHub.esc(msg.text).replace(/\n/g, '<br>') + '</div>';
+    }
+
+    if (msg.photos && msg.photos.length) {
+      for (const id of msg.photos) {
+        const url = bbHub.fileUrl(id);
+        html += '<a href="' + bbHub.esc(url) + '" target="_blank" rel="noopener"><img class="bbh-msg-photo" src="' + bbHub.esc(url) + '" alt="Photo"></a>';
+      }
+    }
+
+    if (msg.voice) {
+      const url = bbHub.fileUrl(msg.voice.media);
+      html += '<div class="bbh-voice-note">Voice note · ' + bbHub.esc(String(msg.voice.secs)) + 's</div>';
+      html += '<audio controls src="' + bbHub.esc(url) + '"></audio>';
+    }
+
+    html += '<div class="bbh-msg-time">' + timeLabel(msg.at) + '</div>';
+
+    if (isClient && typeof msg.seen === 'boolean') {
+      html += '<div class="bbh-msg-seen">' + (msg.seen ? 'Seen' : 'Not seen yet') + '</div>';
+    }
+
+    html += '</div></div>';
+    return html;
+  }
+
+  function cardHTML(msg) {
+    const words = eventWords(msg.event);
+    let html = '<div class="bbh-card-line">' + bbHub.esc(msg.by) + ' · ' + bbHub.esc(words);
+    if (msg.text) {
+      html += ' ' + bbHub.esc(msg.text);
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function renderMessages(container) {
+    const msgs = bbHub.state.msgs || [];
+    let lastDay = '';
+    let html = '';
+
+    for (const msg of msgs) {
+      const d = new Date(msg.at);
+      const label = dayLabel(d);
+      if (label !== lastDay) {
+        html += '<div class="bbh-day-line">' + bbHub.esc(label) + '</div>';
+        lastDay = label;
+      }
+
+      if (msg.event) {
+        html += cardHTML(msg);
+      } else {
+        html += bubbleHTML(msg);
+      }
+    }
+
+    container.innerHTML = html;
+  }
+
+  function wasNearBottom(container) {
+    return container.scrollHeight - container.scrollTop - container.clientHeight < 80;
+  }
+
+  function scrollToBottom(container) {
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function markSeen() {
+    const msgs = bbHub.state.msgs || [];
+    const unseenIds = msgs.filter(m => m.side === 'client' && m.seen === false).map(m => m.id);
+    if (unseenIds.length) {
+      bbHub.call('POST', '/seen', { ids: unseenIds }).catch(() => {});
+    }
+  }
+
+  function sendMessage(textarea, fileInput, errorLine) {
+    const text = textarea.value.trim();
+    const files = Array.from(fileInput.files || []);
+    if (!text && !files.length) return;
+
+    errorLine.textContent = '';
+    errorLine.style.display = 'none';
+
+    const uploads = files.map(file => bbHub.upload(file, 'photo'));
+
+    Promise.all(uploads)
+      .then(photoIds => {
+        const body = { text: text || undefined, photos: photoIds.length ? photoIds : undefined };
+        return bbHub.call('POST', '/msgs', body);
+      })
+      .then(() => {
+        textarea.value = '';
+        fileInput.value = '';
+        bbHub.emit();
+      })
+      .catch(err => {
+        errorLine.textContent = err && err.message ? err.message : 'Something went wrong.';
+        errorLine.style.display = 'block';
+      });
+  }
+
+  function buildComposer() {
+    const composer = document.createElement('div');
+    composer.className = 'bbh-composer';
+
+    const errorLine = document.createElement('div');
+    errorLine.className = 'bbh-composer-error';
+    errorLine.style.display = 'none';
+    composer.appendChild(errorLine);
+
+    const textarea = document.createElement('textarea');
+    textarea.id = 'bbh-text';
+    textarea.placeholder = 'Write a message';
+    textarea.style.fontSize = '16px';
+    textarea.rows = 1;
+    textarea.addEventListener('input', function () {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 5 * 24) + 'px';
+    });
+    textarea.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(textarea, fileInput, errorLine);
+      }
+    });
+    composer.appendChild(textarea);
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = 'image/*';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+    composer.appendChild(fileInput);
+
+    const photoBtn = document.createElement('button');
+    photoBtn.type = 'button';
+    photoBtn.dataset.act = 'hub-photo';
+    photoBtn.textContent = 'Photo';
+    photoBtn.addEventListener('click', function () {
+      fileInput.click();
+    });
+    composer.appendChild(photoBtn);
+
+    const sendBtn = document.createElement('button');
+    sendBtn.type = 'button';
+    sendBtn.dataset.act = 'hub-send';
+    sendBtn.textContent = 'Send';
+    sendBtn.addEventListener('click', function () {
+      sendMessage(textarea, fileInput, errorLine);
+    });
+    composer.appendChild(sendBtn);
+
+    return composer;
+  }
+
+  bbHub.renderChat = function (el) {
+    el.innerHTML = '';
+
+    const container = document.createElement('div');
+    container.className = 'bbh-chat-scroll';
+    el.appendChild(container);
+
+    const composer = buildComposer();
+    el.appendChild(composer);
+
+    function draw() {
+      const nearBottom = wasNearBottom(container);
+      renderMessages(container);
+      if (nearBottom || !container.scrollTop) {
+        scrollToBottom(container);
+      }
+      markSeen();
+    }
+
+    draw();
+    bbHub.on(draw);
+  };
+})();
+
+/* THE HUB PANEL, PART H3: posts for the client's yes. The team puts up a post or a new version; only the client approves. */
+(function () {
+  const esc = (s) => bbHub.esc(s);
+  const fmtDay = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  };
+  const fmtDate = (iso) => {
+    const d = new Date(iso);
+    return d.toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  let view = 'list'; // 'list' | 'open' | 'form'
+  let currentPost = null;
+  let formMode = 'new'; // 'new' | 'version'
+  let formData = { platform: 'Instagram', kind: 'Post', slot: '', decideBy: '', head: '', caption: '', art: null, artPreview: '' };
+  let formError = '';
+
+  function statusPill(post) {
+    const last = post.versions[post.versions.length - 1];
+    const hasChange = post.changes && post.changes.some(c => c.v === last.v);
+    if (post.status === 'waiting') {
+      if (hasChange) return '<span class="bbh-pill bbh-pill-red">Change asked</span>';
+      return '<span class="bbh-pill bbh-pill-amber">Waiting for the client</span>';
+    }
+    if (post.status === 'planned') return '<span class="bbh-pill bbh-pill-planned">Planned</span>';
+    if (post.status === 'approved') return '<span class="bbh-pill bbh-pill-green">Approved by ' + esc(post.approvedBy || '') + '</span>';
+    if (post.status === 'live') return '<span class="bbh-pill bbh-pill-live">Live</span>';
+    return '';
+  }
+
+  function thumb(post) {
+    const last = post.versions[post.versions.length - 1];
+    if (last.art) {
+      return '<img class="bbh-thumb" src="' + esc(bbHub.fileUrl(last.art)) + '" alt="">';
+    }
+    const letter = (post.head || '?').charAt(0).toUpperCase();
+    return '<span class="bbh-thumb bbh-thumb-brand">' + esc(letter) + '</span>';
+  }
+
+  function renderList() {
+    const posts = bbHub.state.posts.slice().sort((a, b) => new Date(b.slot) - new Date(a.slot));
+    const rows = posts.map(p => {
+      const last = p.versions[p.versions.length - 1];
+      const meta = esc(p.platform) + ' · ' + esc(p.kind) + ' · ' + esc(fmtDay(p.slot));
+      return '<button type="button" class="bbh-row" data-act="hub-post-open" data-id="' + esc(p.id) + '">' +
+        thumb(p) +
+        '<span class="bbh-row-body"><span class="bbh-row-head">' + esc(last.head) + '</span>' +
+        '<span class="bbh-row-meta">' + meta + '</span></span>' +
+        statusPill(p) +
+        '</button>';
+    }).join('');
+    el.innerHTML = '<div class="bbh-pane">' +
+      '<div class="bbh-pane-head"><button type="button" class="bbh-btn" data-act="hub-post-new">New post</button></div>' +
+      '<div class="bbh-list">' + (rows || '<p class="bbh-empty">No posts yet.</p>') + '</div>' +
+      '</div>';
+  }
+
+  function renderOpen() {
+    if (!currentPost) return;
+    const p = currentPost;
+    const last = p.versions[p.versions.length - 1];
+    const changes = (p.changes || []).filter(c => c.v === last.v).map(c =>
+      '<p class="bbh-change"><strong>' + esc(c.by) + ' asked:</strong> ' + esc(c.text || '') + '</p>'
+    ).join('');
+    const approved = p.status === 'approved' || p.status === 'live' ?
+      '<p class="bbh-approved">Approved by ' + esc(p.approvedBy || '') + ' on ' + esc(fmtDate(p.approvedAt)) + '</p>' : '';
+    const liveBtn = p.status === 'live' ? '' :
+      '<button type="button" class="bbh-btn" data-act="hub-post-live">Mark live</button>';
+    const artHtml = last.art ?
+      '<img class="bbh-art-large" src="' + esc(bbHub.fileUrl(last.art)) + '" alt="">' :
+      '<span class="bbh-art-large bbh-art-large-brand">' + esc((last.head || '?').charAt(0).toUpperCase()) + '</span>';
+    el.innerHTML = '<div class="bbh-pane">' +
+      '<div class="bbh-pane-head"><button type="button" class="bbh-btn" data-act="hub-post-back">Back</button></div>' +
+      '<div class="bbh-post-open">' + artHtml +
+      '<h3 class="bbh-post-title">Version ' + esc(String(last.v)) + '</h3>' +
+      '<p class="bbh-post-caption">' + esc(last.caption) + '</p>' +
+      changes +
+      approved +
+      '<div class="bbh-actions">' +
+      '<button type="button" class="bbh-btn" data-act="hub-post-version">New version</button>' +
+      liveBtn +
+      '</div></div></div>';
+  }
+
+  function renderForm() {
+    const isNew = formMode === 'new';
+    const platformOpts = ['Instagram', 'Facebook', 'TikTok'].map(p =>
+      '<option value="' + esc(p) + '"' + (formData.platform === p ? ' selected' : '') + '>' + esc(p) + '</option>'
+    ).join('');
+    const kindOpts = ['Post', 'Carousel', 'Reel'].map(k =>
+      '<option value="' + esc(k) + '"' + (formData.kind === k ? ' selected' : '') + '>' + esc(k) + '</option>'
+    ).join('');
+    const timeFields = isNew ?
+      '<label class="bbh-field"><span>Goes out</span><input type="datetime-local" data-field="slot" value="' + esc(formData.slot) + '"></label>' +
+      '<label class="bbh-field"><span>Yes needed by</span><input type="datetime-local" data-field="decideBy" value="' + esc(formData.decideBy || '') + '"></label>' : '';
+    const preview = formData.artPreview ?
+      '<img class="bbh-art-preview" src="' + esc(formData.artPreview) + '" alt="">' : '';
+    const err = formError ? '<p class="bbh-error">' + esc(formError) + '</p>' : '';
+    el.innerHTML = '<div class="bbh-pane">' +
+      '<div class="bbh-pane-head"><button type="button" class="bbh-btn" data-act="hub-post-cancel">Cancel</button></div>' +
+      '<div class="bbh-form">' +
+      (isNew ? '<label class="bbh-field"><span>Platform</span><select data-field="platform">' + platformOpts + '</select></label>' +
+        '<label class="bbh-field"><span>Kind</span><select data-field="kind">' + kindOpts + '</select></label>' : '') +
+      timeFields +
+      '<label class="bbh-field"><span>Headline</span><input type="text" maxlength="120" data-field="head" value="' + esc(formData.head) + '"></label>' +
+      '<label class="bbh-field"><span>Caption</span><textarea maxlength="2200" data-field="caption">' + esc(formData.caption) + '</textarea></label>' +
+      '<label class="bbh-field"><span>Artwork</span><input type="file" accept="image/jpeg,image/png,image/webp" data-field="art"></label>' +
+      preview +
+      err +
+      '<div class="bbh-actions"><button type="button" class="bbh-btn bbh-btn-primary" data-act="hub-post-save">Send for a yes</button></div>' +
+      '</div></div>';
+  }
+
+  function draw() {
+    if (view === 'list') renderList();
+    else if (view === 'open') renderOpen();
+    else renderForm();
+  }
+
+  function bind() {
+    el.addEventListener('click', async (e) => {
+      const btn = e.target.closest('button[data-act]');
+      if (!btn) return;
+      const act = btn.dataset.act;
+      if (act === 'hub-post-new') {
+        formMode = 'new';
+        formData = { platform: 'Instagram', kind: 'Post', slot: '', decideBy: '', head: '', caption: '', art: null, artPreview: '' };
+        formError = '';
+        view = 'form';
+        bbHub.emit();
+      } else if (act === 'hub-post-open') {
+        const id = btn.dataset.id;
+        currentPost = bbHub.state.posts.find(p => p.id === id) || null;
+        if (currentPost) { view = 'open'; bbHub.emit(); }
+      } else if (act === 'hub-post-back') {
+        view = 'list'; currentPost = null; bbHub.emit();
+      } else if (act === 'hub-post-version') {
+        formMode = 'version';
+        formData = { platform: '', kind: '', slot: '', decideBy: '', head: '', caption: '', art: null, artPreview: '' };
+        formError = '';
+        view = 'form';
+        bbHub.emit();
+      } else if (act === 'hub-post-cancel') {
+        view = currentPost ? 'open' : 'list';
+        bbHub.emit();
+      } else if (act === 'hub-post-save') {
+        await saveForm();
+      } else if (act === 'hub-post-live') {
+        if (currentPost) {
+          try {
+            await bbHub.call('POST', '/posts/' + currentPost.id, { status: 'live' });
+            currentPost.status = 'live';
+            view = 'open';
+            bbHub.emit();
+          } catch (err) {
+            formError = err.message || 'Something went wrong.';
+            bbHub.emit();
+          }
+        }
+      }
+    });
+
+    el.addEventListener('input', (e) => {
+      const field = e.target.dataset.field;
+      if (!field) return;
+      if (field === 'art') {
+        const file = e.target.files[0];
+        if (file) {
+          formData.art = file;
+          const reader = new FileReader();
+          reader.onload = () => { formData.artPreview = reader.result; bbHub.emit(); };
+          reader.readAsDataURL(file);
+        }
+      } else {
+        formData[field] = e.target.value;
+      }
+    });
+
+    el.addEventListener('change', (e) => {
+      const field = e.target.dataset.field;
+      if (field === 'platform' || field === 'kind') formData[field] = e.target.value;
+    });
+  }
+
+  async function saveForm() {
+    const head = formData.head.trim();
+    const caption = formData.caption.trim();
+    const slot = formData.slot;
+    if (!head || !caption || (formMode === 'new' && !slot)) {
+      formError = 'A headline, a caption and a time, please.';
+      bbHub.emit();
+      return;
+    }
+    try {
+      let art;
+      if (formData.art) art = await bbHub.upload(formData.art, 'art');
+      if (formMode === 'new') {
+        const body = {
+          platform: formData.platform,
+          kind: formData.kind,
+          slot: new Date(slot).toISOString(),
+          caption,
+          head
+        };
+        if (formData.decideBy) body.decideBy = new Date(formData.decideBy).toISOString();
+        if (art) body.art = art;
+        await bbHub.call('POST', '/posts', body);
+      } else {
+        const body = { version: { caption, head } };
+        if (art) body.version.art = art;
+        await bbHub.call('POST', '/posts/' + currentPost.id, body);
+      }
+      formError = '';
+      view = 'list';
+      currentPost = null;
+      bbHub.emit();
+    } catch (err) {
+      formError = err.message || 'Something went wrong.';
+      bbHub.emit();
+    }
+  }
+
+  let el = null;
+  bbHub.renderPosts = function (container) {
+    el = container;
+    bind();
+    bbHub.on(draw);
+    draw();
+  };
+})();
+
+/* THE HUB PANEL, PART H4: tasks both ways. The team answers requests and moves its own tasks; the client moves theirs. */
+(function () {
+  if (!window.bbHub) window.bbHub = {};
+  const bbHub = window.bbHub;
+
+  bbHub.renderTasks = function (el) {
+    el.innerHTML = '';
+    const tasks = bbHub.state.tasks || [];
+    const me = bbHub.state.me || {};
+
+    const switchWrap = document.createElement('div');
+    switchWrap.className = 'bbh-tasks-switch';
+    const usBtn = document.createElement('button');
+    usBtn.type = 'button';
+    usBtn.dataset.act = 'hub-tasks-us';
+    usBtn.textContent = 'For us';
+    usBtn.className = 'bbh-switch-btn' + (bbHub.tasksView !== 'client' ? ' bbh-active' : '');
+    const clientBtn = document.createElement('button');
+    clientBtn.type = 'button';
+    clientBtn.dataset.act = 'hub-tasks-client';
+    clientBtn.textContent = 'For the client';
+    clientBtn.className = 'bbh-switch-btn' + (bbHub.tasksView === 'client' ? ' bbh-active' : '');
+    switchWrap.appendChild(usBtn);
+    switchWrap.appendChild(clientBtn);
+    el.appendChild(switchWrap);
+
+    const newBtn = document.createElement('button');
+    newBtn.type = 'button';
+    newBtn.dataset.act = 'hub-task-new';
+    newBtn.textContent = 'New task';
+    newBtn.className = 'bbh-btn bbh-btn-primary';
+    el.appendChild(newBtn);
+
+    if (bbHub.tasksView === 'client') {
+      const clientTasks = tasks.filter(t => t.for === 'client');
+      const groups = [
+        { label: 'Asked', items: clientTasks.filter(t => t.asked) },
+        { label: 'To do', items: clientTasks.filter(t => !t.asked && t.stage === 'todo') },
+        { label: 'Doing', items: clientTasks.filter(t => !t.asked && t.stage === 'doing') },
+        { label: 'Done', items: clientTasks.filter(t => !t.asked && t.stage === 'done') }
+      ];
+      groups.forEach(group => {
+        if (group.items.length === 0) return;
+        const heading = document.createElement('h3');
+        heading.className = 'bbh-group-heading';
+        heading.textContent = group.label;
+        el.appendChild(heading);
+        group.items.forEach(task => {
+          el.appendChild(renderTaskRow(task, me, true));
+        });
+      });
+    } else {
+      const bbTasks = tasks.filter(t => t.for === 'bb');
+      const groups = [
+        { label: 'Asked', items: bbTasks.filter(t => t.asked) },
+        { label: 'To do', items: bbTasks.filter(t => !t.asked && t.stage === 'todo') },
+        { label: 'Doing', items: bbTasks.filter(t => !t.asked && t.stage === 'doing') },
+        { label: 'Done', items: bbTasks.filter(t => !t.asked && t.stage === 'done') }
+      ];
+      groups.forEach(group => {
+        if (group.items.length === 0) return;
+        const heading = document.createElement('h3');
+        heading.className = 'bbh-group-heading';
+        heading.textContent = group.label;
+        el.appendChild(heading);
+        group.items.forEach(task => {
+          el.appendChild(renderTaskRow(task, me, false));
+        });
+      });
+    }
+
+    if (bbHub.tasksForm) {
+      el.appendChild(renderTaskForm(bbHub.tasksForm));
+    }
+
+    if (bbHub.state.error) {
+      const err = document.createElement('div');
+      err.className = 'bbh-error';
+      err.textContent = bbHub.state.error;
+      el.appendChild(err);
+    }
+  };
+
+  function renderTaskRow(task, me, readOnly) {
+    const row = document.createElement('div');
+    row.className = 'bbh-task-row';
+    row.dataset.id = task.id;
+
+    const title = document.createElement('div');
+    title.className = 'bbh-task-title';
+    title.textContent = task.title;
+    row.appendChild(title);
+
+    const meta = document.createElement('div');
+    meta.className = 'bbh-task-meta';
+    if (task.who && task.due) {
+      meta.textContent = task.who + ' · ' + task.due;
+    } else if (task.who) {
+      meta.textContent = task.who;
+    } else if (task.due) {
+      meta.textContent = task.due;
+    } else {
+      meta.textContent = 'Nobody yet';
+    }
+    row.appendChild(meta);
+
+    if (task.due && !task.done && isPast(task.due)) {
+      const late = document.createElement('span');
+      late.className = 'bbh-pill bbh-pill-red';
+      late.textContent = 'Late';
+      row.appendChild(late);
+    }
+
+    if (task.outside) {
+      const outside = document.createElement('span');
+      outside.className = 'bbh-pill bbh-pill-amber';
+      outside.textContent = 'Outside the package';
+      row.appendChild(outside);
+      const reason = document.createElement('div');
+      reason.className = 'bbh-task-reason';
+      reason.textContent = task.outside;
+      row.appendChild(reason);
+    }
+
+    if (!readOnly) {
+      const actions = document.createElement('div');
+      actions.className = 'bbh-task-actions';
+      if (task.asked) {
+        const acceptBtn = document.createElement('button');
+        acceptBtn.type = 'button';
+        acceptBtn.dataset.act = 'hub-task-accept';
+        acceptBtn.dataset.id = task.id;
+        acceptBtn.textContent = 'Accept';
+        actions.appendChild(acceptBtn);
+
+        const outsideBtn = document.createElement('button');
+        outsideBtn.type = 'button';
+        outsideBtn.dataset.act = 'hub-task-outside';
+        outsideBtn.dataset.id = task.id;
+        outsideBtn.textContent = 'Outside the package';
+        actions.appendChild(outsideBtn);
+      } else if (task.stage === 'todo' || task.stage === 'doing') {
+        const startBtn = document.createElement('button');
+        startBtn.type = 'button';
+        startBtn.dataset.act = 'hub-task-stage';
+        startBtn.dataset.id = task.id;
+        startBtn.dataset.stage = task.stage === 'todo' ? 'doing' : 'done';
+        startBtn.textContent = task.stage === 'todo' ? 'Start' : 'Done';
+        actions.appendChild(startBtn);
+
+        const newDateBtn = document.createElement('button');
+        newDateBtn.type = 'button';
+        newDateBtn.dataset.act = 'hub-task-late';
+        newDateBtn.dataset.id = task.id;
+        newDateBtn.textContent = 'New date';
+        actions.appendChild(newDateBtn);
+      } else if (task.stage === 'done') {
+        const backBtn = document.createElement('button');
+        backBtn.type = 'button';
+        backBtn.dataset.act = 'hub-task-stage';
+        backBtn.dataset.id = task.id;
+        backBtn.dataset.stage = 'todo';
+        backBtn.textContent = 'Back to To do';
+        actions.appendChild(backBtn);
+      }
+      row.appendChild(actions);
+
+      if (bbHub.tasksForm && bbHub.tasksForm.taskId === task.id) {
+        row.appendChild(renderInlineForm(bbHub.tasksForm, task));
+      }
+    }
+
+    return row;
+  }
+
+  function renderTaskForm(form) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bbh-task-form';
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.placeholder = 'Title';
+    titleInput.value = form.title || '';
+    titleInput.dataset.field = 'title';
+    wrap.appendChild(titleInput);
+
+    const forSelect = document.createElement('select');
+    forSelect.dataset.field = 'for';
+    const optUs = document.createElement('option');
+    optUs.value = 'bb';
+    optUs.textContent = 'For us';
+    const optClient = document.createElement('option');
+    optClient.value = 'client';
+    optClient.textContent = 'For the client';
+    forSelect.appendChild(optUs);
+    forSelect.appendChild(optClient);
+    forSelect.value = form.for || 'bb';
+    wrap.appendChild(forSelect);
+
+    const dueInput = document.createElement('input');
+    dueInput.type = 'date';
+    dueInput.value = form.due || '';
+    dueInput.dataset.field = 'due';
+    wrap.appendChild(dueInput);
+
+    const addBtn = document.createElement('button');
+    addBtn.type = 'button';
+    addBtn.dataset.act = 'hub-task-add';
+    addBtn.textContent = 'Add';
+    wrap.appendChild(addBtn);
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.dataset.act = 'hub-task-cancel';
+    cancelBtn.textContent = 'Cancel';
+    wrap.appendChild(cancelBtn);
+
+    return wrap;
+  }
+
+  function renderInlineForm(form, task) {
+    const wrap = document.createElement('div');
+    wrap.className = 'bbh-inline-form';
+
+    if (form.kind === 'accept') {
+      const whoInput = document.createElement('input');
+      whoInput.type = 'text';
+      whoInput.placeholder = 'Who';
+      whoInput.value = form.who || (bbHub.state.me && bbHub.state.me.name) || '';
+      whoInput.dataset.field = 'who';
+      wrap.appendChild(whoInput);
+
+      const dueInput = document.createElement('input');
+      dueInput.type = 'date';
+      dueInput.value = form.due || '';
+      dueInput.dataset.field = 'due';
+      wrap.appendChild(dueInput);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.dataset.act = 'hub-task-accept-save';
+      saveBtn.dataset.id = task.id;
+      saveBtn.textContent = 'Accept';
+      wrap.appendChild(saveBtn);
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.dataset.act = 'hub-task-form-cancel';
+      cancelBtn.textContent = 'Cancel';
+      wrap.appendChild(cancelBtn);
+    } else if (form.kind === 'outside') {
+      const reasonInput = document.createElement('input');
+      reasonInput.type = 'text';
+      reasonInput.placeholder = 'Reason';
+      reasonInput.value = form.reason || '';
+      reasonInput.dataset.field = 'reason';
+      wrap.appendChild(reasonInput);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.dataset.act = 'hub-task-outside-save';
+      saveBtn.dataset.id = task.id;
+      saveBtn.textContent = 'Tell the client';
+      wrap.appendChild(saveBtn);
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.dataset.act = 'hub-task-form-cancel';
+      cancelBtn.textContent = 'Cancel';
+      wrap.appendChild(cancelBtn);
+    } else if (form.kind === 'late') {
+      const reasonInput = document.createElement('input');
+      reasonInput.type = 'text';
+      reasonInput.placeholder = 'Reason';
+      reasonInput.value = form.reason || '';
+      reasonInput.dataset.field = 'reason';
+      wrap.appendChild(reasonInput);
+
+      const dueInput = document.createElement('input');
+      dueInput.type = 'date';
+      dueInput.value = form.newDue || '';
+      dueInput.dataset.field = 'newDue';
+      wrap.appendChild(dueInput);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.type = 'button';
+      saveBtn.dataset.act = 'hub-task-late-save';
+      saveBtn.dataset.id = task.id;
+      saveBtn.textContent = 'Give the new date';
+      wrap.appendChild(saveBtn);
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.dataset.act = 'hub-task-form-cancel';
+      cancelBtn.textContent = 'Cancel';
+      wrap.appendChild(cancelBtn);
+    }
+
+    return wrap;
+  }
+
+  function isPast(dateStr) {
+    if (!dateStr) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const d = new Date(dateStr);
+    return d < today;
+  }
+
+  document.addEventListener('click', function (e) {
+    const btn = e.target.closest('button[data-act]');
+    if (!btn) return;
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+
+    if (act === 'hub-tasks-us') {
+      bbHub.tasksView = 'us';
+      bbHub.tasksForm = null;
+      bbHub.emit();
+    } else if (act === 'hub-tasks-client') {
+      bbHub.tasksView = 'client';
+      bbHub.tasksForm = null;
+      bbHub.emit();
+    } else if (act === 'hub-task-new') {
+      bbHub.tasksForm = { kind: 'new' };
+      bbHub.emit();
+    } else if (act === 'hub-task-cancel') {
+      bbHub.tasksForm = null;
+      bbHub.emit();
+    } else if (act === 'hub-task-add') {
+      const formEl = e.target.closest('.bbh-task-form');
+      const title = formEl.querySelector('[data-field="title"]').value.trim();
+      const forVal = formEl.querySelector('[data-field="for"]').value;
+      const due = formEl.querySelector('[data-field="due"]').value;
+      if (!title) {
+        bbHub.state.error = 'Give it a title.';
+        bbHub.emit();
+        return;
+      }
+      bbHub.call('POST', '/tasks', { title: title, for: forVal, due: due || undefined })
+        .then(function () {
+          bbHub.tasksForm = null;
+          bbHub.state.error = '';
+          bbHub.emit();
+        })
+        .catch(function (err) {
+          bbHub.state.error = err.message || 'Something went wrong.';
+          bbHub.emit();
+        });
+    } else if (act === 'hub-task-accept') {
+      bbHub.tasksForm = { kind: 'accept', taskId: id };
+      bbHub.emit();
+    } else if (act === 'hub-task-accept-save') {
+      const formEl = e.target.closest('.bbh-inline-form');
+      const who = formEl.querySelector('[data-field="who"]').value.trim();
+      const due = formEl.querySelector('[data-field="due"]').value;
+      if (!due) {
+        bbHub.state.error = 'Give it a date.';
+        bbHub.emit();
+        return;
+      }
+      bbHub.call('PATCH', '/tasks/' + id, { accept: { who: who || undefined, due: due } })
+        .then(function () {
+          bbHub.tasksForm = null;
+          bbHub.state.error = '';
+          bbHub.emit();
+        })
+        .catch(function (err) {
+          bbHub.state.error = err.message || 'Something went wrong.';
+          bbHub.emit();
+        });
+    } else if (act === 'hub-task-outside') {
+      bbHub.tasksForm = { kind: 'outside', taskId: id };
+      bbHub.emit();
+    } else if (act === 'hub-task-outside-save') {
+      const formEl = e.target.closest('.bbh-inline-form');
+      const reason = formEl.querySelector('[data-field="reason"]').value.trim();
+      if (!reason) {
+        bbHub.state.error = 'Give a reason.';
+        bbHub.emit();
+        return;
+      }
+      bbHub.call('PATCH', '/tasks/' + id, { outside: reason })
+        .then(function () {
+          bbHub.tasksForm = null;
+          bbHub.state.error = '';
+          bbHub.emit();
+        })
+        .catch(function (err) {
+          bbHub.state.error = err.message || 'Something went wrong.';
+          bbHub.emit();
+        });
+    } else if (act === 'hub-task-stage') {
+      const stage = btn.dataset.stage;
+      bbHub.call('PATCH', '/tasks/' + id, { stage: stage })
+        .then(function () {
+          bbHub.tasksForm = null;
+          bbHub.state.error = '';
+          bbHub.emit();
+        })
+        .catch(function (err) {
+          bbHub.state.error = err.message || 'Something went wrong.';
+          bbHub.emit();
+        });
+    } else if (act === 'hub-task-late') {
+      bbHub.tasksForm = { kind: 'late', taskId: id };
+      bbHub.emit();
+    } else if (act === 'hub-task-late-save') {
+      const formEl = e.target.closest('.bbh-inline-form');
+      const reason = formEl.querySelector('[data-field="reason"]').value.trim();
+      const newDue = formEl.querySelector('[data-field="newDue"]').value;
+      if (!reason || !newDue) {
+        bbHub.state.error = 'Give a reason and a date.';
+        bbHub.emit();
+        return;
+      }
+      bbHub.call('PATCH', '/tasks/' + id, { late: { reason: reason, newDue: newDue } })
+        .then(function () {
+          bbHub.tasksForm = null;
+          bbHub.state.error = '';
+          bbHub.emit();
+        })
+        .catch(function (err) {
+          bbHub.state.error = err.message || 'Something went wrong.';
+          bbHub.emit();
+        });
+    } else if (act === 'hub-task-form-cancel') {
+      bbHub.tasksForm = null;
+      bbHub.emit();
+    }
+  });
+})();
+
+/* THE HUB PANEL, PART H5: the sheet that opens a client's app inside BB's own systems, and the block's own look. */
+(function () {
+  if (!window.bbHub) window.bbHub = {};
+  const bbHub = window.bbHub;
+
+  // Inject CSS once
+  if (!document.getElementById('bbh-style')) {
+    const style = document.createElement('style');
+    style.id = 'bbh-style';
+    style.textContent = `
+      .bbh-root {
+        --bbh-bg: #ffffff;
+        --bbh-surface: #f4f4f5;
+        --bbh-line: #e4e4e7;
+        --bbh-ink: #18181b;
+        --bbh-ink2: #52525b;
+        --bbh-brand: #f4511e;
+        --bbh-on-brand: #ffffff;
+        --bbh-green: #15803d;
+        --bbh-amber: #b45309;
+        --bbh-red: #b91c1c;
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        background: var(--bbh-bg);
+        color: var(--bbh-ink);
+        font-family: inherit;
+        font-size: 16px;
+        line-height: 1.5;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      @media (prefers-color-scheme: dark) {
+        .bbh-root {
+          --bbh-bg: #0f0f11;
+          --bbh-surface: #1c1c20;
+          --bbh-line: #2c2c31;
+          --bbh-ink: #f4f4f5;
+          --bbh-ink2: #a1a1aa;
+          --bbh-brand: #ff7043;
+          --bbh-on-brand: #1a0d08;
+          --bbh-green: #4ade80;
+          --bbh-amber: #fbbf24;
+          --bbh-red: #f87171;
+        }
+      }
+      [data-theme="dark"] .bbh-root,
+      .dark .bbh-root {
+        --bbh-bg: #0f0f11;
+        --bbh-surface: #1c1c20;
+        --bbh-line: #2c2c31;
+        --bbh-ink: #f4f4f5;
+        --bbh-ink2: #a1a1aa;
+        --bbh-brand: #ff7043;
+        --bbh-on-brand: #1a0d08;
+        --bbh-green: #4ade80;
+        --bbh-amber: #fbbf24;
+        --bbh-red: #f87171;
+      }
+      .bbh-root button {
+        min-height: 44px;
+        border-radius: 12px;
+        font-family: inherit;
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        background: none;
+        color: inherit;
+        padding: 0 16px;
+      }
+      .bbh-root input, .bbh-root textarea, .bbh-root select {
+        font-size: 16px;
+        font-family: inherit;
+        border-radius: 12px;
+        border: 1px solid var(--bbh-line);
+        background: var(--bbh-surface);
+        color: var(--bbh-ink);
+        padding: 8px 12px;
+        min-height: 44px;
+        box-sizing: border-box;
+      }
+      .bbh-btn {
+        background: var(--bbh-brand);
+        color: var(--bbh-on-brand);
+        border: none;
+      }
+      .bbh-btn-ghost {
+        background: none;
+        border: 1px solid var(--bbh-line);
+        color: var(--bbh-ink);
+      }
+      .bbh-pill {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        background: var(--bbh-surface);
+        color: var(--bbh-ink2);
+        border: 1px solid var(--bbh-line);
+      }
+      .bbh-pill-green {
+        background: var(--bbh-green);
+        color: var(--bbh-on-brand);
+        border: none;
+      }
+      .bbh-pill-amber {
+        background: var(--bbh-amber);
+        color: var(--bbh-on-brand);
+        border: none;
+      }
+      .bbh-pill-red {
+        background: var(--bbh-red);
+        color: var(--bbh-on-brand);
+        border: none;
+      }
+      .bbh-err {
+        color: var(--bbh-red);
+        font-size: 13px;
+        margin: 4px 0;
+      }
+      .bbh-small {
+        font-size: 13px;
+        color: var(--bbh-ink2);
+      }
+      .bbh-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--bbh-line);
+        gap: 12px;
+      }
+      .bbh-root .bbh-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--bbh-line);
+        background: var(--bbh-surface);
+        flex-shrink: 0;
+      }
+      .bbh-root .bbh-header h2 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--bbh-ink);
+      }
+      .bbh-root .bbh-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 8px 16px 0;
+        border-bottom: 1px solid var(--bbh-line);
+        background: var(--bbh-bg);
+        flex-shrink: 0;
+      }
+      .bbh-root .bbh-tab {
+        padding: 8px 16px;
+        border-radius: 12px 12px 0 0;
+        background: none;
+        color: var(--bbh-ink2);
+        border: none;
+        border-bottom: 2px solid transparent;
+        min-height: 44px;
+      }
+      .bbh-root .bbh-tab.active {
+        color: var(--bbh-brand);
+        border-bottom-color: var(--bbh-brand);
+        background: var(--bbh-surface);
+      }
+      .bbh-root .bbh-pane {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        background: var(--bbh-bg);
+      }
+      .bbh-root .bbh-close {
+        background: none;
+        border: none;
+        color: var(--bbh-ink2);
+        font-size: 24px;
+        line-height: 1;
+        padding: 0 8px;
+        min-height: 44px;
+      }
+      .bbh-root .bbh-close:hover {
+        color: var(--bbh-ink);
+      }
+      .bbh-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 8999;
+      }
+      @media (min-width: 700px) {
+        .bbh-root {
+          left: auto;
+          width: 560px;
+          right: 0;
+          border-left: 1px solid var(--bbh-line);
+        }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Escape function (part H1 provides it, but ensure it exists)
+  if (!bbHub.esc) {
+    bbHub.esc = function (text) {
+      const div = document.createElement('div');
+      div.textContent = String(text == null ? '' : text);
+      return div.innerHTML;
+    };
+  }
+
+  // Store the element that had focus before opening
+  let lastFocused = null;
+  let layerEl = null;
+  let backdropEl = null;
+  let isOpen = false;
+
+  // Render functions (to be provided by other parts, but we define fallbacks)
+  bbHub.renderChat = bbHub.renderChat || function (pane) {
+    pane.innerHTML = '<p class="bbh-small">Chat is not available yet.</p>';
+  };
+  bbHub.renderPosts = bbHub.renderPosts || function (pane) {
+    pane.innerHTML = '<p class="bbh-small">Posts are not available yet.</p>';
+  };
+  bbHub.renderTasks = bbHub.renderTasks || function (pane) {
+    pane.innerHTML = '<p class="bbh-small">Tasks are not available yet.</p>';
+  };
+
+  // Open function
+  bbHub.show = async function (clientId, clientName) {
+    if (isOpen) return;
+    isOpen = true;
+    lastFocused = document.activeElement;
+
+    // Create backdrop for desktop
+    if (window.innerWidth >= 700) {
+      backdropEl = document.createElement('div');
+      backdropEl.className = 'bbh-backdrop';
+      backdropEl.addEventListener('click', close);
+      document.body.appendChild(backdropEl);
+    }
+
+    // Create layer
+    layerEl = document.createElement('div');
+    layerEl.className = 'bbh-root';
+    layerEl.innerHTML = `
+      <div class="bbh-header">
+        <h2>${bbHub.esc(clientName)} <span class="bbh-small">Their app</span></h2>
+        <button type="button" data-act="hub-close" aria-label="Close" class="bbh-close">&times;</button>
+      </div>
+      <div class="bbh-tabs">
+        <button type="button" data-act="hub-tab-chat" class="bbh-tab active">Chat</button>
+        <button type="button" data-act="hub-tab-posts" class="bbh-tab">Posts</button>
+        <button type="button" data-act="hub-tab-tasks" class="bbh-tab">Tasks</button>
+      </div>
+      <div class="bbh-pane" data-pane="chat">
+        <p class="bbh-small">Opening their app</p>
+      </div>
+    `;
+    document.body.appendChild(layerEl);
+
+    // Lock page scroll
+    document.body.style.overflow = 'hidden';
+
+    // Event listeners
+    layerEl.querySelector('[data-act="hub-close"]').addEventListener('click', close);
+    layerEl.querySelectorAll('.bbh-tab').forEach(tab => {
+      tab.addEventListener('click', () => switchTab(tab.dataset.act));
+    });
+
+    // Escape key
+    const onKey = (e) => {
+      if (e.key === 'Escape') close();
+    };
+    document.addEventListener('keydown', onKey);
+    layerEl._onKey = onKey;
+
+    // Set state
+    bbHub.state = bbHub.state || {};
+    bbHub.state.clientId = clientId;
+    bbHub.state.clientName = clientName;
+    bbHub.state.error = '';
+
+    // Open the client's app
+    try {
+      const result = await bbHub.open(clientId);
+      if (result && result.error) {
+        bbHub.state.error = result.error;
+        const pane = layerEl.querySelector('.bbh-pane');
+        pane.innerHTML = `<p class="bbh-err">${bbHub.esc(result.error)}</p>`;
+      } else {
+        // Render the active tab
+        const activeTab = layerEl.querySelector('.bbh-tab.active');
+        const pane = layerEl.querySelector('.bbh-pane');
+        if (activeTab.dataset.act === 'hub-tab-chat') bbHub.renderChat(pane);
+        else if (activeTab.dataset.act === 'hub-tab-posts') bbHub.renderPosts(pane);
+        else if (activeTab.dataset.act === 'hub-tab-tasks') bbHub.renderTasks(pane);
+      }
+    } catch (err) {
+      bbHub.state.error = err.message || 'Something went wrong.';
+      const pane = layerEl.querySelector('.bbh-pane');
+      pane.innerHTML = `<p class="bbh-err">${bbHub.esc(bbHub.state.error)}</p>`;
+    }
+  };
+
+  function switchTab(act) {
+    if (!layerEl) return;
+    const tabs = layerEl.querySelectorAll('.bbh-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    const target = layerEl.querySelector(`[data-act="${act}"]`);
+    if (target) target.classList.add('active');
+    const pane = layerEl.querySelector('.bbh-pane');
+    if (act === 'hub-tab-chat') bbHub.renderChat(pane);
+    else if (act === 'hub-tab-posts') bbHub.renderPosts(pane);
+    else if (act === 'hub-tab-tasks') bbHub.renderTasks(pane);
+  }
+
+  function close() {
+    if (!isOpen) return;
+    isOpen = false;
+    if (layerEl) {
+      if (layerEl._onKey) document.removeEventListener('keydown', layerEl._onKey);
+      layerEl.remove();
+      layerEl = null;
+    }
+    if (backdropEl) {
+      backdropEl.remove();
+      backdropEl = null;
+    }
+    document.body.style.overflow = '';
+    if (lastFocused && lastFocused.focus) lastFocused.focus();
+    lastFocused = null;
+    if (bbHub.close) bbHub.close();
+  }
+
+  // Expose close for other parts
+  bbHub.closeSheet = close;
+})();
+
+/* THE HUB PANEL, PART H6 (Claude, 25 Oct 2026): the fit. Two faults the browser found in the crew's parts. (1) A write showed
+   nothing until the live nudge came back, so a team member saw their own message only when the line to the live channel was
+   up: every answer the server sends back is now put on screen at once. (2) The parts drew about sixty classes the sheet never
+   styled: the layout below gives them their places. */
+(function () {
+  const call = bbHub.call;
+  const kindOf = path => /^\/msgs/.test(path) ? 'msg' : /^\/tasks/.test(path) ? 'task' : /^\/posts/.test(path) ? 'post' : '';
+  bbHub.put = function (kind, row) {
+    const s = bbHub.state;
+    if (kind === 'msg') { const i = s.msgs.findIndex(m => m.id === row.id); if (i >= 0) s.msgs[i] = row; else { s.msgs.push(row); s.msgs.sort((a, b) => String(a.at).localeCompare(String(b.at))); } }
+    else if (kind === 'task') { const i = s.tasks.findIndex(t => t.id === row.id); if (i >= 0) s.tasks[i] = row; else s.tasks.unshift(row); }
+    else if (kind === 'post') { const i = s.posts.findIndex(p => p.id === row.id); if (i >= 0) s.posts[i] = row; else s.posts.unshift(row); }
+    bbHub.emit();
+  };
+  bbHub.call = async function (method, path, body) {
+    const r = await call(method, path, body);
+    const kind = method !== 'GET' ? kindOf(path) : '';
+    if (kind && r && typeof r === 'object' && r.id) bbHub.put(kind, r);
+    return r;
+  };
+
+  if (document.getElementById('bbh-fit')) return;
+  const css = document.createElement('style'); css.id = 'bbh-fit';
+  css.textContent = `
+.bbh-root{color:var(--bbh-ink);-webkit-font-smoothing:antialiased}
+.bbh-root button{font:inherit;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--bbh-line);background:var(--bbh-bg);color:var(--bbh-ink);cursor:pointer}
+.bbh-root .bbh-btn,.bbh-root .bbh-btn-primary,.bbh-root [data-act="hub-send"],.bbh-root [data-act$="-save"],.bbh-root [data-act="hub-post-new"],.bbh-root [data-act="hub-task-new"]{background:var(--bbh-brand);border-color:var(--bbh-brand);color:var(--bbh-on-brand);font-weight:600}
+.bbh-root input,.bbh-root select,.bbh-root textarea{font:inherit;font-size:16px;width:100%;min-height:44px;padding:10px 12px;border:1px solid var(--bbh-line);border-radius:12px;background:var(--bbh-bg);color:var(--bbh-ink);box-sizing:border-box}
+.bbh-root textarea{resize:vertical}
+.bbh-root label{display:block;font-size:13px;color:var(--bbh-ink2);margin:10px 0 4px}
+.bbh-pane{display:flex;flex-direction:column;min-height:0;flex:1;overflow:auto;padding:12px 16px}
+.bbh-chat-scroll{flex:1;overflow:auto;display:flex;flex-direction:column;gap:6px;padding-bottom:8px}
+.bbh-composer{position:sticky;bottom:0;display:flex;gap:8px;align-items:flex-end;padding:10px 0;background:var(--bbh-bg);border-top:1px solid var(--bbh-line);flex-wrap:wrap}
+.bbh-composer textarea{flex:1;min-width:0;width:auto}
+.bbh-composer-error,.bbh-error{width:100%;color:var(--bbh-red);font-size:13px}
+.bbh-day-line{align-self:center;font-size:12px;color:var(--bbh-ink2);margin:10px 0 4px}
+.bbh-msg-row{display:flex;flex-direction:column;max-width:78%}
+.bbh-msg-row:has(.bbh-bubble-bb){align-self:flex-end;align-items:flex-end}
+.bbh-msg-row:has(.bbh-bubble-client){align-self:flex-start}
+.bbh-msg-by,.bbh-msg-time,.bbh-msg-seen{font-size:12px;color:var(--bbh-ink2)}
+.bbh-bubble-bb .bbh-msg-time{color:inherit;opacity:.85}
+.bbh-bubble{padding:9px 12px;border-radius:12px;white-space:pre-wrap;word-break:break-word;line-height:1.4}
+.bbh-bubble-bb{background:var(--bbh-brand);color:var(--bbh-on-brand)}
+.bbh-bubble-client{background:var(--bbh-surface);border:1px solid var(--bbh-line)}
+.bbh-msg-photo{width:120px;height:120px;object-fit:cover;border-radius:10px;margin:4px 4px 0 0;cursor:pointer}
+.bbh-card-line{align-self:center;font-size:12px;color:var(--bbh-ink2);text-align:center;max-width:90%;margin:4px 0}
+.bbh-list{display:flex;flex-direction:column}
+.bbh-row,.bbh-task-row,.bbh-post-open{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border:0;border-bottom:1px solid var(--bbh-line);border-radius:0;background:none;text-align:left;width:100%;min-height:44px}
+.bbh-row-body{flex:1;min-width:0}
+.bbh-row-head,.bbh-post-title,.bbh-task-title{font-weight:600}
+.bbh-row-meta,.bbh-task-meta,.bbh-task-reason{font-size:13px;color:var(--bbh-ink2)}
+.bbh-thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;flex:none}
+.bbh-thumb-brand{display:grid;place-items:center;background:var(--bbh-brand);color:var(--bbh-on-brand);font-weight:700}
+.bbh-art-large{width:100%;max-width:360px;aspect-ratio:4/5;object-fit:cover;border-radius:12px}
+.bbh-art-large-brand{display:grid;place-items:center;background:var(--bbh-brand);color:var(--bbh-on-brand);font-size:22px;font-weight:700;padding:16px;text-align:center}
+.bbh-art-preview{width:120px;aspect-ratio:4/5;object-fit:cover;border-radius:10px;margin-top:8px}
+.bbh-post-caption{white-space:pre-wrap;margin:10px 0}
+.bbh-change{font-size:14px;color:var(--bbh-ink2);margin:4px 0}
+.bbh-pill{display:inline-flex;align-items:center;font-size:12px;padding:3px 9px;border-radius:999px;background:var(--bbh-surface);color:var(--bbh-ink2)}
+.bbh-pill-live,.bbh-pill-planned{background:var(--bbh-surface);color:var(--bbh-ink)}
+.bbh-actions,.bbh-task-actions{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.bbh-form,.bbh-inline-form,.bbh-task-form{display:flex;flex-direction:column;gap:6px;margin:8px 0}
+.bbh-field{display:flex;flex-direction:column}
+.bbh-group-heading{font-size:13px;font-weight:600;color:var(--bbh-ink2);margin:16px 0 4px}
+.bbh-tasks-switch{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.bbh-switch-btn.bbh-active,.bbh-root .bbh-active{border-color:var(--bbh-brand);color:var(--bbh-brand)}
+.bbh-empty{color:var(--bbh-ink2);font-size:14px;padding:24px 0;text-align:center}
+@media (hover:hover){.bbh-root button:hover{filter:brightness(.97)}}
+`;
+  document.head.appendChild(css);
+})();
+/* the button BB's systems put on a client's profile (cast.py adds one line after the profile's pills) */
+(function () {
+  const s = document.createElement('style'); s.id = 'bbh-open-style';
+  s.textContent = '.bbh-open{min-height:32px;padding:0 12px;margin-left:6px;border-radius:999px;border:1px solid currentColor;background:none;color:inherit;font:inherit;font-size:12px;cursor:pointer}@media (pointer:coarse){.bbh-open{min-height:44px}}';
+  if (!document.getElementById('bbh-open-style')) document.head.appendChild(s);
+  window.bbHubButton = function (el, c) {
+    if (!el || !c || !bbHub.cfg || !bbHub.cfg.api) return;   /* hidden until the Hub server is online */
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'bbh-open'; b.dataset.act = 'hub-open'; b.textContent = 'Their app';
+    b.addEventListener('click', function (e) { e.stopPropagation(); bbHub.show(String(c.id), c.name); });
+    el.appendChild(b);
+  };
+})();
+
+</script>
+<!-- @@BB_HUB_PANEL_END@@ -->
 </body>
 </html>
 
