@@ -9465,6 +9465,11 @@ const VP_REV=['video_head_review','team_review','client_review'];
 function vpUser(){return ROLE==='th'?'THULAIB':'SHIARA';}
 
 async function loadVideoPipeline(){
+  /* FRESH READS (L-VID-058, 30 Oct 2026). The egress cache keeps a read for 8 minutes and this
+     page refreshes every 4, so the refresh kept serving the copy it already had: a final cut
+     link an editor replaced in the Video System still showed the OLD link here. Writes made in
+     another app never clear this tab's cache, so this page always asks the server. */
+  ['video_projects','video_project_links','video_project_comments','video_stage_history'].forEach(_sbCacheInvalidate);
   try{
     const [videos,links,comments,history]=await Promise.all([
       sb('video_projects','?select=*,clients(name,assigned_smm),team_members(name)&is_archived=eq.false&order=id.desc'),
@@ -9588,7 +9593,7 @@ async function moveVideoStage(id,newStage){
   if(VP_detailId===id)openVideoDetail(id);
 }
 
-function openVideoDetail(id){
+function openVideoDetail(id,_fresh){
   const v=VP_videos.find(x=>x.id===id);if(!v)return;
   VP_detailId=id;vpCommentImage=null;
   const cn=v.clients?.name||'Unknown';const en=v.team_members?.name||'Unassigned';
@@ -9677,6 +9682,23 @@ function openVideoDetail(id){
   document.getElementById('vd-body').innerHTML=html;
   document.getElementById('modal-video-detail').classList.remove('hidden');
   vpLoadCommentImages(id); // lazy: pull base64 images for THIS project only
+  if(!_fresh)vpRefreshLinks(id);
+}
+/* This video's links, straight from the server (L-VID-058). The list loaded with the board can be
+   minutes old and the whole-table read stops at 1000 rows. Repaints only if something changed and
+   only while nobody is typing a new link, so a half pasted URL is never wiped. */
+async function vpRefreshLinks(id){
+  try{
+    _sbCacheInvalidate('video_project_links');
+    const rows=await sbC('video_project_links','GET',null,`?select=*&video_project_id=eq.${id}&order=created_at.desc`);
+    if(!Array.isArray(rows))return; /* refused or offline: keep what is shown */
+    const sig=a=>a.map(l=>l.id+'|'+l.url+'|'+(l.label||'')).sort().join(',');
+    const before=sig(VP_links.filter(l=>l.video_project_id===id));
+    VP_links=VP_links.filter(l=>l.video_project_id!==id).concat(rows);
+    if(sig(rows)===before||VP_detailId!==id)return;
+    const typing=['vp-raw-url','vp-raw-label','vp-final-url','vp-final-label','vp-comment-input'].some(k=>{const e=document.getElementById(k);return e&&(e.value||document.activeElement===e);});
+    if(!typing)openVideoDetail(id,true);
+  }catch(e){console.warn('vpRefreshLinks',e);}
 }
 
 /* one comment card (shared by the modal build + lazy image refresh) */
@@ -9719,16 +9741,23 @@ async function vpSaveLink(id,tag){
   const label=(document.getElementById(prefix+'-label').value||'').trim();
   const url=(document.getElementById(prefix+'-url').value||'').trim();
   if(!url){alert('URL is required');return;}
+  if(!/^https?:\/\/\S+$/i.test(url)){alert('Paste the full link, starting with https://');return;}
+  if(vpSaveLink.busy)return; /* a second tap while saving used to add the link twice */
+  vpSaveLink.busy=true;
   try{
     const r=await sbC('video_project_links','POST',{video_project_id:id,url,label:label||url,tag,added_by:vpUser()},'');
     if(r&&r[0])VP_links.unshift(r[0]);
     openVideoDetail(id);
   }catch(e){console.error('vpSaveLink',e);alert('Error adding link');}
+  finally{vpSaveLink.busy=false;}
 }
 async function vpDeleteLink(linkId){
   if(!confirm('Delete this link?'))return;
   try{
-    await sbC('video_project_links','DELETE',null,`?id=eq.${linkId}`);
+    /* Only drop it from the screen once the server says it went. A refused delete used to vanish
+       here and come back on the next load (L-VID-058). */
+    const r=await sbC('video_project_links','DELETE',null,`?id=eq.${linkId}`,'return=representation');
+    if(r===null)return; /* refused: sbC has already said so, the link stays */
     VP_links=VP_links.filter(l=>l.id!==linkId);
     if(VP_detailId)openVideoDetail(VP_detailId);
   }catch(e){console.error('vpDeleteLink',e);}
