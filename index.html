@@ -1674,6 +1674,10 @@ window.__ST_LOG=[];
         onmouseout="this.style.background='var(--accent)'">&#8594;</button>
     </div>
     <div id="pw-error" style="display:none;color:var(--red);font-size:11px;font-weight:600;letter-spacing:.04em">Incorrect password. Try again</div>
+    <!-- forgot password (1 Nov 2026): a link to the person's own inbox; they set the new password on Booster's reset page -->
+    <button type="button" id="pw-forgot" onclick="bbForgot()"
+      style="min-height:44px;padding:0 12px;border:0;background:none;color:var(--text-2);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">Forgot your password?</button>
+    <div id="pw-forgot-note" role="status" aria-live="polite" style="display:none;max-width:400px;text-align:center;color:var(--text-2);font-size:12.5px;line-height:1.5"></div>
   </div>
 
   <div class="login-version">BB Command Centre · v5</div>
@@ -4380,7 +4384,28 @@ function selectCard(role){
   const pw = document.getElementById('pw-input');
   pw.value = '';
   document.getElementById('pw-error').style.display = 'none';
+  const fNote = document.getElementById('pw-forgot-note'); fNote.textContent = ''; fNote.style.display = 'none';
+  document.getElementById('pw-forgot').style.display = BB_EMAIL[role] ? '' : 'none';
   setTimeout(() => pw.focus(), 50);
+}
+
+/* FORGOT PASSWORD (1 Nov 2026, after Shiara could not sign in and nothing on this screen offered a way back in). Supabase emails a
+   link to the person's OWN address; it opens Booster's reset page (an address on the project's Redirect URLs allow list), where they
+   type the new password themselves. Nobody else ever sets or sees it. The words are the same whatever the service answers, so the
+   screen never says whether an account exists. Pressed on a stub by ask-bb scripts/walk-forgot-cc.mjs. */
+async function bbForgot(){
+  const email = BB_EMAIL[_pendingRole]; if(!email) return;
+  const btn = document.getElementById('pw-forgot'), note = document.getElementById('pw-forgot-note');
+  btn.disabled = true; note.style.display = 'block'; note.style.color = 'var(--text-2)'; note.textContent = 'Sending…';
+  let reached = false;
+  try{
+    await fetch(`${SB_URL}/auth/v1/recover?redirect_to=${encodeURIComponent(ASK_BB_HOST + 'reset/?from=cc')}`,{
+      method:'POST', headers:{'apikey':SB_KEY,'Content-Type':'application/json'}, body:JSON.stringify({email:email})});
+    reached = true;
+  }catch(e){}
+  btn.disabled = false;
+  if(reached){ note.textContent = `If ${email} is a Command Centre account, a link to set a new password is on its way to that inbox. It can take a few minutes. Nothing after ten minutes? Ask Thulaib.`; }
+  else { note.style.color = 'var(--red)'; note.textContent = 'The Command Centre cannot reach the sign-in service. Check the internet, then press Forgot your password again.'; }
 }
 
 async function checkPw(){
