@@ -11226,6 +11226,8 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
 .inv-pay-row{display:flex;font-size:11.5px;color:#5c5c64;padding:2.5px 0;line-height:1.6}
 .inv-pay-row .pk{width:112px;color:#9a9aa2;font-weight:600;flex-shrink:0}
 .inv-pay-row .pv{color:#33333a;font-weight:600}
+.inv-pay-note{margin-top:8px;font-size:11px;line-height:1.5;color:#5c5c64;max-width:320px}
+.inv-pay-note b{color:#33333a}
 .inv-totals-inner{width:280px}
 .inv-tot-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:6px 0;color:#6b6b73}
 .inv-tot-row .v{font-weight:700;color:#111214;font-variant-numeric:tabular-nums}
@@ -11356,10 +11358,12 @@ function renderInvoiceDoc(){
       <div class="inv-lower">
         <div class="inv-pay">
           <div class="inv-sec-lbl">Payment Method</div>
-          <div class="inv-pay-row"><span class="pk">Account Name:</span><span class="pv" contenteditable="true">A.T. HASSEN</span></div>
-          <div class="inv-pay-row"><span class="pk">Account No:</span><span class="pv" contenteditable="true">8007040067</span></div>
-          <div class="inv-pay-row"><span class="pk">Bank:</span><span class="pv" contenteditable="true">Commercial Bank</span></div>
-          <div class="inv-pay-row"><span class="pk">Branch:</span><span class="pv" contenteditable="true">Duplication Branch</span></div>
+          <div class="inv-pay-row"><span class="pk">Account Name:</span><span class="pv" contenteditable="true">Business Booster Pvt Ltd</span></div>
+          <div class="inv-pay-row"><span class="pk">Account No:</span><span class="pv" contenteditable="true">027010423135</span></div>
+          <div class="inv-pay-row"><span class="pk">Account Type:</span><span class="pv" contenteditable="true">Current Account</span></div>
+          <div class="inv-pay-row"><span class="pk">Bank:</span><span class="pv" contenteditable="true">HNB</span></div>
+          <div class="inv-pay-row"><span class="pk">Branch:</span><span class="pv" contenteditable="true">Nugegoda</span></div>
+          <div class="inv-pay-note" contenteditable="true">Once the payment is made, please email a copy of the payment slip to <b>info@businessbooster.lk</b></div>
         </div>
         <div class="inv-totals-inner" id="inv-totals-inner">${renderInvTotals()}</div>
       </div>
@@ -11462,7 +11466,7 @@ function renderReceiptDoc(){
         <div class="inv-pay">
           <div class="inv-sec-lbl">Payment Method</div>
           <div class="inv-pay-row"><span class="pk">Paid via:</span><span class="pv" contenteditable="true">Bank transfer</span></div>
-          <div class="inv-pay-row"><span class="pk">From:</span><span class="pv" contenteditable="true">Business Booster · Commercial Bank</span></div>
+          <div class="inv-pay-row"><span class="pk">From:</span><span class="pv" contenteditable="true">Business Booster · HNB</span></div>
           <div class="inv-pay-row"><span class="pk">Reference:</span><span class="pv" contenteditable="true">${rcNumber(m)}</span></div>
         </div>
         <div class="inv-totals-inner" id="rc-totals-inner">${renderRcTotals()}</div>
