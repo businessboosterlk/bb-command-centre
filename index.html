@@ -16494,13 +16494,13 @@ async function renderCcDelivery(rootId){
       +BBD_PERIODS.map(function(p){return '<option'+(p===BBD_PERIOD?' selected':'')+'>'+esc(p)+'</option>';}).join('')
     +'</select></div>';
 
-  var known=['NIRVANA','TIANA'], extras=[];
+  var known=['NIRVANA','TIANA','HITHESH'], extras=[];
   BBD_ROWS.forEach(function(x){var o=String(x.owner||'').toUpperCase(); if(o&&known.indexOf(o)<0&&extras.indexOf(o)<0)extras.push(o);});
   var groups=known.concat(extras.sort()).map(function(o){return {label:o,list:BBD_ROWS.filter(function(x){return String(x.owner||'').toUpperCase()===o;})};});
   var orphans=BBD_ROWS.filter(function(x){return !String(x.owner||'').trim();});
   if(orphans.length) groups.push({label:'UNASSIGNED',list:orphans});
 
-  var ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)'};
+  var ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)',HITHESH:'var(--violet,#7C5CFF)'};
   var any=false;
   groups.forEach(function(g){
     if(!g.list.length) return; any=true;
@@ -18114,7 +18114,7 @@ var CC_DL_MODE='owed', CC_DL_HOST='';
 var OW={ym:'',smm:'ALL',behind:false,rootId:'',rows:null,close:null,shots:null,err:'',edit:null,busy:null,loadedYm:'',tok:0,notes:{},refused:{}};
 var OW_KINDS=[['post','Posts'],['story','Stories'],['video','Videos']];
 var OW_BUCKETS=[['not_logged','not logged'],['in_making','in making'],['with_us','with us'],['with_client','with the client'],['made_not_posted','made not posted']];
-var OW_SMM_ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)'};
+var OW_SMM_ACC={NIRVANA:'var(--cyan,#1596D6)',TIANA:'var(--pink,#FF1F8E)',HITHESH:'var(--violet,#7C5CFF)'};
 
 function owEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function owNum(x){var n=Number(x);return isFinite(n)?n:0;}
@@ -18275,7 +18275,7 @@ function owDraw(){
     +'<p>Every client, '+owMonthName(ym)+': what the quota owes, what is logged and finished, what is marked posted and where the rest sits.</p></div>';
   h+='<div class="ow-bar">'
     +'<select class="ow-sel" aria-label="Month" onchange="owSetMonth(this.value)">'+owMonths().map(function(k){return '<option value="'+k+'"'+(k===ym?' selected':'')+'>'+owMonthName(k)+'</option>';}).join('')+'</select>'
-    +'<div class="tab-group" role="group" aria-label="SMM">'+[['ALL','All'],['NIRVANA','Nirvana'],['TIANA','Tiana']].map(function(s){return '<button type="button" class="tab-btn'+(OW.smm===s[0]?' active':'')+'" aria-pressed="'+(OW.smm===s[0])+'" onclick="owSetSmm(\''+s[0]+'\')">'+s[1]+'</button>';}).join('')+'</div>'
+    +'<div class="tab-group" role="group" aria-label="SMM">'+[['ALL','All'],['NIRVANA','Nirvana'],['TIANA','Tiana'],['HITHESH','Hithesh']].map(function(s){return '<button type="button" class="tab-btn'+(OW.smm===s[0]?' active':'')+'" aria-pressed="'+(OW.smm===s[0])+'" onclick="owSetSmm(\''+s[0]+'\')">'+s[1]+'</button>';}).join('')+'</div>'
     +'<div class="tab-group"><button type="button" class="tab-btn'+(OW.behind?' active':'')+'" aria-pressed="'+OW.behind+'" onclick="owToggleBehind()">Only clients behind</button></div>'
     +'</div>';
   if(OW.err||!OW.rows){
@@ -18328,7 +18328,7 @@ function owDraw(){
     root.innerHTML=h+'<div class="ow-empty">No client owes anything on record for '+owMonthName(ym)+'.</div></div>';
     return;
   }
-  var known=['NIRVANA','TIANA'], extras=[];
+  var known=['NIRVANA','TIANA','HITHESH'], extras=[];
   shown.forEach(function(c){ if(known.indexOf(c.smm)<0&&extras.indexOf(c.smm)<0) extras.push(c.smm); });
   var groups=known.concat(extras.sort()).map(function(g){return {g:g,list:shown.filter(function(c){return c.smm===g;})};}).filter(function(x){return x.list.length;});
   if(!groups.length) h+='<div class="ow-empty">No client matches this filter.</div>';
