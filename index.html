@@ -17218,6 +17218,18 @@ else buildNavGroups();
   .ts-facts>div{grid-template-columns:1fr;gap:2px}
 }
 @media(min-width:761px){.ts-cells{display:contents}}
+/* PHONE JOB CARDS (MYSCORE-1, 6 Nov 2026): under 640px the job table was cut off at the right edge. Each job becomes a
+   card of label and value pairs read from data-l on its cells; the desk keeps the table. The same rule is in the My score
+   block of the Graphic and Video Systems (.ms-jobs). */
+@media(max-width:639.98px){
+  .ts-tw{border:0;border-radius:0;overflow:visible}
+  .ts-jobs,.ts-jobs tbody{display:block}
+  .ts-jobs thead{display:none}
+  .ts-jobs tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;padding:12px 14px;margin:0 0 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
+  .ts-jobs td{display:block;padding:0;border:0;min-width:0;text-align:left}
+  .ts-jobs td.ts-t{grid-column:1/-1;font-size:13.5px;font-weight:600}
+  .ts-jobs td[data-l]::before{content:attr(data-l);display:block;font-size:11px;font-weight:400;color:var(--text-3);margin-bottom:2px}
+}
 </style>
 <script>
 /* TEAMSCORE-BUILD-4. All state lives under TS; every name starts ts so nothing collides with the rest of the app. */
@@ -17505,10 +17517,10 @@ function tsOpen(sys, pid) {
       var j = byRef[r.ref] || {}, rb = base + '.row.' + r.ref;
       var chip = r.counted ? '<span class="ts-chip" data-s="' + (r.ontime ? 'ontime' : 'late') + '">' + tsFig(rb + '.ontime', r.ontime, 'yesno') + '</span>'
         : '<span class="ts-chip" data-s="' + r.state + '">' + tsEsc(TS_STATE[r.state] || r.state) + '</span>';
-      main += '<tr><td>' + tsEsc(r.title) + '<span class="ts-ref">' + tsEsc(r.ref) + '</span></td>'
-        + '<td class="n">' + tsFig(rb + '.due', j.due, 'day') + '</td><td class="n">' + tsFig(rb + '.submittedAt', j.submittedAt, 'day') + '</td>'
-        + '<td class="n">' + tsFig(rb + '.approvedAt', j.approvedAt, 'day') + '</td><td>' + chip + '</td>'
-        + '<td class="n">' + (r.stars ? tsFig(rb + '.stars', r.stars, 'raw') + ' of 5' : 'None') + '</td><td class="n">' + tsFig(rb + '.rejections', r.rejections, 'raw') + '</td></tr>';
+      main += '<tr><td class="ts-t">' + tsEsc(r.title) + '<span class="ts-ref">' + tsEsc(r.ref) + '</span></td>'
+        + '<td class="n" data-l="Due">' + tsFig(rb + '.due', j.due, 'day') + '</td><td class="n" data-l="Handed in">' + tsFig(rb + '.submittedAt', j.submittedAt, 'day') + '</td>'
+        + '<td class="n" data-l="' + (sys === 'g' ? 'Approved' : 'Passed') + '">' + tsFig(rb + '.approvedAt', j.approvedAt, 'day') + '</td><td data-l="On time">' + chip + '</td>'
+        + '<td class="n" data-l="Stars">' + (r.stars ? tsFig(rb + '.stars', r.stars, 'raw') + ' of 5' : 'None') + '</td><td class="n" data-l="Send-backs">' + tsFig(rb + '.rejections', r.rejections, 'raw') + '</td></tr>';
     });
     main += '</tbody></table></div>';
   } else main += '<p class="ts-foot">' + (sh.noDeadline ? 'No job with a deadline was due this week.' : 'Nothing was due this week.') + '</p>';
