@@ -3291,7 +3291,7 @@ window.__ST_LOG=[];
     <div id="tm-detail" style="display:none"></div>
   </div>
 </div>
-<!-- ══════════════ TEAM SCORE PAGE (6 Nov 2026, TEAMSCORE-BUILD-3). Reads only. Code in the BBCC_TEAMSCORE fence. -->
+<!-- ══════════════ TEAM SCORE PAGE (6 Nov 2026, TEAMSCORE-BUILD-4). Reads only. Code in the BBCC_TEAMSCORE fence. -->
 <div id="page-teamscore" class="page-section" style="display:none">
   <div class="content">
     <div class="ts-head">
@@ -17128,7 +17128,7 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 else buildNavGroups();
 </script>
 
-<!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-BUILD-3 (6 Nov 2026, Thulaib approved bb_pending 1440).
+<!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-BUILD-4 (6 Nov 2026, Thulaib approved bb_pending 1440).
      Team Score: Graphics and Video, week by week, scored by the Midnight Masala engine (team-score/engine.js, copied byte
      for byte, never edited) on jobs built by team-score/ts-adapter.js. Rules: ~/bb-systems/team-score/SPEC.md.
      Reads only, writes nothing. Every figure carries data-fig and data-fmt so ~/bb-systems/team-score/checks/recount.mjs
@@ -17220,8 +17220,8 @@ else buildNavGroups();
 @media(min-width:761px){.ts-cells{display:contents}}
 </style>
 <script>
-/* TEAMSCORE-BUILD-3. All state lives under TS; every name starts ts so nothing collides with the rest of the app. */
-var TS_V = '3';
+/* TEAMSCORE-BUILD-4. All state lives under TS; every name starts ts so nothing collides with the rest of the app. */
+var TS_V = '4';
 var TS = { libs: null, base: null, baseAt: 0, weeks: {}, view: null, token: 0, people: {} };
 var TS_STATE = { completed: 'Completed', awaiting: 'Waiting for review', overdue: 'Overdue', in_progress: 'In progress', cancelled: 'Cancelled' };
 var TS_ICON_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
@@ -17291,15 +17291,16 @@ async function tsBase() {
 async function tsWeekData(startMs) {
   var wk = TS_ADAPTER.week(startMs + 3600e3);
   var asOf = Math.min(wk.endMs, Date.now());
-  var hit = TS.weeks[wk.startMs];
-  if (hit && (asOf === wk.endMs || Date.now() - hit.at < 120000)) return hit;
-  var base = await tsBase();
+  var hit = TS.weeks[wk.startMs] || tsDevGet(wk.startMs);
+  if (hit && Date.now() - hit.at < (asOf === wk.endMs ? (TS.weeks[wk.startMs] === hit ? Infinity : 600000) : 120000)) { TS.weeks[wk.startMs] = hit; return hit; }
+  var basing = tsBase(); basing.catch(function () {});   // read alongside the window rows, they do not depend on each other
   var win = '&entered_at=gte.' + tsEnc(wk.startMs) + '&entered_at=lte.' + tsEnc(asOf);
   var w = await Promise.all([
     tsGet('graphic_stage_history?select=graphic_project_id' + win + '&order=id.asc'),
     tsGet('video_stage_history?select=video_project_id' + win + '&order=id.asc'),
     tsGet('bb_review_events?select=system,job_id&created_at=gte.' + tsEnc(wk.startMs) + '&created_at=lte.' + tsEnc(asOf) + '&order=id.asc')
   ]);
+  var base = await basing;
   function pick(projects, histKey, histRows, sys) {
     var ids = new Set();
     projects.forEach(function (p) {
@@ -17326,7 +17327,19 @@ async function tsWeekData(startMs) {
   var v = TS_ADAPTER.videoJobs({ projects: base.vp.filter(function (p) { return vIds.has(p.id); }), history: f[1], assignments: f[2], events: f[4] }, wk.startMs, asOf);
   var out = { at: Date.now(), wk: wk, asOf: asOf, g: g, v: v, team: base.team, gLast: base.gLast };
   TS.weeks[wk.startMs] = out;
+  tsDevPut(wk.startMs, out);
   return out;
+}
+/* A short lived copy on this device so a reload paints at once (bb-speed reload budget): the current week for 2 minutes,
+   a finished week for 10 minutes, then the boards are read again. Per device only, never shared, never a source of truth. */
+function tsDevGet(startMs) {
+  try { var v = JSON.parse(localStorage.getItem('bbcc-ts-w-' + startMs) || 'null'); return v && v.v === TS_V ? v.d : null; } catch (e) { return null; }
+}
+function tsDevPut(startMs, out) {
+  try {
+    Object.keys(localStorage).forEach(function (k) { if (k.indexOf('bbcc-ts-w-') === 0 && k !== 'bbcc-ts-w-' + startMs && !TS.weeks[k.slice(10)]) localStorage.removeItem(k); });
+    localStorage.setItem('bbcc-ts-w-' + startMs, JSON.stringify({ v: TS_V, d: out }));
+  } catch (e) {}
 }
 
 function tsFillWeeks() {
