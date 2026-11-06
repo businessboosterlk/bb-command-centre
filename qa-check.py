@@ -81,6 +81,24 @@ if os.path.exists(node):
 else:
     problems.append("SCRIPT PARSE CHECK SKIPPED  node not found; install it or fix the path")
 
+# ---- 6. Team Score (6 Nov 2026): page, nav, loader, and the two copies match their sources byte for byte ---------
+TS_DIR = HTML.parent / "team-score"
+if 'id="page-teamscore"' not in src:
+    problems.append("TEAM SCORE  #page-teamscore is missing")
+if "{ nav:'teamscore'" not in src:
+    problems.append("TEAM SCORE  NAV9 has no teamscore entry, so the nav item is hidden (L-CC-018)")
+if "page === 'teamscore'" not in src or "function loadTeamScore(" not in src:
+    problems.append("TEAM SCORE  showPage has no teamscore branch or loadTeamScore is not defined")
+if src.count("@@BBCC_TEAMSCORE_BEGIN@@") != 1 or src.count("@@BBCC_TEAMSCORE_END@@") != 1:
+    problems.append("TEAM SCORE  the fenced block should appear exactly once")
+for name, source in (("engine.js", pathlib.Path.home() / "bb-consultancy/murali/demo-build/demo-out/engine.js"),
+                     ("ts-adapter.js", pathlib.Path.home() / "bb-systems/team-score/ts-adapter.js")):
+    copy = TS_DIR / name
+    if not copy.exists():
+        problems.append(f"TEAM SCORE  team-score/{name} is missing")
+    elif source.exists() and copy.read_bytes() != source.read_bytes():
+        problems.append(f"TEAM SCORE  team-score/{name} differs from {source}; copy it again, never edit the copy")
+
 # ---- report -----------------------------------------------------------------
 problems = sorted(set(problems))
 if problems:

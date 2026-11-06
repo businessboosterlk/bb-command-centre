@@ -1714,6 +1714,7 @@ window.__ST_LOG=[];
       <div class="nav-item" id="nav-finance" onclick="showPage('finance')"><span class="nav-ico"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>Finance</div>
       <div class="nav-item ceo-only" id="nav-ads" onclick="showPage('ads')"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="7" width="5" height="14" rx="1"/><rect x="17" y="11" width="5" height="10" rx="1"/></svg></span>Ads</div>
       <div class="nav-item" id="nav-team" onclick="showPage('team')"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>Team</div>
+      <div class="nav-item" id="nav-teamscore" onclick="showPage('teamscore')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/><path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/><path d="M18 9h1.5a1 1 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/><path d="M6 9H4.5a1 1 0 0 1 0-5H6"/></svg></span>Team Score</div>
       <div class="nav-item ceo-only" id="nav-missions" onclick="showPage('missions')"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/></svg></span>Missions</div>
       <div class="nav-item" id="nav-brain" onclick="window.open('https://businessboosterlk.github.io/bb-brain/','_blank')"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="7" r="1.6"/><circle cx="19" cy="7" r="1.6"/><circle cx="5" cy="17" r="1.6"/><circle cx="19" cy="17" r="1.6"/><path d="M6.4 8 10 10.6M17.6 8 14 10.6M6.4 16 10 13.4M17.6 16 14 13.4"/></svg></span>Digital Brain</div>
       <div class="nav-item owners-only" id="nav-askbb" onclick="openAskBB()"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2z"/><path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/></svg></span>Booster</div>
@@ -3288,6 +3289,16 @@ window.__ST_LOG=[];
     <div id="tm-grid"></div>
     <!-- Member detail panel (shown on click) -->
     <div id="tm-detail" style="display:none"></div>
+  </div>
+</div>
+<!-- ══════════════ TEAM SCORE PAGE (6 Nov 2026, TEAMSCORE-BUILD-3). Reads only. Code in the BBCC_TEAMSCORE fence. -->
+<div id="page-teamscore" class="page-section" style="display:none">
+  <div class="content">
+    <div class="ts-head">
+      <div><h1 class="ts-title">Team Score</h1><div class="ts-sub">Graphics and Video, one week at a time. Tap a person to see the working behind the figure.</div></div>
+      <div class="filter-bar ts-filters"><select class="form-select" id="ts-week" aria-label="Week" onchange="tsRender()"></select></div>
+    </div>
+    <div id="ts-body"><div class="ts-empty">Reading the boards…</div></div>
   </div>
 </div>
 <!-- ══════════════ USAGE PAGE (18 Oct 2026, Thulaib: "the usage thing we made yesterday ... in another section on the left").
@@ -5407,6 +5418,9 @@ function showPage(page) {
   } else if (page === 'teamweekly') {
     document.getElementById('topbar-title').textContent = 'Team Weekly';
     twLoadWeek();
+  } else if (page === 'teamscore') {
+    document.getElementById('topbar-title').textContent = 'Team Score';
+    loadTeamScore();
   }
 }
 
@@ -17032,6 +17046,7 @@ const NAV9 = [
   { nav:'finance',    label:'Finance' },
   { nav:'ads',        label:'Ads' },        /* CEO only, 2026-09-24. Every client ad account, read each morning by bb-ads-pull */
   { nav:'team',       label:'Team' },
+  { nav:'teamscore',  label:'Team Score' },   /* 6 Nov 2026, Team Score (bb_pending 1440), ~/bb-systems/team-score */
   { nav:'agents',     label:'System' },
   { nav:'brain',      label:'Digital Brain' },
   { nav:'askbb',      label:'Booster' },        /* CEO and COO only, 14 Oct 2026. The owners' desk on the crew's models, ~/bb-systems/ask-bb */
@@ -17047,6 +17062,7 @@ const NAV_PARENT = {month:'myday',
   week:'myday',
   finance:'finance',
   team:'team', teamweekly:'team',
+  teamscore:'teamscore',
   agents:'agents', missions:'agents',
 };
 /* in-page segmented switches per group (page → [label, targetPage]) */
@@ -17111,6 +17127,402 @@ function v2Tabs(page){
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', buildNavGroups);
 else buildNavGroups();
 </script>
+
+<!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-BUILD-3 (6 Nov 2026, Thulaib approved bb_pending 1440).
+     Team Score: Graphics and Video, week by week, scored by the Midnight Masala engine (team-score/engine.js, copied byte
+     for byte, never edited) on jobs built by team-score/ts-adapter.js. Rules: ~/bb-systems/team-score/SPEC.md.
+     Reads only, writes nothing. Every figure carries data-fig and data-fmt so ~/bb-systems/team-score/checks/recount.mjs
+     can compare what this page RENDERED with the reference engine fed the same jobs. -->
+<style>
+#page-teamscore>.content{padding-left:0;padding-right:0}
+.ts-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.ts-title{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:600;margin:0;color:var(--text)}
+.ts-sub{font-size:12px;color:var(--text-3);margin-top:3px;max-width:62ch}
+.ts-filters .form-select{min-width:250px;font-size:13px}
+#ts-body{min-height:70vh}
+.ts-empty{padding:28px;text-align:center;color:var(--text-3);font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r)}
+.ts-key{font-size:12px;color:var(--text-3);margin:0 0 14px}
+.ts-note{font-size:12.5px;color:var(--text-2);background:var(--amber-soft);border:1px solid var(--border);border-radius:var(--r);padding:10px 12px;margin:0 0 14px}
+.ts-sec{margin:0 0 22px}
+.ts-sec-hd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px}
+.ts-sec-hd h2{font-size:15px;font-weight:600;margin:0;color:var(--text)}
+.ts-sec-hd .ts-team{font-size:12px;color:var(--text-3)}
+.ts-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.ts-cols,.ts-row{display:grid;grid-template-columns:28px minmax(120px,1.3fr) minmax(150px,1.2fr) repeat(4,minmax(86px,1fr));gap:12px;align-items:center;padding:10px 14px}
+.ts-cols{font-size:11px;color:var(--text-3);border-bottom:1px solid var(--border);text-transform:none}
+.ts-row{width:100%;background:none;border:0;border-bottom:1px solid var(--border);color:var(--text);text-align:left;font:inherit;cursor:pointer;min-height:56px}
+.ts-row:last-child{border-bottom:0}
+.ts-row:hover{background:var(--surface-2)}
+.ts-row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.ts-rank{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.ts-name{font-size:13.5px;font-weight:600}
+.ts-score b{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums}
+.ts-band{display:inline-block;margin-left:6px;font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--border);color:var(--text-2)}
+.ts-band[data-band="excellent"]{color:var(--green);background:var(--green-soft)}
+.ts-band[data-band="verygood"]{color:var(--blue);background:var(--blue-soft)}
+.ts-band[data-band="satisfactory"],.ts-band[data-band="needswork"]{color:var(--amber);background:var(--amber-soft)}
+.ts-band[data-band="poor"]{color:var(--red);background:var(--red-soft)}
+.ts-why{display:block;font-size:11.5px;color:var(--text-3);margin-top:2px}
+.ts-cell{font-size:13px;font-variant-numeric:tabular-nums}
+.ts-cell small{display:block;font-size:11px;color:var(--text-3)}
+.ts-lbl{display:none}
+.ts-foot{font-size:11.5px;color:var(--text-3);margin:8px 2px 0}
+/* the drill-down sheet: a body-level .modal-overlay, so the app's own overlay manager locks the page and Back closes it */
+.ts-ov{align-items:center}
+.modal-overlay>.ts-sheet{background:var(--bg);border:1px solid var(--border);border-radius:16px;width:min(1180px,94vw);max-height:90dvh;display:flex;flex-direction:column;overflow:hidden}
+.ts-sheet-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border)}
+.ts-sheet-hd h2{font-size:17px;font-weight:600;margin:0;color:var(--text)}
+.ts-sheet-hd .ts-cap{font-size:12px;color:var(--text-3);margin-top:2px}
+.ts-x{width:44px;height:44px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--border);border-radius:12px;color:var(--text);cursor:pointer;flex-shrink:0}
+.ts-x svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ts-sheet-bd{overflow:auto;padding:18px;display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:22px;align-items:start}
+.ts-side,.ts-main{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0}
+.ts-big{display:flex;align-items:flex-end;gap:12px}
+.ts-big strong{font-size:52px;line-height:1;font-weight:600;letter-spacing:-0.04em;font-variant-numeric:tabular-nums;color:var(--text)}
+.ts-big strong.ts-na{font-size:22px;letter-spacing:0}
+.ts-math{border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text-2);font-size:13px;line-height:1.6;margin:0}
+.ts-math span{color:var(--text);font-weight:600}
+.ts-facts{margin:0;display:grid;gap:10px}
+.ts-facts>div{display:grid;grid-template-columns:96px 1fr;gap:10px;font-size:13px}
+.ts-facts dt{color:var(--text-3)}
+.ts-facts dd{margin:0;color:var(--text)}
+.ts-h3{font-size:13px;font-weight:600;margin:0 0 6px;color:var(--text)}
+.ts-ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:13px;color:var(--text-2)}
+.ts-ul b{color:var(--text);font-weight:600}
+.ts-coach{margin:0;padding:12px 14px;border-radius:10px;background:var(--surface);border:1px solid var(--border);font-size:13px;color:var(--text)}
+.ts-tw{overflow:auto;border:1px solid var(--border);border-radius:10px;max-height:52vh}
+.ts-jobs{width:100%;border-collapse:collapse;font-size:12.5px}
+.ts-jobs th{position:sticky;top:0;background:var(--surface);text-align:left;font-weight:500;color:var(--text-3);padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+.ts-jobs td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.ts-jobs td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ts-jobs .ts-ref{display:block;font-size:11px;color:var(--text-3)}
+.ts-chip{display:inline-block;font-size:11px;padding:2px 7px;border-radius:999px;border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
+.ts-chip[data-s="ontime"]{color:var(--green);background:var(--green-soft)}
+.ts-chip[data-s="late"],.ts-chip[data-s="overdue"]{color:var(--red);background:var(--red-soft)}
+.ts-chip[data-s="awaiting"]{color:var(--blue);background:var(--blue-soft)}
+@media(max-width:760px){
+  #page-teamscore>.content{padding-left:2px;padding-right:2px}
+  .ts-head{flex-direction:column;align-items:stretch;text-align:center}
+  .ts-sub{margin-left:auto;margin-right:auto}
+  .ts-filters,.ts-filters .form-select{width:100%;min-width:0}
+  .ts-cols{display:none}
+  .ts-row{grid-template-columns:22px 1fr auto;grid-template-areas:"r n s" "c c c";row-gap:8px;padding:12px}
+  .ts-row .ts-rank{grid-area:r}.ts-row .ts-name{grid-area:n}.ts-row .ts-score{grid-area:s;text-align:right}
+  .ts-row .ts-cells{grid-area:c;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  .ts-lbl{display:block;font-size:10.5px;color:var(--text-3)}
+  .ts-ov{padding:0!important;align-items:stretch}
+  .modal-overlay>.ts-sheet{width:100%;max-height:none;height:100%;height:100dvh;border-radius:0;border:0;overflow:hidden} /* beats the app's 88dvh modal cap: on a phone this sheet is the whole screen */
+  .ts-sheet-hd{padding:calc(env(safe-area-inset-top) + 10px) 16px 10px}
+  .ts-sheet-bd{grid-template-columns:minmax(0,1fr);padding:16px 16px calc(env(safe-area-inset-bottom) + 24px)}
+  .ts-tw{max-height:none}
+  .ts-facts>div{grid-template-columns:1fr;gap:2px}
+}
+@media(min-width:761px){.ts-cells{display:contents}}
+</style>
+<script>
+/* TEAMSCORE-BUILD-3. All state lives under TS; every name starts ts so nothing collides with the rest of the app. */
+var TS_V = '3';
+var TS = { libs: null, base: null, baseAt: 0, weeks: {}, view: null, token: 0, people: {} };
+var TS_STATE = { completed: 'Completed', awaiting: 'Waiting for review', overdue: 'Overdue', in_progress: 'In progress', cancelled: 'Cancelled' };
+var TS_ICON_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+
+function tsEsc(s) { return String(s === null || s === undefined ? '' : s).replace(/[&<>"']/g, function (m) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]; }); }
+/* One formatter for every figure. recount.mjs carries the same rules and compares the text. */
+function tsFmt(v, f) {
+  if (f === 'day') return v ? TS_ADAPTER.dayLabel(Date.parse(v)) : 'Not yet';
+  if (f === 'yesno') return v === null || v === undefined ? 'Not yet' : (v ? 'Yes' : 'No');
+  if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) return 'Not measurable';
+  if (f === '1dp') return Number(v).toFixed(1);
+  if (f === 'int') return String(Math.round(v));
+  return String(v);
+}
+function tsPct(path, v) { return tsFig(path, v, '1dp') + (v === null || v === undefined ? '' : '%'); }
+function tsFig(path, v, f) { return '<span data-fig="' + tsEsc(path) + '" data-fmt="' + f + '">' + tsEsc(tsFmt(v, f)) + '</span>'; }
+
+function tsLoadScript(src) {
+  return new Promise(function (ok, no) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = function () { no(new Error('could not load ' + src)); }; document.head.appendChild(s); });
+}
+function tsEnsureLibs() {
+  if (window.MM_ENGINE && window.TS_ADAPTER) return Promise.resolve();
+  if (!TS.libs) TS.libs = Promise.all([tsLoadScript('team-score/engine.js?v=' + TS_V), tsLoadScript('team-score/ts-adapter.js?v=' + TS_V)]);
+  return TS.libs;
+}
+
+/* Paged, capped, read only. Throws on a refused read so the page says so instead of drawing zeros. */
+async function tsGet(path) {
+  if (typeof bbAuthEnsure === 'function') await bbAuthEnsure();
+  var out = [];
+  for (var off = 0; off < 20000; off += 1000) {
+    var url = SB_URL + '/rest/v1/' + path + (path.indexOf('?') > -1 ? '&' : '?') + 'limit=1000&offset=' + off;
+    var r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: bbBearer() } });
+    if (r.status === 401 && typeof AUTH_ROLE !== 'undefined' && AUTH_ROLE) { await bbAuthEnsure(); r = await fetch(url, { headers: { apikey: SB_KEY, Authorization: bbBearer() } }); }
+    if (!r.ok) throw new Error(path.split('?')[0] + ' answered ' + r.status);
+    var d = await r.json();
+    out.push.apply(out, d);
+    if (d.length < 1000) break;
+  }
+  return out;
+}
+async function tsGetIn(table, cols, idCol, ids, extra) {
+  var out = [], list = Array.from(ids);
+  for (var i = 0; i < list.length; i += 100) {
+    var part = list.slice(i, i + 100);
+    out.push.apply(out, await tsGet(table + '?select=' + cols + '&' + idCol + '=in.(' + part.join(',') + ')' + (extra || '') + '&order=id.asc'));
+  }
+  return out;
+}
+function tsEnc(ms) { return encodeURIComponent(new Date(ms).toISOString()); }
+
+async function tsBase() {
+  if (TS.base && Date.now() - TS.baseAt < 120000) return TS.base;
+  var r = await Promise.all([
+    tsGet('team_members?select=id,name,role&active=eq.true&order=id.asc'),
+    tsGet('graphic_projects?select=id,title,client_name,assigned_designer_id,deadline,created_at,is_archived&order=id.asc'),
+    tsGet('video_projects?select=id,title,assigned_editor_id,deadline,created_at,is_archived&order=id.asc'),
+    tsGet('graphic_stage_history?select=entered_at&order=entered_at.desc&limit=1')
+  ]);
+  TS.base = { team: r[0], gp: r[1], vp: r[2], gLast: r[3][0] ? r[3][0].entered_at : null };
+  TS.baseAt = Date.now();
+  return TS.base;
+}
+
+/* Only the week shown: the jobs due in it, the jobs moved in it and the jobs with a review event in it, each read with its
+   full history up to the week's end (an approval before the week still decides the state). */
+async function tsWeekData(startMs) {
+  var wk = TS_ADAPTER.week(startMs + 3600e3);
+  var asOf = Math.min(wk.endMs, Date.now());
+  var hit = TS.weeks[wk.startMs];
+  if (hit && (asOf === wk.endMs || Date.now() - hit.at < 120000)) return hit;
+  var base = await tsBase();
+  var win = '&entered_at=gte.' + tsEnc(wk.startMs) + '&entered_at=lte.' + tsEnc(asOf);
+  var w = await Promise.all([
+    tsGet('graphic_stage_history?select=graphic_project_id' + win + '&order=id.asc'),
+    tsGet('video_stage_history?select=video_project_id' + win + '&order=id.asc'),
+    tsGet('bb_review_events?select=system,job_id&created_at=gte.' + tsEnc(wk.startMs) + '&created_at=lte.' + tsEnc(asOf) + '&order=id.asc')
+  ]);
+  function pick(projects, histKey, histRows, sys) {
+    var ids = new Set();
+    projects.forEach(function (p) {
+      var d = TS_ADAPTER.dueIso(p.deadline), c = Date.parse(p.created_at);
+      if (d && Date.parse(d) >= wk.startMs && Date.parse(d) <= asOf) ids.add(p.id);
+      if (c >= wk.startMs && c <= asOf) ids.add(p.id);
+    });
+    histRows.forEach(function (h) { ids.add(Number(h[histKey])); });
+    w[2].forEach(function (e) { if (e.system === sys) ids.add(Number(e.job_id)); });
+    return ids;
+  }
+  var gIds = pick(base.gp, 'graphic_project_id', w[0], 'graphic');
+  var vIds = pick(base.vp, 'video_project_id', w[1], 'video');
+  var lte = function (col) { return '&' + col + '=lte.' + tsEnc(asOf); };
+  var EV = 'id,system,job_id,person_id,kind,stars,reason,from_stage,to_stage,by_name,created_at';
+  var f = await Promise.all([
+    tsGetIn('graphic_stage_history', 'id,graphic_project_id,stage,entered_at', 'graphic_project_id', gIds, lte('entered_at')),
+    tsGetIn('video_stage_history', 'id,video_project_id,stage,entered_at,moved_by', 'video_project_id', vIds, lte('entered_at')),
+    tsGetIn('video_assignment_history', 'id,video_project_id,editor_id,assigned_at,ended_at', 'video_project_id', vIds, lte('assigned_at')),
+    tsGetIn('bb_review_events', EV, 'job_id', gIds, '&system=eq.graphic' + lte('created_at')),
+    tsGetIn('bb_review_events', EV, 'job_id', vIds, '&system=eq.video' + lte('created_at'))
+  ]);
+  var g = TS_ADAPTER.graphicJobs({ projects: base.gp.filter(function (p) { return gIds.has(p.id); }), history: f[0], events: f[3] }, wk.startMs, asOf);
+  var v = TS_ADAPTER.videoJobs({ projects: base.vp.filter(function (p) { return vIds.has(p.id); }), history: f[1], assignments: f[2], events: f[4] }, wk.startMs, asOf);
+  var out = { at: Date.now(), wk: wk, asOf: asOf, g: g, v: v, team: base.team, gLast: base.gLast };
+  TS.weeks[wk.startMs] = out;
+  return out;
+}
+
+function tsFillWeeks() {
+  var sel = document.getElementById('ts-week');
+  if (!sel || sel.options.length) return;
+  var now = TS_ADAPTER.week(Date.now()), html = '';
+  for (var i = 0; i <= 8; i++) {
+    var w = TS_ADAPTER.week(now.startMs - i * 7 * 86400e3 + 3600e3);
+    var lbl = i === 0 ? 'This week so far, ' + w.label : i === 1 ? 'Last week, ' + w.label : w.label;
+    html += '<option value="' + w.startMs + '"' + (i === 1 ? ' selected' : '') + '>' + tsEsc(lbl) + '</option>';
+  }
+  sel.innerHTML = html;
+}
+
+async function loadTeamScore() {
+  var body = document.getElementById('ts-body');
+  if (!body) return;
+  if (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) { body.innerHTML = '<div class="ts-empty">Team Score is not part of the preview. It reads the real Graphics and Video boards.</div>'; return; }
+  try { await tsEnsureLibs(); } catch (e) { body.innerHTML = '<div class="ts-empty">' + tsEsc(e.message) + '</div>'; return; }
+  tsFillWeeks();
+  tsRender();
+}
+
+function tsPeople(team, rx) {
+  return team.filter(function (m) { return rx.test(String(m.role || '').trim()); }).map(function (m) { return { id: Number(m.id), name: String(m.name || '').trim() || ('Member ' + m.id) }; });
+}
+function tsSeed(d) { return { periodStart: d.wk.startIso }; }
+function tsWhy(sys, s, sh) {
+  if (s.cohort === 0 && sh.noDeadline > 0) return 'Score starts when deadlines exist';
+  if (s.cohort === 0) return 'Nothing was due this week';
+  if (s.completed === 0) return 'Nothing due was completed';
+  if (s.ratingCount === 0) return 'No stars given yet';
+  return '';
+}
+function tsBlankShown() { return { clientChanges: 0, rejected: 0, noDeadline: 0, finished: 0 }; }
+
+async function tsRender() {
+  var body = document.getElementById('ts-body'), sel = document.getElementById('ts-week');
+  if (!body || !sel || !sel.value) return;
+  var tok = ++TS.token;
+  body.innerHTML = '<div class="ts-empty">Reading the boards…</div>';
+  var d;
+  try { d = await tsWeekData(Number(sel.value)); }
+  catch (e) { if (tok === TS.token) body.innerHTML = '<div class="ts-empty">The boards could not be read: ' + tsEsc(e.message) + '. Nothing is shown rather than a wrong figure.</div>'; return; }
+  if (tok !== TS.token) return;
+  TS.view = d;
+  var seed = tsSeed(d), html = '';
+  html += '<p class="ts-key">Score = 0.5 × completion + 0.3 × on time + 0.2 × quality. Excellent from 90, Very Good 80, Satisfactory 70, Needs Improvement 60.</p>';
+  if (d.gLast && Date.parse(d.gLast) < d.asOf - 2 * 86400e3) {
+    html += '<p class="ts-note">The Graphics board has had no moves since ' + tsEsc(TS_ADAPTER.dayLabel(Date.parse(d.gLast))) + '. Work finished after that day is not on the board, so it cannot count yet.</p>';
+  }
+  html += tsSection(d, seed, 'g', 'Graphics', tsPeople(d.team, /^graphic designer$/i), d.g, 'graphic');
+  html += tsSection(d, seed, 'v', 'Video', tsPeople(d.team, /^editor$/i), d.v, 'video');
+  body.innerHTML = html;
+  body.setAttribute('data-asof', String(d.asOf));
+  body.setAttribute('data-start', String(d.wk.startMs));
+}
+
+function tsSection(d, seed, sys, title, people, set, dept) {
+  var rows = people.map(function (p) {
+    var s = MM_ENGINE.score(seed, set.jobs, d.asOf, { emp: p.id });
+    var sh = set.shown[String(p.id)] || tsBlankShown();
+    TS.people[sys + '.' + p.id] = { p: p, s: s, sh: sh, sys: sys };
+    return { p: p, s: s, sh: sh };
+  });
+  rows.sort(function (a, b) {
+    var x = a.s.overall === null ? -1 : a.s.overall, y = b.s.overall === null ? -1 : b.s.overall;
+    return (y - x) || ((b.s.completionPct || 0) - (a.s.completionPct || 0)) || (b.s.cohort - a.s.cohort) || (b.sh.finished - a.sh.finished) || a.p.name.localeCompare(b.p.name);
+  });
+  var team = MM_ENGINE.score(seed, set.jobs, d.asOf, { dept: dept });
+  var mine = rows.reduce(function (n, r) { return n + r.s.cohort; }, 0);
+  var h = '<section class="ts-sec" id="ts-sec-' + sys + '"><div class="ts-sec-hd"><h2>' + title + '</h2><span class="ts-team">'
+    + (team.cohort ? tsFig(sys + '.team.completed', team.completed, 'raw') + ' of ' + tsFig(sys + '.team.cohort', team.cohort, 'raw') + ' jobs due this week were completed' : 'No job with a deadline was due this week') + '</span></div>';
+  h += '<div class="ts-list">';
+  if (sys === 'g') h += '<div class="ts-cols"><span></span><span>Designer</span><span>Score</span><span>Completion</span><span>On time</span><span>Quality</span><span>Client changes</span></div>';
+  else h += '<div class="ts-cols"><span></span><span>Editor</span><span>Score</span><span>Passed review</span><span>Sent back</span><span>Client changes</span><span>No deadline</span></div>';
+  if (!rows.length) h += '<div class="ts-empty">No active members in this team.</div>';
+  rows.forEach(function (r, i) {
+    var b = MM_ENGINE.bandFor(r.s.overall, 90), why = tsWhy(sys, r.s, r.sh), base = sys + '.' + r.p.id;
+    h += '<button type="button" class="ts-row" data-sys="' + sys + '" data-pid="' + r.p.id + '" onclick="tsOpen(\'' + sys + '\',' + r.p.id + ')">'
+      + '<span class="ts-rank">' + (i + 1) + '</span><span class="ts-name">' + tsEsc(r.p.name) + '</span>'
+      + '<span class="ts-score"><b>' + tsFig(base + '.overall', r.s.overall, 'int') + '</b>'
+      + (r.s.overall === null ? '' : '<span class="ts-band" data-band="' + b.key + '">' + b.label + '</span>')
+      + (why ? '<span class="ts-why">' + tsEsc(why) + '</span>' : '') + '</span><span class="ts-cells">';
+    if (sys === 'g') {
+      h += '<span class="ts-cell"><span class="ts-lbl">Completion</span>' + tsPct(base + '.completionPct', r.s.completionPct) + '<small>' + tsFig(base + '.completed', r.s.completed, 'raw') + ' of ' + tsFig(base + '.cohort', r.s.cohort, 'raw') + '</small></span>'
+        + '<span class="ts-cell"><span class="ts-lbl">On time</span>' + tsPct(base + '.ontimePct', r.s.ontimePct) + '<small>' + tsFig(base + '.ontimeN', r.s.ontimeN, 'raw') + ' of ' + tsFig(base + '.ontimeD', r.s.ontimeD, 'raw') + '</small></span>'
+        + '<span class="ts-cell"><span class="ts-lbl">Quality</span>' + tsPct(base + '.qualityPct', r.s.qualityPct) + '<small>' + (r.s.ratingCount ? tsFig(base + '.ratingCount', r.s.ratingCount, 'raw') + ' stars' : 'no stars given yet') + '</small></span>'
+        + '<span class="ts-cell"><span class="ts-lbl">Client changes</span>' + tsFig(base + '.shown.clientChanges', r.sh.clientChanges, 'raw') + '</span>';
+    } else {
+      h += '<span class="ts-cell"><span class="ts-lbl">Passed review</span>' + tsFig(base + '.shown.finished', r.sh.finished, 'raw') + '</span>'
+        + '<span class="ts-cell"><span class="ts-lbl">Sent back</span>' + tsFig(base + '.rejectionCount', r.s.rejectionCount, 'raw') + '</span>'
+        + '<span class="ts-cell"><span class="ts-lbl">Client changes</span>' + tsFig(base + '.shown.clientChanges', r.sh.clientChanges, 'raw') + '</span>'
+        + '<span class="ts-cell"><span class="ts-lbl">No deadline</span>' + tsFig(base + '.shown.noDeadline', r.sh.noDeadline, 'raw') + '</span>';
+    }
+    h += '</span></button>';
+  });
+  h += '</div>';
+  var other = team.cohort - mine;
+  if (other > 0) h += '<p class="ts-foot">' + tsFig(sys + '.unowned', other, 'raw') + ' jobs due this week sit with someone who is not an active member of this team, so they are in the team line and in nobody\'s row.</p>';
+  if (sys === 'v') h += '<p class="ts-foot">Video jobs have no deadlines yet, so each editor shows counts and the score starts when deadlines exist.</p>';
+  return h + '</section>';
+}
+
+function tsLost(v, w) { return v === null ? null : (100 - v) * w; }
+function tsCoach(sys, s, sh) {
+  if (s.cohort === 0 && sh.noDeadline > 0) return 'Put a deadline on each video when it is briefed, so this week can be scored.';
+  if (s.cohort === 0) return 'Nothing was due this week, so there is nothing to score.';
+  var parts = [['c', tsLost(s.completionPct, 0.5)], ['o', tsLost(s.ontimePct, 0.3)], ['q', tsLost(s.qualityPct, 0.2)]].filter(function (x) { return x[1] !== null; });
+  parts.sort(function (a, b) { return b[1] - a[1]; });
+  var top = parts[0];
+  if (!top || top[1] === 0) return s.ratingCount === 0 ? 'Ask the head to give stars on approval, so quality can be read.' : 'Nothing lost this week. Keep it there.';
+  if (top[0] === 'c') return 'Close the open jobs first: ' + (s.cohort - s.completed) + ' of ' + s.cohort + ' due this week are not completed.';
+  if (top[0] === 'o') return 'Hand work in by the deadline: ' + (s.ontimeD - s.ontimeN) + ' of ' + s.ontimeD + ' completed jobs went in late.';
+  return 'Fewer send-backs: each one takes 5 points off quality.';
+}
+
+function tsOpen(sys, pid) {
+  var rec = TS.people[sys + '.' + pid], d = TS.view;
+  if (!rec || !d) return;
+  var ov = document.getElementById('ts-sheet');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.className = 'modal-overlay ts-ov hidden'; ov.id = 'ts-sheet';
+    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'ts-sheet-title');
+    ov.innerHTML = '<div class="ts-sheet"><div class="ts-sheet-hd"><div><h2 id="ts-sheet-title"></h2><div class="ts-cap" id="ts-sheet-cap"></div></div>'
+      + '<button type="button" class="ts-x modal-close" aria-label="Close" onclick="tsClose()">' + TS_ICON_X + '</button></div><div class="ts-sheet-bd" id="ts-sheet-bd"></div></div>';
+    ov.addEventListener('click', function (e) { if (e.target === ov) tsClose(); });
+    document.body.appendChild(ov);
+  }
+  var s = rec.s, sh = rec.sh, base = sys + '.' + pid, set = sys === 'g' ? d.g : d.v;
+  var b = MM_ENGINE.bandFor(s.overall, 90), why = tsWhy(sys, s, sh);
+  var team = sys === 'g' ? 'Graphics' : 'Video';
+  document.getElementById('ts-sheet-title').textContent = rec.p.name;
+  document.getElementById('ts-sheet-cap').textContent = team + ', ' + (d.asOf < d.wk.endMs ? 'this week so far, ' : '') + d.wk.label;
+  var side = '<div class="ts-big"><strong class="' + (s.overall === null ? 'ts-na' : '') + '">' + tsFig(base + '.overall', s.overall, 'int') + '</strong>'
+    + (s.overall === null ? '' : '<span class="ts-band" data-band="' + b.key + '">' + b.label + '</span>') + '</div>';
+  if (s.overall === null) side += '<p class="ts-math">Not measurable yet: ' + tsEsc(why.charAt(0).toLowerCase() + why.slice(1)) + '.</p>';
+  else side += '<p class="ts-math">0.5 × ' + tsFig(base + '.completionPct', s.completionPct, '1dp') + ' + 0.3 × ' + tsFig(base + '.ontimePct', s.ontimePct, '1dp')
+    + ' + 0.2 × ' + tsFig(base + '.qualityPct', s.qualityPct, '1dp') + ' = ' + tsFig(base + '.overall', s.overall, '1dp') + '</p>';
+  side += '<dl class="ts-facts">'
+    + '<div><dt>Completion</dt><dd>' + tsFig(base + '.completed', s.completed, 'raw') + ' of ' + tsFig(base + '.cohort', s.cohort, 'raw') + ' jobs due were completed: ' + tsPct(base + '.completionPct', s.completionPct) + '</dd></div>'
+    + '<div><dt>On time</dt><dd>' + tsFig(base + '.ontimeN', s.ontimeN, 'raw') + ' of ' + tsFig(base + '.ontimeD', s.ontimeD, 'raw') + ' handed in by the deadline: ' + tsPct(base + '.ontimePct', s.ontimePct) + '</dd></div>'
+    + '<div><dt>Quality</dt><dd>' + (s.ratingCount ? 'average of ' + tsFig(base + '.ratingCount', s.ratingCount, 'raw') + ' star ratings, minus 5 for each of ' : 'Not measurable: no stars given yet. Send-backs this week: ')
+    + tsFig(base + '.rejectionCount', s.rejectionCount, 'raw') + (s.ratingCount ? ' send-backs: ' + tsPct(base + '.qualityPct', s.qualityPct) : '') + '</dd></div></dl>';
+  side += '<div><h3 class="ts-h3">What hurt the score</h3><ul class="ts-ul">'
+    + '<li>Completion: ' + tsFig(base + '.open', s.cohort - s.completed, 'raw') + ' jobs due and not completed' + (s.completionPct === null ? '' : ', ' + tsFig(base + '.lost.c', tsLost(s.completionPct, 0.5), '1dp') + ' points') + '</li>'
+    + '<li>On time: ' + tsFig(base + '.late', s.ontimeD - s.ontimeN, 'raw') + ' completed late' + (s.ontimePct === null ? '' : ', ' + tsFig(base + '.lost.o', tsLost(s.ontimePct, 0.3), '1dp') + ' points') + '</li>'
+    + '<li>Quality: ' + (s.qualityPct === null ? 'not scored yet, no stars given' : tsFig(base + '.lost.q', tsLost(s.qualityPct, 0.2), '1dp') + ' points') + '</li></ul></div>';
+  side += '<p class="ts-coach">' + tsEsc(tsCoach(sys, s, sh)) + '</p>';
+  side += '<div><h3 class="ts-h3">Shown, not scored</h3><ul class="ts-ul">'
+    + '<li><b>' + tsFig(base + '.shown.clientChanges', sh.clientChanges, 'raw') + '</b> client changes</li>'
+    + '<li><b>' + tsFig(base + '.shown.finished', sh.finished, 'raw') + '</b> ' + (sys === 'g' ? 'approved this week' : 'passed review this week') + '</li>'
+    + (sys === 'v' ? '<li><b>' + tsFig(base + '.shown.rejected', sh.rejected, 'raw') + '</b> rejected</li>' : '')
+    + '<li><b>' + tsFig(base + '.shown.noDeadline', sh.noDeadline, 'raw') + '</b> worked on with no deadline</li></ul></div>';
+
+  var byRef = {};
+  set.jobs.forEach(function (j) { byRef[j.ref] = j; });
+  var main = '<div><h3 class="ts-h3">The jobs behind it</h3>';
+  if (s.rows.length) {
+    main += '<div class="ts-tw"><table class="ts-jobs"><thead><tr><th>Job</th><th>Due</th><th>Handed in</th><th>' + (sys === 'g' ? 'Approved' : 'Passed') + '</th><th>On time</th><th>Stars</th><th>Send-backs</th></tr></thead><tbody>';
+    s.rows.forEach(function (r) {
+      var j = byRef[r.ref] || {}, rb = base + '.row.' + r.ref;
+      var chip = r.counted ? '<span class="ts-chip" data-s="' + (r.ontime ? 'ontime' : 'late') + '">' + tsFig(rb + '.ontime', r.ontime, 'yesno') + '</span>'
+        : '<span class="ts-chip" data-s="' + r.state + '">' + tsEsc(TS_STATE[r.state] || r.state) + '</span>';
+      main += '<tr><td>' + tsEsc(r.title) + '<span class="ts-ref">' + tsEsc(r.ref) + '</span></td>'
+        + '<td class="n">' + tsFig(rb + '.due', j.due, 'day') + '</td><td class="n">' + tsFig(rb + '.submittedAt', j.submittedAt, 'day') + '</td>'
+        + '<td class="n">' + tsFig(rb + '.approvedAt', j.approvedAt, 'day') + '</td><td>' + chip + '</td>'
+        + '<td class="n">' + (r.stars ? tsFig(rb + '.stars', r.stars, 'raw') + ' of 5' : 'None') + '</td><td class="n">' + tsFig(rb + '.rejections', r.rejections, 'raw') + '</td></tr>';
+    });
+    main += '</tbody></table></div>';
+  } else main += '<p class="ts-foot">' + (sh.noDeadline ? 'No job with a deadline was due this week.' : 'Nothing was due this week.') + '</p>';
+  main += '</div>';
+  var sbs = [];
+  set.jobs.forEach(function (j) {
+    if (j.assignee !== pid) return;
+    j.rejections.forEach(function (x) { var t = Date.parse(x.at); if (t >= d.wk.startMs && t <= d.asOf) sbs.push({ j: j, x: x, t: t }); });
+  });
+  sbs.sort(function (a, b) { return a.t - b.t; });
+  main += '<div><h3 class="ts-h3">Send-backs this week: ' + tsFig(base + '.rejectionCount', s.rejectionCount, 'raw') + '</h3>';
+  if (sbs.length) {
+    main += '<ul class="ts-ul">' + sbs.map(function (e) {
+      return '<li><b>' + tsEsc(TS_ADAPTER.dayLabel(e.t)) + '</b> ' + tsEsc(e.j.title) + ' (' + tsEsc(e.j.ref) + '). ' + tsEsc(e.x.reason) + (e.x.by ? '. Sent back by ' + tsEsc(e.x.by) : '') + '</li>';
+    }).join('') + '</ul>';
+  } else main += '<p class="ts-foot">None this week.</p>';
+  main += '</div><p class="ts-foot">' + (sys === 'g'
+    ? 'Graphics has no assignment history, so every job counts for the designer named on it today.'
+    : 'A video counts for the editor holding it when it was handed in. A send-back counts for the editor holding it at that moment.') + '</p>';
+  document.getElementById('ts-sheet-bd').innerHTML = '<div class="ts-side">' + side + '</div><div class="ts-main">' + main + '</div>';
+  ov.setAttribute('data-open', base);
+  ov.classList.remove('hidden');
+  var bd = document.getElementById('ts-sheet-bd'); if (bd) bd.scrollTop = 0;
+}
+function tsClose() { var ov = document.getElementById('ts-sheet'); if (ov) { ov.classList.add('hidden'); ov.removeAttribute('data-open'); } }
+</script>
+<!-- @@BBCC_TEAMSCORE_END@@ -->
 
 <!-- ===================== BB SENTINEL — system watchdog ===================== -->
 <script>
@@ -17757,6 +18169,8 @@ async function runSelfTest(opts){
   try{showPage(snapPage);}catch(e){}
  }
 
+ /* Team Score (6 Nov 2026): the page, its nav item and its loader exist. Reads nothing, writes nothing. */
+ ok('Team Score page, nav item and loader are present',!!document.getElementById('page-teamscore')&&NAV9.some(n=>n.nav==='teamscore')&&typeof loadTeamScore==='function'&&typeof tsOpen==='function',NAV9.map(n=>n.nav).join(' '));
  const failed=R.filter(r=>!r.pass);
  const pass=failed.length===0;
  window.__ST_REPORTING=true;
