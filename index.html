@@ -3291,14 +3291,15 @@ window.__ST_LOG=[];
     <div id="tm-detail" style="display:none"></div>
   </div>
 </div>
-<!-- ══════════════ TEAM SCORE PAGE (6 Nov 2026, TEAMSCORE-BUILD-4). Reads only. Code in the BBCC_TEAMSCORE fence. -->
+<!-- ══════════════ TEAM SCORE PAGE (6 Nov 2026, TEAMSCORE-SMM-1, was TEAMSCORE-BUILD-4). Reads only. Code in the BBCC_TEAMSCORE fence. -->
 <div id="page-teamscore" class="page-section" style="display:none">
   <div class="content">
     <div class="ts-head">
-      <div><h1 class="ts-title">Team Score</h1><div class="ts-sub">Graphics and Video, one week at a time. Tap a person to see the working behind the figure.</div></div>
+      <div><h1 class="ts-title">Team Score</h1><div class="ts-sub">Graphics, Video, SMM and Heads, one week at a time. Tap a person to see the working behind the figure.</div></div>
       <div class="filter-bar ts-filters"><select class="form-select" id="ts-week" aria-label="Week" onchange="tsRender()"></select></div>
     </div>
     <div id="ts-body"><div class="ts-empty">Reading the boards…</div></div>
+    <div id="ts-more"></div>
   </div>
 </div>
 <!-- ══════════════ USAGE PAGE (18 Oct 2026, Thulaib: "the usage thing we made yesterday ... in another section on the left").
@@ -17128,7 +17129,8 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 else buildNavGroups();
 </script>
 
-<!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-BUILD-4 (6 Nov 2026, Thulaib approved bb_pending 1440).
+<!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-SMM-1 (6 Nov 2026, Thulaib approved bb_pending 1460 to 1465). SMM and Heads added after Video.
+     Was: TEAMSCORE-BUILD-4 (6 Nov 2026, Thulaib approved bb_pending 1440).
      Team Score: Graphics and Video, week by week, scored by the Midnight Masala engine (team-score/engine.js, copied byte
      for byte, never edited) on jobs built by team-score/ts-adapter.js. Rules: ~/bb-systems/team-score/SPEC.md.
      Reads only, writes nothing. Every figure carries data-fig and data-fmt so ~/bb-systems/team-score/checks/recount.mjs
@@ -17230,10 +17232,43 @@ else buildNavGroups();
   .ts-jobs td.ts-t{grid-column:1/-1;font-size:13.5px;font-weight:600}
   .ts-jobs td[data-l]::before{content:attr(data-l);display:block;font-size:11px;font-weight:400;color:var(--text-3);margin-bottom:2px}
 }
+/* SMM AND HEADS (TEAMSCORE-SMM-1): cards, not a ranked list. Desk: a grid using the width. Phone: one card per row. */
+#ts-more{margin-top:4px}
+.ts-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ts-card{display:flex;flex-direction:column;gap:8px;width:100%;min-height:120px;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;cursor:pointer}
+.ts-card:hover{background:var(--surface-2)}
+.ts-card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.ts-card-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ts-card-top .ts-name{font-size:14px}
+.ts-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
+.ts-tag-q{color:var(--text-3);background:var(--surface-2)}
+.ts-headline{font-size:13px;line-height:1.5;color:var(--text)}
+.ts-mini{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;font-size:12px;color:var(--text-3)}
+.ts-mini b{display:block;font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.ts-red{color:var(--red)}
+.ts-mini .ts-red b,.ts-red b{color:var(--red)}
+.ts-bks{display:grid;gap:10px}
+.ts-bk-row{display:grid;gap:4px;font-size:12.5px;color:var(--text-2)}
+.ts-bk-row b{color:var(--text);font-weight:600}
+.ts-bk{position:relative;height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.ts-bk span{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.ts-bk .o{border:1.5px dashed var(--red);background:transparent;box-sizing:border-box}
+.ts-bk .m{background:var(--blue)}
+.ts-bk .p{background:var(--green)}
+.ts-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--text-3)}
+.ts-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ts-grey{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text-2);font-size:13px}
+.ts-grey .ts-cap{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.ts-ul li.ts-red,.ts-ul li.ts-red b{color:var(--red)}
+.ts-jobs tr.ts-red td{color:var(--red)}
+@media(max-width:760px){
+  .ts-cards{grid-template-columns:minmax(0,1fr)}
+  .ts-card{padding:14px}
+}
 </style>
 <script>
 /* TEAMSCORE-BUILD-4. All state lives under TS; every name starts ts so nothing collides with the rest of the app. */
-var TS_V = '4';
+var TS_V = '5';
 var TS = { libs: null, base: null, baseAt: 0, weeks: {}, view: null, token: 0, people: {} };
 var TS_STATE = { completed: 'Completed', awaiting: 'Waiting for review', overdue: 'Overdue', in_progress: 'In progress', cancelled: 'Cancelled' };
 var TS_ICON_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
@@ -17242,6 +17277,7 @@ function tsEsc(s) { return String(s === null || s === undefined ? '' : s).replac
 /* One formatter for every figure. recount.mjs carries the same rules and compares the text. */
 function tsFmt(v, f) {
   if (f === 'day') return v ? TS_ADAPTER.dayLabel(Date.parse(v)) : 'Not yet';
+  if (f === 'when') return v ? TS_ADAPTER.dayLabel(Date.parse(v)) + ' ' + new Date(Date.parse(v) + 5.5 * 3600e3).toISOString().slice(11, 16) : 'Not yet';
   if (f === 'yesno') return v === null || v === undefined ? 'Not yet' : (v ? 'Yes' : 'No');
   if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) return 'Not measurable';
   if (f === '1dp') return Number(v).toFixed(1);
@@ -17255,8 +17291,8 @@ function tsLoadScript(src) {
   return new Promise(function (ok, no) { var s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = function () { no(new Error('could not load ' + src)); }; document.head.appendChild(s); });
 }
 function tsEnsureLibs() {
-  if (window.MM_ENGINE && window.TS_ADAPTER) return Promise.resolve();
-  if (!TS.libs) TS.libs = Promise.all([tsLoadScript('team-score/engine.js?v=' + TS_V), tsLoadScript('team-score/ts-adapter.js?v=' + TS_V)]);
+  if (window.MM_ENGINE && window.TS_ADAPTER && window.TS_SMM) return Promise.resolve();
+  if (!TS.libs) TS.libs = Promise.all([tsLoadScript('team-score/engine.js?v=' + TS_V), tsLoadScript('team-score/ts-adapter.js?v=' + TS_V), tsLoadScript('team-score/ts-smm.js?v=' + TS_V)]);
   return TS.libs;
 }
 
@@ -17408,6 +17444,7 @@ async function tsRender() {
   body.innerHTML = html;
   body.setAttribute('data-asof', String(d.asOf));
   body.setAttribute('data-start', String(d.wk.startMs));
+  tsRenderMore(tok, d);   /* SMM and Heads: their own read, after Graphics and Video have painted */
 }
 
 function tsSection(d, seed, sys, title, people, set, dept) {
@@ -17472,17 +17509,9 @@ function tsCoach(sys, s, sh) {
 function tsOpen(sys, pid) {
   var rec = TS.people[sys + '.' + pid], d = TS.view;
   if (!rec || !d) return;
-  var ov = document.getElementById('ts-sheet');
-  if (!ov) {
-    ov = document.createElement('div');
-    ov.className = 'modal-overlay ts-ov hidden'; ov.id = 'ts-sheet';
-    ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'ts-sheet-title');
-    ov.innerHTML = '<div class="ts-sheet"><div class="ts-sheet-hd"><div><h2 id="ts-sheet-title"></h2><div class="ts-cap" id="ts-sheet-cap"></div></div>'
-      + '<button type="button" class="ts-x modal-close" aria-label="Close" onclick="tsClose()">' + TS_ICON_X + '</button></div><div class="ts-sheet-bd" id="ts-sheet-bd"></div></div>';
-    ov.addEventListener('click', function (e) { if (e.target === ov) tsClose(); });
-    document.body.appendChild(ov);
-  }
+  var ov = tsSheetEl();
   var s = rec.s, sh = rec.sh, base = sys + '.' + pid, set = sys === 'g' ? d.g : d.v;
+
   var b = MM_ENGINE.bandFor(s.overall, 90), why = tsWhy(sys, s, sh);
   var team = sys === 'g' ? 'Graphics' : 'Video';
   document.getElementById('ts-sheet-title').textContent = rec.p.name;
@@ -17545,7 +17574,238 @@ function tsOpen(sys, pid) {
   ov.classList.remove('hidden');
   var bd = document.getElementById('ts-sheet-bd'); if (bd) bd.scrollTop = 0;
 }
+/* One body-level sheet for every drill-down on this page (Graphics, Video, SMM, Heads). */
+function tsSheetEl() {
+  var ov = document.getElementById('ts-sheet');
+  if (ov) return ov;
+  ov = document.createElement('div');
+  ov.className = 'modal-overlay ts-ov hidden'; ov.id = 'ts-sheet';
+  ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'ts-sheet-title');
+  ov.innerHTML = '<div class="ts-sheet"><div class="ts-sheet-hd"><div><h2 id="ts-sheet-title"></h2><div class="ts-cap" id="ts-sheet-cap"></div></div>'
+    + '<button type="button" class="ts-x modal-close" aria-label="Close" onclick="tsClose()">' + TS_ICON_X + '</button></div><div class="ts-sheet-bd" id="ts-sheet-bd"></div></div>';
+  ov.addEventListener('click', function (e) { if (e.target === ov) tsClose(); });
+  document.body.appendChild(ov);
+  return ov;
+}
 function tsClose() { var ov = document.getElementById('ts-sheet'); if (ov) { ov.classList.add('hidden'); ov.removeAttribute('data-open'); } }
+
+/* SMM AND HEADS (TEAMSCORE-SMM-1, 6 Nov 2026). Cards from team-score/ts-smm.js, read in their own fetch after Graphics and
+   Video paint. Rules: ~/bb-systems/team-score/SPEC-SMM-HEADS.md. Every figure carries data-fig (checks/recount-smm.mjs).
+   People are team_members where active, filtered here as well as in the read (checks/active-only-smm.mjs). */
+var TS_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+TS.smmBase = null; TS.smmBaseAt = 0; TS.smmWeeks = {}; TS.smmView = null;
+
+function tsActive(team) { return team.filter(function (m) { return m.active === true; }); }
+function tsSmmPeople(team) { return tsActive(team).filter(function (m) { return /^social media manager$/i.test(String(m.role || '').trim()); }); }
+function tsHeadPeople(team) {
+  return tsActive(team).filter(function (m) { return (m.is_head && ['video', 'graphic', 'smm'].indexOf(m.head_of) > -1) || /^coo$/i.test(String(m.role || '').trim()); });
+}
+
+async function tsSmmBaseRows() {
+  if (TS.smmBase && Date.now() - TS.smmBaseAt < 120000) return TS.smmBase;
+  var r = await Promise.all([
+    tsGet('team_members?select=id,name,role,is_head,head_of,active&active=eq.true&order=id.asc'),
+    tsGet('clients?select=id,name,assigned_smm,status&order=id.asc'),
+    tsGet('smm_publish_log?select=id,source_table,source_id,client_id,tiktok_at,instagram_at,facebook_at,linkedin_at&order=id.asc'),
+    tsGet('graphic_projects?select=id,title,client_id,assigned_designer_id,target_year,target_month,type,is_archived&order=id.asc'),
+    tsGet('video_projects?select=id,title,client_id,assigned_editor_id,target_year,target_month,is_archived&order=id.asc'),
+    tsGet('graphic_stage_history?select=id,graphic_project_id,stage,entered_at,entered_by&order=id.asc'),
+    tsGet('video_stage_history?select=id,video_project_id,stage,entered_at,moved_by&order=id.asc'),
+    tsGet('video_assignment_history?select=id,video_project_id,editor_id,assigned_at,ended_at&order=id.asc'),
+    tsGet('bb_review_events?select=*&order=id.asc'),
+    tsGet('smm_shoots?select=id,shoot_date,created_at&order=id.asc')
+  ]);
+  TS.smmBase = { team: r[0], clients: r[1], publog: r[2], gp: r[3], vp: r[4], gh: r[5], vh: r[6], va: r[7], events: r[8], shoots: r[9] };
+  TS.smmBaseAt = Date.now();
+  return TS.smmBase;
+}
+async function tsSmmWeek(d) {
+  var hit = TS.smmWeeks[d.wk.startMs];
+  if (hit && hit.asOf === d.asOf && Date.now() - hit.at < 120000) return hit;
+  var day = new Date(d.asOf + 5.5 * 3600e3), Y = day.getUTCFullYear(), M = day.getUTCMonth() + 1;
+  var monday = new Date(d.wk.startMs + 5.5 * 3600e3).toISOString().slice(0, 10);
+  var r = await Promise.all([
+    tsSmmBaseRows(),
+    tsGet('bb_commitment_ledger?select=client_id,client_name,year,month,kind,contracted,completed,published&year=eq.' + Y + '&month=eq.' + M),
+    tsGet('smm_weekly_plan?select=id,week_start,assigned_to,task_type,status,created_at&week_start=eq.' + monday + '&order=id.asc')
+  ]);
+  var rows = Object.assign({}, r[0], { ledger: r[1], plan: r[2] });
+  var out = { at: Date.now(), asOf: d.asOf, rows: rows };
+  TS.smmWeeks[d.wk.startMs] = out;
+  return out;
+}
+
+async function tsRenderMore(tok, d) {
+  var box = document.getElementById('ts-more');
+  if (!box) return;
+  box.removeAttribute('data-asof'); box.removeAttribute('data-start');
+  box.innerHTML = '<div class="ts-empty">Reading the SMM and head rows…</div>';
+  var w;
+  try { w = await tsSmmWeek(d); }
+  catch (e) { if (tok === TS.token) box.innerHTML = '<div class="ts-empty">The SMM and head rows could not be read: ' + tsEsc(e.message) + '. Nothing is shown rather than a wrong figure.</div>'; return; }
+  if (tok !== TS.token) return;
+  var rows = w.rows, seed = tsSeed(d);
+  var lines = {
+    g: MM_ENGINE.score(seed, d.g.jobs, d.asOf, { dept: 'graphic' }),
+    v: MM_ENGINE.score(seed, d.v.jobs, d.asOf, { dept: 'video' })
+  };
+  var smm = tsSmmPeople(rows.team).map(function (m) { return TS_SMM.smmCard(rows, m, d.wk, d.asOf); });
+  var heads = tsHeadPeople(rows.team).map(function (m) { return TS_SMM.headCard(rows, m, d.wk, d.asOf); });
+  var order = { video: 1, graphic: 2, smm: 3, coo: 4 };
+  heads.sort(function (a, b) { return (order[a.headOf] || 9) - (order[b.headOf] || 9) || a.name.localeCompare(b.name); });
+  TS.smmView = { d: d, rows: rows, lines: lines, smm: smm, heads: heads };
+  var h = '<section class="ts-sec" id="ts-sec-s"><div class="ts-sec-hd"><h2>SMM</h2><span class="ts-team">Tracked, not scored. The Publisher is scored once posting dates exist.</span></div>';
+  h += smm.length ? '<div class="ts-cards">' + smm.map(function (c) { return tsSmmCardHtml(c, lines); }).join('') + '</div>' : '<div class="ts-empty">No active Social Media Manager.</div>';
+  h += '</section>';
+  h += '<section class="ts-sec" id="ts-sec-h"><div class="ts-sec-hd"><h2>Heads</h2><span class="ts-team">Review decisions this week. On target means decided within 24 weekday hours of the hand-in. No single score.</span></div>';
+  h += heads.length ? '<div class="ts-cards">' + heads.map(tsHeadCardHtml).join('') + '</div>' : '<div class="ts-empty">No active head.</div>';
+  h += '</section>';
+  box.innerHTML = h;
+  box.setAttribute('data-asof', String(d.asOf));
+  box.setAttribute('data-start', String(d.wk.startMs));
+}
+
+function tsLine(path, s) {
+  return s.cohort ? tsFig(path + '.completed', s.completed, 'raw') + ' of ' + tsFig(path + '.cohort', s.cohort, 'raw') + ' jobs due completed' : 'no job with a deadline was due';
+}
+function tsSmmHeadline(c, lines) {
+  var b = 's.' + c.id;
+  if (c.role === 'Publisher') return tsFig(b + '.posted', c.posted.count, 'raw') + ' posted this week. <span class="' + (c.waiting.count ? 'ts-red' : '') + '">' + tsFig(b + '.waiting', c.waiting.count, 'raw') + ' made, not posted after 2 days.</span>';
+  if (c.role === 'Creative') return tsFig(b + '.rev.n', c.reviews.n, 'raw') + ' team review decisions, ' + tsPct(b + '.rev.onTargetPct', c.reviews.onTargetPct) + ' on target. Not measurable: plan sent dates are not recorded.';
+  if (c.role === 'Operations') return 'Graphics: ' + tsLine(b + '.ops.g', lines.g) + '. Video: ' + tsLine(b + '.ops.v', lines.v) + '. '
+    + (c.ops.shootsNext ? 'Next week’s shoots logged by Tuesday: ' + tsFig(b + '.ops.shootsLogged', c.ops.shootsLogged, 'raw') + ' of ' + tsFig(b + '.ops.shootsNext', c.ops.shootsNext, 'raw') + '.' : 'No shoot is dated next week yet.');
+  return 'No headline: this name is not in the SMM role list set on ' + tsEsc(TS_ADAPTER.dayLabel(Date.parse(c.roleSet))) + '.';
+}
+function tsSmmCardHtml(c, lines) {
+  var b = 's.' + c.id;
+  return '<button type="button" class="ts-card" data-sys="s" data-pid="' + c.id + '" onclick="tsOpenSmm(' + c.id + ')">'
+    + '<span class="ts-card-top"><span class="ts-name">' + tsEsc(c.name) + '</span><span><span class="ts-tag">' + tsEsc(c.role || 'No role set') + '</span> <span class="ts-tag ts-tag-q">Tracked, not scored</span></span></span>'
+    + '<span class="ts-headline">' + tsSmmHeadline(c, lines) + '</span>'
+    + '<span class="ts-mini"><span>Book made<b>' + tsFig(b + '.book.made', c.book.made, 'raw') + '</b>of ' + tsFig(b + '.book.owed', c.book.owed, 'raw') + ' owed</span>'
+    + '<span>Posted<b>' + tsFig(b + '.posted', c.posted.count, 'raw') + '</b>this week</span>'
+    + '<span class="' + (c.waiting.count ? 'ts-red' : '') + '">Not posted<b>' + tsFig(b + '.waiting', c.waiting.count, 'raw') + '</b>after 2 days</span></span>'
+    + '</button>';
+}
+function tsHeadCardHtml(h) {
+  var b = 'h.' + h.id;
+  return '<button type="button" class="ts-card" data-sys="h" data-pid="' + h.id + '" onclick="tsOpenHead(' + h.id + ')">'
+    + '<span class="ts-card-top"><span class="ts-name">' + tsEsc(h.name) + '</span><span class="ts-tag">' + tsEsc(h.stages.join(', ')) + '</span></span>'
+    + '<span class="ts-headline">' + tsFig(b + '.n', h.speed.n, 'raw') + ' decisions' + (h.speed.timed
+      ? ', median ' + tsFig(b + '.median', h.speed.median, '1dp') + ' hours, ' + tsPct(b + '.onTargetPct', h.speed.onTargetPct) + ' on target.'
+      : h.speed.n ? ', ' + tsFig(b + '.direct', h.speed.direct, 'raw') + ' approved straight from another stage. Time to decide: Not measurable, no hand-in time is recorded.'
+      : '. Time to decide: Not measurable, nothing was decided.') + '</span>'
+    + '<span class="ts-mini"><span>Waiting now<b>' + tsFig(b + '.waiting', h.speed.waiting, 'raw') + '</b>jobs</span>'
+    + '<span>Sent back<b>' + tsFig(b + '.sentBack', h.sendBacks.count, 'raw') + '</b>this week</span>'
+    + '<span class="' + (h.skipped.length ? 'ts-red' : '') + '">Skipped<b>' + tsFig(b + '.skipped', h.skipped.length, 'raw') + '</b>decisions</span></span>'
+    + '</button>';
+}
+
+function tsSheetOpen(key, title, cap, html) {
+  var ov = tsSheetEl();
+  document.getElementById('ts-sheet-title').textContent = title;
+  document.getElementById('ts-sheet-cap').textContent = cap;
+  document.getElementById('ts-sheet-bd').innerHTML = html;
+  ov.setAttribute('data-open', key);
+  ov.classList.remove('hidden');
+  var bd = document.getElementById('ts-sheet-bd'); if (bd) bd.scrollTop = 0;
+}
+function tsWeekCap(d, what) { return what + '. ' + (d.asOf < d.wk.endMs ? 'This week so far, ' : '') + d.wk.label; }
+function tsStatsDl(b, s) {
+  return '<dl class="ts-facts">'
+    + '<div><dt>Decisions</dt><dd>' + tsFig(b + '.n', s.n, 'raw') + (s.direct ? ', of which ' + tsFig(b + '.direct', s.direct, 'raw') + ' approved straight from another stage with no hand-in time' : '') + '</dd></div>'
+    + '<div><dt>Median</dt><dd>' + tsFig(b + '.median', s.median, '1dp') + (s.median === null ? '' : ' hours') + ' from hand-in to decision</dd></div>'
+    + '<div><dt>Slowest tenth</dt><dd>' + tsFig(b + '.p90', s.p90, '1dp') + (s.p90 === null ? '' : ' hours or more') + '</dd></div>'
+    + '<div><dt>On target</dt><dd>' + tsFig(b + '.onTarget', s.onTarget, 'raw') + ' of ' + tsFig(b + '.timed', s.timed, 'raw') + ' within 24 weekday hours: ' + tsPct(b + '.onTargetPct', s.onTargetPct) + '</dd></div>'
+    + '<div><dt>Sent back</dt><dd>' + tsFig(b + '.sentBack', s.sentBack, 'raw') + ', with a reason: ' + tsPct(b + '.reasonPct', s.reasonPct) + '</dd></div></dl>';
+}
+
+function tsOpenSmm(pid) {
+  var V = TS.smmView; if (!V) return;
+  var c = V.smm.filter(function (x) { return x.id === pid; })[0]; if (!c) return;
+  var d = V.d, b = 's.' + c.id, side = '', main = '';
+  side += '<p class="ts-coach">' + tsSmmHeadline(c, V.lines) + '</p>';
+  var max = 1;
+  c.book.clients.forEach(function (x) { max = Math.max(max, x.owed || 0, x.made); });
+  side += '<div><h3 class="ts-h3">Their book, ' + TS_MONTHS[c.month - 1] + ' ' + c.year + '</h3>'
+    + '<p class="ts-foot">' + tsFig(b + '.book.count', c.book.count, 'raw') + ' active clients. Made ' + tsFig(b + '.book.made', c.book.made, 'raw') + ', posted ' + tsFig(b + '.book.posted', c.book.posted, 'raw') + ', owed ' + tsFig(b + '.book.owed', c.book.owed, 'raw') + ' (posts, videos and stories).</p>'
+    + '<div class="ts-legend"><span><i style="background:var(--blue)"></i>Made</span><span><i style="background:var(--green)"></i>Posted</span><span><i style="border:1.5px dashed var(--red)"></i>Owed</span></div><div class="ts-bks">';
+  c.book.clients.forEach(function (x) {
+    var cb = b + '.book.c.' + x.id, pc = function (v) { return Math.min(100, (v || 0) / max * 100).toFixed(1) + '%'; };
+    side += '<div class="ts-bk-row"><span><b>' + tsEsc(x.name) + '</b>: made ' + tsFig(cb + '.made', x.made, 'raw') + ', posted ' + tsFig(cb + '.posted', x.posted, 'raw') + (x.owed === null ? ', nothing owed on the ledger' : ', owed ' + tsFig(cb + '.owed', x.owed, 'raw')) + '</span>'
+      + '<span class="ts-bk" aria-hidden="true"><span class="o" style="width:' + pc(x.owed) + '"></span><span class="m" style="width:' + pc(x.made) + '"></span><span class="p" style="width:' + pc(x.posted) + '"></span></span></div>';
+  });
+  side += '</div><p class="ts-foot">Made is the designers’ and editors’ work; it shows the client’s position, not the SMM’s output. Read as the ledger stands today.</p></div>';
+  side += '<div><h3 class="ts-h3">Daily form</h3><p class="ts-foot">' + (c.form.days === null
+    ? tsFig(b + '.form.days', null, 'raw') + ': ' + tsEsc(c.form.reason) + '.'
+    : tsFig(b + '.form.days', c.form.days, 'raw') + ' of ' + tsFig(b + '.form.of', c.form.of, 'raw') + ' weekdays so far with a form sent.') + '</p></div>';
+  side += '<div class="ts-grey"><h3 class="ts-h3">Their own diary</h3><div class="ts-cap">their own list, ticked by themselves</div>'
+    + '<p style="margin:8px 0 0">' + tsFig(b + '.diary.ticked', c.diary.ticked, 'raw') + ' of ' + tsFig(b + '.diary.planned', c.diary.planned, 'raw') + ' planned posts ticked done.</p></div>';
+
+  main += '<div><h3 class="ts-h3">Posted this week: ' + tsFig(b + '.posted', c.posted.count, 'raw') + '</h3>';
+  main += c.posted.items.length ? '<ul class="ts-ul">' + c.posted.items.map(function (x) { return '<li data-key="' + x.id + '"><b>' + tsFig(b + '.posted.' + x.id + '.at', x.at, 'day') + '</b> ' + tsEsc(x.title) + '</li>'; }).join('') + '</ul>' : '<p class="ts-foot">Nothing ticked as posted this week.</p>';
+  main += '</div><div><h3 class="ts-h3 ' + (c.waiting.count ? 'ts-red' : '') + '">Made, not posted after 2 days: ' + tsFig(b + '.waiting', c.waiting.count, 'raw') + '</h3>';
+  main += c.waiting.items.length ? '<ul class="ts-ul">' + c.waiting.items.map(function (x) {
+    var k = x.sys + '-' + x.job;
+    return '<li class="ts-red" data-key="' + k + '"><b>' + tsFig(b + '.waiting.' + k + '.days', x.days, 'int') + ' days</b> ' + tsEsc(x.title) + ' (' + (x.sys === 'g' ? 'post' : 'video') + ', finished ' + tsFig(b + '.waiting.' + k + '.finished', x.finished, 'day') + ')</li>';
+  }).join('') + '</ul>' : '<p class="ts-foot">None. Everything finished for this month has been posted.</p>';
+  main += '</div><div><h3 class="ts-h3">Reviews they did (Team review)</h3>' + tsStatsDl(b + '.rev', c.reviews) + '</div>';
+  main += '<p class="ts-foot">The book is the active clients with this name on them today, so a book change moves past weeks too. Posts count when the first platform is ticked in the publish tracker.</p>';
+  tsSheetOpen(b, c.name, tsWeekCap(d, 'SMM, ' + (c.role || 'no role set') + ', tracked, not scored'), '<div class="ts-side">' + side + '</div><div class="ts-main">' + main + '</div>');
+}
+
+function tsOutcome(x) {
+  if (x.outcome === 'passed') return 'Passed';
+  if (x.outcome === 'sent_back') return 'Sent back';
+  var t = String(x.toStage || '').replace(/_/g, ' '); return 'Moved to ' + t.charAt(0).toUpperCase() + t.slice(1);
+}
+function tsOpenHead(pid) {
+  var V = TS.smmView; if (!V) return;
+  var h = V.heads.filter(function (x) { return x.id === pid; })[0]; if (!h) return;
+  var d = V.d, b = 'h.' + h.id, side = '', main = '';
+  var sp = { n: h.speed.n, timed: h.speed.timed, direct: h.speed.direct, median: h.speed.median, p90: h.speed.p90, onTarget: h.speed.onTarget, onTargetPct: h.speed.onTargetPct, sentBack: h.sendBacks.count, reasonPct: h.sendBacks.reasonPct };
+  side += '<div><h3 class="ts-h3">Review speed</h3>' + tsStatsDl(b, sp)
+    + '<p class="ts-foot">Waiting now: ' + tsFig(b + '.waiting', h.speed.waiting, 'raw') + ' jobs' + (h.speed.waiting ? ', the oldest for ' + tsFig(b + '.oldestWait', h.speed.oldestWait, '1dp') + ' hours' : '') + '.</p></div>';
+  side += '<div><h3 class="ts-h3">Stars</h3><p class="ts-foot">' + tsFig(b + '.starred', h.stars.starred, 'raw') + ' of ' + tsFig(b + '.passes', h.stars.passes, 'raw') + ' passes carry stars.</p></div>';
+  side += '<div><h3 class="ts-h3">Send-backs: ' + tsFig(b + '.sentBack', h.sendBacks.count, 'raw') + '</h3>';
+  side += h.sendBacks.reasons.length ? '<ul class="ts-ul">' + h.sendBacks.reasons.map(function (x) { return '<li><b>' + tsEsc(TS_ADAPTER.dayLabel(x.atMs)) + '</b> ' + tsEsc(x.title) + ': ' + tsEsc(x.reason || 'No reason recorded') + '</li>'; }).join('') + '</ul>' : '<p class="ts-foot">None this week.</p>';
+  if (h.sendBacks.more) side += '<p class="ts-foot">' + tsFig(b + '.reasonsMore', h.sendBacks.more, 'raw') + ' more not listed.</p>';
+  side += '</div><div><h3 class="ts-h3 ' + (h.skipped.length ? 'ts-red' : '') + '">Skipped: ' + tsFig(b + '.skipped', h.skipped.length, 'raw') + '</h3>';
+  side += h.skipped.length ? '<ul class="ts-ul">' + h.skipped.map(function (x) {
+    return '<li class="' + (x.own ? 'ts-red' : '') + '" data-key="' + x.key + '"><b>' + tsFig(b + '.sk.' + x.key + '.at', x.at, 'day') + '</b> ' + tsEsc(x.title) + ': ' + tsEsc(x.decider) + ' decided ' + tsEsc(x.stageLabel) + (x.own ? ', their own work' : '') + '</li>';
+  }).join('') + '</ul>' : '<p class="ts-foot">Nobody else decided in this stage this week.</p>';
+  side += '</div><div><h3 class="ts-h3">Their team</h3><ul class="ts-ul">';
+  if (h.headOf === 'graphic' || h.coo) side += '<li>Graphics: ' + tsLine(b + '.team.g', V.lines.g) + '</li>';
+  if (h.headOf === 'video' || h.coo) side += '<li>Video: ' + tsLine(b + '.team.v', V.lines.v) + '</li>';
+  if (h.headOf === 'smm' || h.coo) V.smm.forEach(function (c) {
+    var t = b + '.team.s.' + c.id;
+    side += '<li>' + tsEsc(c.name) + ': ' + tsFig(t + '.posted', c.posted.count, 'raw') + ' posted, ' + tsFig(t + '.waiting', c.waiting.count, 'raw') + ' not posted after 2 days, ' + tsFig(t + '.rev', c.reviews.n, 'raw') + ' team reviews</li>';
+  });
+  side += '</ul></div>';
+  if (h.coo) {
+    side += '<div><h3 class="ts-h3 ' + (h.solo.length ? 'ts-red' : '') + '">A head’s own work passed with no second reviewer: ' + tsFig(b + '.solo', h.solo.length, 'raw') + '</h3>';
+    side += h.solo.length ? '<ul class="ts-ul">' + h.solo.map(function (x) { return '<li class="ts-red" data-key="' + x.key + '"><b>' + tsEsc(TS_ADAPTER.dayLabel(x.atMs)) + '</b> ' + tsEsc(x.title) + ', passed by ' + tsEsc(x.decider) + '</li>'; }).join('') + '</ul>' : '<p class="ts-foot">None this week.</p>';
+    side += '</div>';
+  }
+  main += '<div><h3 class="ts-h3">The decisions behind it</h3>';
+  if (h.decisions.length) {
+    main += '<div class="ts-tw"><table class="ts-jobs"><thead><tr><th>Job</th><th>Hand-in</th><th>Decision</th><th>Hours</th><th>On target</th><th>Outcome</th><th>Reason</th><th>Stars</th></tr></thead><tbody>';
+    h.decisions.slice().reverse().forEach(function (x) {
+      var r = b + '.d.' + x.key;
+      main += '<tr data-key="' + x.key + '" class="' + (x.own ? 'ts-red' : '') + '"><td class="ts-t">' + tsEsc(x.title) + '<span class="ts-ref">' + tsEsc(x.ref) + ', ' + tsEsc(x.stageLabel) + '</span></td>'
+        + '<td class="n" data-l="Hand-in">' + (x.direct ? 'Not recorded' : tsFig(r + '.handIn', x.handIn, 'when')) + '</td>'
+        + '<td class="n" data-l="Decision">' + tsFig(r + '.at', x.at, 'when') + '</td>'
+        + '<td class="n" data-l="Hours">' + tsFig(r + '.hours', x.hours, '1dp') + '</td>'
+        + '<td data-l="On target">' + (x.direct ? 'Not measurable' : '<span class="ts-chip" data-s="' + (x.onTarget ? 'ontime' : 'late') + '">' + tsFig(r + '.onTarget', x.onTarget, 'yesno') + '</span>') + '</td>'
+        + '<td data-l="Outcome">' + tsEsc(tsOutcome(x)) + '</td>'
+        + '<td data-l="Reason">' + (x.outcome === 'sent_back' ? tsEsc(x.reason || 'No reason recorded') : '') + '</td>'
+        + '<td class="n" data-l="Stars">' + (x.outcome !== 'passed' ? '' : x.stars === null ? 'None' : tsFig(r + '.stars', x.stars, 'raw') + ' of 5') + '</td></tr>';
+    });
+    main += '</tbody></table></div>';
+  } else main += '<p class="ts-foot">No decision this week.</p>';
+  main += '</div><p class="ts-foot">A decision is the move out of the review stage, credited to whoever made it, in the week it was made. Hours run from the move into review; Saturday and Sunday hours do not count against the 24 hour target. '
+    + 'A Graphics approval made straight from To do writes its own Head Review row, so its hand-in time is not recorded.</p>';
+  tsSheetOpen(b, h.name, tsWeekCap(d, 'Head, ' + h.stages.join(', ')), '<div class="ts-side">' + side + '</div><div class="ts-main">' + main + '</div>');
+}
 </script>
 <!-- @@BBCC_TEAMSCORE_END@@ -->
 
