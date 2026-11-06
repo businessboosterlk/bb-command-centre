@@ -1,5 +1,5 @@
-/* TEAM SCORE ADAPTER. Turns BB rows (Graphic and Video boards, their stage history, the video assignment history and
-   bb_review_events) into the jobs the Midnight Masala engine scores. Pure functions, no fetch, no DOM.
+/* TEAM SCORE ADAPTER. Turns BB rows (Graphic and Video boards, their stage history, the video assignment history, the SMM
+   Posting Plan log smm_publish_log and bb_review_events) into the jobs the Midnight Masala engine scores. Pure functions, no fetch, no DOM.
    The engine (engine.js) is copied byte for byte beside this file and never edited. Rules: ~/bb-systems/team-score/SPEC.md.
    Copy this file byte for byte into every app that shows a Team Score. Written 6 Nov 2026 (TEAM SCORE BUILD 3). */
 (function (g) {
@@ -228,5 +228,64 @@
     return { jobs: jobs, shown: shown };
   }
 
-  g.TS_ADAPTER = { week: week, dueIso: dueIso, dayLabel: dayLabel, graphicJobs: graphicJobs, videoJobs: videoJobs, holderAt: holderAt };
+  /* SMM (phase 2, the Publisher). One job per smm_publish_log row with a Post on date (planned_on).
+     Due = planned_on 23:59:59.999 Colombo. Posted = the first of the four ticks at or before asOf. The person is the
+     active team member named in the client's assigned_smm, read live, so a book change moves past jobs too.
+     A date set after asOf (planned_set_at) did not exist at asOf, so that row is read as having no date.
+     shown.finished = rows first posted in the week; shown.noDeadline = of those, the ones with no date. Rules: SPEC-SMM-HEADS.md. */
+  var S_TICKS = ['tiktok_at', 'instagram_at', 'facebook_at', 'linkedin_at'];
+
+  function firstTick(row, asOfMs) {
+    var best = null;
+    for (var i = 0; i < S_TICKS.length; i++) {
+      var t = ms(row[S_TICKS[i]]);
+      if (!isNaN(t) && t <= asOfMs && (best === null || t < ms(best))) best = row[S_TICKS[i]];
+    }
+    return best;
+  }
+
+  function smmJobs(data, startMs, asOfMs) {
+    var log = data.log || [];
+    var key = function (s) { return String(s === null || s === undefined ? '' : s).trim().toLowerCase(); };
+    var byName = {};
+    (data.team || []).forEach(function (m) {
+      if (m.active === false) return;               // active members only, a leaver is credited nothing
+      var k = key(m.name);
+      if (!k) return;
+      byName[k] = byName.hasOwnProperty(k) ? null : num(m.id);   // two active members with one name: cannot tell, nobody
+    });
+    var clients = {};
+    (data.clients || []).forEach(function (c) { clients[String(c.id)] = c; });
+    var evs = groupBy((data.events || []).filter(function (e) { return e.system === 'smm' && ms(e.created_at) <= asOfMs; }), 'job_id');
+    var inWeek = function (t) { return t >= startMs && t <= asOfMs; };
+    var jobs = [], shown = {};
+
+    for (var i = 0; i < log.length; i++) {
+      var r = log[i];
+      if (ms(r.created_at) > asOfMs) continue;
+      var c = clients[String(r.client_id)] || null;
+      var k = c ? key(c.assigned_smm) : '';
+      var assignee = k && byName.hasOwnProperty(k) ? byName[k] : null;
+      var posted = firstTick(r, asOfMs);
+      var dated = !!r.planned_on && !(ms(r.planned_set_at) > asOfMs);
+
+      if (posted && inWeek(ms(posted))) {
+        bump(shown, assignee, 'finished');
+        if (!dated) bump(shown, assignee, 'noDeadline');
+      }
+      if (!dated) continue;
+
+      var src = r.source_table === 'video_projects' ? 'Video ' : (r.source_table === 'graphic_projects' ? 'Graphic ' : 'Item ');
+      var cname = c ? String(c.name || '').trim() : '';
+      jobs.push({
+        ref: 'smm-' + r.id, title: (cname ? cname + ': ' : '') + src + r.source_id, assignee: assignee, dept: 'smm',
+        due: dueIso(r.planned_on), extension: null, state: posted ? 'approved' : 'in_progress',
+        submittedAt: posted, approvedAt: posted,
+        rating: latestRating(evs[String(r.id)] || [], asOfMs), rejections: []
+      });
+    }
+    return { jobs: jobs, shown: shown };
+  }
+
+  g.TS_ADAPTER = { week: week, dueIso: dueIso, dayLabel: dayLabel, graphicJobs: graphicJobs, videoJobs: videoJobs, smmJobs: smmJobs, holderAt: holderAt };
 })(typeof window !== 'undefined' ? window : globalThis);

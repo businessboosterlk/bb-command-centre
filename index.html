@@ -17130,6 +17130,7 @@ else buildNavGroups();
 </script>
 
 <!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-SMM-1 (6 Nov 2026, Thulaib approved bb_pending 1460 to 1465). SMM and Heads added after Video.
+     SMM-SCORED (6 Nov 2026): an SMM with a Post on date due in the week is scored by the engine on TS_ADAPTER.smmJobs, as Graphics is.
      Was: TEAMSCORE-BUILD-4 (6 Nov 2026, Thulaib approved bb_pending 1440).
      Team Score: Graphics and Video, week by week, scored by the Midnight Masala engine (team-score/engine.js, copied byte
      for byte, never edited) on jobs built by team-score/ts-adapter.js. Rules: ~/bb-systems/team-score/SPEC.md.
@@ -17261,6 +17262,9 @@ else buildNavGroups();
 .ts-grey .ts-cap{font-size:11.5px;color:var(--text-3);margin-top:2px}
 .ts-ul li.ts-red,.ts-ul li.ts-red b{color:var(--red)}
 .ts-jobs tr.ts-red td{color:var(--red)}
+.ts-card-score{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.ts-card-score .ts-why{flex-basis:100%;margin-top:0}
+.ts-card-score .ts-score b{font-size:22px;letter-spacing:-0.02em}
 @media(max-width:760px){
   .ts-cards{grid-template-columns:minmax(0,1fr)}
   .ts-card{padding:14px}
@@ -17268,7 +17272,7 @@ else buildNavGroups();
 </style>
 <script>
 /* TEAMSCORE-BUILD-4. All state lives under TS; every name starts ts so nothing collides with the rest of the app. */
-var TS_V = '5';
+var TS_V = '6';   // 6: ts-adapter.js gained smmJobs (SMM-SCORED)
 var TS = { libs: null, base: null, baseAt: 0, weeks: {}, view: null, token: 0, people: {} };
 var TS_STATE = { completed: 'Completed', awaiting: 'Waiting for review', overdue: 'Overdue', in_progress: 'In progress', cancelled: 'Cancelled' };
 var TS_ICON_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
@@ -17606,7 +17610,7 @@ async function tsSmmBaseRows() {
   var r = await Promise.all([
     tsGet('team_members?select=id,name,role,is_head,head_of,active&active=eq.true&order=id.asc'),
     tsGet('clients?select=id,name,assigned_smm,status&order=id.asc'),
-    tsGet('smm_publish_log?select=id,source_table,source_id,client_id,tiktok_at,instagram_at,facebook_at,linkedin_at&order=id.asc'),
+    tsGet('smm_publish_log?select=id,source_table,source_id,client_id,tiktok_at,instagram_at,facebook_at,linkedin_at,planned_on,planned_by,planned_set_at,created_at&order=id.asc'),
     tsGet('graphic_projects?select=id,title,client_id,assigned_designer_id,target_year,target_month,type,is_archived&order=id.asc'),
     tsGet('video_projects?select=id,title,client_id,assigned_editor_id,target_year,target_month,is_archived&order=id.asc'),
     tsGet('graphic_stage_history?select=id,graphic_project_id,stage,entered_at,entered_by&order=id.asc'),
@@ -17650,12 +17654,24 @@ async function tsRenderMore(tok, d) {
     v: MM_ENGINE.score(seed, d.v.jobs, d.asOf, { dept: 'video' })
   };
   var smm = tsSmmPeople(rows.team).map(function (m) { return TS_SMM.smmCard(rows, m, d.wk, d.asOf); });
+  /* SMM-SCORED: one job per publish log row with a Post on date, scored by the engine exactly as Graphics is */
+  var sj = TS_ADAPTER.smmJobs({ log: rows.publog, clients: rows.clients, team: rows.team, events: rows.events }, d.wk.startMs, d.asOf);
+  lines.s = MM_ENGINE.score(seed, sj.jobs, d.asOf, { dept: 'smm' });
+  var sc = {}, mineS = 0;
+  smm.forEach(function (c) {
+    var s = MM_ENGINE.score(seed, sj.jobs, d.asOf, { emp: c.id });
+    sc[c.id] = { s: s, dated: sj.jobs.some(function (j) { return j.assignee === c.id; }) };
+    mineS += s.cohort;
+  });
   var heads = tsHeadPeople(rows.team).map(function (m) { return TS_SMM.headCard(rows, m, d.wk, d.asOf); });
   var order = { video: 1, graphic: 2, smm: 3, coo: 4 };
   heads.sort(function (a, b) { return (order[a.headOf] || 9) - (order[b.headOf] || 9) || a.name.localeCompare(b.name); });
-  TS.smmView = { d: d, rows: rows, lines: lines, smm: smm, heads: heads };
-  var h = '<section class="ts-sec" id="ts-sec-s"><div class="ts-sec-hd"><h2>SMM</h2><span class="ts-team">Tracked, not scored. The Publisher is scored once posting dates exist.</span></div>';
-  h += smm.length ? '<div class="ts-cards">' + smm.map(function (c) { return tsSmmCardHtml(c, lines); }).join('') + '</div>' : '<div class="ts-empty">No active Social Media Manager.</div>';
+  TS.smmView = { d: d, rows: rows, lines: lines, smm: smm, heads: heads, sj: sj, sc: sc };
+  var h = '<section class="ts-sec" id="ts-sec-s"><div class="ts-sec-hd"><h2>SMM</h2><span class="ts-team">'
+    + (lines.s.cohort ? tsFig('s.team.completed', lines.s.completed, 'raw') + ' of ' + tsFig('s.team.cohort', lines.s.cohort, 'raw') + ' posts with a Post on date due this week were posted. An SMM with none due is tracked, not scored.'
+      : 'No Post on date fell due this week, so every SMM is tracked, not scored.') + '</span></div>';
+  h += smm.length ? '<div class="ts-cards">' + smm.map(function (c) { return tsSmmCardHtml(c, lines, sc[c.id]); }).join('') + '</div>' : '<div class="ts-empty">No active Social Media Manager.</div>';
+  if (lines.s.cohort - mineS > 0) h += '<p class="ts-foot">' + tsFig('s.unowned', lines.s.cohort - mineS, 'raw') + ' posts due this week belong to a client whose SMM is not an active member, so they are in the team line and on nobody\'s card.</p>';
   h += '</section>';
   h += '<section class="ts-sec" id="ts-sec-h"><div class="ts-sec-hd"><h2>Heads</h2><span class="ts-team">Review decisions this week. On target means decided within 24 weekday hours of the hand-in. No single score.</span></div>';
   h += heads.length ? '<div class="ts-cards">' + heads.map(tsHeadCardHtml).join('') + '</div>' : '<div class="ts-empty">No active head.</div>';
@@ -17676,10 +17692,37 @@ function tsSmmHeadline(c, lines) {
     + (c.ops.shootsNext ? 'Next week’s shoots logged by Tuesday: ' + tsFig(b + '.ops.shootsLogged', c.ops.shootsLogged, 'raw') + ' of ' + tsFig(b + '.ops.shootsNext', c.ops.shootsNext, 'raw') + '.' : 'No shoot is dated next week yet.');
   return 'No headline: this name is not in the SMM role list set on ' + tsEsc(TS_ADAPTER.dayLabel(Date.parse(c.roleSet))) + '.';
 }
-function tsSmmCardHtml(c, lines) {
-  var b = 's.' + c.id;
-  return '<button type="button" class="ts-card" data-sys="s" data-pid="' + c.id + '" onclick="tsOpenSmm(' + c.id + ')">'
-    + '<span class="ts-card-top"><span class="ts-name">' + tsEsc(c.name) + '</span><span><span class="ts-tag">' + tsEsc(c.role || 'No role set') + '</span> <span class="ts-tag ts-tag-q">Tracked, not scored</span></span></span>'
+/* SMM-SCORED helpers. Scored = at least one Post on date due in the week (the engine's cohort). */
+function tsSmmWhy(s, dated) {
+  if (s.cohort === 0 && !dated) return 'Score starts when Post on dates exist';
+  if (s.cohort === 0) return 'No Post on date fell due this week';
+  if (s.completed === 0) return 'Nothing due was posted';
+  if (s.ratingCount === 0) return 'No spot check stars yet';
+  return '';
+}
+function tsSmmCoach(b, s) {
+  var parts = [['c', tsLost(s.completionPct, 0.5)], ['o', tsLost(s.ontimePct, 0.3)], ['q', tsLost(s.qualityPct, 0.2)]].filter(function (x) { return x[1] !== null; });
+  parts.sort(function (x, y) { return y[1] - x[1]; });
+  var top = parts[0];
+  if (!top || top[1] === 0) return s.ratingCount === 0 ? 'Quality is read from the spot check stars. None were given this week, so the score waits for them.' : 'Nothing lost this week. Keep it there.';
+  if (top[0] === 'c') return 'Post what is due first: ' + tsFig(b + '.open', s.cohort - s.completed, 'raw') + ' of ' + tsFig(b + '.cohort', s.cohort, 'raw') + ' posts due this week are not posted.';
+  if (top[0] === 'o') return 'Post on the day set: ' + tsFig(b + '.late', s.ontimeD - s.ontimeN, 'raw') + ' of ' + tsFig(b + '.ontimeD', s.ontimeD, 'raw') + ' posts went up after their Post on day.';
+  return 'Quality cost the most points this week: lift the spot check stars.';
+}
+function tsSmmScoreHtml(b, s, why) {
+  var bd = MM_ENGINE.bandFor(s.overall, 90);
+  return '<span class="ts-card-score"><span class="ts-score"><b>' + tsFig(b + '.overall', s.overall, 'int') + '</b>'
+    + (s.overall === null ? '' : '<span class="ts-band" data-band="' + bd.key + '">' + bd.label + '</span>') + '</span>'
+    + (why ? '<span class="ts-why">' + tsEsc(why) + '</span>' : '') + '</span>'
+    + '<span class="ts-mini"><span>Completion<b>' + tsPct(b + '.completionPct', s.completionPct) + '</b>' + tsFig(b + '.completed', s.completed, 'raw') + ' of ' + tsFig(b + '.cohort', s.cohort, 'raw') + ' posted</span>'
+    + '<span>On time<b>' + tsPct(b + '.ontimePct', s.ontimePct) + '</b>' + tsFig(b + '.ontimeN', s.ontimeN, 'raw') + ' of ' + tsFig(b + '.ontimeD', s.ontimeD, 'raw') + '</span>'
+    + '<span>Quality<b>' + tsPct(b + '.qualityPct', s.qualityPct) + '</b>' + (s.ratingCount ? tsFig(b + '.ratingCount', s.ratingCount, 'raw') + ' stars' : 'no stars yet') + '</span></span>';
+}
+function tsSmmCardHtml(c, lines, sc) {
+  var b = 's.' + c.id, scored = !!(sc && sc.s.cohort), why = sc ? tsSmmWhy(sc.s, sc.dated) : 'Score starts when Post on dates exist';
+  return '<button type="button" class="ts-card" data-sys="s" data-pid="' + c.id + '" data-scored="' + (scored ? '1' : '0') + '" onclick="tsOpenSmm(' + c.id + ')">'
+    + '<span class="ts-card-top"><span class="ts-name">' + tsEsc(c.name) + '</span><span><span class="ts-tag">' + tsEsc(c.role || 'No role set') + '</span> <span class="ts-tag ts-tag-q">' + (scored ? 'Scored' : 'Tracked, not scored') + '</span></span></span>'
+    + (scored ? tsSmmScoreHtml(b + '.sc', sc.s, why) : '<span class="ts-why">' + tsEsc(why) + '</span>')
     + '<span class="ts-headline">' + tsSmmHeadline(c, lines) + '</span>'
     + '<span class="ts-mini"><span>Book made<b>' + tsFig(b + '.book.made', c.book.made, 'raw') + '</b>of ' + tsFig(b + '.book.owed', c.book.owed, 'raw') + ' owed</span>'
     + '<span>Posted<b>' + tsFig(b + '.posted', c.posted.count, 'raw') + '</b>this week</span>'
@@ -17723,6 +17766,36 @@ function tsOpenSmm(pid) {
   var V = TS.smmView; if (!V) return;
   var c = V.smm.filter(function (x) { return x.id === pid; })[0]; if (!c) return;
   var d = V.d, b = 's.' + c.id, side = '', main = '';
+  var sc = V.sc[c.id], s = sc.s, scored = s.cohort > 0, why = tsSmmWhy(s, sc.dated), k = b + '.sc';
+  if (scored) {
+    var bd = MM_ENGINE.bandFor(s.overall, 90);
+    side += '<div class="ts-big"><strong class="' + (s.overall === null ? 'ts-na' : '') + '">' + tsFig(k + '.overall', s.overall, 'int') + '</strong>'
+      + (s.overall === null ? '' : '<span class="ts-band" data-band="' + bd.key + '">' + bd.label + '</span>') + '</div>';
+    if (s.overall === null) side += '<p class="ts-math">Not measurable yet: ' + tsEsc(why.charAt(0).toLowerCase() + why.slice(1)) + '.</p>';
+    else side += '<p class="ts-math">0.5 × ' + tsFig(k + '.completionPct', s.completionPct, '1dp') + ' + 0.3 × ' + tsFig(k + '.ontimePct', s.ontimePct, '1dp')
+      + ' + 0.2 × ' + tsFig(k + '.qualityPct', s.qualityPct, '1dp') + ' = ' + tsFig(k + '.overall', s.overall, '1dp') + '</p>';
+    side += '<dl class="ts-facts">'
+      + '<div><dt>Completion</dt><dd>' + tsFig(k + '.completed', s.completed, 'raw') + ' of ' + tsFig(k + '.cohort', s.cohort, 'raw') + ' posts due were posted: ' + tsPct(k + '.completionPct', s.completionPct) + '</dd></div>'
+      + '<div><dt>On time</dt><dd>' + tsFig(k + '.ontimeN', s.ontimeN, 'raw') + ' of ' + tsFig(k + '.ontimeD', s.ontimeD, 'raw') + ' posted by the end of their Post on day: ' + tsPct(k + '.ontimePct', s.ontimePct) + '</dd></div>'
+      + '<div><dt>Quality</dt><dd>' + (s.ratingCount ? 'average of ' + tsFig(k + '.ratingCount', s.ratingCount, 'raw') + ' spot check star ratings: ' + tsPct(k + '.qualityPct', s.qualityPct) : 'Not measurable: no spot check stars this week.') + '</dd></div></dl>';
+    side += '<div><h3 class="ts-h3">What hurt the score</h3><ul class="ts-ul">'
+      + '<li>Completion: ' + tsFig(k + '.open', s.cohort - s.completed, 'raw') + ' posts due and not posted' + (s.completionPct === null ? '' : ', ' + tsFig(k + '.lost.c', tsLost(s.completionPct, 0.5), '1dp') + ' points') + '</li>'
+      + '<li>On time: ' + tsFig(k + '.late', s.ontimeD - s.ontimeN, 'raw') + ' posted late' + (s.ontimePct === null ? '' : ', ' + tsFig(k + '.lost.o', tsLost(s.ontimePct, 0.3), '1dp') + ' points') + '</li>'
+      + '<li>Quality: ' + (s.qualityPct === null ? 'not scored yet, no spot check stars' : tsFig(k + '.lost.q', tsLost(s.qualityPct, 0.2), '1dp') + ' points') + '</li></ul></div>';
+    side += '<p class="ts-coach">' + tsSmmCoach(k, s) + '</p>';
+    var byRef = {};
+    V.sj.jobs.forEach(function (j) { byRef[j.ref] = j; });
+    main += '<div><h3 class="ts-h3">The posts behind it</h3><div class="ts-tw"><table class="ts-jobs"><thead><tr><th>Post</th><th>Post on</th><th>Posted</th><th>On time</th><th>Stars</th></tr></thead><tbody>';
+    s.rows.forEach(function (r) {
+      var j = byRef[r.ref] || {}, rb = k + '.row.' + r.ref;
+      var chip = r.counted ? '<span class="ts-chip" data-s="' + (r.ontime ? 'ontime' : 'late') + '">' + tsFig(rb + '.ontime', r.ontime, 'yesno') + '</span>'
+        : '<span class="ts-chip" data-s="' + r.state + '">' + tsEsc(r.state === 'overdue' ? 'Not posted' : (TS_STATE[r.state] || r.state)) + '</span>';
+      main += '<tr data-sref="' + tsEsc(r.ref) + '"><td class="ts-t">' + tsEsc(r.title) + '<span class="ts-ref">' + tsEsc(r.ref) + '</span></td>'
+        + '<td class="n" data-l="Post on">' + tsFig(rb + '.due', j.due, 'day') + '</td><td class="n" data-l="Posted">' + tsFig(rb + '.submittedAt', j.submittedAt, 'day') + '</td>'
+        + '<td data-l="On time">' + chip + '</td><td class="n" data-l="Stars">' + (r.stars ? tsFig(rb + '.stars', r.stars, 'raw') + ' of 5' : 'None') + '</td></tr>';
+    });
+    main += '</tbody></table></div><p class="ts-foot">A post counts for the SMM named on the client today, so a book change moves past jobs too. It is due by the end of its Post on day and counts as posted when the first platform is ticked.</p></div>';
+  } else side += '<p class="ts-math">Tracked, not scored: ' + tsEsc(why.charAt(0).toLowerCase() + why.slice(1)) + '.</p>';
   side += '<p class="ts-coach">' + tsSmmHeadline(c, V.lines) + '</p>';
   var max = 1;
   c.book.clients.forEach(function (x) { max = Math.max(max, x.owed || 0, x.made); });
@@ -17750,7 +17823,7 @@ function tsOpenSmm(pid) {
   }).join('') + '</ul>' : '<p class="ts-foot">None. Everything finished for this month has been posted.</p>';
   main += '</div><div><h3 class="ts-h3">Reviews they did (Team review)</h3>' + tsStatsDl(b + '.rev', c.reviews) + '</div>';
   main += '<p class="ts-foot">The book is the active clients with this name on them today, so a book change moves past weeks too. Posts count when the first platform is ticked in the publish tracker.</p>';
-  tsSheetOpen(b, c.name, tsWeekCap(d, 'SMM, ' + (c.role || 'no role set') + ', tracked, not scored'), '<div class="ts-side">' + side + '</div><div class="ts-main">' + main + '</div>');
+  tsSheetOpen(b, c.name, tsWeekCap(d, 'SMM, ' + (c.role || 'no role set') + (scored ? ', scored' : ', tracked, not scored')), '<div class="ts-side">' + side + '</div><div class="ts-main">' + main + '</div>');
 }
 
 function tsOutcome(x) {
