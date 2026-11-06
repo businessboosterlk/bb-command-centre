@@ -2198,6 +2198,573 @@ window.__ST_LOG=[];
 })();
 </script>
 <!-- @@BBCC_BRIEF_END@@ -->
+<!-- @@BBCC_NIRVANA_BEGIN@@
+     NIRVANA'S DAY, read only (COMMAND CENTRE NIRVANA CHECKS 2, 6 Nov 2026; Thulaib approved bb_pending 1496 to 1501).
+     Brief: ~/bb-systems/nirvana-checks/BRIEF.md. One card on the home for THULAIB and SHIARA only (body data-role th or sh);
+     for any other role the card is not in the page at all. It reads bb_ops_log for the week (one read), team_members where
+     active and rpc/bb_ops_form_sent for the day shown. It writes nothing. The rules below are the judged crew part
+     crew/nc-rules.inline.js pasted byte for byte; do not edit them here, change the crew part and paste again.
+     Every class carries the nc- prefix. -->
+<style>
+#nc-card{padding:18px 20px}
+#nc-card .nc-hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#nc-card .nc-ttl{font-size:17px;font-weight:600;color:var(--text);letter-spacing:-.01em;line-height:1.3}
+#nc-card .nc-by{font-size:12.5px;color:var(--text-3);margin-top:2px}
+#nc-card .nc-sw{display:inline-grid;grid-template-columns:1fr 1fr;border:1px solid var(--border-strong);border-radius:10px;overflow:hidden;flex:none}
+#nc-card .nc-sw button{font:inherit;font-size:13px;font-weight:600;min-height:40px;min-width:96px;padding:0 14px;border:0;background:var(--surface-2);color:var(--text-2);cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;line-height:1}
+#nc-card .nc-sw button+button{border-left:1px solid var(--border-strong)}
+#nc-card .nc-sw button[aria-pressed="true"]{background:var(--accent);color:#fff}
+#nc-card .nc-head{font-size:14.5px;color:var(--text);margin:0 0 12px;line-height:1.45}
+#nc-card .nc-head b{font-weight:600}
+#nc-card .nc-chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:16px}
+#nc-card .nc-chip{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--surface-2);min-width:0}
+#nc-card .nc-chip .k{font-size:13px;font-weight:600;color:var(--text)}
+#nc-card .nc-chip .v{font-size:12.5px;color:var(--text-2);margin-top:2px;font-variant-numeric:tabular-nums}
+#nc-card .nc-chip.ok{background:var(--green-soft);border-color:var(--green-soft)}
+#nc-card .nc-chip.late{background:var(--amber-soft);border-color:var(--amber-soft)}
+#nc-card .nc-chip.miss,#nc-card .nc-chip.over{background:var(--red-soft);border-color:var(--red-soft)}
+#nc-card .nc-chip.ok .v{color:var(--green)} #nc-card .nc-chip.late .v{color:var(--amber)} #nc-card .nc-chip.miss .v,#nc-card .nc-chip.over .v{color:var(--red)}
+#nc-card .nc-cols{display:grid;grid-template-columns:1fr;gap:4px 28px}
+@media (min-width:1100px){#nc-card .nc-cols{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+#nc-card .nc-sec{margin-bottom:14px;min-width:0}
+#nc-card .nc-sec h4{font-size:11.5px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.04em;margin:0 0 6px}
+#nc-card .nc-line{font-size:13.5px;color:var(--text);line-height:1.5;margin:0 0 4px}
+#nc-card .nc-line b{font-weight:600}
+#nc-card .nc-quiet{color:var(--text-3)}
+#nc-card .nc-void{border-left:3px solid var(--red);background:var(--red-soft);color:var(--red);border-radius:0 8px 8px 0;padding:8px 10px;margin:0 0 6px;font-size:13px;line-height:1.45}
+#nc-card .nc-void b{font-weight:600}
+#nc-card .nc-start{border:1px dashed var(--border-strong);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text-2);margin-bottom:16px}
+#nc-card .nc-grid{border-collapse:collapse;width:100%;max-width:440px;font-size:12.5px}
+#nc-card .nc-grid th{font-weight:600;color:var(--text-3);padding:2px 0 6px;text-align:center;width:44px}
+#nc-card .nc-grid th:first-child,#nc-card .nc-grid td:first-child{text-align:left;width:auto;color:var(--text-2);font-weight:500;padding-right:8px}
+#nc-card .nc-grid td{text-align:center;padding:5px 0;height:22px}
+#nc-card .nc-dot{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--surface-3);vertical-align:middle}
+#nc-card .nc-dot.ok{background:var(--green)} #nc-card .nc-dot.late{background:var(--amber)} #nc-card .nc-dot.miss{background:var(--red)}
+#nc-card .nc-dot.over{background:transparent;box-shadow:inset 0 0 0 2px var(--red)}
+#nc-card .nc-dot.pre{background:var(--surface-3);opacity:.6}
+#nc-card .nc-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--text-3);margin-top:6px}
+#nc-card .nc-legend span{display:inline-flex;align-items:center;gap:6px}
+#nc-card .nc-legend .nc-dot{width:9px;height:9px}
+#nc-card .nc-bars{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;max-width:440px}
+#nc-card .nc-bars .n{font-size:12.5px;font-weight:600;color:var(--text)}
+#nc-card .nc-bars .b{height:8px;border-radius:4px;background:var(--red);min-width:4px}
+#nc-card .nc-bars .p{font-size:12.5px;color:var(--text-2);font-variant-numeric:tabular-nums}
+#nc-card .nc-ts{display:inline-flex;align-items:center;min-height:44px;font-weight:600;color:var(--accent);text-decoration:none;font-size:13.5px}
+#nc-card .nc-ts:hover{text-decoration:underline}
+@media (max-width:719px){
+  #nc-card{padding:16px}
+  #nc-card .nc-hd{flex-direction:column;align-items:stretch}
+  #nc-card .nc-sw{width:100%}
+  #nc-card .nc-sw button{min-height:44px}
+  #nc-card .nc-chips{grid-template-columns:1fr 1fr}
+  #nc-card .nc-grid{max-width:none}
+}
+</style>
+<script>
+(function(){
+  'use strict';
+/* ── the judged rules, crew/nc-rules.inline.js, byte for byte ── */
+const COLOMBO_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+function colomboDay(ms) {
+  if (typeof ms !== 'number' || isNaN(ms)) return '1970-01-01';
+  const d = new Date(ms + COLOMBO_OFFSET_MS);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+const DUE = {
+  day_list: '08:30',
+  morning_round: '09:30',
+  after_lunch: '14:30',
+  end_of_day: '18:00',
+  friday_report: '15:00',
+};
+
+const CHECKS = ['day_list', 'morning_round', 'after_lunch', 'end_of_day', 'friday_report'];
+
+function dueMs(day, checkName) {
+  if (typeof day !== 'string' || typeof checkName !== 'string') return NaN;
+  const time = DUE[checkName];
+  if (!time) return NaN;
+  const iso = `${day}T${time}:00+05:30`;
+  const ms = Date.parse(iso);
+  return ms;
+}
+
+function isFriday(day) {
+  if (typeof day !== 'string') return false;
+  const parts = day.split('-');
+  if (parts.length !== 3) return false;
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return false;
+  const utcMs = Date.UTC(y, m - 1, d);
+  if (isNaN(utcMs)) return false;
+  const utcDay = new Date(utcMs).getUTCDay();
+  return utcDay === 5;
+}
+
+function checksFor(day) {
+  const base = CHECKS.slice(0, 4);
+  if (isFriday(day)) {
+    return [...base, 'friday_report'];
+  }
+  return base;
+}
+
+function liveRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  const voidIds = new Set();
+  for (const r of rows) {
+    if (r && r.kind === 'void' && r.voids != null) {
+      voidIds.add(r.voids);
+    }
+  }
+  return rows.filter(r => r && r.kind !== 'void' && !voidIds.has(r.id));
+}
+
+function checkStatus(day, checkName, rows, nowMs) {
+  if (typeof day !== 'string' || typeof checkName !== 'string') {
+    return { state: 'none', at: null };
+  }
+  if (checkName === 'friday_report' && !isFriday(day)) {
+    return { state: 'none', at: null };
+  }
+  const live = liveRows(rows);
+  const checks = live.filter(r => r.kind === 'check' && r.check_name === checkName && r.day === day);
+  if (checks.length === 0) {
+    const due = dueMs(day, checkName);
+    if (isNaN(due)) return { state: 'none', at: null };
+    const todayColombo = colomboDay(nowMs);
+    if (todayColombo > day) {
+      return { state: 'missed', at: null };
+    }
+    if (nowMs > due) {
+      return { state: 'overdue', at: null };
+    }
+    return { state: 'open', at: null };
+  }
+  let earliest = checks[0];
+  for (let i = 1; i < checks.length; i++) {
+    const a = Date.parse(earliest.created_at);
+    const b = Date.parse(checks[i].created_at);
+    if (!isNaN(b) && (isNaN(a) || b < a)) {
+      earliest = checks[i];
+    }
+  }
+  const at = Date.parse(earliest.created_at);
+  const due = dueMs(day, checkName);
+  if (isNaN(at) || isNaN(due)) return { state: 'none', at: null };
+  const state = at <= due ? 'on_time' : 'late';
+  return { state, at };
+}
+
+function roster(team, tickerName) {
+  if (!Array.isArray(team)) return [];
+  const exclude = new Set(['THULAIB', 'SHIARA']);
+  if (typeof tickerName === 'string') {
+    exclude.add(tickerName.trim().toUpperCase());
+  }
+  return team
+    .filter(m => m && m.active === true && !exclude.has((m.name || '').trim().toUpperCase()))
+    .sort((a, b) => (a.name || '').trim().toUpperCase().localeCompare((b.name || '').trim().toUpperCase()));
+}
+
+function roundSummary(rows, roster) {
+  const safeRows = Array.isArray(rows) ? liveRows(rows).filter(r => r.kind === 'round') : [];
+  const safeRoster = Array.isArray(roster) ? roster : [];
+  const rosterIds = new Set(safeRoster.map(m => m.id));
+  const byMember = {};
+  const memberTimes = {};
+  for (const r of safeRows) {
+    if (r.member == null || !rosterIds.has(r.member)) continue;
+    const ms = Date.parse(r.created_at);
+    if (isNaN(ms)) continue;
+    if (!(r.member in memberTimes) || ms > memberTimes[r.member]) {
+      memberTimes[r.member] = ms;
+      byMember[r.member] = r.result;
+    }
+  }
+  const of = safeRoster.length;
+  const markedIds = Object.keys(byMember).map(Number);
+  const marked = markedIds.length;
+  let reached = 0;
+  let onLeave = 0;
+  const notReached = [];
+  for (const m of safeRoster) {
+    const result = byMember[m.id];
+    if (result === 'called' || result === 'messaged') {
+      reached++;
+    }
+    if (result === 'on_leave') {
+      onLeave++;
+    }
+    if (result === 'not_reached') {
+      const row = safeRows.find(r => r.member === m.id && r.result === 'not_reached' && Date.parse(r.created_at) === memberTimes[m.id]);
+      notReached.push({ member: m.id, note: row ? row.note : null });
+    }
+  }
+  const unmarked = safeRoster.filter(m => !(m.id in byMember)).map(m => m.id);
+  const complete = of > 0 && marked === of;
+  const times = Object.values(memberTimes).sort((a, b) => a - b);
+  let spanSec = 0;
+  if (times.length >= 2) {
+    spanSec = Math.round((times[times.length - 1] - times[0]) / 1000);
+  }
+  const bulk = marked >= 3 && spanSec <= 10;
+  return { byMember, of, marked, reached, onLeave, notReached, unmarked, complete, bulk, spanSec };
+}
+
+const SLIP_POINTS = { late: 1, missed_meeting: 2, no_word: 3, mistake: 2 };
+
+function slipPoints(rows) {
+  const safeRows = Array.isArray(rows) ? liveRows(rows).filter(r => r.kind === 'slip') : [];
+  const sums = {};
+  for (const r of safeRows) {
+    if (r.member == null) continue;
+    const pts = Number(r.points);
+    if (isNaN(pts)) continue;
+    sums[r.member] = (sums[r.member] || 0) + pts;
+  }
+  return sums;
+}
+
+function watch(summary, form, nameOf) {
+  const noForm = [];
+  const noLink = [];
+  if (!summary || !summary.byMember || !form || !nameOf) {
+    return { noForm, noLink };
+  }
+  const linked = new Set((form.linked || []).map(s => (s || '').trim().toUpperCase()));
+  const sent = new Set((form.sent || []).map(s => (s || '').trim().toUpperCase()));
+  const ids = Object.keys(summary.byMember)
+    .map(Number)
+    .sort((a, b) => a - b);
+  for (const id of ids) {
+    const result = summary.byMember[id];
+    if (result !== 'called' && result !== 'messaged') continue;
+    const name = (nameOf[id] || '').trim().toUpperCase();
+    if (!name) continue;
+    if (!linked.has(name)) {
+      noLink.push(name);
+    } else if (!sent.has(name)) {
+      noForm.push(name);
+    }
+  }
+  return { noForm, noLink };
+}
+
+function weekDays(day) {
+  if (typeof day !== 'string') return [];
+  const parts = day.split('-');
+  if (parts.length !== 3) return [];
+  const y = Number(parts[0]);
+  const m = Number(parts[1]);
+  const d = Number(parts[2]);
+  if (isNaN(y) || isNaN(m) || isNaN(d)) return [];
+  const date = new Date(Date.UTC(y, m - 1, d));
+  if (isNaN(date.getTime())) return [];
+  const dayOfWeek = date.getUTCDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(date);
+  monday.setUTCDate(date.getUTCDate() + diffToMonday);
+  const result = [];
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday);
+    d.setUTCDate(monday.getUTCDate() + i);
+    const y = d.getUTCFullYear();
+    const mo = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const da = String(d.getUTCDate()).padStart(2, '0');
+    result.push(`${y}-${mo}-${da}`);
+  }
+  return result;
+}
+/* ── end of the judged rules ── */
+  window.NC_RULES = { colomboDay, DUE, CHECKS, dueMs, isFriday, checksFor, liveRows, checkStatus, roster, roundSummary, SLIP_POINTS, slipPoints, watch, weekDays };
+
+  var START = '2026-11-09';   /* Nirvana runs the day from Mon 9 Nov 2026 */
+  var OWNERS = { th: 1, sh: 1 };
+  var LABEL = { day_list: 'Day list out', morning_round: 'Morning round', after_lunch: 'After lunch call', end_of_day: 'End of day close', friday_report: 'Friday report' };
+  var RESULT = { called: 'Called', messaged: 'Messaged', on_leave: 'On leave', not_reached: 'Not reached', done: 'Done', late: 'Late', missed_meeting: 'Missed meeting or call', no_word: 'No word', mistake: 'Mistake' };
+  var DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  var S = { rows: null, team: null, form: {}, at: 0, view: 'y', loading: false, err: '' };
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function hhmm(ms){ return new Date(ms + COLOMBO_OFFSET_MS).toISOString().slice(11, 16); }
+  function dow(day){ var p = day.split('-'); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).getUTCDay(); }
+  function addDay(day, n){ var p = day.split('-'); var d = new Date(Date.UTC(+p[0], +p[1] - 1, +p[2] + n)); return d.toISOString().slice(0, 10); }
+  function isWorkDay(day){ var w = dow(day); return w >= 1 && w <= 5; }
+  /* the last working day before this one: Mon shows Fri, Sat and Sun show Fri */
+  function prevWorkDay(day){ var d = addDay(day, -1); while (!isWorkDay(d)) d = addDay(d, -1); return d; }
+  function longDay(day){ return new Date(day + 'T00:00:00Z').toLocaleDateString('en-GB', { timeZone: 'UTC', weekday: 'long', day: 'numeric', month: 'short' }); }
+  function rowsOf(rows, day){ return (rows || []).filter(function(r){ return r && r.day === day; }); }
+  /* before Mon 9 Nov a day with no live rows is "not started", never a wall of Missed */
+  function preStart(day, dayRows){ return day < START && liveRows(dayRows).length === 0; }
+  /* one chip: the tick time and its state; a voided tick never counts (liveRows inside checkStatus) */
+  function chipFor(day, name, rows, nowMs){
+    var st = checkStatus(day, name, rows, nowMs);
+    var due = DUE[name];
+    if (st.state === 'on_time') return { cls: 'ok', state: st.state, text: hhmm(st.at) + ' on time' };
+    if (st.state === 'late') return { cls: 'late', state: st.state, text: hhmm(st.at) + ' late, due ' + due };
+    if (st.state === 'missed') return { cls: 'miss', state: st.state, text: 'Missed, due ' + due };
+    if (st.state === 'overdue') return { cls: 'over', state: st.state, text: 'Overdue, due ' + due };
+    if (st.state === 'open') return { cls: '', state: st.state, text: 'Open, due ' + due };
+    return { cls: '', state: st.state, text: 'Not due' };
+  }
+  /* who ran the day: the by_name on the day's live check rows, most ticks first */
+  function runners(dayRows){
+    var n = {};
+    liveRows(dayRows).forEach(function(r){ if (r.kind === 'check' && r.by_name) n[r.by_name] = (n[r.by_name] || 0) + 1; });
+    return Object.keys(n).sort(function(a, b){ return n[b] - n[a] || a.localeCompare(b); });
+  }
+  function plural(n, one, many){ return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function span(sec){ return sec < 120 ? plural(sec, 'second') : plural(Math.round(sec / 60), 'minute'); }
+  function listJoin(a){ return a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a[a.length - 1]; }
+
+  async function read(path, body){
+    try {
+      if (typeof bbAuthEnsure === 'function') await bbAuthEnsure();
+      var h = { apikey: SB_KEY, Authorization: bbBearer() };
+      var o = { headers: h, cache: 'no-store' };
+      if (body) { h['Content-Type'] = 'application/json'; o.method = 'POST'; o.body = JSON.stringify(body); }
+      var r = await fetch(SB_URL + '/rest/v1/' + path, o);
+      if (!r.ok) { console.warn('Nirvana card: ' + path.split('?')[0] + ' answered ' + r.status); return null; }
+      return await r.json();
+    } catch (e) { console.warn('Nirvana card: ' + path.split('?')[0] + ' failed', e); return null; }
+  }
+  function days(){
+    var today = colomboDay(Date.now()), wk = weekDays(today), prev = prevWorkDay(today);
+    return { today: today, prev: prev, week: wk, from: prev < wk[0] ? prev : wk[0], to: wk[4] };
+  }
+  async function load(force){
+    if (S.loading) return;
+    if (!force && S.rows && Date.now() - S.at < 120000) return;
+    S.loading = true;
+    var d = days();
+    var res = await Promise.all([
+      read('bb_ops_log?select=id,day,kind,check_name,member,result,points,note,by_name,voids,created_at&day=gte.' + d.from + '&day=lte.' + d.to + '&order=id.asc'),
+      S.team ? Promise.resolve(S.team) : read('team_members?active=eq.true&select=id,name,active&order=name')
+    ]);
+    S.loading = false;
+    S.err = res[0] == null ? 'Nirvana\'s checks could not be read just now. Nothing on this card is a result.' : '';
+    S.rows = res[0]; S.team = res[1] || S.team; S.at = Date.now();
+    await formFor(dayShown());
+    paint();
+  }
+  async function formFor(day){
+    if (S.form[day] !== undefined) return;
+    S.form[day] = await read('rpc/bb_ops_form_sent', { p_day: day });
+  }
+  function dayShown(){ var d = days(); return S.view === 't' ? d.today : d.prev; }
+
+  function sectionsFor(day, nowMs){
+    var all = S.rows || [], dayRows = rowsOf(all, day), live = liveRows(dayRows), today = colomboDay(nowMs);
+    var team = (S.team || []).filter(function(m){ return m.active === true; });
+    var nameOf = {}; (S.team || []).forEach(function(m){ nameOf[m.id] = m.name; });
+    var nm = function(id){ return nameOf[id] || ('member ' + id); };
+    var isToday = day === today, out = { day: day, isToday: isToday };
+    var run = runners(dayRows);
+    out.by = run.length ? 'Run by ' + run.join(' and ') : (isToday ? 'No check ticked yet' : 'No check ticked');
+    out.pre = preStart(day, dayRows);
+    out.weekend = !isWorkDay(day);
+    if (!out.pre && !out.weekend && !S.err) {
+      var names = checksFor(day);
+      out.chips = names.map(function(n){ return { name: n, label: LABEL[n], chip: chipFor(day, n, dayRows, nowMs) }; });
+      var c = { on_time: 0, late: 0, missed: 0, overdue: 0, open: 0 };
+      out.chips.forEach(function(x){ if (c[x.chip.state] != null) c[x.chip.state]++; });
+      var parts = [c.on_time + ' of ' + names.length + ' checks on time'];
+      if (c.late) parts.push(c.late + ' late');
+      if (c.missed) parts.push(c.missed + ' missed');
+      if (c.overdue) parts.push(c.overdue + ' overdue');
+      if (c.open) parts.push(c.open + ' not due yet');
+      out.checksLine = parts.join(', ') + '.';
+      var ticker = run[0] || 'NIRVANA';
+      var ros = roster(team, ticker);
+      var sum = roundSummary(dayRows, ros);
+      out.sum = sum;
+      out.roundLine = sum.reached + ' of ' + sum.of + ' people reached' + (isToday ? ' so far' : '') + '.';
+      var extra = [];
+      if (sum.onLeave) extra.push(sum.onLeave + ' on leave');
+      if (sum.unmarked.length) extra.push(sum.unmarked.length + (isToday ? ' not marked yet' : ' never marked'));
+      out.roundExtra = extra.length ? extra.join(', ') + '.' : '';
+      out.notReached = sum.notReached.map(function(x){ return { name: nm(x.member), note: x.note || 'no reason given' }; });
+      out.unmarked = sum.unmarked.map(nm);
+      var form = S.form[day];
+      if (sum.reached) {
+        if (form == null) out.watch = ['The team daily form sends could not be read for this day.'];
+        else {
+          var w = watch(sum, form, nameOf);
+          out.watch = [];
+          out.watch.push(w.noForm.length ? (isToday ? 'Reached but no daily form yet today: ' : 'Reached but sent no daily form: ') + '<b>' + esc(w.noForm.join(', ')) + '</b>.' : 'Everyone reached has sent a daily form.');
+          if (w.noLink.length) out.watch.push('No form link, so not checked: ' + esc(w.noLink.join(', ')) + '.');
+        }
+      } else out.watch = [];
+      if (sum.marked >= 3) out.watch.push(sum.bulk ? '<b>Round marked in one go:</b> ' + plural(sum.marked, 'mark') + ' inside ' + span(sum.spanSec) + '.' : 'Round marked in one go: no (marks span ' + span(sum.spanSec) + ').');
+    }
+    /* voids: every one of the day, in red, with the row it cancelled */
+    var byId = {}; dayRows.forEach(function(r){ byId[r.id] = r; });
+    out.voids = dayRows.filter(function(r){ return r.kind === 'void'; }).map(function(v){
+      var t = byId[v.voids], what;
+      if (!t) what = 'row ' + v.voids;
+      else if (t.kind === 'round') what = nm(t.member) + ' round mark (' + (RESULT[t.result] || t.result) + ')';
+      else if (t.kind === 'check') what = (LABEL[t.check_name] || t.check_name) + ' tick';
+      else if (t.kind === 'slip') what = nm(t.member) + ' slip (' + (RESULT[t.result] || t.result) + ')';
+      else what = t.kind + ' row';
+      var made = t ? ' by ' + esc(t.by_name) + ' at ' + hhmm(Date.parse(t.created_at)) : '';
+      return '<b>Void:</b> ' + esc(what) + made + ', row ' + v.voids + '. Reason: ' + esc(v.note) + '. Voided by ' + esc(v.by_name) + ' at ' + hhmm(Date.parse(v.created_at)) + '.';
+    });
+    out.slips = live.filter(function(r){ return r.kind === 'slip'; }).map(function(r){
+      return '<b>' + esc(nm(r.member)) + '</b> ' + esc((RESULT[r.result] || r.result).toLowerCase()) + ', ' + plural(Number(r.points), 'point') + (r.note ? ': ' + esc(r.note) : '');
+    });
+    out.nameOf = nameOf;
+    return out;
+  }
+
+  function weekHtml(nowMs){
+    var d = days(), all = S.rows || [], today = d.today;
+    var c = { on_time: 0, late: 0, missed: 0 }, due = 0, allPre = true;
+    var rowsHtml = CHECKS.map(function(n){
+      var cells = d.week.map(function(day){
+        if (n === 'friday_report' && !isFriday(day)) return '<td></td>';
+        var dr = rowsOf(all, day), st, cls, word;
+        if (preStart(day, dr)) { cls = 'pre'; word = 'not started'; }
+        else {
+          allPre = false;
+          st = day > today ? 'open' : checkStatus(day, n, dr, nowMs).state;
+          cls = { on_time: 'ok', late: 'late', missed: 'miss', overdue: 'over' }[st] || '';
+          word = { on_time: 'on time', late: 'late', missed: 'missed', overdue: 'overdue' }[st] || 'not yet';
+          if (c[st] != null) { c[st]++; due++; }
+        }
+        return '<td><span class="nc-dot ' + cls + '" data-state="' + (st || 'pre') + '" title="' + esc(LABEL[n] + ', ' + longDay(day) + ': ' + word) + '" aria-label="' + esc(LABEL[n] + ', ' + longDay(day) + ': ' + word) + '"></span></td>';
+      }).join('');
+      return '<tr><td>' + LABEL[n] + '</td>' + cells + '</tr>';
+    }).join('');
+    var head = allPre ? 'Nirvana\'s checks start Mon 9 Nov' : 'The week so far: ' + c.on_time + ' of ' + due + ' checks on time' + (c.late ? ', ' + c.late + ' late' : '') + (c.missed ? ', ' + c.missed + ' missed' : '');
+    return '<div class="nc-sec" id="nc-week"><h4>' + esc(head) + '</h4><table class="nc-grid"><thead><tr><th></th>' + DAYS.map(function(x){ return '<th>' + x + '</th>'; }).join('') + '</tr></thead><tbody>' + rowsHtml + '</tbody></table>'
+      + '<div class="nc-legend"><span><i class="nc-dot ok"></i>on time</span><span><i class="nc-dot late"></i>late</span><span><i class="nc-dot miss"></i>missed</span><span><i class="nc-dot over"></i>overdue</span><span><i class="nc-dot"></i>not yet</span></div></div>';
+  }
+  function pointsHtml(){
+    var d = days(), wkRows = (S.rows || []).filter(function(r){ return r.day >= d.week[0] && r.day <= d.week[4]; });
+    var pts = slipPoints(wkRows), nameOf = {}; (S.team || []).forEach(function(m){ nameOf[m.id] = m.name; });
+    var ids = Object.keys(pts).sort(function(a, b){ return pts[b] - pts[a] || String(nameOf[a]).localeCompare(String(nameOf[b])); });
+    var total = ids.reduce(function(s, k){ return s + pts[k]; }, 0), max = ids.length ? pts[ids[0]] : 1;
+    var body = ids.length ? '<div class="nc-bars">' + ids.map(function(k){ return '<span class="n">' + esc(nameOf[k] || 'member ' + k) + '</span><span class="b" style="width:' + Math.max(4, Math.round(pts[k] / max * 100)) + '%"></span><span class="p">' + pts[k] + '</span>'; }).join('') + '</div>' : '<p class="nc-line nc-quiet">No slips noted this week.</p>';
+    return '<div class="nc-sec" id="nc-points"><h4>Slip points this week: ' + total + '</h4>' + body
+      + '<p class="nc-line nc-quiet" style="margin-top:8px">Graphics and Video send backs are counted in Team Score.</p><a class="nc-ts" id="nc-ts" href="#teamscore">Open Team Score</a></div>';
+  }
+
+  function shell(){
+    var el = document.createElement('div');
+    el.id = 'nc-card'; el.className = 'card';
+    el.innerHTML = '<div class="nc-hd"><div><div class="nc-ttl" id="nc-ttl">Nirvana\'s day</div><div class="nc-by" id="nc-by">Reading the checks</div></div>'
+      + '<div class="nc-sw" role="group" aria-label="Day shown"><button type="button" data-v="y" aria-pressed="true">Yesterday</button><button type="button" data-v="t" aria-pressed="false">Today</button></div></div>'
+      + '<div id="nc-body"><p class="nc-line nc-quiet">Reading Nirvana\'s checks.</p></div>';
+    el.addEventListener('click', async function(e){
+      var b = e.target.closest('.nc-sw button');
+      if (b) {
+        if (S.view === b.dataset.v) return;
+        S.view = b.dataset.v;
+        el.querySelectorAll('.nc-sw button').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+        paint();   /* the screen changes at the tap; the day's form sends follow */
+        if (S.rows && Date.now() - S.at > 120000) await load(true);
+        else if (S.form[dayShown()] === undefined) { await formFor(dayShown()); paint(); }
+        return;
+      }
+      var a = e.target.closest('#nc-ts');
+      if (a) { e.preventDefault(); if (typeof showPage === 'function') showPage('teamscore'); }   /* the way the nav opens it: no history entry */
+    });
+    return el;
+  }
+  function paint(){
+    var el = document.getElementById('nc-card'); if (!el) return;
+    var nowMs = Date.now(), day = dayShown();
+    el.querySelector('#nc-ttl').textContent = 'Nirvana\'s day: ' + longDay(day);
+    el.setAttribute('data-day', day); el.setAttribute('data-view', S.view);
+    var body = el.querySelector('#nc-body');
+    if (!S.rows && !S.err) { body.innerHTML = '<p class="nc-line nc-quiet">Reading Nirvana\'s checks.</p>'; return; }
+    var o = sectionsFor(day, nowMs), h = '';
+    el.querySelector('#nc-by').textContent = o.by + '.';
+    if (S.err) h += '<div class="nc-start">' + esc(S.err) + '</div>';
+    else if (o.weekend) h += '<div class="nc-start">No checks on a weekend.</div>';
+    else if (o.pre) h += '<div class="nc-start">Nirvana\'s checks start Mon 9 Nov.</div>';
+    else {
+      h += '<p class="nc-head" id="nc-headline"><b>' + esc(o.checksLine) + '</b> ' + esc(o.roundLine) + (o.roundExtra ? ' ' + esc(o.roundExtra) : '') + '</p>';
+      h += '<div class="nc-chips">' + o.chips.map(function(x){ return '<div class="nc-chip ' + x.chip.cls + '" data-check="' + x.name + '" data-state="' + x.chip.state + '"><div class="k">' + esc(x.label) + '</div><div class="v">' + esc(x.chip.text) + '</div></div>'; }).join('') + '</div>';
+    }
+    var left = '';
+    if (o.chips) {
+      left += '<div class="nc-sec"><h4>Not reached</h4>' + (o.notReached.length ? o.notReached.map(function(x){ return '<p class="nc-line"><b>' + esc(x.name) + '</b>: ' + esc(x.note) + '</p>'; }).join('') : '<p class="nc-line nc-quiet">Nobody marked not reached.</p>')
+        + (o.unmarked.length ? '<p class="nc-line nc-quiet">' + (o.isToday ? 'Not marked yet: ' : 'Never marked: ') + esc(o.unmarked.join(', ')) + '</p>' : '') + '</div>';
+      left += '<div class="nc-sec"><h4>Watch</h4>' + (o.watch.length ? o.watch.map(function(x){ return '<p class="nc-line">' + x + '</p>'; }).join('') : '<p class="nc-line nc-quiet">Nothing to watch until the round is marked.</p>') + '</div>';
+    }
+    if (o.voids.length) left += '<div class="nc-sec" id="nc-voids"><h4>Voided</h4>' + o.voids.map(function(x){ return '<div class="nc-void">' + x + '</div>'; }).join('') + '</div>';
+    if (o.chips || o.slips.length) left += '<div class="nc-sec"><h4>Slips noted: ' + o.slips.length + '</h4>' + (o.slips.length ? o.slips.map(function(x){ return '<p class="nc-line">' + x + '</p>'; }).join('') : '<p class="nc-line nc-quiet">No slips noted.</p>') + '</div>';
+    h += '<div class="nc-cols"><div>' + left + '</div><div>' + weekHtml(nowMs) + pointsHtml() + '</div></div>';
+    body.innerHTML = h;
+  }
+
+  /* the gate: only THULAIB (th) and SHIARA (sh). Any other role, or none, and the card is taken out of the page. */
+  var waitT = null;
+  function gate(){
+    var role = document.body.getAttribute('data-role');
+    var el = document.getElementById('nc-card');
+    if (!OWNERS[role]) { if (el) el.remove(); S.rows = null; S.form = {}; S.at = 0; S.team = null; clearTimeout(waitT); return; }
+    if (!el) {
+      var anchor = document.getElementById('attention-panel');
+      if (!anchor || !anchor.parentNode) return;
+      anchor.parentNode.insertBefore(shell(), anchor);
+    }
+    /* drawn after the home's own reads: wait for loadAll to fill D (at most 4 s), then read */
+    var t0 = Date.now();
+    clearTimeout(waitT);
+    (function wait(){
+      var ready = typeof D === 'object' && D && ((D.clients || []).length || (D.tasks || []).length);
+      if (ready || Date.now() - t0 > 4000) load(true); else waitT = setTimeout(wait, 200);
+    })();
+  }
+
+  /* pure checks for runSelfTest (no reads, no writes) */
+  function selfcheck(){
+    var R = [], ok = function(n, p, d){ R.push({ name: 'Nirvana card: ' + n, pass: !!p, detail: d || '' }); };
+    var tick = { id: 1, day: '2026-11-10', kind: 'check', check_name: 'day_list', result: 'done', by_name: 'NIRVANA', created_at: '2026-11-10T02:30:00Z' };
+    var voided = [tick, { id: 2, day: '2026-11-10', kind: 'void', voids: 1, note: 'tapped by mistake', by_name: 'NIRVANA', created_at: '2026-11-10T02:31:00Z' }];
+    var after = Date.parse('2026-11-11T03:00:00Z');
+    var c1 = chipFor('2026-11-10', 'day_list', [tick], after);
+    ok('an 08:00 day list tick shows on time', c1.state === 'on_time' && /on time/.test(c1.text), c1.text);
+    var c2 = chipFor('2026-11-10', 'day_list', voided, after);
+    ok('a voided tick never shows On time', c2.state !== 'on_time' && !/on time/i.test(c2.text), c2.state + ': ' + c2.text);
+    var c3 = chipFor('2026-11-10', 'morning_round', [{ id: 3, day: '2026-11-10', kind: 'check', check_name: 'morning_round', result: 'done', created_at: '2026-11-10T04:11:00Z' }], after);
+    ok('a 09:41 morning round tick shows late', c3.state === 'late' && c3.text.indexOf('09:41') === 0, c3.text);
+    var c4 = chipFor('2026-11-10', 'after_lunch', [], Date.parse('2026-11-10T10:00:00Z'));
+    ok('an untouched 14:30 check at 15:30 the same day shows overdue', c4.state === 'overdue', c4.text);
+    ok('Mon shows Fri, Sat and Sun show Fri', prevWorkDay('2026-11-09') === '2026-11-06' && prevWorkDay('2026-11-14') === '2026-11-13' && prevWorkDay('2026-11-15') === '2026-11-13' && prevWorkDay('2026-11-11') === '2026-11-10');
+    ok('a day before Mon 9 Nov with no live rows says the checks start Mon 9 Nov', preStart('2026-11-06', voided.map(function(r){ return Object.assign({}, r, { day: '2026-11-06' }); })) && !preStart('2026-11-10', []));
+    ok('Friday report only on a Friday', checksFor('2026-11-13').length === 5 && checksFor('2026-11-12').length === 4);
+    var team = [{ id: 12, name: 'NIRVANA', active: true }, { id: 29, name: 'HITHESH', active: true }, { id: 23, name: 'THULAIB', active: true }, { id: 24, name: 'SHIARA', active: true }, { id: 3, name: 'SUHANA', active: true }, { id: 9, name: 'LEFT', active: false }];
+    var ros = roster(team, 'HITHESH');
+    ok('the roster leaves out the owners, leavers and whoever ran the day', ros.map(function(m){ return m.name; }).join(',') === 'NIRVANA,SUHANA', ros.map(function(m){ return m.name; }).join(','));
+    var mk = function(id, m, s){ return { id: id, day: '2026-11-10', kind: 'round', member: m, result: 'called', created_at: '2026-11-10T03:00:' + s + 'Z' }; };
+    var t3 = [{ id: 12, name: 'NIRVANA', active: true }, { id: 3, name: 'SUHANA', active: true }, { id: 5, name: 'USHANE', active: true }];
+    ok('three marks inside 4 seconds flag a round marked in one go', roundSummary([mk(1, 12, '01'), mk(2, 3, '03'), mk(3, 5, '05')], t3).bulk === true);
+    var w = watch({ byMember: { 3: 'called', 18: 'messaged' } }, { linked: ['SUHANA'], sent: [] }, { 3: 'SUHANA', 18: 'AMJATH' });
+    ok('reached with no form link is named apart from no form sent', w.noForm.join() === 'SUHANA' && w.noLink.join() === 'AMJATH', JSON.stringify(w));
+    var role = document.body.getAttribute('data-role'), present = !!document.getElementById('nc-card');
+    ok('only Thulaib and Shiara have the card in the page', !!OWNERS[role] === present, 'role ' + role + ', card ' + (present ? 'present' : 'absent'));
+    return R;
+  }
+
+  window.BBNC = { reload: function(){ return load(true); }, selfcheck: selfcheck, chipFor: chipFor, prevWorkDay: prevWorkDay, preStart: preStart, state: function(){ return S; } };
+  function wire(){
+    new MutationObserver(gate).observe(document.body, { attributes: true, attributeFilter: ['data-role'] });
+    if (document.body.getAttribute('data-role')) gate();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();
+</script>
+<!-- @@BBCC_NIRVANA_END@@ -->
 
 
       <!-- HERO -->
@@ -3596,7 +4163,9 @@ window.__ST_LOG=[];
         <button class="btn btn-sm btn-ghost" data-tab="graphic" onclick="prodTab('graphic')">Graphic</button>
         <button class="btn btn-sm btn-ghost" data-tab="smm" onclick="prodTab('smm')">SMM</button>
         <button class="btn btn-sm btn-ghost" data-tab="delivery" onclick="prodTab('delivery')">Delivery</button>
-        <button class="btn btn-sm btn-ghost" data-tab="morningbriefs" onclick="prodTab('morningbriefs')">Morning briefs</button>
+        <!-- Morning briefs HIDDEN 6 Nov 2026 by COMMAND CENTRE NIRVANA CHECKS 2 (Nirvana's day card on the home replaces it; bb_pending 1496 to 1501).
+             Hidden only: the button, the route branch and @@BBCC_TEAMBRIEF@@ are kept. To bring it back, remove style="display:none" and the redirect in prodTab. -->
+        <button class="btn btn-sm btn-ghost" data-tab="morningbriefs" onclick="prodTab('morningbriefs')" style="display:none" hidden aria-hidden="true">Morning briefs</button>
       </div>
     </div>
     <div id="prod-body"></div>
@@ -16785,6 +17354,8 @@ async function loadProduction(){
 }
 
 function prodTab(t){
+  /* 6 Nov 2026, COMMAND CENTRE NIRVANA CHECKS 2: the Morning briefs tab is hidden, so its route lands on Overview. Nothing deleted. */
+  if(t==='morningbriefs') t='overview';
   prodCurrentTab=t;
   document.querySelectorAll('#prod-tabs button').forEach(b=>{
     const on=b.getAttribute('data-tab')===t;
@@ -18196,6 +18767,8 @@ async function runSelfTest(opts){
   /* Work time: the person panel reads bb_work_items. Read only. */
   (window.BBWORK?BBWORK.selfcheck():[{name:'Work time: module present',pass:false,detail:'BBWORK is missing'}]).forEach(function(c){ok(c.name,c.pass,c.detail);});
   if(window.BBWORK){const _x=await BBWORK.crosscheck();ok(_x.name,_x.pass,_x.detail);}
+  /* Nirvana's day card (6 Nov 2026): pure checks, no reads. */
+  (window.BBNC?BBNC.selfcheck():[{name:'Nirvana card: module present',pass:false,detail:'BBNC is missing'}]).forEach(function(c){ok(c.name,c.pass,c.detail);});
   ok('Boot: core globals present',
      typeof D==='object'&&typeof CLIENTS!=='undefined'&&typeof showPage==='function'&&typeof SBget==='function',
      'D/CLIENTS/showPage/SBget');
