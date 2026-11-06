@@ -18276,7 +18276,7 @@ function tsSmmCoach(b, s) {
   parts.sort(function (x, y) { return y[1] - x[1]; });
   var top = parts[0];
   if (!top || top[1] === 0) return s.ratingCount === 0 ? 'Quality is read from the spot check stars. None were given this week, so the score waits for them.' : 'Nothing lost this week. Keep it there.';
-  if (top[0] === 'c') return 'Post what is due first: ' + tsFig(b + '.open', s.cohort - s.completed, 'raw') + ' of ' + tsFig(b + '.cohort', s.cohort, 'raw') + ' posts due this week are not posted.';
+  if (top[0] === 'c') return 'Post what is due first: not posted yet, ' + tsFig(b + '.open', s.cohort - s.completed, 'raw') + ' of the ' + tsFig(b + '.cohort', s.cohort, 'raw') + ' due this week.';
   if (top[0] === 'o') return 'Post on the day set: ' + tsFig(b + '.late', s.ontimeD - s.ontimeN, 'raw') + ' of ' + tsFig(b + '.ontimeD', s.ontimeD, 'raw') + ' posts went up after their Post on day.';
   return 'Quality cost the most points this week: lift the spot check stars.';
 }
@@ -18348,10 +18348,10 @@ function tsOpenSmm(pid) {
     side += '<dl class="ts-facts">'
       + '<div><dt>Completion</dt><dd>' + tsFig(k + '.completed', s.completed, 'raw') + ' of ' + tsFig(k + '.cohort', s.cohort, 'raw') + ' posts due were posted: ' + tsPct(k + '.completionPct', s.completionPct) + '</dd></div>'
       + '<div><dt>On time</dt><dd>' + tsFig(k + '.ontimeN', s.ontimeN, 'raw') + ' of ' + tsFig(k + '.ontimeD', s.ontimeD, 'raw') + ' posted by the end of their Post on day: ' + tsPct(k + '.ontimePct', s.ontimePct) + '</dd></div>'
-      + '<div><dt>Quality</dt><dd>' + (s.ratingCount ? 'average of ' + tsFig(k + '.ratingCount', s.ratingCount, 'raw') + ' spot check star ratings: ' + tsPct(k + '.qualityPct', s.qualityPct) : 'Not measurable: no spot check stars this week.') + '</dd></div></dl>';
+      + '<div><dt>Quality</dt><dd>' + (s.ratingCount ? 'spot check stars given: ' + tsFig(k + '.ratingCount', s.ratingCount, 'raw') + ', average ' + tsPct(k + '.qualityPct', s.qualityPct) : 'Not measurable: no spot check stars this week.') + '</dd></div></dl>';
     side += '<div><h3 class="ts-h3">What hurt the score</h3><ul class="ts-ul">'
-      + '<li>Completion: ' + tsFig(k + '.open', s.cohort - s.completed, 'raw') + ' posts due and not posted' + (s.completionPct === null ? '' : ', ' + tsFig(k + '.lost.c', tsLost(s.completionPct, 0.5), '1dp') + ' points') + '</li>'
-      + '<li>On time: ' + tsFig(k + '.late', s.ontimeD - s.ontimeN, 'raw') + ' posted late' + (s.ontimePct === null ? '' : ', ' + tsFig(k + '.lost.o', tsLost(s.ontimePct, 0.3), '1dp') + ' points') + '</li>'
+      + '<li>Completion: ' + tsFig(k + '.open', s.cohort - s.completed, 'raw') + ' not posted of the posts due' + (s.completionPct === null ? '' : ', ' + tsFig(k + '.lost.c', tsLost(s.completionPct, 0.5), '1dp') + ' points') + '</li>'
+      + '<li>On time: ' + tsFig(k + '.late', s.ontimeD - s.ontimeN, 'raw') + ' posted after the Post on day' + (s.ontimePct === null ? '' : ', ' + tsFig(k + '.lost.o', tsLost(s.ontimePct, 0.3), '1dp') + ' points') + '</li>'
       + '<li>Quality: ' + (s.qualityPct === null ? 'not scored yet, no spot check stars' : tsFig(k + '.lost.q', tsLost(s.qualityPct, 0.2), '1dp') + ' points') + '</li></ul></div>';
     side += '<p class="ts-coach">' + tsSmmCoach(k, s) + '</p>';
     var byRef = {};
