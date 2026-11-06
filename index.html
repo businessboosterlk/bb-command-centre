@@ -2606,7 +2606,11 @@ function weekDays(day) {
     }
     /* voids: every one of the day, in red, with the row it cancelled */
     var byId = {}; dayRows.forEach(function(r){ byId[r.id] = r; });
-    out.voids = dayRows.filter(function(r){ return r.kind === 'void'; }).map(function(v){
+    /* Claude's build test rows before the start date fold into one quiet line, so the first real Yesterday is not a wall of red */
+    var allVoids = dayRows.filter(function(r){ return r.kind === 'void'; });
+    var testVoids = day < START ? allVoids.filter(function(v){ return v.by_name === 'TEST CLAUDE'; }) : [];
+    out.testVoids = testVoids.length;
+    out.voids = allVoids.filter(function(v){ return testVoids.indexOf(v) < 0; }).map(function(v){
       var t = byId[v.voids], what;
       if (!t) what = 'row ' + v.voids;
       else if (t.kind === 'round') what = nm(t.member) + ' round mark (' + (RESULT[t.result] || t.result) + ')';
@@ -2700,7 +2704,7 @@ function weekDays(day) {
         + (o.unmarked.length ? '<p class="nc-line nc-quiet">' + (o.isToday ? 'Not marked yet: ' : 'Never marked: ') + esc(o.unmarked.join(', ')) + '</p>' : '') + '</div>';
       left += '<div class="nc-sec"><h4>Watch</h4>' + (o.watch.length ? o.watch.map(function(x){ return '<p class="nc-line">' + x + '</p>'; }).join('') : '<p class="nc-line nc-quiet">Nothing to watch until the round is marked.</p>') + '</div>';
     }
-    if (o.voids.length) left += '<div class="nc-sec" id="nc-voids"><h4>Voided</h4>' + o.voids.map(function(x){ return '<div class="nc-void">' + x + '</div>'; }).join('') + '</div>';
+    if (o.voids.length || o.testVoids) left += '<div class="nc-sec" id="nc-voids"><h4>Voided</h4>' + o.voids.map(function(x){ return '<div class="nc-void">' + x + '</div>'; }).join('') + (o.testVoids ? '<p class="nc-line nc-quiet" id="nc-testvoids">Build test: ' + plural(o.testVoids, 'row') + ' written and voided by Claude before the start. Not real.</p>' : '') + '</div>';
     if (o.chips || o.slips.length) left += '<div class="nc-sec"><h4>Slips noted: ' + o.slips.length + '</h4>' + (o.slips.length ? o.slips.map(function(x){ return '<p class="nc-line">' + x + '</p>'; }).join('') : '<p class="nc-line nc-quiet">No slips noted.</p>') + '</div>';
     h += '<div class="nc-cols"><div>' + left + '</div><div>' + weekHtml(nowMs) + pointsHtml() + '</div></div>';
     body.innerHTML = h;
