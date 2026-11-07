@@ -1442,7 +1442,8 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 .finc-tbl .finc-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .finc-tbl .finc-nm{font-weight:700}
 .finc-mute{color:var(--text-3)}
-.finc-st{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+/* a whole 20px box with the text one pixel lower: the capital band of 10.5px Inter sits high in an even padding, read with optical.mjs (fix round 1) */
+.finc-st{display:inline-block;font-size:10.5px;font-weight:700;line-height:16px;padding:3px 8px 1px;border-radius:6px;white-space:nowrap}
 .finc-st.paid{background:var(--green-soft);color:var(--green)}
 .finc-st.late{background:var(--red-soft);color:var(--red)}
 .finc-st.due{background:var(--amber-soft);color:var(--amber)}
@@ -8870,6 +8871,9 @@ function fincIsBankDay(){ const d=new Date(Date.now()+19800000).getUTCDay(); ret
 /* ONE NARROWING PATH (gym-skeleton finRows): the table, its totals, the Filters count and the CSV all read this. */
 function fincRows(){
   const t=fincToday(), f=fincF;
+  /* Sort on the name the table shows: an older row with a blank client_name is named from CLIENTS
+     (fincClientName), so the comparator gets a copy carrying that name. The rows themselves are untouched. */
+  const shown=new Map(), asShown=inv=>{ let v=shown.get(inv); if(!v){ v=Object.assign({},inv,{client_name:fincClientName(inv)}); shown.set(inv,v); } return v; };
   return (FIN_INVOICES||[]).filter(inv=>{
     if(!inv) return false;
     if(f.q&&!fincMatch(inv,f.q,fincClientName(inv))) return false;
@@ -8882,7 +8886,7 @@ function fincRows(){
     if(f.age&&fincAgeKey(inv,t)!==f.age) return false;
     if(f.todo&&!fincTodoMatch(inv,f.todo,t)) return false;
     return true;
-  }).sort(fincSorter(fincSort.key,fincSort.dir));
+  }).sort((a,b)=>fincCompare(asShown(a),asShown(b),fincSort.key,fincSort.dir));
 }
 function fincActiveCount(){
   const f=fincF; return (f.status?1:0)+((f.from||f.to)?1:0)+(f.sent?1:0)+(f.age?1:0)+(f.todo?1:0);
@@ -9244,7 +9248,7 @@ function fincExportCsv(){
   a.href=url; a.download='bb-invoices-'+today+'.csv'; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
-let _fincToastT=null;
+let _fincToastT=null, _fincToastI=null, _fincSafe=null;
 function fincToast(msg,undo){
   try{
     let t=document.getElementById('finc-toast');
@@ -9254,7 +9258,31 @@ function fincToast(msg,undo){
     if(undo){ const b=document.createElement('button'); b.type='button'; b.id='finc-toast-undo'; b.textContent='Undo';
       b.onclick=()=>{ clearTimeout(_fincToastT); t.remove(); undo(); }; t.appendChild(b); }
     clearTimeout(_fincToastT); _fincToastT=setTimeout(()=>{ t.remove(); },6000);
+    fincToastPlace(t); requestAnimationFrame(()=>fincToastPlace(t));
+    clearInterval(_fincToastI); _fincToastI=setInterval(()=>{ if(!t.isConnected){ clearInterval(_fincToastI); return; } fincToastPlace(t); },250);
   }catch(e){}
+}
+/* While a sheet is open the toast must never sit on its action bar (desk: the centred sheet's Cancel;
+   phone: the bottom sheet's buttons). Below the sheet if there is room, else above it, else just above
+   the action bar over the sheet's body. Safe areas come from a probe that resolves --sat and --sab.
+   Re-placed every 250ms while it shows, because the sheet re-renders after Mark paid and Undo. */
+function fincSafeInsets(){
+  if(!_fincSafe){ _fincSafe=document.createElement('div'); _fincSafe.setAttribute('aria-hidden','true');
+    _fincSafe.style.cssText='position:fixed;left:0;top:0;width:0;visibility:hidden;pointer-events:none;padding-top:var(--sat);padding-bottom:var(--sab)';
+    document.body.appendChild(_fincSafe); }
+  const cs=getComputedStyle(_fincSafe); return { t:parseFloat(cs.paddingTop)||0, b:parseFloat(cs.paddingBottom)||0 };
+}
+function fincToastPlace(t){
+  if(!t||!t.isConnected) return;
+  const ov=[...document.querySelectorAll('.modal-overlay')].filter(o=>!o.classList.contains('hidden')&&getComputedStyle(o).display!=='none').pop();
+  const box=ov&&(ov.querySelector('.modal,.modal-box')||ov.firstElementChild);
+  if(!box){ t.style.top=''; t.style.bottom=''; return; }
+  const r=box.getBoundingClientRect(), h=t.offsetHeight, gap=12, H=window.innerHeight, safe=fincSafeInsets();
+  let top;
+  if(H-safe.b-r.bottom>=h+gap*2) top=r.bottom+gap;
+  else if(r.top-safe.t>=h+gap*2) top=r.top-gap-h;
+  else { const foot=box.querySelector('.modal-foot'); top=Math.max(safe.t+gap,(foot?foot.getBoundingClientRect().top:r.bottom)-gap-h); }
+  t.style.bottom='auto'; t.style.top=Math.round(top)+'px';
 }
 /* Read once per Finance open. A refusal returns null from sbC and the feature stays hidden. */
 function fincTakeExtras(billing,chases){
@@ -12604,7 +12632,7 @@ table.inv-items tbody tr td:last-child{border-radius:0 9px 9px 0}
   <div class="invgen-bar">
     <div><span class="ig-ttl" id="ig-ttl">Invoice</span><span class="ig-sub" id="ig-subtitle"></span><span class="ig-sub" id="ig-hint" style="display:block;margin-left:0;margin-top:2px;color:var(--accent)">Click any field to edit · use “+ Add line item” for extra charges (speaker, lighting, website maintenance…)</span></div>
     <div style="display:flex;gap:10px">
-      <button class="ig-btn ghost" onclick="closeInvoiceGen()">Close</button>
+      <button class="ig-btn ghost" data-close onclick="closeInvoiceGen()">Close</button>
       <button class="ig-btn print" onclick="printInvoice()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>Print / Save PDF</button>
     </div>
   </div>
@@ -13222,7 +13250,7 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 (function(){
   if (window.__bbAppFoundations) return; window.__bbAppFoundations = true;
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-  var lockedY=0, isLocked=false, closing=false, pushed=false;
+  var lockedY=0, isLocked=false, closing=false, pushed=false, lockedKeep=null;
 
   /* The CANDIDATE SET is a cheap net, nothing more: overlays here are nested
      several levels deep, not direct children of body, so scanning body.children
@@ -13231,7 +13259,10 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
      animation:fadeIn, so it reads 0 for the first frames and a naive opacity gate
      rejects the overlay exactly when it is opening. display:none is the real
      signal here (.modal-overlay.hidden{display:none}). */
-  var OVERLAY_NET='.modal-overlay,.sheet,.drawer,.panel,.login-screen,#bba3-checkin,#bba3-drawer,[class*="overlay"]';
+  /* #invgen-overlay (the invoice and salary receipt document) carries no overlay class, only
+     .open, so it is named here (BB FINANCE fix round 1, 7 Nov 2026). Its Close button has
+     data-close, which is what Back clicks. */
+  var OVERLAY_NET='.modal-overlay,.sheet,.drawer,.panel,.login-screen,#bba3-checkin,#bba3-drawer,#invgen-overlay,[class*="overlay"]';
   function isOpenOverlay(el){
     if(!el||el.nodeType!==1) return false;
     var cs=getComputedStyle(el);
@@ -13256,13 +13287,24 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
     return el;
   }
   function lock(ov){
-    if(isLocked) return;
+    if(isLocked){
+      /* One overlay handed over to another in the same tick (sheet to PDF, sheet to Edit): the lock
+         and its history entry carry over, but the branch holding the new overlay must not stay inert.
+         Swap only the two branches, so anything added to body since (a toast) keeps its state. */
+      var nk=topLevelHolding(ov);
+      if(nk&&nk!==lockedKeep){
+        nk.removeAttribute('inert'); nk.removeAttribute('aria-hidden');
+        if(lockedKeep&&lockedKeep.parentElement===document.body){ lockedKeep.setAttribute('inert',''); lockedKeep.setAttribute('aria-hidden','true'); }
+        lockedKeep=nk;
+      }
+      return;
+    }
     lockedY=window.scrollY||0;
     document.body.style.top=(-lockedY)+'px';
     document.body.classList.add('bb-locked'); isLocked=true;
     /* 5. cover is not enough: a thumb still reaches a button beside the sheet.
        Inert every top-level branch EXCEPT the one holding the overlay. */
-    var keep=topLevelHolding(ov), c=document.body.children;
+    var keep=topLevelHolding(ov), c=document.body.children; lockedKeep=keep;
     for(var i=0;i<c.length;i++){
       if(c[i]!==keep&&c[i].tagName!=='SCRIPT'&&c[i].tagName!=='STYLE'){
         c[i].setAttribute('inert',''); c[i].setAttribute('aria-hidden','true'); } }
@@ -13270,7 +13312,7 @@ body.bb-locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
   }
   function unlock(){
     if(!isLocked) return;
-    isLocked=false;
+    isLocked=false; lockedKeep=null;
     document.body.classList.remove('bb-locked'); document.body.style.top='';
     var c=document.body.children;
     for(var i=0;i<c.length;i++){ c[i].removeAttribute('inert'); c[i].removeAttribute('aria-hidden'); }
