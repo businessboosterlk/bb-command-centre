@@ -1397,6 +1397,100 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 .fin-yr-table th{font-size:11.5px;font-weight:700;letter-spacing:0;color:var(--text-2);padding:9px 14px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface-2)}
 .fin-yr-table td{padding:9px 14px;border-bottom:1px solid var(--border);font-size:12px}
 .fin-yr-table tfoot td{font-size:12px;font-weight:600;background:var(--surface-2)}
+/* ══ COLLECTIONS (BB FINANCE UPGRADE 1, 7 Nov 2026) ══
+   The Monthly view became Collections: a KPI row, an ageing strip across every month,
+   a To do today panel, one invoice table with a filter bar (desk inline, phone sheet)
+   and one sheet per invoice with one action bar. Prior art: gym-skeleton finance
+   (one narrowing path, totals follow the filter, ageing strip, export follows the
+   filter) and the Workshop OS filter bar (phone: search plus a Filters button with
+   a count, a sheet with Show N results and Clear all). Phone below 768px. */
+.finc-age{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:14px}
+.finc-age button{background:var(--surface);border:0;padding:10px 14px;text-align:left;cursor:pointer;font-family:inherit;color:var(--text);min-height:60px;touch-action:manipulation}
+.finc-age button:hover{background:var(--surface-2)}
+.finc-age button.on{background:var(--accent-soft);box-shadow:inset 0 0 0 2px var(--accent)}
+.finc-age-lbl{font-size:11.5px;font-weight:700;color:var(--text-3)}
+.finc-age-val{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:3px}
+.finc-age-n{font-size:11px;color:var(--text-3);margin-top:1px}
+.finc-todo{margin-bottom:14px;padding:0;overflow:hidden}
+.finc-todo-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 18px;border-bottom:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text)}
+.finc-todo-head span{font-size:11px;font-weight:600;color:var(--text-3)}
+.finc-todo-line{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;min-height:48px;background:none;border:0;border-bottom:1px solid var(--border);color:var(--text);font-size:13px;text-align:left;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.finc-todo-line:last-child{border-bottom:0}
+.finc-todo-line:hover{background:var(--surface-2)}
+.finc-todo-line.on{background:var(--accent-soft)}
+.finc-todo-n{flex-shrink:0;min-width:30px;text-align:center;padding:2px 8px;border-radius:12px;background:var(--amber-soft);color:var(--amber);font-size:12px;font-weight:700}
+.finc-todo-empty{padding:14px 18px;font-size:12.5px;color:var(--text-3)}
+.finc-fbar{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.finc-fbar .form-input,.finc-fbar .form-select,.finc-sheet .form-input,.finc-sheet .form-select,.finc-sheet textarea{font-size:16px;min-height:44px;touch-action:manipulation}
+.finc-q{flex:1 1 220px;min-width:0}
+.finc-fdesk{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.finc-fdesk .form-select{width:auto;min-width:118px}
+.finc-fdesk .btn-ghost,.finc-fbtn,#finc-csv{min-height:44px;touch-action:manipulation}
+.finc-fbtn{display:none;font-size:14px}
+.finc-fb-n:not(:empty){display:inline-block;min-width:20px;padding:0 6px;border-radius:10px;background:var(--accent);color:#fff;font-size:12px;line-height:20px;text-align:center}
+.finc-chips{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap}
+.finc-chips:empty{display:none}
+.finc-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:22px;padding:0 14px;min-height:44px;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;touch-action:manipulation}
+.finc-tbl{width:100%;border-collapse:collapse}
+.finc-tbl th{font-size:11.5px;font-weight:700;color:var(--text-2);text-align:left;padding:10px 14px;border-bottom:1px solid var(--border);background:var(--surface-2);white-space:nowrap}
+.finc-tbl th.finc-sortable{padding:0}
+.finc-th{background:none;border:0;padding:10px 14px;font:inherit;color:inherit;cursor:pointer;width:100%;text-align:inherit;min-height:40px;white-space:nowrap}
+.finc-th.on{color:var(--accent)}
+.finc-tbl td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text);vertical-align:middle}
+.finc-tbl tr.finc-tr{cursor:pointer}
+.finc-tbl tr.finc-tr:hover td{background:var(--surface-2)}
+.finc-tbl .finc-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.finc-tbl .finc-nm{font-weight:700}
+.finc-mute{color:var(--text-3)}
+.finc-st{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.finc-st.paid{background:var(--green-soft);color:var(--green)}
+.finc-st.late{background:var(--red-soft);color:var(--red)}
+.finc-st.due{background:var(--amber-soft);color:var(--amber)}
+.finc-card{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer;touch-action:manipulation}
+.finc-card:last-child{border-bottom:0}
+.finc-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;font-weight:700;color:var(--text)}
+.finc-card-top b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.finc-card-meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:6px;font-size:12px;color:var(--text-3)}
+.finc-empty{padding:24px 18px;text-align:center;color:var(--text-3);font-size:12.5px;display:flex;flex-direction:column;align-items:center;gap:10px}
+#fin-sect-in .fin-sent-btn{min-height:32px}
+@media (pointer:coarse){ #fin-sect-in .fin-sent-btn{min-height:44px;padding:0 12px;font-size:12px} }
+.finc-sheet{max-width:560px;display:flex;flex-direction:column;max-height:88vh;max-height:88dvh}
+.finc-sheet .modal-body{flex:1 1 auto;max-height:none;overflow-y:auto;gap:14px}
+.finc-sh-amt{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--text)}
+.finc-sh-sub{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--text-2);margin-top:4px}
+.finc-dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:13px}
+.finc-dl dt{color:var(--text-3);font-weight:600}
+.finc-dl dd{margin:0;color:var(--text);display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.finc-link{background:none;border:0;padding:0 4px;min-height:32px;color:var(--accent);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;touch-action:manipulation}
+.finc-box{border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;background:var(--surface-2);display:flex;flex-direction:column;gap:10px}
+.finc-box.on{border-color:var(--accent)}
+.finc-box-title{font-size:12px;font-weight:700;color:var(--text-2)}
+.finc-box-row{display:flex;gap:8px;align-items:stretch}
+.finc-box-row .form-input{flex:1;min-width:0}
+.finc-box-row .btn-ghost{min-height:44px}
+.finc-err{font-size:12px;color:var(--red)}
+.finc-err:empty{display:none}
+.finc-chase{font-size:12.5px;color:var(--text-2);padding:6px 0;border-top:1px solid var(--border)}
+.finc-chase:first-child{border-top:0}
+.finc-chase b{color:var(--text)}
+.modal-foot.finc-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;justify-content:stretch}
+.finc-bar > *{min-height:44px;justify-content:center;touch-action:manipulation;font-size:14px}
+.finc-bar .finc-bar-main,.finc-bar .finc-span{grid-column:1/-1}
+.finc-quiet{grid-column:1/-1;background:none;border:0;color:var(--text-3);font:inherit;font-size:14px;cursor:pointer}
+.finc-quiet:disabled,.finc-bar button:disabled{opacity:.45;cursor:default}
+.finc-bar .finc-danger{color:var(--red)}
+#finc-toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + var(--sab));z-index:10000;display:flex;align-items:center;gap:14px;max-width:calc(100vw - 32px);background:var(--surface);border:1px solid var(--border-strong);color:var(--text);padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg)}
+#finc-toast.has-undo{padding:6px 6px 6px 16px}
+#finc-toast button{min-height:44px;min-width:72px;border:0;border-radius:8px;background:var(--accent-soft);color:var(--accent);font:inherit;font-weight:700;cursor:pointer;touch-action:manipulation}
+@media (max-width:767px){
+  .finc-age{grid-template-columns:1fr 1fr}
+  .finc-age button:first-child{grid-column:1/-1}
+  .finc-fdesk{display:none}
+  .finc-fbtn{display:inline-flex}
+  .finc-todo-head,.finc-todo-line{padding-left:14px;padding-right:14px}
+  #modal-fin-sheet,#finc-fsheet{align-items:flex-end;padding:0}
+  #modal-fin-sheet .modal,#finc-fsheet .modal{max-width:100%!important;border-radius:var(--r) var(--r) 0 0;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+}
 @media(max-width:900px){
   .fin-stats{grid-template-columns:1fr 1fr}
   .fin-two-col{grid-template-columns:1fr}
@@ -3706,28 +3800,51 @@ function weekDays(day) {
       </div>
       <div class="fin-ph-right">
         <div class="fin-view-tabs">
-          <button class="fin-vtab active" id="fvt-month" onclick="setFinView('month')">Monthly</button>
+          <button class="fin-vtab active" id="fvt-month" onclick="setFinView('month')">Collections</button>
           <button class="fin-vtab" id="fvt-year" onclick="setFinView('year')">Yearly</button>
           <button class="fin-vtab" id="fvt-client" onclick="setFinView('client')">By Client</button>
           <button class="fin-vtab" id="fvt-reports" onclick="setFinView('reports')">Reports</button>
         </div>
-        <select class="form-select" id="fin-month-sel" style="width:150px;font-size:12px" onchange="renderFinancePage()"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
+        <select class="form-select" id="fin-month-sel" style="width:150px;font-size:12px" onchange="fincMonthPicked()"><!-- 6 Oct 2026: months filled by bbFillMonthSelects --></select>
         <button class="btn-ghost btn-sm" onclick="openFinCostModal()">+ Add Cost</button>
         <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+ Add Invoice</button>
       </div>
     </div>
 
-    <!-- Stat Cards -->
+    <!-- Stat Cards. COLLECTIONS KPI ROW (BB FINANCE UPGRADE 1, 7 Nov 2026): the six collection
+         figures first, then costs and the profit card, which keeps its honesty guard. Invoiced,
+         Collected, To collect and Collection rate are the month in the picker; Overdue and
+         Expected look across every month, because money owed does not stop at a month end. -->
     <div class="fin-stats" id="fin-stat-wrap">
       <div class="fin-stat" style="border-top:2px solid var(--green)">
-        <div class="fin-stat-lbl">Total Invoiced</div>
+        <div class="fin-stat-lbl">Invoiced</div>
         <div class="fin-stat-val" id="fst-revenue" style="color:var(--green)">LKR 0</div>
         <div class="fin-stat-note" id="fst-rev-note">All invoices this month</div>
       </div>
+      <div class="fin-stat" style="border-top:2px solid var(--green)">
+        <div class="fin-stat-lbl">Collected</div>
+        <div class="fin-stat-val" id="fst-collected" style="color:var(--green)">LKR 0</div>
+        <div class="fin-stat-note" id="fst-collected-note">Paid so far this month</div>
+      </div>
       <div class="fin-stat" style="border-top:2px solid var(--amber)">
-        <div class="fin-stat-lbl">Outstanding</div>
+        <div class="fin-stat-lbl">To collect</div>
         <div class="fin-stat-val" id="fst-outstanding" style="color:var(--amber)">LKR 0</div>
-        <div class="fin-stat-note">Unpaid / not yet received</div>
+        <div class="fin-stat-note" id="fst-outstanding-note">Not paid yet this month</div>
+      </div>
+      <div class="fin-stat" style="border-top:2px solid var(--red)">
+        <div class="fin-stat-lbl">Overdue</div>
+        <div class="fin-stat-val" id="fst-overdue" style="color:var(--red)">LKR 0</div>
+        <div class="fin-stat-note" id="fst-overdue-note">Past the due date, all months</div>
+      </div>
+      <div class="fin-stat" style="border-top:2px solid var(--blue)">
+        <div class="fin-stat-lbl">Collection rate</div>
+        <div class="fin-stat-val" id="fst-rate">None billed</div>
+        <div class="fin-stat-note" id="fst-rate-note">Collected out of invoiced</div>
+      </div>
+      <div class="fin-stat" style="border-top:2px solid var(--blue)">
+        <div class="fin-stat-lbl">Expected in the next 30 days</div>
+        <div class="fin-stat-val" id="fst-expected">LKR 0</div>
+        <div class="fin-stat-note" id="fst-expected-note">Unpaid and due within 30 days</div>
       </div>
       <div class="fin-stat" style="border-top:2px solid var(--red)">
         <div class="fin-stat-lbl">Total Costs</div>
@@ -3797,21 +3914,32 @@ function weekDays(day) {
          lists are already grouped so filtering is optional, and each section
          header stays on screen while you read its rows. -->
     <div id="fin-monthly-view">
+      <!-- TO DO TODAY and the AGEING STRIP (BB FINANCE UPGRADE 1). Each line and each bucket
+           is a button that filters the invoice table below; tapping it again clears it. -->
+      <section class="card finc-todo" id="finc-todo" aria-label="To do today"></section>
+      <div class="finc-age" id="finc-age" role="group" aria-label="Ageing of unpaid invoices"></div>
       <div class="fin-stack">
         <section class="card fin-sect" id="fin-sect-in">
           <div class="fin-sect-head">
             <div class="fin-sect-title">
               <div class="fin-sect-name">Invoices <span>money coming in</span></div>
-              <div class="fin-sect-total">Total <b id="fin-inv-total">LKR 0</b></div>
+              <div class="fin-sect-total"><span id="finc-shown">0 shown</span> · Total <b id="fin-inv-total">LKR 0</b></div>
             </div>
             <div class="fin-sect-tools">
-              <div class="fin-pills" id="fin-inv-pills">
-                <button type="button" data-f="" onclick="finSetInvFilter('')">All</button>
-                <button type="button" data-f="due" onclick="finSetInvFilter('due')">To collect</button>
-                <button type="button" data-f="paid" onclick="finSetInvFilter('paid')">Collected</button>
-                <button type="button" data-f="overdue" onclick="finSetInvFilter('overdue')">Unpaid<span id="fin-ov-count" class="fin-pill-n"></span></button>
-              </div>
+              <button type="button" class="btn-ghost btn-sm" id="finc-csv" onclick="fincExportCsv()">Export CSV</button>
               <button class="btn-primary btn-sm" onclick="openFinInvoiceModal()">+ Invoice</button>
+            </div>
+            <div class="finc-fbar">
+              <input type="search" class="form-input finc-q" id="finc-q" placeholder="Search client or notes" autocomplete="off" aria-label="Search invoices" oninput="fincSetQ(this.value)">
+              <div class="finc-fdesk">
+                <select class="form-select" id="finc-f-status" aria-label="Status" onchange="fincSet('status',this.value)"></select>
+                <select class="form-select" id="finc-f-from" aria-label="From month" onchange="fincSet('from',this.value)"></select>
+                <select class="form-select" id="finc-f-to" aria-label="To month" onchange="fincSet('to',this.value)"></select>
+                <select class="form-select" id="finc-f-sent" aria-label="Sent" onchange="fincSet('sent',this.value)"></select>
+                <button type="button" class="btn-ghost btn-sm" id="finc-clear" onclick="fincClearAll()">Clear all</button>
+              </div>
+              <button type="button" class="btn-ghost finc-fbtn" id="finc-fbtn" onclick="fincOpenFilters()">Filters <span class="finc-fb-n" id="finc-fb-n"></span></button>
+              <div class="finc-chips" id="finc-chips"></div>
             </div>
           </div>
           <div id="fin-invoice-list"></div>
@@ -4655,6 +4783,37 @@ function weekDays(day) {
       <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="fin-inv-notes" placeholder="Optional"></div>
     </div>
     <div class="modal-foot"><button class="btn-ghost" onclick="closeModal('modal-fin-invoice')">Cancel</button><button class="btn-primary" onclick="saveFinInvoice()">Save Invoice</button></div>
+  </div>
+</div>
+<!-- ONE SHEET PER INVOICE (BB FINANCE UPGRADE 1, 7 Nov 2026). A .modal-overlay with .hidden, so
+     the BB APP FOUNDATIONS observer locks the page, pushes one history entry and Back clicks the
+     first .modal-close below. The Paid and Log a chase forms open INSIDE this sheet rather than
+     as a second overlay, because one Back closes every open overlay at once. -->
+<div class="modal-overlay hidden" id="modal-fin-sheet">
+  <div class="modal finc-sheet" role="dialog" aria-modal="true" aria-labelledby="finc-sh-title">
+    <div class="modal-head"><div class="modal-title" id="finc-sh-title">Invoice</div><button class="modal-close" id="finc-sh-close" aria-label="Close" onclick="closeModal('modal-fin-sheet')">×</button></div>
+    <div class="modal-body" id="finc-sh-body"></div>
+    <div class="modal-foot finc-bar" id="finc-sh-bar"></div>
+  </div>
+</div>
+<!-- PHONE FILTERS SHEET, copied from the Workshop OS filter bar: every choice applies at once,
+     the button says how many invoices it will show and Clear all is greyed out when nothing is set. -->
+<div class="modal-overlay hidden" id="finc-fsheet">
+  <div class="modal finc-sheet" role="dialog" aria-modal="true" aria-labelledby="finc-fs-title">
+    <div class="modal-head"><div class="modal-title" id="finc-fs-title">Filters</div><button class="modal-close" id="finc-fs-close" aria-label="Close" onclick="closeModal('finc-fsheet')">×</button></div>
+    <div class="modal-body">
+      <div class="form-field"><label class="form-label" for="finc-fs-status">Status</label><select class="form-select" id="finc-fs-status" onchange="fincSet('status',this.value)"></select></div>
+      <div class="field-row">
+        <div class="form-field"><label class="form-label" for="finc-fs-from">From</label><select class="form-select" id="finc-fs-from" onchange="fincSet('from',this.value)"></select></div>
+        <div class="form-field"><label class="form-label" for="finc-fs-to">To</label><select class="form-select" id="finc-fs-to" onchange="fincSet('to',this.value)"></select></div>
+      </div>
+      <div class="form-field"><label class="form-label" for="finc-fs-sent">Sent</label><select class="form-select" id="finc-fs-sent" onchange="fincSet('sent',this.value)"></select></div>
+      <div class="form-field"><label class="form-label" for="finc-fs-sort">Sort by</label><select class="form-select" id="finc-fs-sort" onchange="fincSetSortValue(this.value)"></select></div>
+    </div>
+    <div class="modal-foot finc-bar">
+      <button type="button" class="btn-primary finc-bar-main" id="finc-fs-show" onclick="closeModal('finc-fsheet')">Show results</button>
+      <button type="button" class="btn-ghost finc-span" id="finc-fs-clear" onclick="fincClearAll()">Clear all</button>
+    </div>
   </div>
 </div>
 <!-- Add/Edit Cost (Finance Page) -->
@@ -7413,7 +7572,8 @@ function finToggleOverdue(){
    the overdue box lands on the Invoices list showing every past-due invoice of every month,
    grouped by month, oldest first. No month picker, no search, no second list to unfold. */
 function finShowOverdueByMonth(){
-  finInvFilter='overdue'; renderFinancePage();
+  /* Collections (7 Nov 2026): the overdue view is now the Overdue filter of the one invoice table. */
+  fincF.status='late'; fincF.from=''; fincF.to=''; fincF.age=''; fincF.todo=''; fincPrevRange=null; renderFinancePage();
   setTimeout(()=>{ const s=document.getElementById('fin-sect-in'); if(s) s.scrollIntoView({behavior:'smooth',block:'start'}); },60);
 }
 function finSetCostFilter(f){ finCostFilter=f; renderFinancePage(); }
@@ -7485,11 +7645,17 @@ function getFinMonth(){return document.getElementById('fin-month-sel')?.value||b
 async function loadFinancePage(){
   try{
     const needClients=!CLIENTS||!CLIENTS.length;
-    const [inv,costs,clients]=await Promise.all([
+    /* client_billing and invoice_chases are finance only (CEO and COO). Read here, once per
+       Finance open, never at app start; a refusal comes back null and fincTakeExtras hides
+       the billing email or the chase log instead of breaking the page. */
+    const [inv,costs,clients,billing,chases]=await Promise.all([
       SBget('invoices','?select=*&order=month.desc,created_at.desc'),
       SBget('costs','?select=*&order=month.desc,created_at.desc').catch(()=>[]),
-      needClients?SBget('clients','?select=*&order=name').catch(()=>[]):Promise.resolve(null)
+      needClients?SBget('clients','?select=*&order=name').catch(()=>[]):Promise.resolve(null),
+      SBget('client_billing','?select=client_id,billing_email,contact_name,updated_at').catch(()=>null),
+      SBget('invoice_chases','?select=*&order=at.asc').catch(()=>null)
     ]);
+    try{ fincTakeExtras(billing,chases); }catch(e){ FIN_BILLING=null; FIN_CHASES=null; }
     FIN_INVOICES=inv||[];
     FIN_COSTS=costs||[];
     INVOICES=FIN_INVOICES;
@@ -7517,6 +7683,8 @@ async function loadFinancePage(){
              : (latestWithData || cur);
   const sel=document.getElementById('fin-month-sel');
   if(sel&&sel.querySelector(`option[value="${want}"]`))sel.value=want;
+  /* The invoice table opens on the same month as the picker; the filter bar widens it from there. */
+  if(!fincInited){ fincInited=true; const m=getFinMonth(); fincF.from=m; fincF.to=m; }
   renderFinancePage();
   loadFinanceAgentAlerts();
 }
@@ -8309,162 +8477,19 @@ function renderFinancePage(){
     profEl.style.color='var(--text-2)';
     document.getElementById('fst-margin').innerHTML='<span style="color:var(--amber)">Not profit \u00b7 only '+complete+'% of costs recorded</span>';
   }
-  document.getElementById('fin-inv-total').textContent='LKR '+invTotal.toLocaleString();
   document.getElementById('fin-cost-total').textContent='LKR '+totalCosts.toLocaleString();
 
-  /* OVERDUE MEANS THE DUE DATE HAS PASSED. This used to be every unpaid invoice
-     in every month, so October, November and December, which nobody owes yet,
-     were counted as late. On 2 Oct 2026 the block said LKR 10,120,500 overdue;
-     the database said 3,848,500, and 6,272,000 was simply not due. A money
-     figure a CEO acts on cannot be inflated 2.6 times by the calendar.
-     The due date is the invoice's own due_date, or the last day of the month it
-     bills, which is the rule the ageing strip below already used. */
-  const fallsDue=i=>{
-    if(i.due_date){const d=new Date(i.due_date);if(!isNaN(d))return d.getTime();}
-    if(i.month){const p=String(i.month).split('-');if(p.length===2)return new Date(Number(p[0]),Number(p[1]),0,23,59,59).getTime();}
-    return null;
-  };
-  const _nowMs=Date.now();
-  const allDelayed=FIN_INVOICES.filter(i=>i.status!=='paid'&&(()=>{const r=fallsDue(i);return r!==null&&r<_nowMs;})());
-  const delWrap=document.getElementById('fin-delayed-wrap');
-  if(allDelayed.length){
-    delWrap.style.display='block';
-    const delSum=allDelayed.reduce((s,i)=>s+(i.amount||0),0);
-    document.getElementById('fin-delayed-total').textContent='LKR '+delSum.toLocaleString();
-    const _dc=document.getElementById('fin-delayed-count');
-    if(_dc)_dc.textContent=allDelayed.length+' invoice'+(allDelayed.length===1?'':'s')+' past their due date';
-    // ── receivables AGING buckets (days outstanding: due_date if set, else end of billed month) ──
-    (function(){
-      const now=Date.now();
-      const age=i=>{let ref=null;
-        if(i.due_date){const d=new Date(i.due_date);if(!isNaN(d))ref=d.getTime();}
-        if(ref===null&&i.month){const p=String(i.month).split('-');if(p.length===2){ref=new Date(Number(p[0]),Number(p[1]),0).getTime();}}
-        return ref===null?0:Math.max(0,Math.floor((now-ref)/86400000));};
-      const B={'0-30':0,'31-60':0,'61-90':0,'90+':0};
-      allDelayed.forEach(i=>{const a=age(i);const k=a<=30?'0-30':a<=60?'31-60':a<=90?'61-90':'90+';B[k]+=(i.amount||0);});
-      let strip=document.getElementById('fin-aging-strip');
-      if(!strip){strip=document.createElement('div');strip.id='fin-aging-strip';
-        strip.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-bottom:1px solid var(--border)';
-        const list=document.getElementById('fin-delayed-list');list.parentNode.insertBefore(strip,list);}
-      const col={'0-30':'var(--text-2)','31-60':'var(--amber)','61-90':'var(--accent)','90+':'var(--red)'};
-      strip.innerHTML=Object.keys(B).map(k=>`<div style="background:var(--surface);padding:9px 12px;text-align:center">
-        <div style="font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--text-3);">${k} days</div>
-        <div style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;font-weight:600;color:${B[k]?col[k]:'var(--text-3)'};font-variant-numeric:tabular-nums">${B[k]?'LKR '+B[k].toLocaleString():'—'}</div></div>`).join('');
-    })();
-    const byM={};
-    allDelayed.forEach(i=>{const mk=i.month||'—';(byM[mk]=byM[mk]||[]).push(i);});
-    document.getElementById('fin-delayed-list').innerHTML=
-      Object.keys(byM).sort().reverse().map(mk=>{
-        const mInvs=byM[mk];const mSum=mInvs.reduce((s,i)=>s+(i.amount||0),0);
-        return `<div style="padding:7px 18px 7px 36px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface-2)">
-          <span style="font-size:11.5px;font-weight:700;color:var(--text-2);letter-spacing:0">${FIN_MONTH_NAMES[mk]||mk}</span>
-          <span style="font-size:11px;font-weight:600;color:var(--red)">LKR ${mSum.toLocaleString()}</span></div>`+
-          mInvs.map(inv=>{
-            const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
-            const nm=inv.client_name||(cl?cl.name:'')||'—';
-            const isOv=inv.status==='overdue';
-            /* Say it on the row. A named invoice with no client link is one off
-               work and that is a fact worth seeing, not a defect to hide. */
-            const oneOff=!inv.client_id&&(inv.client_name||'').trim();
-            return `<div style="display:flex;align-items:center;gap:10px;padding:9px 18px 9px 36px;border-bottom:1px solid var(--border)">
-              <div style="flex:1;font-size:12px;font-weight:600;color:var(--text)">${esc(nm)}${oneOff?' <span style="font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--text-3);border:1px solid var(--border);border-radius:20px;padding:1px 7px;margin-left:4px">one off</span>':''}</div>
-              <div style="font-size:13px;font-weight:600;color:var(--text)">LKR ${(inv.amount||0).toLocaleString()}</div>
-              <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:6px;background:${isOv?'var(--red-soft)':'var(--amber-soft)'};color:${isOv?'var(--red)':'var(--amber)'}">${isOv?'OVERDUE':'PENDING'}</span>
-              <button style="font-size:10px;padding:3px 9px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>
-            </div>`;
-          }).join('');
-      }).join('');
-  }else{delWrap.style.display='none';}
+  /* COLLECTIONS (BB FINANCE UPGRADE 1, 7 Nov 2026). The overdue box, its ageing strip and the
+     grouped invoice list were replaced by the KPI row, the ageing strip across every month, the
+     To do today panel and one invoice table, all drawn by fincRender from fincRows. Overdue still
+     means past the due date (fincDueDate: due_date, else the last day of the billed month). */
+  try{ fincPaintKpis(invoices,fincToday()); }catch(e){ console.error('fincPaintKpis',e); }
+  const _dw=document.getElementById('fin-delayed-wrap'); if(_dw) _dw.style.display='none';
 
   // Smart flag
   renderFinSmartFlag(month);
 
-  // Invoice list
-  /* GROUPED, SO YOU RARELY NEED THE FILTER. What you still have to collect
-     comes first with its own total, overdue at the very top, then what is
-     already in. The filter pills only narrow it to one group. */
-  finPaintPills('fin-inv-pills', finInvFilter);
-  const isDue=i=>i.status!=='paid';
-  const dueRank={overdue:0,unpaid:1};
-  const dueInv=invoices.filter(isDue).sort((a,b)=>(dueRank[a.status]??2)-(dueRank[b.status]??2)||(b.amount||0)-(a.amount||0));
-  const paidInv=invoices.filter(i=>!isDue(i)).sort((a,b)=>(b.amount||0)-(a.amount||0));
-  const sumOf=arr=>arr.reduce((t,i)=>t+(i.amount||0),0);
-  const invEl=document.getElementById('fin-invoice-list');
-  const invRow=(inv,late)=>{
-      const cl=CLIENTS.find(c=>Number(c.id)===Number(inv.client_id));
-      const nm=inv.client_name||(cl?cl.name:'')||'—';
-      let sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
-      let sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
-      let sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||inv.status.toUpperCase();
-      /* in the unpaid view the row says whether it is past its due date ("n days late") or not yet ("Due 2 Nov") */
-      const isLate=typeof late==='string'&&/late$/.test(late);
-      if(typeof late==='string'){ if(isLate){ sl='OVERDUE'; sc='var(--red)'; sb='var(--red-soft)'; } else { sl='PENDING'; sc='var(--amber)'; sb='var(--amber-soft)'; } }
-      let extras=[];
-      try{extras=Array.isArray(inv.extras)?inv.extras:(inv.extras?JSON.parse(inv.extras):[]);}catch(e){extras=[];}
-      const extrasHtml=extras.length?`<div class="fin-extras-breakdown">${extras.map(ex=>`<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);padding:1px 0"><span>+ ${esc(ex.desc||'Extra')}</span><span style="color:var(--text-2);font-weight:600">LKR ${(parseInt(ex.amt)||0).toLocaleString()}</span></div>`).join('')}</div>`:'';
-      /* The same mark as the monthly list. Two renderers draw an invoice and
-         both have to say the same thing, or the one you happen to be looking
-         at decides whether a fact is true. */
-      const oneOff=!inv.client_id&&(inv.client_name||'').trim();
-      return `<div class="fin-inv-row">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700;color:var(--text)">${esc(nm)}${oneOff?' <span style="font-size:11.5px;font-weight:600;letter-spacing:0;color:var(--text-3);border:1px solid var(--border);border-radius:20px;padding:1px 7px;margin-left:4px;white-space:nowrap">one off</span>':''}</div>
-          ${typeof late==='string'?`<div class="fin-late"${isLate?'':' style="color:var(--amber)"'}>${late}</div>`:''}
-          ${inv.notes?`<div style="font-size:10px;color:var(--text-3);margin-top:1px">${esc(inv.notes)}</div>`:''}
-          ${extrasHtml}
-        </div>
-        <div style="font-size:14px;font-weight:600;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);flex-shrink:0">LKR ${(inv.amount||0).toLocaleString()}</div>
-        <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:6px;background:${sb};color:${sc};flex-shrink:0;min-width:58px;text-align:center">${sl}</span>
-        <div style="display:flex;gap:4px;flex-shrink:0">
-          ${finSentBtn(inv)}${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>`:''}
-          <button style="font-size:10px;padding:3px 8px;background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="openInvoiceGen(${inv.id})" title="Generate a branded PDF invoice">Invoice</button>
-          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px" onclick="openFinInvoiceModal(${inv.id})">Edit</button>
-          <button class="btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;color:var(--red)" onclick="finDeleteInvoice(${inv.id})">×</button>
-        </div>
-      </div>`;
-  };
-  /* UNPAID, ALL MONTHS (Thulaib 7 Oct, corrected 13 Oct: "for Sep more is pending, why is only CCT showing").
-     Every finished month's unpaid invoices, plus anything already past due, whether or not it is late yet.
-     The month being worked now is left out until it ends. Late rows say "n days late" in red; the rest say
-     when they fall due, in amber. The overdue box above still counts only what is past due. */
-  const _curYM=(()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');})();
-  const unpaidPast=FIN_INVOICES.filter(i=>i.status!=='paid'&&(String(i.month||'')<_curYM||allDelayed.includes(i)));
-  const _ovN=document.getElementById('fin-ov-count'); if(_ovN) _ovN.textContent=unpaidPast.length?String(unpaidPast.length):'';
-  if(finInvFilter==='overdue'){
-    const byMonth={};
-    unpaidPast.forEach(i=>{ (byMonth[i.month||'']=byMonth[i.month||'']||[]).push(i); });
-    const allSum=sumOf(unpaidPast), lateSum=sumOf(unpaidPast.filter(i=>allDelayed.includes(i)));
-    document.getElementById('fin-inv-total').textContent='LKR '+allSum.toLocaleString();
-    const lateTxt=i=>{ const due=fallsDue(i); if(due===null) return 'No due date';
-      if(due>=_nowMs) return 'Due '+new Date(due).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
-      const d=Math.floor((_nowMs-due)/86400000); return d<=0?'Due today':d===1?'1 day late':d+' days late'; };
-    let h=`<div class="fin-grp"><span class="fin-grp-name" style="color:${unpaidPast.length?'var(--red)':'var(--green)'}">${unpaidPast.length?'Still to be paid, all months':'Everything billed is paid'}</span>`
-      +`<span class="fin-grp-sum" style="color:${unpaidPast.length?'var(--red)':'var(--green)'}">LKR ${allSum.toLocaleString()}<span>${unpaidPast.length} invoice${unpaidPast.length===1?'':'s'}${lateSum?`, LKR ${lateSum.toLocaleString()} overdue`:''}</span></span></div>`;
-    Object.keys(byMonth).sort().forEach(mk=>{
-      const rows=byMonth[mk].sort((a,b)=>(b.amount||0)-(a.amount||0));
-      h+=`<div class="fin-grp fin-grp-month"><span class="fin-grp-name">${FIN_MONTH_NAMES[mk]||mk||'No month'}</span>`
-        +`<span class="fin-grp-sum">LKR ${sumOf(rows).toLocaleString()}<span>${rows.length} client${rows.length===1?'':'s'}</span></span></div>`;
-      h+=rows.map(i=>invRow(i,lateTxt(i))).join('');
-    });
-    if(!unpaidPast.length) h+='<div class="fin-empty-grp">Every invoice for a finished month is paid.</div>';
-    invEl.innerHTML=h;
-  }else if(!invoices.length){
-    invEl.innerHTML=`<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px">No invoices for ${FIN_MONTH_NAMES[month]||month}</div>`;
-  }else{
-    const showDue=finInvFilter!=='paid', showPaid=finInvFilter!=='due';
-    let h='';
-    if(showDue){
-      h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">${dueInv.length?'To collect':'Nothing to collect'}</span>`
-        +`<span class="fin-grp-sum" style="color:${dueInv.length?'var(--amber)':'var(--green)'}">LKR ${sumOf(dueInv).toLocaleString()}<span>${dueInv.length} invoice${dueInv.length===1?'':'s'}${(()=>{const n=dueInv.filter(i=>!i.sent_at).length;return n?`, ${n} not sent`:'';})()}</span></span></div>`;
-      h+=dueInv.length?dueInv.map(invRow).join(''):'<div class="fin-empty-grp">Every invoice this month is paid.</div>';
-    }
-    if(showPaid){
-      h+=`<div class="fin-grp"><span class="fin-grp-name" style="color:var(--green)">Collected</span>`
-        +`<span class="fin-grp-sum" style="color:var(--green)">LKR ${sumOf(paidInv).toLocaleString()}<span>${paidInv.length} invoice${paidInv.length===1?'':'s'}</span></span></div>`;
-      h+=paidInv.length?paidInv.map(invRow).join(''):'<div class="fin-empty-grp">Nothing collected yet this month.</div>';
-    }
-    invEl.innerHTML=h;
-  }
+  fincRender();
 
   // Cost list
   const costEl=document.getElementById('fin-cost-list');
@@ -8523,6 +8548,718 @@ function renderFinancePage(){
     }
     costEl.innerHTML=h;
   }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   COLLECTIONS (BB FINANCE UPGRADE 1, approved by Thulaib 7 Nov 2026)
+   Shiara starts invoicing on Monday 9 Nov. Everything here reads the rows
+   loadFinancePage already holds plus two finance only tables, read once each
+   when the page opens: client_billing (one billing email per client, upsert on
+   client_id) and invoice_chases (insert and select only; a trigger refuses any
+   edit or delete). Either table refused means its feature hides, never a crash.
+   The pure helpers (fincMatch to fincCsv) were made by BB Crew job
+   finc1-dsflash, judged and fixed by Claude, and are copied unchanged into
+   finance-agent/collections.test.mjs, which node --test runs. Keep them pure.
+══════════════════════════════════════════════════════════════════ */
+function fincMatch(inv, q, altName) {
+  const words = (q === undefined ? '' : String(q)).trim().toLowerCase().split(/\s+/).filter(Boolean);
+  if (words.length === 0) {
+    return true;
+  }
+  if (inv === null || inv === undefined) {
+    return false;
+  }
+  const clientName = inv.client_name === null || inv.client_name === undefined ? '' : String(inv.client_name);
+  const notes = inv.notes === null || inv.notes === undefined ? '' : String(inv.notes);
+  const alt = altName === null || altName === undefined ? '' : String(altName);
+  const haystack = [clientName, alt, notes].join(' ').toLowerCase();
+  return words.every(word => haystack.includes(word));
+}
+
+function fincCompare(a, b, key, dir) {
+  a = a || {}; b = b || {};
+  if (dir !== -1) dir = 1;
+  let aVal, bVal, aEmpty, bEmpty;
+  if (key === 'client') {
+    aVal = (a.client_name || '').toLowerCase();
+    bVal = (b.client_name || '').toLowerCase();
+    aEmpty = aVal === '';
+    bEmpty = bVal === '';
+  } else if (key === 'month') {
+    aVal = a.month || '';
+    bVal = b.month || '';
+    aEmpty = aVal === '';
+    bEmpty = bVal === '';
+  } else if (key === 'amount') {
+    aVal = (a.amount === null || a.amount === undefined || a.amount === '') ? NaN : Number(a.amount);
+    bVal = (b.amount === null || b.amount === undefined || b.amount === '') ? NaN : Number(b.amount);
+    aEmpty = !isFinite(aVal);
+    bEmpty = !isFinite(bVal);
+  } else if (key === 'due') {
+    aVal = String(a.due_date || '').slice(0, 10);
+    bVal = String(b.due_date || '').slice(0, 10);
+    aEmpty = aVal === '';
+    bEmpty = bVal === '';
+  } else if (key === 'paid') {
+    aVal = Date.parse(a.paid_at);
+    bVal = Date.parse(b.paid_at);
+    aEmpty = isNaN(aVal);
+    bEmpty = isNaN(bVal);
+  } else {
+    aEmpty = true;
+    bEmpty = true;
+  }
+  if (aEmpty && bEmpty) {
+    // tie break
+  } else if (aEmpty) {
+    return 1;
+  } else if (bEmpty) {
+    return -1;
+  } else {
+    let cmp;
+    if (key === 'client' || key === 'month' || key === 'due') {
+      if (aVal < bVal) cmp = -1;
+      else if (aVal > bVal) cmp = 1;
+      else cmp = 0;
+    } else {
+      cmp = aVal - bVal;
+    }
+    if (cmp !== 0) return cmp * dir;
+  }
+  const aName = (a.client_name || '').toLowerCase();
+  const bName = (b.client_name || '').toLowerCase();
+  if (aName < bName) return -1;
+  if (aName > bName) return 1;
+  if (a.id < b.id) return -1;
+  if (a.id > b.id) return 1;
+  return 0;
+}
+
+function fincSorter(key, dir) {
+  return (a, b) => fincCompare(a, b, key, dir);
+}
+
+function fincInRange(month, from, to) {
+  const monthStr = String(month == null ? '' : month).slice(0, 7);
+  const monthValid = /^\d{4}-\d{2}$/.test(monthStr);
+  const fromStr = String(from == null ? '' : from);
+  const toStr = String(to == null ? '' : to);
+  const fromValid = /^\d{4}-\d{2}$/.test(fromStr);
+  const toValid = /^\d{4}-\d{2}$/.test(toStr);
+  const fromOpen = !fromValid;
+  const toOpen = !toValid;
+  if (fromOpen && toOpen) return true;
+  if (!monthValid) return false;
+  let fromBound = fromStr;
+  let toBound = toStr;
+  if (!fromOpen && !toOpen && fromBound > toBound) {
+    const temp = fromBound;
+    fromBound = toBound;
+    toBound = temp;
+  }
+  if (!fromOpen && monthStr < fromBound) return false;
+  if (!toOpen && monthStr > toBound) return false;
+  return true;
+}
+
+function fincCollectionRate(rows) {
+  const safeRows = rows || [];
+  let invoiced = 0;
+  let collected = 0;
+  let count = 0;
+  let paidCount = 0;
+
+  for (const row of safeRows) {
+    if (!row) { count += 1; continue; }
+    const amount = Number(row.amount);
+    const money = Number.isFinite(amount) ? amount : 0;
+    invoiced += money;
+    count += 1;
+    if (row.status === 'paid') {
+      collected += money;
+      paidCount += 1;
+    }
+  }
+
+  const toCollect = invoiced - collected;
+  const rate = invoiced > 0 ? Math.round(collected / invoiced * 100) : null;
+
+  return { invoiced, collected, toCollect, rate, count, paidCount };
+}
+
+function fincDueDate(row) {
+  if (row === null || row === undefined) return null;
+  if (typeof row.due_date === 'string') {
+    const first10 = row.due_date.slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(first10)) {
+      const year = Number(first10.slice(0, 4));
+      const month = Number(first10.slice(5, 7));
+      const day = Number(first10.slice(8, 10));
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        const date = new Date(Date.UTC(year, month - 1, day));
+        if (date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day) {
+          return first10;
+        }
+      }
+    }
+  }
+  if (typeof row.month === 'string') {
+    const first7 = row.month.slice(0, 7);
+    if (/^\d{4}-\d{2}$/.test(first7)) {
+      const year = Number(first7.slice(0, 4));
+      const month = Number(first7.slice(5, 7));
+      if (month >= 1 && month <= 12) {
+        const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+        return first7 + '-' + String(lastDay).padStart(2, '0');
+      }
+    }
+  }
+  return null;
+}
+
+function fincDaysLate(row, asOf) {
+  const due = fincDueDate(row);
+  if (due === null) return null;
+  asOf = String(asOf || '');
+  if (!/^\d{4}-\d{2}-\d{2}/.test(asOf)) return null;
+  const dueTime = Date.UTC(Number(due.slice(0, 4)), Number(due.slice(5, 7)) - 1, Number(due.slice(8, 10)));
+  const asOfTime = Date.UTC(Number(asOf.slice(0, 4)), Number(asOf.slice(5, 7)) - 1, Number(asOf.slice(8, 10)));
+  return Math.round((asOfTime - dueTime) / 86400000);
+}
+
+function fincAgeKey(row, asOf) {
+  if (row && row.status === 'paid') return 'paid';
+  const days = fincDaysLate(row, asOf);
+  if (days === null) return 'nodate';
+  if (days <= 0) return 'notdue';
+  if (days <= 30) return 'd1_30';
+  if (days <= 60) return 'd31_60';
+  if (days <= 90) return 'd61_90';
+  return 'd90';
+}
+
+function fincAgeing(rows, asOf) {
+  const buckets = {
+    notdue: { count: 0, amount: 0 },
+    d1_30: { count: 0, amount: 0 },
+    d31_60: { count: 0, amount: 0 },
+    d61_90: { count: 0, amount: 0 },
+    d90: { count: 0, amount: 0 },
+    nodate: { count: 0, amount: 0 },
+    overdue: { count: 0, amount: 0 }
+  };
+  if (rows === null || rows === undefined) return buckets;
+  for (const row of rows) {
+    const key = fincAgeKey(row, asOf);
+    if (key === 'paid') continue;
+    const amount = Number(row ? row.amount : 0);
+    const amountValue = Number.isFinite(amount) ? amount : 0;
+    buckets[key].count += 1;
+    buckets[key].amount += amountValue;
+  }
+  buckets.overdue.count = buckets.d1_30.count + buckets.d31_60.count + buckets.d61_90.count + buckets.d90.count;
+  buckets.overdue.amount = buckets.d1_30.amount + buckets.d31_60.amount + buckets.d61_90.amount + buckets.d90.amount;
+  return buckets;
+}
+
+function fincCsv(header, rows) {
+  const lines = [];
+  lines.push(fincCsvCell(header));
+  if (rows) {
+    for (const row of rows) {
+      lines.push(fincCsvCell(row));
+    }
+  }
+  return lines.join('\r\n');
+}
+
+function fincCsvCell(cells) {
+  return (cells || []).map(fincCsvFormat).join(',');
+}
+
+function fincCsvFormat(value) {
+  let text;
+  if (value === null || value === undefined) {
+    text = '';
+  } else if (typeof value === 'number' || typeof value === 'boolean') {
+    text = String(value);
+  } else {
+    text = String(value);
+    if (/^[=+\-@\t\r]/.test(text)) {
+      text = "'" + text;
+    }
+  }
+  if (/[",\n\r]/.test(text) || /^\s/.test(text) || /\s$/.test(text)) {
+    text = '"' + text.replace(/"/g, '""') + '"';
+  }
+  return text;
+}
+
+/* ── Collections state ── */
+let FIN_BILLING=null;   /* null = not available (refused or not loaded): billing email hides */
+let FIN_CHASES=null;    /* null = not available: chase log and Chased column hide */
+let fincF={q:'',status:'',from:'',to:'',sent:'',age:'',todo:''};
+let fincSort={key:'month',dir:-1};
+let fincPrevRange=null; /* the month range in force before an ageing or to do tap cleared it */
+let fincInited=false;
+let fincSheetId=null, fincForm='', fincBusy=false;
+const fincLastStatus={}; /* invoice id -> status before it was marked paid, for Undo */
+const FINC_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const FINC_MON_LONG=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const FINC_STEPS=[['reminder 1','Reminder 1'],['reminder 2','Reminder 2'],['call','Call'],['final','Final notice']];
+const FINC_CHANNELS=[['','Not saying'],['email','Email'],['phone','Phone'],['in person','In person'],['other','Other']];
+const FINC_METHODS=[['bank','Bank transfer'],['cheque','Cheque'],['cash','Cash'],['other','Other']];
+const FINC_AGE=[['notdue','Not due yet'],['d1_30','1 to 30 days'],['d31_60','31 to 60 days'],['d61_90','61 to 90 days'],['d90','90 plus days']];
+const fincMQ=window.matchMedia?window.matchMedia('(max-width:767px)'):null;
+if(fincMQ){ try{ fincMQ.addEventListener('change',()=>{ try{ fincRenderList(); }catch(e){} }); }catch(e){} }
+
+function fincToday(){ return new Date(Date.now()+19800000).toISOString().slice(0,10); }
+function fincYmdOf(ts){ const t=Date.parse(ts); return isNaN(t)?'':new Date(t+19800000).toISOString().slice(0,10); }
+function fincDayOfYmd(ymd,withYear){
+  const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(ymd||'')); if(!m) return '';
+  return Number(m[3])+' '+FINC_MON[Number(m[2])-1]+(withYear?' '+m[1]:'');
+}
+function fincDay(ts){ return fincDayOfYmd(fincYmdOf(ts)); }
+function fincMonthLong(k){ const m=/^(\d{4})-(\d{2})/.exec(String(k||'')); return m?FINC_MON_LONG[Number(m[2])-1]+' '+m[1]:String(k||''); }
+function fincAddDays(ymd,n){ const p=ymd.split('-').map(Number); return new Date(Date.UTC(p[0],p[1]-1,p[2]+n)).toISOString().slice(0,10); }
+function fincLkr(n){ return 'LKR '+(Number(n)||0).toLocaleString(); }
+function fincPlural(n,one,many){ return n+' '+(n===1?one:many); }
+function fincMyName(){ return typeof ROLE!=='undefined'?(ROLE==='th'?'Thulaib':ROLE==='sh'?'Shiara':'Demo'):''; }
+function fincClientName(inv){
+  if(!inv) return '';
+  const cl=(CLIENTS||[]).find(c=>Number(c.id)===Number(inv.client_id));
+  return inv.client_name||(cl?cl.name:'')||'';
+}
+function fincRowsById(id){
+  return [...(FIN_INVOICES||[]),...(typeof INVOICES!=='undefined'&&INVOICES!==FIN_INVOICES?INVOICES:[])].filter(x=>Number(x.id)===Number(id));
+}
+function fincChasesOf(id){ return (FIN_CHASES&&FIN_CHASES[id])||[]; }
+function fincChaseText(id,long){
+  const l=fincChasesOf(id); if(!l.length) return long?'Not chased yet':'';
+  return (long?'Chased ':'')+(l.length===1?'once':l.length+' times')+', last '+fincDay(l[l.length-1].at);
+}
+function fincBillingEmail(inv){
+  if(!FIN_BILLING||!inv||inv.client_id==null) return '';
+  return String((FIN_BILLING[inv.client_id]||{}).billing_email||'').trim();
+}
+function fincIsLate(inv,today){ return !!inv&&inv.status!=='paid'&&(fincDaysLate(inv,today)||0)>0; }
+function fincStatus(inv,today){
+  if(inv.status==='paid') return {cls:'paid',txt:inv.paid_at?'Paid '+fincDay(inv.paid_at):'Paid'};
+  const d=fincDaysLate(inv,today);
+  if(d===null) return {cls:'due',txt:'Unpaid'};
+  if(d>0) return {cls:'late',txt:d===1?'1 day late':d+' days late'};
+  if(d===0) return {cls:'due',txt:'Due today'};
+  return {cls:'due',txt:'Due '+fincDayOfYmd(fincDueDate(inv))};
+}
+/* THE TO DO LINES, as one predicate each so the count and the filtered table can never disagree. */
+function fincTodoMatch(inv,key,today){
+  const unpaid=inv.status!=='paid';
+  if(key==='notsent') return unpaid&&!inv.sent_at&&String(inv.month||'')<=today.slice(0,7);
+  if(key==='nodue') return unpaid&&!!inv.sent_at&&!String(inv.due_date||'').trim();
+  if(key==='chase'){
+    if(!FIN_CHASES||!fincIsLate(inv,today)) return false;
+    const l=fincChasesOf(inv.id); if(!l.length) return true;
+    const last=fincYmdOf(l[l.length-1].at); if(!last) return true;
+    return (fincDaysLate({due_date:last},today)||0)>=7;
+  }
+  if(key==='noemail') return unpaid&&!!FIN_BILLING&&inv.client_id!=null&&!fincBillingEmail(inv);
+  if(key==='bank') return unpaid&&!!inv.sent_at;
+  return true;
+}
+function fincIsBankDay(){ const d=new Date(Date.now()+19800000).getUTCDay(); return d===1||d===4; }
+/* ONE NARROWING PATH (gym-skeleton finRows): the table, its totals, the Filters count and the CSV all read this. */
+function fincRows(){
+  const t=fincToday(), f=fincF;
+  return (FIN_INVOICES||[]).filter(inv=>{
+    if(!inv) return false;
+    if(f.q&&!fincMatch(inv,f.q,fincClientName(inv))) return false;
+    if(f.status==='paid'&&inv.status!=='paid') return false;
+    if(f.status==='due'&&inv.status==='paid') return false;
+    if(f.status==='late'&&!fincIsLate(inv,t)) return false;
+    if((f.from||f.to)&&!fincInRange(inv.month,f.from,f.to)) return false;
+    if(f.sent==='yes'&&!inv.sent_at) return false;
+    if(f.sent==='no'&&inv.sent_at) return false;
+    if(f.age&&fincAgeKey(inv,t)!==f.age) return false;
+    if(f.todo&&!fincTodoMatch(inv,f.todo,t)) return false;
+    return true;
+  }).sort(fincSorter(fincSort.key,fincSort.dir));
+}
+function fincActiveCount(){
+  const f=fincF; return (f.status?1:0)+((f.from||f.to)?1:0)+(f.sent?1:0)+(f.age?1:0)+(f.todo?1:0);
+}
+
+/* ── Filter actions ── */
+function fincSetQ(v){ fincF.q=String(v||''); fincRenderList(); fincPaintControls(); }
+function fincSet(k,v){ fincF[k]=String(v||''); if(k==='from'||k==='to') fincPrevRange=null; fincRender(); }
+function fincClearAll(){
+  fincF={q:'',status:'',from:'',to:'',sent:'',age:'',todo:''}; fincPrevRange=null;
+  const q=document.getElementById('finc-q'); if(q) q.value='';
+  fincRender();
+}
+/* Ageing and to do taps look across ALL months, so they lift the month range and put it back when tapped off. */
+function fincToggleWide(k,v){
+  if(fincF[k]===v){
+    fincF[k]='';
+    if(fincPrevRange&&!fincF.age&&!fincF.todo){ fincF.from=fincPrevRange.from; fincF.to=fincPrevRange.to; fincPrevRange=null; }
+  }else{
+    if(!fincPrevRange&&(fincF.from||fincF.to)) fincPrevRange={from:fincF.from,to:fincF.to};
+    fincF.from=''; fincF.to=''; fincF.status='';
+    if(k==='age') fincF.todo=''; else fincF.age='';
+    fincF[k]=v;
+  }
+  fincRender();
+  if(fincF[k]) setTimeout(()=>{ const s=document.getElementById('fin-sect-in'); if(s) s.scrollIntoView({behavior:'smooth',block:'start'}); },60);
+}
+function fincSetAge(k){ fincToggleWide('age',k); }
+function fincSetTodo(k){ fincToggleWide('todo',k); }
+function fincSortBy(k){
+  if(fincSort.key===k) fincSort.dir=fincSort.dir===1?-1:1;
+  else fincSort={key:k,dir:(k==='amount'||k==='month'||k==='paid')?-1:1};
+  fincRender();
+}
+function fincSetSortValue(v){ const p=String(v||'month:-1').split(':'); fincSort={key:p[0],dir:Number(p[1])===1?1:-1}; fincRender(); }
+function fincMonthPicked(){ const m=getFinMonth(); fincF.from=m; fincF.to=m; fincPrevRange=null; renderFinancePage(); }
+function fincOpenFilters(){ fincPaintControls(); openModal('finc-fsheet'); }
+
+/* ── Painting ── */
+function fincPaintKpis(invoices,today){
+  const r=fincCollectionRate(invoices), ml=bbMonthLabel(getFinMonth());
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('fst-rev-note',fincPlural(r.count,'invoice','invoices')+' for '+ml);
+  set('fst-collected',fincLkr(r.collected));
+  set('fst-collected-note',r.paidCount+' of '+r.count+' paid');
+  set('fst-outstanding-note','Not paid yet for '+ml);
+  set('fst-rate',r.rate===null?'None billed':r.rate+'%');
+  set('fst-rate-note','Collected out of invoiced, '+ml);
+  const ag=fincAgeing(FIN_INVOICES,today);
+  set('fst-overdue',fincLkr(ag.overdue.amount));
+  set('fst-overdue-note',fincPlural(ag.overdue.count,'invoice','invoices')+' past the due date, all months');
+  const until=fincAddDays(today,30);
+  const exp=(FIN_INVOICES||[]).filter(i=>{ if(!i||i.status==='paid') return false; const d=fincDaysLate(i,today); return d!==null&&d<=0&&d>=-30; });
+  set('fst-expected',fincLkr(exp.reduce((s,i)=>s+(Number(i.amount)||0),0)));
+  set('fst-expected-note',fincPlural(exp.length,'invoice falls','invoices fall')+' due by '+fincDayOfYmd(until));
+}
+function fincPaintAgeing(today){
+  const box=document.getElementById('finc-age'); if(!box) return;
+  const ag=fincAgeing(FIN_INVOICES,today);
+  box.innerHTML=FINC_AGE.map(([k,lbl])=>{
+    const b=ag[k], on=fincF.age===k, late=k!=='notdue';
+    return `<button type="button" id="finc-age-${k}" class="${on?'on':''}" aria-pressed="${on}" onclick="fincSetAge('${k}')">`
+      +`<div class="finc-age-lbl">${lbl}</div>`
+      +`<div class="finc-age-val" style="color:${b.count?(late?(k==='d1_30'?'var(--amber)':'var(--red)'):'var(--text)'):'var(--text-3)'}">${b.count?fincLkr(b.amount):'None'}</div>`
+      +`<div class="finc-age-n">${b.count?fincPlural(b.count,'invoice','invoices'):'&nbsp;'}</div></button>`;
+  }).join('');
+}
+function fincPaintTodo(today){
+  const box=document.getElementById('finc-todo'); if(!box) return;
+  const all=FIN_INVOICES||[];
+  const n=k=>all.filter(i=>i&&fincTodoMatch(i,k,today)).length;
+  const lines=[];
+  const add=(k,count,txt)=>{ if(count) lines.push(`<button type="button" class="finc-todo-line${fincF.todo===k?' on':''}" id="finc-todo-${k}" aria-pressed="${fincF.todo===k}" onclick="fincSetTodo('${k}')"><span>${txt}</span><span class="finc-todo-n">${count}</span></button>`); };
+  const ns=n('notsent'); add('notsent',ns,fincPlural(ns,'invoice','invoices')+' not sent yet');
+  const nd=n('nodue'); add('nodue',nd,fincPlural(nd,'invoice','invoices')+' sent with no due date');
+  if(FIN_CHASES){ const nc=n('chase'); add('chase',nc,fincPlural(nc,'invoice','invoices')+' late and not chased in 7 days'); }
+  if(FIN_BILLING){
+    const ids=new Set(all.filter(i=>i&&fincTodoMatch(i,'noemail',today)).map(i=>String(i.client_id)));
+    add('noemail',ids.size,fincPlural(ids.size,'client','clients')+' with no billing email');
+  }
+  if(fincIsBankDay()){
+    lines.push(`<button type="button" class="finc-todo-line${fincF.todo==='bank'?' on':''}" id="finc-todo-bank" aria-pressed="${fincF.todo==='bank'}" onclick="fincSetTodo('bank')"><span>Bank check: look for payments and mark them paid</span><span class="finc-todo-n">${n('bank')}</span></button>`);
+  }
+  box.innerHTML=`<div class="finc-todo-head">To do today<span>${fincDayOfYmd(today,true)}</span></div>`
+    +(lines.length?lines.join(''):'<div class="finc-todo-empty">Nothing waiting today. Every invoice is sent, dated and chased.</div>');
+}
+function fincMonthOptions(){
+  const s=new Set(bbMonthKeys()); (FIN_INVOICES||[]).forEach(i=>{ const m=String((i&&i.month)||'').slice(0,7); if(/^\d{4}-\d{2}$/.test(m)) s.add(m); });
+  return [...s].sort().reverse();
+}
+function fincPaintControls(){
+  const months=fincMonthOptions();
+  const opts={
+    status:[['','All statuses'],['due','To collect'],['late','Overdue'],['paid','Paid']],
+    from:[['','From any month']].concat(months.map(m=>[m,'From '+bbMonthLabel(m)])),
+    to:[['','To any month']].concat(months.map(m=>[m,'To '+bbMonthLabel(m)])),
+    sent:[['','Sent or not'],['yes','Sent'],['no','Not sent']]
+  };
+  const fill=(id,list,val)=>{ const el=document.getElementById(id); if(!el) return;
+    const want=list.map(o=>o[0]+'|'+o[1]).join('\n');
+    if(el.dataset.opts!==want){ el.innerHTML=list.map(o=>`<option value="${esc(o[0])}">${esc(o[1])}</option>`).join(''); el.dataset.opts=want; }
+    el.value=val; };
+  ['status','from','to','sent'].forEach(k=>{ fill('finc-f-'+k,opts[k],fincF[k]); fill('finc-fs-'+k,opts[k],fincF[k]); });
+  fill('finc-fs-sort',[['month:-1','Month, newest first'],['month:1','Month, oldest first'],['client:1','Client, A to Z'],['client:-1','Client, Z to A'],['amount:-1','Amount, largest first'],['amount:1','Amount, smallest first'],['due:1','Due date, soonest first'],['due:-1','Due date, latest first'],['paid:-1','Paid on, newest first'],['paid:1','Paid on, oldest first']],fincSort.key+':'+fincSort.dir);
+  const q=document.getElementById('finc-q'); if(q&&q.value!==fincF.q&&document.activeElement!==q) q.value=fincF.q;
+  const act=fincActiveCount(), rows=fincRows().length;
+  const nEl=document.getElementById('finc-fb-n'); if(nEl) nEl.textContent=act?String(act):'';
+  const fb=document.getElementById('finc-fbtn'); if(fb) fb.setAttribute('aria-label','Filters'+(act?', '+act+' on':''));
+  const show=document.getElementById('finc-fs-show'); if(show) show.textContent='Show '+fincPlural(rows,'result','results');
+  const clr=document.getElementById('finc-fs-clear'); if(clr) clr.disabled=!act&&!fincF.q;
+  const dc=document.getElementById('finc-clear'); if(dc) dc.disabled=!act&&!fincF.q;
+  const chips=document.getElementById('finc-chips');
+  if(chips){
+    const c=[];
+    if(fincF.age){ const a=FINC_AGE.find(x=>x[0]===fincF.age); c.push(`<button type="button" class="finc-chip" id="finc-chip-age" onclick="fincSetAge('${fincF.age}')">Ageing: ${a?a[1]:''} <span aria-hidden="true">×</span></button>`); }
+    if(fincF.todo){ const t={notsent:'Not sent yet',nodue:'Sent with no due date',chase:'Late and not chased in 7 days',noemail:'No billing email',bank:'Sent and not paid'}[fincF.todo]||''; c.push(`<button type="button" class="finc-chip" id="finc-chip-todo" onclick="fincSetTodo('${fincF.todo}')">To do: ${t} <span aria-hidden="true">×</span></button>`); }
+    chips.innerHTML=c.join('');
+  }
+}
+function fincRenderList(){
+  const el=document.getElementById('fin-invoice-list'); if(!el) return;
+  const today=fincToday(), rows=fincRows(), phone=!!(fincMQ&&fincMQ.matches), withChase=!!FIN_CHASES;
+  const tot=rows.reduce((s,i)=>s+(Number(i.amount)||0),0);
+  const totEl=document.getElementById('fin-inv-total'); if(totEl) totEl.textContent=fincLkr(tot);
+  const sh=document.getElementById('finc-shown'); if(sh) sh.textContent=rows.length+' shown';
+  if(!rows.length){
+    el.innerHTML=`<div class="finc-empty">No invoices match these filters.${(fincActiveCount()||fincF.q)?'<button type="button" class="btn-ghost btn-sm" id="finc-empty-clear" style="min-height:44px" onclick="fincClearAll()">Clear all</button>':''}</div>`;
+    return;
+  }
+  const one=inv=>{ const o=!inv.client_id&&(inv.client_name||'').trim(); return esc(fincClientName(inv)||'No name')+(o?' <span class="finc-mute" style="font-size:11px;font-weight:600">one off</span>':''); };
+  if(phone){
+    el.innerHTML=rows.map(inv=>{
+      const st=fincStatus(inv,today), ch=withChase?fincChaseText(inv.id,true):'';
+      return `<div class="finc-card" role="button" tabindex="0" onclick="fincOpenSheet(${Number(inv.id)})">`
+        +`<div class="finc-card-top"><span>${one(inv)}</span><b>${fincLkr(inv.amount)}</b></div>`
+        +`<div class="finc-card-meta"><span class="finc-st ${st.cls}">${st.txt}</span><span>${esc(bbMonthLabel(inv.month))}</span>`
+        +(inv.status!=='paid'?`<span onclick="event.stopPropagation()">${finSentBtn(inv)}</span>`:'')
+        +(withChase&&fincChasesOf(inv.id).length?`<span>${esc(ch)}</span>`:'')+`</div></div>`;
+    }).join('');
+    return;
+  }
+  const th=(k,lbl,num)=>{ const on=fincSort.key===k, arrow=on?(fincSort.dir===1?' ▲':' ▼'):'';
+    return `<th class="finc-sortable"${num?' style="text-align:right"':''} aria-sort="${on?(fincSort.dir===1?'ascending':'descending'):'none'}"><button type="button" class="finc-th${on?' on':''}" id="finc-sort-${k}" onclick="fincSortBy('${k}')">${lbl}${arrow}</button></th>`; };
+  el.innerHTML=`<div style="overflow-x:auto"><table class="finc-tbl"><thead><tr>`
+    +th('client','Client')+th('month','Month')+th('amount','Amount',true)+`<th>Status</th><th>Sent</th>`+th('due','Due')+th('paid','Paid on')+(withChase?'<th>Chased</th>':'')
+    +`</tr></thead><tbody>`
+    +rows.map(inv=>{
+      const st=fincStatus(inv,today);
+      return `<tr class="finc-tr" tabindex="0" onclick="fincOpenSheet(${Number(inv.id)})">`
+        +`<td class="finc-nm">${one(inv)}</td>`
+        +`<td>${esc(bbMonthLabel(inv.month))}</td>`
+        +`<td class="finc-num">${fincLkr(inv.amount)}</td>`
+        +`<td><span class="finc-st ${st.cls}">${st.txt}</span></td>`
+        +`<td onclick="event.stopPropagation()">${inv.status!=='paid'?finSentBtn(inv):(inv.sent_at?'<span class="finc-mute">'+fincDay(inv.sent_at)+'</span>':'')}</td>`
+        +`<td>${String(inv.due_date||'').trim()?fincDayOfYmd(inv.due_date):'<span class="finc-mute">Not set</span>'}</td>`
+        +`<td>${inv.paid_at?fincDay(inv.paid_at):'<span class="finc-mute">Not yet</span>'}</td>`
+        +(withChase?`<td>${fincChasesOf(inv.id).length?esc(fincChaseText(inv.id,false)):'<span class="finc-mute">Not yet</span>'}</td>`:'')
+        +`</tr>`;
+    }).join('')
+    +`</tbody></table></div>`;
+}
+function fincSheetOpen(){ const s=document.getElementById('modal-fin-sheet'); return !!s&&!s.classList.contains('hidden'); }
+function fincRender(){
+  const today=fincToday();
+  try{ fincPaintAgeing(today); }catch(e){ console.error('fincPaintAgeing',e); }
+  try{ fincPaintTodo(today); }catch(e){ console.error('fincPaintTodo',e); }
+  try{ fincPaintControls(); }catch(e){ console.error('fincPaintControls',e); }
+  try{ fincRenderList(); }catch(e){ console.error('fincRenderList',e); }
+  if(fincSheetOpen()) try{ fincRenderSheet(); }catch(e){ console.error('fincRenderSheet',e); }
+}
+
+/* ── The invoice sheet ── */
+function fincOpenSheet(id,form){
+  if(!fincRowsById(id).length) return;
+  fincSheetId=Number(id); fincForm=form||''; fincBusy=false;
+  fincRenderSheet(); openModal('modal-fin-sheet');
+  if(fincForm) fincFocusForm();
+}
+function fincFocusForm(){
+  setTimeout(()=>{ const f=document.getElementById(fincForm==='paid'?'finc-paid-form':'finc-chase-form'); if(f) f.scrollIntoView({behavior:'smooth',block:'nearest'}); },40);
+}
+function fincShowForm(f){ fincForm=(fincForm===f?'':f); fincRenderSheet(); if(fincForm) fincFocusForm(); }
+function fincRenderSheet(){
+  const inv=fincRowsById(fincSheetId)[0];
+  if(!inv){ closeModal('modal-fin-sheet'); fincSheetId=null; return; }
+  const today=fincToday(), st=fincStatus(inv,today), paid=inv.status==='paid', sent=!!inv.sent_at;
+  if(paid&&fincForm==='paid') fincForm='';
+  if((paid||!sent||!FIN_CHASES)&&fincForm==='chase') fincForm='';
+  const keepEmail=(()=>{ const e=document.getElementById('finc-bill-email'); return e&&e.dataset.inv===String(inv.id)?e.value:null; })();
+  document.getElementById('finc-sh-title').textContent=fincClientName(inv)||'Invoice';
+  let extras=[]; try{ extras=Array.isArray(inv.extras)?inv.extras:(inv.extras?JSON.parse(inv.extras):[]); }catch(e){ extras=[]; }
+  let h=`<div><div class="finc-sh-amt">${fincLkr(inv.amount)}</div><div class="finc-sh-sub"><span>${esc(fincMonthLong(inv.month))}</span><span class="finc-st ${st.cls}">${st.txt}</span></div></div>`;
+  h+=`<dl class="finc-dl">`
+    +`<dt>Sent</dt><dd>${sent?'Sent '+fincDay(inv.sent_at)+(paid?'':` <button type="button" class="finc-link" id="finc-sh-unsend" onclick="finMarkSent(${Number(inv.id)},false)">Undo</button>`):'Not sent yet'}</dd>`
+    +`<dt>Due</dt><dd>${String(inv.due_date||'').trim()?fincDayOfYmd(inv.due_date,true):'No due date set'}</dd>`
+    +`<dt>Paid</dt><dd>${paid?(inv.paid_at?fincDayOfYmd(fincYmdOf(inv.paid_at),true):'Paid, day not recorded')+(inv.paid_method?', '+esc((FINC_METHODS.find(m=>m[0]===inv.paid_method)||[0,inv.paid_method])[1]).toLowerCase():''):'Not yet'}</dd>`
+    +(extras.length?`<dt>Extras</dt><dd>${extras.map(x=>esc(x.desc||'Extra')+' '+fincLkr(parseInt(x.amt)||0)).join('<br>')}</dd>`:'')
+    +(inv.notes?`<dt>Notes</dt><dd>${esc(inv.notes)}</dd>`:'')
+    +`</dl>`;
+  if(fincForm==='paid'){
+    h+=`<div class="finc-box on" id="finc-paid-form"><div class="finc-box-title">Mark paid</div>`
+      +`<div class="field-row"><div class="form-field"><label class="form-label" for="finc-paid-date">Paid on</label><input type="date" class="form-input" id="finc-paid-date" value="${today}" max="${today}"></div>`
+      +`<div class="form-field"><label class="form-label" for="finc-paid-method">How it was paid</label><select class="form-select" id="finc-paid-method">${FINC_METHODS.map(m=>`<option value="${m[0]}">${m[1]}</option>`).join('')}</select></div></div>`
+      +`<div class="finc-err" id="finc-paid-err"></div>`
+      +`<button type="button" class="finc-link" id="finc-paid-cancel" onclick="fincShowForm('paid')">Not now</button></div>`;
+  }
+  if(FIN_BILLING){
+    if(inv.client_id!=null){
+      const cur=fincBillingEmail(inv);
+      h+=`<div class="finc-box"><label class="finc-box-title" for="finc-bill-email">Billing email</label>`
+        +`<div class="finc-box-row"><input type="email" class="form-input" id="finc-bill-email" data-inv="${Number(inv.id)}" inputmode="email" autocomplete="off" placeholder="accounts@client.lk" value="${esc(keepEmail!==null?keepEmail:cur)}">`
+        +`<button type="button" class="btn-ghost" id="finc-bill-save" onclick="fincSaveEmail()">Save</button></div>`
+        +`<div class="finc-err" id="finc-bill-err"></div>`
+        +`<div class="finc-mute" style="font-size:11.5px">Kept for every invoice of this client.</div></div>`;
+    }else{
+      h+=`<div class="finc-box"><div class="finc-box-title">Billing email</div><div class="finc-mute" style="font-size:12px">One off invoice: there is no client record to keep an email on.</div></div>`;
+    }
+  }
+  if(FIN_CHASES){
+    const l=fincChasesOf(inv.id);
+    h+=`<div class="finc-box${fincForm==='chase'?' on':''}"><div class="finc-box-title">Chase log</div><div style="font-size:13px;color:var(--text)">${esc(fincChaseText(inv.id,true))}</div>`
+      +(l.length?`<div>${l.slice().reverse().map(c=>`<div class="finc-chase"><b>${fincDay(c.at)}</b> · ${esc((FINC_STEPS.find(s=>s[0]===c.step)||[0,c.step])[1])}${c.channel?' by '+esc(c.channel):''}${c.by_name?' · '+esc(c.by_name):''}${c.note?'<br>'+esc(c.note):''}</div>`).join('')}</div>`:'');
+    if(fincForm==='chase'){
+      const last=l.length?l[l.length-1].step:'', idx=FINC_STEPS.findIndex(s=>s[0]===last), next=FINC_STEPS[Math.min(idx+1,FINC_STEPS.length-1)][0];
+      h+=`<div id="finc-chase-form" style="display:flex;flex-direction:column;gap:10px">`
+        +`<div class="field-row"><div class="form-field"><label class="form-label" for="finc-chase-step">Step</label><select class="form-select" id="finc-chase-step">${FINC_STEPS.map(s=>`<option value="${s[0]}"${s[0]===next?' selected':''}>${s[1]}</option>`).join('')}</select></div>`
+        +`<div class="form-field"><label class="form-label" for="finc-chase-channel">Channel</label><select class="form-select" id="finc-chase-channel">${FINC_CHANNELS.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}</select></div></div>`
+        +`<div class="form-field"><label class="form-label" for="finc-chase-note">Note</label><textarea class="form-input" id="finc-chase-note" rows="2" placeholder="What was said or agreed"></textarea></div>`
+        +`<div class="finc-mute" style="font-size:11.5px">A chase cannot be edited or removed once saved.</div>`
+        +`<button type="button" class="finc-link" id="finc-chase-cancel" style="align-self:flex-start" onclick="fincShowForm('chase')">Not now</button></div>`;
+    }
+    h+=`</div>`;
+  }
+  document.getElementById('finc-sh-body').innerHTML=h;
+  /* ONE ACTION BAR: one full width primary, secondaries in equal pairs, a quiet Cancel last.
+     While a form is open its save is the primary, so there is never a second Save to hunt for. */
+  let main;
+  if(fincForm==='paid') main=['Save as paid','fincSavePaid()'];
+  else if(fincForm==='chase') main=['Save chase','fincSaveChase()'];
+  else if(paid) main=['Undo paid','fincUndoPaid('+Number(inv.id)+')'];
+  else if(!sent) main=['Mark sent','fincSheetSent()'];
+  else main=['Mark paid',"fincShowForm('paid')"];
+  const sec=[`<button type="button" class="btn-ghost" id="finc-sh-pdf" onclick="fincSheetPdf()">PDF</button>`,
+             `<button type="button" class="btn-ghost" id="finc-sh-edit" onclick="fincSheetEdit()">Edit</button>`,
+             `<button type="button" class="btn-ghost" id="finc-sh-mail" onclick="fincEmailDraft()">Email draft</button>`];
+  if(FIN_CHASES&&sent&&!paid) sec.push(`<button type="button" class="btn-ghost" id="finc-sh-chase" aria-pressed="${fincForm==='chase'}" onclick="fincShowForm('chase')">Log a chase</button>`);
+  sec.push(`<button type="button" class="btn-ghost finc-danger${sec.length%2===0?' finc-span':''}" id="finc-sh-del" onclick="fincSheetDelete()">Delete</button>`);
+  document.getElementById('finc-sh-bar').innerHTML=
+    `<button type="button" class="btn-primary finc-bar-main" id="finc-sh-primary"${fincBusy?' disabled':''} onclick="${main[1]}">${main[0]}</button>`
+    +sec.join('')
+    +`<button type="button" class="finc-quiet" id="finc-sh-cancel" onclick="closeModal('modal-fin-sheet')">Cancel</button>`;
+}
+function fincRepaint(){
+  renderFinancePage();
+  try{ if(typeof finView!=='undefined'&&finView==='client'&&typeof renderFinByClient==='function') renderFinByClient(); }catch(e){}
+}
+function fincApply(rows,vals){ rows.forEach(r=>Object.assign(r,vals)); }
+function fincSheetSent(){ if(fincSheetId!=null) finMarkSent(fincSheetId,true); }
+function fincSheetPdf(){ const id=fincSheetId; closeModal('modal-fin-sheet'); openInvoiceGen(id); }
+function fincSheetEdit(){ const id=fincSheetId; closeModal('modal-fin-sheet'); openFinInvoiceModal(id); }
+async function fincSheetDelete(){
+  const id=fincSheetId; if(id==null) return;
+  await finDeleteInvoice(id);
+  if(!fincRowsById(id).length) closeModal('modal-fin-sheet');
+}
+/* PAID asks for the day and how. Written as midday Colombo so the day never slips across midnight. */
+async function fincSavePaid(){
+  if(fincBusy) return;
+  const id=fincSheetId, rows=fincRowsById(id); if(!rows.length) return;
+  const today=fincToday(), day=(document.getElementById('finc-paid-date')||{}).value||today;
+  const method=(document.getElementById('finc-paid-method')||{}).value||'bank';
+  const err=document.getElementById('finc-paid-err');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(day)){ if(err) err.textContent='Pick the day it was paid.'; return; }
+  if(day>today){ if(err) err.textContent='Pick today or an earlier day.'; return; }
+  const before={status:rows[0].status,paid_at:rows[0].paid_at||null,paid_method:rows[0].paid_method||null};
+  const after={status:'paid',paid_at:day+'T12:00:00+05:30',paid_method:method};
+  fincBusy=true; fincForm=''; fincApply(rows,after); fincRepaint();
+  const ok=await SBpatch('invoices',id,after);
+  fincBusy=false;
+  if(!ok){ fincApply(rows,before); fincRepaint(); return; }
+  fincLastStatus[id]=before.status==='paid'?'unpaid':(before.status||'unpaid');
+  fincRepaint();
+  fincToast('Marked paid.',()=>fincUndoPaid(id));
+}
+async function fincUndoPaid(id){
+  if(fincBusy) return;
+  const rows=fincRowsById(id); if(!rows.length||rows[0].status!=='paid') return;
+  const before={status:'paid',paid_at:rows[0].paid_at||null,paid_method:rows[0].paid_method||null};
+  const after={status:fincLastStatus[id]||'unpaid',paid_at:null,paid_method:null};
+  fincBusy=true; fincApply(rows,after); fincRepaint();
+  const ok=await SBpatch('invoices',id,after);
+  fincBusy=false;
+  if(!ok){ fincApply(rows,before); fincRepaint(); return; }
+  fincRepaint();
+  fincToast('Paid mark removed.',()=>fincRepaid(id,before));
+}
+async function fincRepaid(id,vals){
+  if(fincBusy) return;
+  const rows=fincRowsById(id); if(!rows.length) return;
+  const before={status:rows[0].status,paid_at:rows[0].paid_at||null,paid_method:rows[0].paid_method||null};
+  fincBusy=true; fincApply(rows,vals); fincRepaint();
+  const ok=await SBpatch('invoices',id,vals);
+  fincBusy=false;
+  if(!ok){ fincApply(rows,before); fincRepaint(); return; }
+  fincRepaint(); fincToast('Marked paid again.');
+}
+async function fincSaveEmail(){
+  if(fincBusy||!FIN_BILLING) return;
+  const inv=fincRowsById(fincSheetId)[0]; if(!inv||inv.client_id==null) return;
+  const inp=document.getElementById('finc-bill-email'), err=document.getElementById('finc-bill-err');
+  const v=String((inp&&inp.value)||'').trim();
+  if(v&&!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(v)){ if(err) err.textContent='That does not look like an email address.'; return; }
+  const body={client_id:Number(inv.client_id),billing_email:v||null,updated_at:new Date().toISOString()};
+  fincBusy=true;
+  const r=await sbC('client_billing','POST',body,'?on_conflict=client_id','resolution=merge-duplicates,return=representation');
+  fincBusy=false;
+  if(r===null) return; /* sbC has shown "Not saved" */
+  FIN_BILLING[inv.client_id]=Object.assign({},FIN_BILLING[inv.client_id]||{},body);
+  if(inp) inp.dataset.inv='';
+  fincRepaint(); fincToast('Billing email saved.');
+}
+/* A chase is INSERT ONLY in the database, so a double tap would leave a duplicate nobody can remove. fincBusy stops it. */
+async function fincSaveChase(){
+  if(fincBusy||!FIN_CHASES) return;
+  const id=fincSheetId; if(id==null) return;
+  const step=(document.getElementById('finc-chase-step')||{}).value||'reminder 1';
+  const channel=(document.getElementById('finc-chase-channel')||{}).value||null;
+  const note=String((document.getElementById('finc-chase-note')||{}).value||'').trim()||null;
+  const row={invoice_id:Number(id),step,channel,note,by_name:fincMyName()};
+  fincBusy=true; fincRenderSheet();
+  const r=await SBpost('invoice_chases',row);
+  fincBusy=false;
+  if(r===null){ fincRenderSheet(); return; }
+  const saved=(Array.isArray(r)&&r[0])?r[0]:Object.assign({at:new Date().toISOString()},row);
+  (FIN_CHASES[id]=FIN_CHASES[id]||[]).push(saved);
+  fincForm=''; fincRepaint(); fincToast('Chase logged.');
+}
+/* EMAIL DRAFT: a mailto link only. Nothing is sent from here and no amount goes in it. */
+function fincEmailDraft(){
+  const inv=fincRowsById(fincSheetId)[0]; if(!inv) return;
+  const to=fincBillingEmail(inv), b=FIN_BILLING&&inv.client_id!=null?(FIN_BILLING[inv.client_id]||{}):{};
+  const ml=fincMonthLong(inv.month), who=String(b.contact_name||'').trim();
+  const subject='Business Booster invoice, '+ml;
+  const body=(who?'Dear '+who+',':'Hello,')+'\n\nPlease see the attached invoice from Business Booster for '+ml+'.\n\nIf payment is already on its way, thank you.\n\nKind regards\n'+(fincMyName()&&fincMyName()!=='Demo'?fincMyName()+'\n':'')+'Business Booster';
+  const a=document.createElement('a');
+  a.href='mailto:'+encodeURIComponent(to).replace(/%40/g,'@')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+  a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+  if(!to) fincToast(FIN_BILLING&&inv.client_id!=null?'No billing email saved yet, so the draft has no address.':'Draft opened with no address.');
+}
+/* CSV follows the filter and the sort in force. fincCsv guards cells a spreadsheet would run as a formula. */
+function fincExportCsv(){
+  const today=fincToday(), rows=fincRows();
+  const header=['Client','Month','Amount LKR','Status','Sent on','Due date','Paid on','Paid by','Chases','Notes'];
+  const lines=rows.map(i=>[fincClientName(i),String(i.month||''),Number(i.amount)||0,fincStatus(i,today).txt,
+    i.sent_at?fincYmdOf(i.sent_at):'',String(i.due_date||'').slice(0,10),i.paid_at?fincYmdOf(i.paid_at):'',i.paid_method||'',
+    FIN_CHASES?fincChasesOf(i.id).length:'',i.notes||'']);
+  const blob=new Blob([String.fromCharCode(0xFEFF)+fincCsv(header,lines)],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download='bb-invoices-'+today+'.csv'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+let _fincToastT=null;
+function fincToast(msg,undo){
+  try{
+    let t=document.getElementById('finc-toast');
+    if(!t){ t=document.createElement('div'); t.id='finc-toast'; t.setAttribute('role','status'); document.body.appendChild(t); }
+    t.innerHTML=''; const s=document.createElement('span'); s.textContent=msg; t.appendChild(s);
+    t.classList.toggle('has-undo',!!undo);
+    if(undo){ const b=document.createElement('button'); b.type='button'; b.id='finc-toast-undo'; b.textContent='Undo';
+      b.onclick=()=>{ clearTimeout(_fincToastT); t.remove(); undo(); }; t.appendChild(b); }
+    clearTimeout(_fincToastT); _fincToastT=setTimeout(()=>{ t.remove(); },6000);
+  }catch(e){}
+}
+/* Read once per Finance open. A refusal returns null from sbC and the feature stays hidden. */
+function fincTakeExtras(billing,chases){
+  if(Array.isArray(billing)){ FIN_BILLING={}; billing.forEach(b=>{ if(b&&b.client_id!=null) FIN_BILLING[b.client_id]=b; }); } else FIN_BILLING=null;
+  if(Array.isArray(chases)){ FIN_CHASES={}; chases.slice().sort((a,b)=>(Date.parse(a.at)||0)-(Date.parse(b.at)||0)).forEach(c=>{ if(c&&c.invoice_id!=null) (FIN_CHASES[c.invoice_id]=FIN_CHASES[c.invoice_id]||[]).push(c); }); } else FIN_CHASES=null;
 }
 
 /* FINANCE AGENT Layer 2: read-and-display only. Reads the newest
@@ -8649,13 +9386,9 @@ async function finMarkSent(id,on){
   const ok=await SBpatch('invoices',id,{sent_at:val});
   if(!ok){ rows.forEach(x=>x.sent_at=before); paint(); }
 }
-async function finMarkPaid(id){
-  await SBpatch('invoices',id,{status:'paid'});
-  const i=FIN_INVOICES.find(x=>x.id===id);if(i)i.status='paid';
-  // Also sync INVOICES
-  const gi=INVOICES.find(x=>x.id===id);if(gi)gi.status='paid';
-  renderFinancePage();
-}
+/* Paid now asks for the day and how it was paid (BB FINANCE UPGRADE 1), so every Paid button,
+   By Client included, opens the invoice sheet on its Mark paid form. fincSavePaid writes it. */
+function finMarkPaid(id){ fincOpenSheet(id,'paid'); }
 async function finDeleteInvoice(id){
   if(!confirm('Delete this invoice?'))return;
   /* 6 Oct 2026: a refused delete used to vanish from the list anyway. Keep it on screen
