@@ -9390,6 +9390,12 @@ async function finMarkSent(id,on){
    By Client included, opens the invoice sheet on its Mark paid form. fincSavePaid writes it. */
 function finMarkPaid(id){ fincOpenSheet(id,'paid'); }
 async function finDeleteInvoice(id){
+  /* 7 Nov 2026: the chase log is append only at the database, so an invoice that has
+     been chased cannot be deleted. Say so before asking, instead of a failed delete. */
+  if(typeof fincChasesOf==='function'&&fincChasesOf(id).length){
+    alert('This invoice has been chased, so it stays on record. Change its status or add a note instead.');
+    return;
+  }
   if(!confirm('Delete this invoice?'))return;
   /* 6 Oct 2026: a refused delete used to vanish from the list anyway. Keep it on screen
      when sbC returns null (sbC has shown the toast). */
@@ -9528,6 +9534,12 @@ async function saveFinInvoice(){
     status:document.getElementById('fin-inv-status').value,
     notes:document.getElementById('fin-inv-notes').value.trim()||null
   };
+  /* 7 Nov 2026: the paid day follows the status. Moving an invoice off Paid in Edit
+     clears the day and method; setting Paid here keeps a day already recorded or
+     stamps today, with the method left blank (not recorded). */
+  const prevInv=finEditInvId?FIN_INVOICES.find(x=>x.id===finEditInvId):null;
+  if(data.status!=='paid'){data.paid_at=null;data.paid_method=null;}
+  else if(!(prevInv&&prevInv.paid_at)){data.paid_at=new Date().toISOString();}
   /* 6 Oct 2026: a refused save used to close the modal and show the invoice as saved.
      When sbC returns null keep the modal open and the list as it was (sbC has shown
      the toast). */
