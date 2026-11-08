@@ -111,6 +111,7 @@
         read: function (text, ctx) { return window.hoRead(text, ctx); },
         today: today, rpc: rpc, toast: toast, onSent: onSent });
       S.inited = true;
+      window.BBHO.ready = true;
     }
     if (!document.getElementById('ho-stuck-card')) anchor.parentNode.insertBefore(stuckShell(), anchor);
     if (!document.getElementById('ho-card-mount')) {
@@ -134,12 +135,25 @@
     ok('the reader finds the client', r && r.client === 1, r && String(r.client));
     var z = window.hoRead ? window.hoRead('Nirvana, the Sun Zapper post', { people: ppl, clients: cl, today: '2026-11-09' }) : null;
     ok('Sun Zapper is a client, not Sunday', z && z.client === 2 && !z.due, z && JSON.stringify(z));
+    ok('another owner screen can open the sheet', window.BBHO && typeof window.BBHO.open === 'function', '');
     var present = !!document.getElementById('ho-send-btn');
     ok('only Thulaib and Shiara have Send a task', !!owner() === present, 'role ' + document.body.getAttribute('data-role') + ', button ' + (present ? 'present' : 'absent'));
     return R;
   }
 
-  window.BBHO = { selfcheck: selfcheck, reload: function () { onSent(); }, state: function () { return S; } };
+  /* open(opts) lets another owner screen (Shiara's board) open the same sheet already filled in.
+     opts: { to_id, client_id, title }, all optional. ready turns true once the sheet is set up. */
+  function openFilled(opts) {
+    if (!S.inited || !window.hoSheet) return false;
+    var o = opts || {}, pre = {};
+    if (o.to_id != null) pre.people = [Number(o.to_id)];
+    if (o.client_id != null) pre.clientId = o.client_id;
+    if (o.title) pre.text = String(o.title);
+    window.hoSheet.open(pre);
+    return true;
+  }
+  window.BBHO = { selfcheck: selfcheck, reload: function () { onSent(); }, state: function () { return S; },
+    open: openFilled, ready: false };
   function wire() {
     new MutationObserver(function () { gate(); }).observe(document.body, { attributes: true, attributeFilter: ['data-role'] });
     if (document.body.getAttribute('data-role')) gate();
