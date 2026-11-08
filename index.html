@@ -23473,6 +23473,30 @@ var BBSET=(function(){
 })();
 </script>
 <!-- @@BB_SETTINGS_END@@ -->
+<script>
+/* SETTINGS BACK (BUILD 5 click path, 8 Nov 2026). The shared Settings sheet above is the same in every BB app and
+   writes no history entry, so Back on the phone or the browser left the Command Centre with Settings still open.
+   This wraps it here, in the CC only, so the shared block stays byte for byte: open adds one history entry, Back
+   closes the sheet, and the cross, the dim and Sign out each take that entry away again. One Back undoes one thing. */
+(function(){
+  if(typeof BBSET!=='object'||!BBSET) return;
+  var rawOpen=BBSET.open, rawClose=BBSET.close, rawSignout=BBSET.signout, pushed=false;
+  function drop(){ if(pushed){ pushed=false; try{ history.back(); }catch(e){} } }
+  BBSET.open=function(){
+    rawOpen();
+    var bk=document.getElementById('bbset-back'); if(bk) bk.onclick=BBSET.close;
+    if(!pushed){ try{ history.pushState({bbSettings:1},''); pushed=true; }catch(e){} }
+  };
+  BBSET.close=function(){ rawClose(); drop(); };
+  BBSET.signout=function(){ drop(); rawSignout(); };
+  window.addEventListener('popstate',function(){ if(pushed){ pushed=false; rawClose(); } });
+  /* the nav item the shared block clones calls its own inner open, so route that tap through the wrapper */
+  document.addEventListener('click',function(e){
+    var n=e.target&&e.target.closest&&e.target.closest('#bbset-nav'); if(!n) return;
+    e.preventDefault(); e.stopPropagation(); BBSET.open();
+  },true);
+})();
+</script>
 <!-- @@BBCC_MYWEEK_BEGIN@@ -->
 <script>
 /* ════════════════════════════════════════════════════════════════════════════
