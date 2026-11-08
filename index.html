@@ -21886,7 +21886,12 @@ async function runSelfTest(opts){
    for(const name of testable){
     let verdict='',good=false;
     try{
-     const r=await fetch(SB_URL+'/rest/v1/'+name+'?select=*&limit=1',
+     /* select=id, not select=*: clients locks mrr from everyone and contact from anon by column (decision 485),
+        and the fee guard turns * into a column list that names contact, so * as anon is a 401 by design, not a
+        blocked table. One named column (the list's own probe column, id by default) proves the table is readable
+        without asking for what is locked. */
+     const probe=(list.find(t=>t.name===name)||{}).col||'id';
+     const r=await fetch(SB_URL+'/rest/v1/'+name+'?select='+probe+'&limit=1',
                          {headers:{apikey:SB_KEY,Authorization:'Bearer '+SB_KEY}});
      /* 401 and 403 were the only failures this recognised, so a table that had
         been renamed away (404) or queried wrongly (400) counted as readable.
