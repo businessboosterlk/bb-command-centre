@@ -20380,8 +20380,13 @@ div.shh-trow{cursor:default}
       <div class="shh-apps" id="shh-apps">
         <a class="shh-card shh-app" id="shh-app-brain" href="https://businessboosterlk.github.io/bb-brain/" target="_blank" rel="noopener"><span class="shh-ico shh-c-blue" data-shh-i="brain"></span><span>Digital Brain<small>Ask the Brain</small></span></a>
         <button type="button" class="shh-card shh-app" id="shh-app-booster"><span class="shh-ico shh-c-green" data-shh-i="rocket"></span><span>Booster<small>Growth tools</small></span></button>
+        <!-- the five links asked for in bb_pending 1600 (8 Nov 2026): three GitHub Pages systems and the two Vercel inboxes named in MODULE-REGISTRY.md -->
+        <a class="shh-card shh-app" id="shh-app-video" href="https://businessboosterlk.github.io/bb-video-system/" target="_blank" rel="noopener"><span class="shh-ico shh-c-amber" data-shh-i="video"></span><span>Video System<small>Edits, checks, Last check</small></span></a>
+        <a class="shh-card shh-app" id="shh-app-graphic" href="https://businessboosterlk.github.io/bb-graphic-system/" target="_blank" rel="noopener"><span class="shh-ico shh-c-red" data-shh-i="image"></span><span>Graphic System<small>Designs and briefs</small></span></a>
+        <a class="shh-card shh-app" id="shh-app-smm" href="https://businessboosterlk.github.io/bb-smm-workspace/" target="_blank" rel="noopener"><span class="shh-ico shh-c-blue" data-shh-i="cal"></span><span>SMM Workspace<small>Posts and day checks</small></span></a>
+        <a class="shh-card shh-app" id="shh-app-daily" href="https://bb-team-daily-form.vercel.app/" target="_blank" rel="noopener"><span class="shh-ico shh-c-green" data-shh-i="file"></span><span>Team daily form<small>Inbox of the day's forms</small></span></a>
+        <a class="shh-card shh-app" id="shh-app-brief" href="https://bb-system-brief.vercel.app/briefs" target="_blank" rel="noopener"><span class="shh-ico shh-c-amber" data-shh-i="pen"></span><span>System brief<small>Inbox of new briefs</small></span></a>
       </div>
-      <div class="shh-calm">Video System, Graphic System, SMM Workspace and the two inboxes have no address in the Command Centre yet, so they are not listed.</div>
     </section>
   </div>
 </div>
@@ -20682,11 +20687,13 @@ div.shh-trow{cursor:default}
       rd('team_members', '?select=id,name,role,contract_expiry,active'),
       rd('events', '?date=eq.' + T + '&select=id,title,time,type,client_id&order=time.asc'),
       A ? rd('bb_month_close', '?period=eq.' + prev + '-01&select=client_id,smm_closed_at,coo_signed_at') : none,
-      rd('bb_pending', '?status=eq.open&for_name=eq.SHIARA&select=id,item,asked_on&order=asked_on.asc,id.asc')
+      rd('bb_pending', '?status=eq.open&for_name=eq.SHIARA&select=id,item,asked_on&order=asked_on.asc,id.asc'),
+      /* names only, read by anyone: clients carries a public read policy, so Last check names its client even before the sign in lands (gap 2, 8 Nov 2026) */
+      rd('clients', '?select=id,name&order=name')
     ]);
     if(tok !== SH.tok) return;
     var steps = [
-      function(){ paintMoney(r[0], r[1]); }, function(){ paintInvoices(r[0]); }, function(){ paintCheck(r[2], r[3], r[4]); },
+      function(){ paintMoney(r[0], r[1]); }, function(){ paintInvoices(r[0]); }, function(){ paintCheck(r[2], r[3], r[4] || r[9]); },
       function(){ paintContracts(r[4], r[5]); }, function(){ paintToday(r[6], r[7], r[8], r[4]); }
     ];
     steps.forEach(function(f){ try{ f(); }catch(e){ console.error('shiara home', e); } });
