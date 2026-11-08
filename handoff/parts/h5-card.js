@@ -49,6 +49,7 @@ const hoCard = (function() {
     let reloadTimer = null;
     let reloading = false;
     let openFormRowId = null;
+    let openFormType = null;
 
     function stopTimer() {
       if (reloadTimer) {
@@ -315,9 +316,11 @@ const hoCard = (function() {
     }
 
     function openForm(rowId, type) {
-      if (openFormRowId === rowId) return;
+      // Same row and same button: leave it open. Same row, other button: swap the form.
+      if (openFormRowId === rowId && openFormType === type) return;
       closeForm();
       openFormRowId = rowId;
+      openFormType = type;
 
       const taskDiv = taskEl(rowId);
       if (!taskDiv) return;
@@ -404,6 +407,7 @@ const hoCard = (function() {
         }
       }
       openFormRowId = null;
+      openFormType = null;
     }
 
     function taskEl(rowId) {
