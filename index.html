@@ -5405,7 +5405,7 @@ async function loadAll(){
   const [clients,tasks,pipeline,events,pillars,videos,invoices,shoots,editors]=await Promise.all([
     sb('clients','?select=*&order=name'),
     sb('tasks','?select=*'),
-    sb('pipeline','?select=*'),
+    sb('pipeline','?select=*&archived_at=is.null'),
     sb('events','?select=*'),
     sb('pillars','?select=*'),
     sb('video_projects','?select=id,current_stage,deadline,completed_at,is_archived,assigned_editor_id,target_month,target_year&is_archived=eq.false'),
@@ -6256,7 +6256,7 @@ async function loadPipelinePage(){
   if(!D.pipeline||!D.pipeline.length||!D.tasks||!D.tasks.length){
     try{
       const [pipeline,tasks]=await Promise.all([
-        sb('pipeline','?select=*&order=id'),
+        sb('pipeline','?select=*&archived_at=is.null&order=id'),
         sb('tasks','?select=*')
       ]);
       D.pipeline=pipeline||D.pipeline||[];
@@ -16768,7 +16768,7 @@ if('serviceWorker' in navigator){
     });
 
     /* lead stale */
-    sbGet('pipeline','stage=neq.closed_won&stage=neq.closed_lost&select=name,stage,last_contact_at&order=last_contact_at.asc.nullsfirst&limit=50').then(function(rows){
+    sbGet('pipeline','archived_at=is.null&stage=neq.closed_won&stage=neq.closed_lost&select=name,stage,last_contact_at&order=last_contact_at.asc.nullsfirst&limit=50').then(function(rows){
       var cutoff = Date.now()-7*86400000;
       var stale  = (rows||[]).filter(function(r){ return !r.last_contact_at || new Date(r.last_contact_at).getTime()<cutoff; });
       setCard('lead-stale',stale.length,stale.length?'amber':'green',
