@@ -21188,6 +21188,8 @@ async function runSelfTest(opts){
   if(window.BBWORK){const _x=await BBWORK.crosscheck();ok(_x.name,_x.pass,_x.detail);}
   /* Nirvana's day card (6 Nov 2026): pure checks, no reads. */
   (window.BBNC?BBNC.selfcheck():[{name:'Nirvana card: module present',pass:false,detail:'BBNC is missing'}]).forEach(function(c){ok(c.name,c.pass,c.detail);});
+  /* Send a task and the From card (8 Nov 2026): pure checks, no reads or writes. */
+  (window.BBHO?BBHO.selfcheck():[{name:'Send a task: module present',pass:false,detail:'BBHO is missing'}]).forEach(function(c){ok(c.name,c.pass,c.detail);});
   ok('Boot: core globals present',
      typeof D==='object'&&typeof CLIENTS!=='undefined'&&typeof showPage==='function'&&typeof SBget==='function',
      'D/CLIENTS/showPage/SBget');
