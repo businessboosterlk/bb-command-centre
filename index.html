@@ -20133,6 +20133,617 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 else buildNavGroups();
 </script>
 
+<!-- @@BBCC_SHIARA_BEGIN@@ SHIARA HOME (8 Nov 2026, from ~/Downloads/BB-CC-FULL-UPGRADE/SHIARA-STORYBOARD.md and shiara-dashboard-mockup.html).
+     Her own home and menu. Does nothing unless body[data-role="sh"]. Every other role keeps today's menu and Dashboard.
+     How it works, without editing the shell:
+       showPage is wrapped (the original is kept and called): for her, 'dashboard' opens 'shhome', and the menu item
+       for the page is lit from SH_PARENT, then NAV_PARENT, so Approvals, Usage and Delivery light her own items.
+       Her menu reuses the existing .nav-item elements, moved and in her order; only Home, Apps and the More header
+       are new. The order, labels and display of every item are kept on the way in and put back on the way out.
+       #ho-card-mount and #ho-stuck-card (@@BBCC_THULAIB_VIEW@@) are moved into her home by id, never copied.
+     Reads only tables index.html already reads, through SBget. A refused read draws "Not read", never a zero.
+     No writes. No database change. Rollback: delete this block. -->
+<style>
+#page-shhome,.shh-tabbar,.nav.shh-nav{--sh-ink:#FF7F47;--sh-btn:#C24400}
+[data-theme="light"] #page-shhome,[data-theme="light"] .shh-tabbar,[data-theme="light"] .nav.shh-nav{--sh-ink:#B53E00}
+.nav.shh-nav .nav-item.active{color:var(--sh-ink)}
+.nav.shh-nav.shh-more-shut .shh-in-more{display:none!important}
+.nav.shh-nav .shh-in-more{padding-left:20px}
+.shh-more-hd .shh-chev{margin-left:auto;display:grid;place-items:center;transition:transform .2s var(--ease)}
+.shh-more-hd[aria-expanded="true"] .shh-chev{transform:rotate(180deg)}
+.shh-more-hd .shh-chev svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.shh-pill{margin-left:auto;font-size:10.5px;font-weight:700;color:var(--sh-ink);background:var(--accent-soft);border-radius:99px;height:18px;padding:0 7px;display:inline-flex;align-items:center;line-height:1}
+#page-shhome svg,.shh-tabbar svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#page-shhome .shh-num{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1}
+#page-shhome button{font-family:inherit;color:inherit;cursor:pointer}
+.shh-home{display:flex;flex-direction:column;gap:20px;min-width:0}
+.shh-hd{display:flex;align-items:center;gap:16px;min-width:0}
+.shh-hd-g{flex:1;min-width:0;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.shh-hd h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--text)}
+.shh-date{font-size:14px;color:var(--text-2);font-weight:500}
+.shh-av{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--sh-ink);display:grid;place-items:center;font-weight:700;font-size:12.5px;line-height:1;flex:none}
+.shh-btn{min-height:44px;padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--border-strong);background:var(--surface);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;color:var(--text)}
+.shh-btn:hover{background:var(--surface-2)}
+.shh-btn svg{width:16px;height:16px}
+.shh-btn-p{background:var(--sh-btn);border-color:var(--sh-btn);color:#fff}
+.shh-btn-p:hover{background:var(--sh-ink);border-color:var(--sh-ink)}
+.shh-btn[hidden]{display:none}
+.shh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-xs);min-width:0}
+.shh-tap{display:flex;flex-direction:column;gap:14px;width:100%;text-align:left;padding:18px 20px;transition:transform .15s var(--ease),box-shadow .25s var(--ease)}
+.shh-tap:hover{box-shadow:var(--shadow-md)}
+.shh-tap:active{transform:scale(.985)}
+.shh-h{display:flex;align-items:center;gap:10px;min-width:0}
+.shh-h .shh-t{font-size:13px;font-weight:600;color:var(--text-2);flex:1;min-width:0}
+.shh-h .shh-go{width:18px;height:18px;color:var(--text-3)}
+.shh-ico{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
+.shh-ico svg{width:17px;height:17px}
+.shh-c-red{color:var(--red);background:var(--red-soft)}
+.shh-c-amber{color:var(--amber);background:var(--amber-soft)}
+.shh-c-green{color:var(--green);background:var(--green-soft)}
+.shh-c-blue{color:var(--blue);background:var(--blue-soft)}
+.shh-c-grey{color:var(--text-2);background:var(--surface-2)}
+.shh-val{display:flex;align-items:baseline;gap:6px;white-space:nowrap;min-height:34px}
+.shh-big{font-size:34px;font-weight:600;letter-spacing:-.025em;line-height:1;color:var(--text)}
+.shh-big.shh-dim{font-size:22px;color:var(--text-3)}
+.shh-unit{font-size:13px;font-weight:500;color:var(--text-2);white-space:normal}
+.shh-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.shh-meta:empty{display:none}
+.shh-chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:600;line-height:1;white-space:nowrap}
+.shh-chip .shh-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.shh-bar{height:6px;border-radius:99px;background:var(--surface-3);overflow:hidden}
+.shh-bar i{display:block;height:100%;border-radius:99px;background:var(--green)}
+.shh-line{font-size:12.5px;color:var(--text-2);line-height:1.45}
+.shh-line:empty{display:none}
+.shh-calm{font-size:12px;color:var(--text-3);line-height:1.45}
+.shh-skel{display:inline-block;width:120px;height:28px;border-radius:8px;background:var(--surface-2);animation:shPulse 1.2s ease-in-out infinite}
+@keyframes shPulse{50%{opacity:.5}}
+.shh-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.shh-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.shh-lower{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px;align-items:start}
+.shh-panel{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.shh-ph{display:flex;align-items:center;gap:10px;min-width:0}
+.shh-ph h3{margin:0;font-size:15px;font-weight:600;flex:1;min-width:0;display:flex;align-items:center;gap:8px;color:var(--text)}
+.shh-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:var(--surface-3);color:var(--text-2);font-size:12px;font-weight:600;line-height:1}
+.shh-count:empty{display:none}
+.shh-vrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border-top:1px solid var(--border)}
+.shh-vrows>.shh-vrow:first-child{border-top:0}
+.shh-vbtn{display:grid;grid-template-columns:32px 120px minmax(0,1fr) 150px 18px;gap:14px;align-items:center;padding:10px 0;min-height:52px;border:0;background:transparent;text-align:left;width:100%}
+.shh-vbtn:hover .shh-tt{color:var(--sh-ink)}
+.shh-cl{font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shh-tt{font-size:13.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shh-tt small{display:block;font-size:12px;font-weight:500;color:var(--text-3)}
+.shh-wt{font-size:12.5px;color:var(--text-2)}
+.shh-vbtn .shh-go{width:18px;height:18px;color:var(--text-3)}
+.shh-task{min-height:44px;padding:0 10px;font-size:12.5px}
+.shh-empty{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:var(--r-md);background:var(--surface-2);border:1px dashed var(--border-strong)}
+.shh-empty b{display:block;font-size:13px;font-weight:600;color:var(--text)}
+.shh-empty span{font-size:12.5px;color:var(--text-2)}
+.shh-trow{display:flex;gap:12px;align-items:center;padding:10px 0;min-height:52px;border:0;border-top:1px solid var(--border);width:100%;background:transparent;text-align:left}
+.shh-trows>.shh-trow:first-child{border-top:0}
+.shh-trow .shh-m{flex:1;min-width:0}
+.shh-trow .shh-m b{display:block;font-size:13.5px;font-weight:600;color:var(--text)}
+.shh-trow .shh-m span{display:block;font-size:12.5px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.shh-trow .shh-go{width:18px;height:18px;color:var(--text-3)}
+div.shh-trow{cursor:default}
+.shh-sec-t{font-size:15px;font-weight:600;color:var(--text);margin:0}
+.shh-apps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.shh-app{display:flex;align-items:center;gap:10px;padding:12px;min-height:56px;text-align:left;font-size:13px;font-weight:600;color:var(--text);text-decoration:none}
+.shh-app small{display:block;font-size:11.5px;font-weight:500;color:var(--text-3)}
+.shh-app:hover{box-shadow:var(--shadow-md)}
+#shh-ho-mount:empty{display:none}
+#shh-ho-mount{display:flex;flex-direction:column;gap:12px}
+#shh-ho-mount .ho-card{margin:0}
+.shh-tabbar{position:fixed;left:0;right:0;bottom:0;z-index:95;padding:6px 8px var(--sab);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.shh-tabbar[hidden]{display:none!important}
+.shh-tabbar button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--text-3);min-height:50px;font-family:inherit;cursor:pointer}
+.shh-tabbar button svg{width:21px;height:21px}
+.shh-tabbar button[aria-current="page"]{color:var(--sh-ink)}
+@media(min-width:901px){.shh-tabbar{display:none!important}}
+@media(max-width:1180px) and (min-width:901px){.shh-vbtn{grid-template-columns:32px 96px minmax(0,1fr) 18px}.shh-vbtn .shh-wt{display:none}.shh-apps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:900px){
+  body[data-role="sh"] .main > .content{padding-bottom:calc(24px + 58px + var(--sab))}
+  body[data-role="sh"] #bbcc-bubble,body[data-role="sh"] #bba-fab{bottom:calc(24px + 58px + var(--sab))!important}
+  body[data-role="sh"] #bba3-checkin-fab,body[data-role="sh"] #bbcc-panel,body[data-role="sh"] #bba-panel{bottom:calc(90px + 58px + var(--sab))!important}
+  body[data-role="sh"] #finc-toast{bottom:calc(80px + 58px + var(--sab))}
+  .shh-home{gap:12px}
+  .shh-hd{gap:12px}
+  .shh-hd-g{display:block}
+  .shh-hd h2{font-size:20px}
+  .shh-date{display:block;font-size:13px;margin-top:2px}
+  .shh-hd .shh-av{display:none}
+  .shh-tiles,.shh-lower{display:contents}
+  #shh-ho-mount{order:0}#shh-money{order:1}#shh-inv{order:2}#shh-check{order:3}#shh-con{order:4}#shh-today{order:5}#shh-apps-sec{order:6}
+  .shh-tap{padding:14px 16px;gap:10px}
+  .shh-big{font-size:28px}
+  .shh-val{min-height:28px}
+  .shh-panel{padding:14px 16px;gap:10px}
+  .shh-ph h3{font-size:13px;color:var(--text-2)}
+  .shh-vbtn{grid-template-columns:32px minmax(0,1fr) 18px;gap:10px}
+  .shh-vbtn .shh-cl,.shh-vbtn .shh-wt{display:none}
+  .shh-vbtn .shh-tt small .shh-ph-only{display:inline}
+  .shh-vrows>.shh-vrow:nth-child(n+4){display:none}
+  .shh-task{display:none!important}
+  .shh-apps{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .shh-sec-t{font-size:13px;color:var(--text-2);margin:2px 2px 0}
+}
+.shh-ph-only{display:none}
+@media(max-width:900px){.shh-desk-only{display:none}}
+@media(min-width:901px){.shh-more-ph{display:none}}
+@media(max-width:900px){.shh-more-desk{display:none}}
+@media(prefers-reduced-motion:reduce){.shh-tap,.shh-skel,.shh-more-hd .shh-chev{transition:none;animation:none}}
+</style>
+<div id="page-shhome" class="page-section" style="display:none">
+  <div class="shh-home">
+    <div class="shh-hd">
+      <div class="shh-hd-g"><h2 id="shh-hello">Hello, Shiara</h2><span class="shh-date" id="shh-date"></span></div>
+      <button type="button" class="shh-btn shh-btn-p" id="shh-send" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>Send a task</button>
+      <div class="shh-av" aria-hidden="true">SH</div>
+    </div>
+    <div id="shh-ho-mount"></div>
+    <div class="shh-tiles">
+      <button type="button" class="shh-card shh-tap" id="shh-money">
+        <span class="shh-h"><span class="shh-ico shh-c-green" data-shh-i="wallet"></span><span class="shh-t">Money in</span><span data-shh-i="chevR" class="shh-go"></span></span>
+        <span class="shh-val shh-num"></span><span class="shh-meta"></span><span class="shh-line"></span>
+      </button>
+      <button type="button" class="shh-card shh-tap" id="shh-inv">
+        <span class="shh-h"><span class="shh-ico shh-c-blue" data-shh-i="receipt"></span><span class="shh-t" id="shh-inv-t">Invoice run</span><span data-shh-i="chevR" class="shh-go"></span></span>
+        <span class="shh-val shh-num"></span><span class="shh-meta"></span><span class="shh-line"></span>
+      </button>
+      <button type="button" class="shh-card shh-tap" id="shh-con">
+        <span class="shh-h"><span class="shh-ico shh-c-grey" data-shh-i="file"></span><span class="shh-t">Contracts</span><span data-shh-i="chevR" class="shh-go"></span></span>
+        <span class="shh-val shh-num"></span><span class="shh-meta"></span><span class="shh-line"></span>
+        <span class="shh-calm">Drafts and signed contracts need a contracts list before they can show here.</span>
+      </button>
+    </div>
+    <div class="shh-lower">
+      <section class="shh-card shh-panel" id="shh-check" aria-label="Last check">
+        <div class="shh-ph"><h3><span class="shh-ico shh-c-amber" data-shh-i="check"></span>Last check <span class="shh-count shh-num" id="shh-check-n"></span></h3><button type="button" class="shh-btn" id="shh-check-open"><span class="shh-more-desk">Open Approvals</span><span class="shh-more-ph">Approvals</span><span data-shh-i="chevR"></span></button></div>
+        <div class="shh-line">Videos reach you after editor, head and SMM. You send them to the client.</div>
+        <div class="shh-val shh-num" id="shh-check-v"></div>
+        <div class="shh-vrows" id="shh-check-rows"></div>
+        <div class="shh-line" id="shh-check-more"></div>
+        <div class="shh-empty"><span class="shh-ico shh-c-grey" data-shh-i="image"></span><div><b>Graphics have no COO check step yet</b><span>Graphics go from head review straight to the client. They will show here once a check step is added.</span></div></div>
+      </section>
+      <section class="shh-card shh-panel" id="shh-today" aria-label="Today">
+        <div class="shh-ph"><h3><span class="shh-ico shh-c-blue" data-shh-i="cal"></span>Today</h3><button type="button" class="shh-btn" id="shh-today-open">My Day<span data-shh-i="chevR"></span></button></div>
+        <div class="shh-trows" id="shh-today-rows"></div>
+      </section>
+    </div>
+    <section id="shh-apps-sec" aria-labelledby="shh-apps-t" style="display:flex;flex-direction:column;gap:12px">
+      <h3 class="shh-sec-t" id="shh-apps-t">Apps</h3>
+      <div class="shh-apps" id="shh-apps">
+        <a class="shh-card shh-app" id="shh-app-brain" href="https://businessboosterlk.github.io/bb-brain/" target="_blank" rel="noopener"><span class="shh-ico shh-c-blue" data-shh-i="brain"></span><span>Digital Brain<small>Ask the Brain</small></span></a>
+        <button type="button" class="shh-card shh-app" id="shh-app-booster"><span class="shh-ico shh-c-green" data-shh-i="rocket"></span><span>Booster<small>Growth tools</small></span></button>
+      </div>
+      <div class="shh-calm">Video System, Graphic System, SMM Workspace and the two inboxes have no address in the Command Centre yet, so they are not listed.</div>
+    </section>
+  </div>
+</div>
+<nav class="shh-tabbar" id="shh-tabbar" aria-label="Shiara quick menu" hidden>
+  <button type="button" data-shh-tab="home"><span data-shh-i="house"></span>Home</button>
+  <button type="button" data-shh-tab="money"><span data-shh-i="wallet"></span>Money</button>
+  <button type="button" data-shh-tab="check"><span data-shh-i="check"></span>Check</button>
+  <button type="button" data-shh-tab="clients"><span data-shh-i="users"></span>Clients</button>
+  <button type="button" data-shh-tab="more"><span data-shh-i="dots"></span>More</button>
+</nav>
+<script>
+(function(){
+  'use strict';
+  var P = {
+    house:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    stamp:'<path d="M5 22h14"/><path d="M19.27 13.73A2.5 2.5 0 0 0 17.5 13h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1.5c0-.66-.26-1.3-.73-1.77Z"/><path d="M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-3-3c-1.66 0-3 1-3 3s1 2 1 3.5V13"/>',
+    grid:'<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+    dots:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+    chevD:'<path d="m6 9 6 6 6-6"/>', chevR:'<path d="m9 18 6-6-6-6"/>',
+    wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/>',
+    check:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    file:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+    sign:'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="m9 15 2 2 4-4"/>',
+    cal:'<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+    image:'<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+    video:'<path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5"/><rect x="2" y="6" width="14" height="12" rx="2"/>',
+    users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    pen:'<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838.838-2.872a2 2 0 0 1 .506-.854z"/>',
+    brain:'<path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/>',
+    rocket:'<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>'
+  };
+  function svg(n){ return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (P[n] || '') + '</svg>'; }
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function paintIcons(root){ (root || document).querySelectorAll('[data-shh-i]').forEach(function(el){ if(!el.firstChild) el.innerHTML = svg(el.getAttribute('data-shh-i')); }); }
+
+  var SH = { on:false, snap:null, more:false, dashOK:false, apps:false, tok:0, watch:null, watchN:0 };
+  var SH_PARENT = { shhome:'shhome', approvals:'approvals', usage:'usage', delivery:'production' };
+  var TOP = [['shhome','Home'],['finance','Finance'],['approvals','Approvals'],['clients','Clients'],['myday','My Work'],['team','Team'],['shoots','Schedule'],['shapps','Apps']];
+  var MORE = [['production','Production'],['teamscore','Team Score'],['agents','System'],['brain','Digital Brain'],['askbb','Booster'],['usage','Usage']];
+  var MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  function isSh(){ return document.body && document.body.getAttribute('data-role') === 'sh'; }
+  function authed(){ try{ return (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) || (typeof AUTH_TOKEN !== 'undefined' && !!AUTH_TOKEN); }catch(e){ return false; } }
+  async function rd(t, q){ try{ var r = await SBget(t, q); return Array.isArray(r) ? r : null; }catch(e){ return null; } }
+  function today(){ return new Date(Date.now() + 19800000).toISOString().slice(0, 10); }
+  function curYm(){ return today().slice(0, 7); }
+  function prevYm(ym){ ym = ym || curYm(); var y = +ym.slice(0, 4), m = +ym.slice(5, 7) - 1; if(m < 1){ m = 12; y--; } return y + '-' + String(m).padStart(2, '0'); }
+  function monthName(ym){ return MON[parseInt(String(ym).slice(5, 7), 10) - 1] || ''; }
+  function dayShort(ts){ var t = Date.parse(ts); return isNaN(t) ? '' : new Date(t).toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', timeZone:'Asia/Colombo'}).replace(/,/g, ''); }
+  function lkrShort(n){
+    n = Number(n) || 0;
+    if(n >= 1e6) return 'LKR ' + (Math.round(n / 1e5) / 10).toString() + 'M';
+    if(n >= 1e4) return 'LKR ' + Math.round(n / 1e3) + 'K';
+    return 'LKR ' + n.toLocaleString('en-GB');
+  }
+  function plural(n, one, many){ return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+
+  /* ── her menu ── */
+  function navEl(){ return document.querySelector('#sidebar .nav') || document.querySelector('.nav'); }
+  function textNode(n){ var t = null; (n.childNodes || []).forEach(function(c){ if(!t && c.nodeType === 3 && c.textContent.trim()) t = c; }); return t; }
+  function made(id, label, icon, fn, cls){
+    var el = $(id);
+    if(el) return el;
+    el = document.createElement('div');
+    el.className = 'nav-item' + (cls ? ' ' + cls : ''); el.id = id;
+    el.setAttribute('role', 'button'); el.tabIndex = 0;
+    el.innerHTML = '<span class="nav-ico">' + svg(icon) + '</span>' + label;
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fn(); } });
+    return el;
+  }
+  function pill(el, txt){ if(el && !el.querySelector('.shh-pill')){ var s = document.createElement('span'); s.className = 'shh-pill'; s.textContent = txt; el.appendChild(s); } }
+  function setMore(open){
+    SH.more = !!open;
+    var nav = navEl(), hd = $('nav-shmore');
+    if(nav) nav.classList.toggle('shh-more-shut', !SH.more);
+    if(hd) hd.setAttribute('aria-expanded', SH.more ? 'true' : 'false');
+  }
+  function applyNav(){
+    var nav = navEl();
+    if(!nav || SH.snap) return;
+    if(!nav.dataset.grouped && typeof buildNavGroups === 'function') buildNavGroups();
+    SH.snap = [].slice.call(nav.children).map(function(n){ var t = textNode(n); return { n:n, d:n.style ? n.style.display : '', t:t, l:t ? t.textContent : null }; });
+    var mine = { shhome: made('nav-shhome', 'Home', 'house', function(){ SH.apps = false; showPage('shhome'); }), shapps: made('nav-shapps', 'Apps', 'grid', goApps) };
+    var hd = made('nav-shmore', 'More', 'dots', function(){ setMore(!SH.more); }, 'shh-more-hd');
+    if(!hd.querySelector('.shh-chev')){ var c = document.createElement('span'); c.className = 'shh-chev'; c.innerHTML = svg('chevD'); hd.appendChild(c); hd.setAttribute('aria-controls', 'sidebar'); }
+    nav.querySelectorAll('.nav-item').forEach(function(it){ it.style.display = 'none'; });
+    TOP.forEach(function(x){ var el = mine[x[0]] || $('nav-' + x[0]); if(!el) return; el.style.display = ''; var t = textNode(el); if(t) t.textContent = x[1]; nav.appendChild(el); });
+    pill($('nav-approvals'), 'Moved up'); pill(mine.shapps, 'New');
+    hd.style.display = ''; nav.appendChild(hd);
+    MORE.forEach(function(x){ var el = $('nav-' + x[0]); if(!el) return; el.style.display = ''; el.classList.add('shh-in-more'); var t = textNode(el); if(t) t.textContent = x[1]; nav.appendChild(el); });
+    nav.classList.add('shh-nav');
+    setMore(SH.more);
+  }
+  function restoreNav(){
+    var nav = navEl();
+    if(!nav || !SH.snap) return;
+    nav.querySelectorAll('.shh-pill').forEach(function(p){ p.remove(); });
+    ['nav-shhome', 'nav-shapps', 'nav-shmore'].forEach(function(id){ var el = $(id); if(el){ el.classList.remove('active'); el.remove(); } });
+    nav.querySelectorAll('.shh-in-more').forEach(function(el){ el.classList.remove('shh-in-more'); });
+    SH.snap.forEach(function(s){ nav.appendChild(s.n); if(s.n.style) s.n.style.display = s.d; if(s.t && s.l !== null) s.t.textContent = s.l; });
+    nav.classList.remove('shh-nav', 'shh-more-shut');
+    SH.snap = null;
+  }
+  function tabFor(page){
+    if(page === 'shhome') return 'home';
+    if(page === 'finance') return 'money';
+    if(page === 'approvals') return 'check';
+    if(page === 'clients' || page === 'onboarding' || page === 'readiness') return 'clients';
+    return '';
+  }
+  function lightNav(page){
+    if(!isSh()) return;
+    var id = SH_PARENT[page] || (typeof NAV_PARENT !== 'undefined' && NAV_PARENT[page]) || page;
+    if(page === 'dashboard') id = 'shhome';
+    if(page === 'shhome' && SH.apps) id = 'shapps';
+    document.querySelectorAll('.nav-item.active').forEach(function(e){ e.classList.remove('active'); });
+    var el = $('nav-' + id);
+    if(el){ el.classList.add('active'); if(el.classList.contains('shh-in-more')) setMore(true); }
+    var tab = tabFor(page === 'dashboard' ? 'shhome' : page);
+    document.querySelectorAll('#shh-tabbar [data-shh-tab]').forEach(function(b){ if(b.getAttribute('data-shh-tab') === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  }
+
+  /* ── where each card goes. Links into the screens that exist, never a rebuild of them. ── */
+  function goMoney(){ SH.apps = false; showPage('finance'); try{ setFinView('month'); }catch(e){} }
+  function goInvoiceRun(){
+    var ref = (typeof FIN_INVOICES !== 'undefined') ? FIN_INVOICES : null, cur = curYm(), n = 0;
+    goMoney();
+    var t = setInterval(function(){
+      n++;
+      var now = (typeof FIN_INVOICES !== 'undefined') ? FIN_INVOICES : null;
+      if((now !== ref && Array.isArray(now)) || n > 60){
+        clearInterval(t);
+        var sel = $('fin-month-sel');
+        if(sel && sel.querySelector('option[value="' + cur + '"]') && sel.value !== cur){ sel.value = cur; try{ fincMonthPicked(); }catch(e){} }
+      }
+    }, 150);
+  }
+  function goApps(){
+    SH.apps = true; showPage('shhome');
+    var s = $('shh-apps-sec'); if(s && s.scrollIntoView) s.scrollIntoView({ block:'start', behavior:'smooth' });
+  }
+  function goMonthClose(){ try{ if(typeof OW !== 'undefined'){ OW.ym = prevYm(); OW.edit = null; } }catch(e){} showPage('delivery'); }
+  function goConsole(){
+    SH.dashOK = true; showPage('dashboard');
+    setTimeout(function(){ var b = $('bb-brief'); if(b && b.scrollIntoView) b.scrollIntoView({ block:'start' }); }, 60);
+  }
+  /* openVideoDetail reads VP_videos, which only the Video Pipeline loads. A row tapped before that page
+     ever opened did nothing, so the pipeline is read first (its own loader, unchanged) when the video is missing. */
+  function hasVideo(id){ try{ return Array.isArray(VP_videos) && VP_videos.some(function(x){ return x.id === id; }); }catch(e){ return false; } }
+  async function openVideo(id){
+    if(typeof openVideoDetail !== 'function'){ showPage('approvals'); return; }
+    if(!hasVideo(id) && typeof loadVideoPipeline === 'function'){ try{ await loadVideoPipeline(); }catch(e){} }
+    if(hasVideo(id)) openVideoDetail(id); else showPage('approvals');
+  }
+  function sendTask(opts){ if(window.BBHO && window.BBHO.ready) window.BBHO.open(opts || {}); }
+
+  /* ── card states ── */
+  function part(id, sel){ var c = $(id); return c ? c.querySelector(sel) : null; }
+  function setCard(id, val, meta, line){
+    var v = part(id, '.shh-val'), m = part(id, '.shh-meta'), l = part(id, '.shh-line');
+    if(v) v.innerHTML = val; if(m) m.innerHTML = meta || ''; if(l) l.innerHTML = line || '';
+  }
+  var LOADING = '<span class="shh-skel" aria-hidden="true"></span><span class="shh-sr">Reading</span>';
+  function notRead(msg){ return ['<span class="shh-big shh-dim">Not read</span>', '', esc(msg)]; }
+  function chip(cls, txt, dot){ return '<span class="shh-chip ' + cls + ' shh-num">' + (dot ? '<span class="shh-dot"></span>' : '') + esc(txt) + '</span>'; }
+
+  function paintHead(){
+    var h = new Date(Date.now() + 19800000).getUTCHours();
+    $('shh-hello').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', Shiara';
+    $('shh-date').textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', timeZone:'Asia/Colombo' }).replace(/,/g, '');
+    $('shh-inv-t').textContent = 'Invoice run, ' + monthName(curYm());
+  }
+
+  function paintMoney(inv, chases){
+    if(!inv || typeof fincDaysLate !== 'function'){ var f = notRead('Could not read invoices. Open Finance to try again.'); setCard('shh-money', f[0], f[1], f[2]); return; }
+    var T = today(), cur = curYm();
+    var unpaid = inv.filter(function(i){ return i.status !== 'paid' && String(i.month || '').slice(0, 7) <= cur; });
+    var amt = unpaid.reduce(function(s, i){ return s + (Number(i.amount) || 0); }, 0);
+    var late = unpaid.filter(function(i){ return (fincDaysLate(i, T) || 0) > 0; });
+    var meta = chip('shh-c-red', late.length + ' overdue', true);
+    if(chases){
+      var last = {};
+      chases.forEach(function(c){ if(c && c.invoice_id != null){ var t = Date.parse(c.at) || 0; if(!last[c.invoice_id] || t > last[c.invoice_id]) last[c.invoice_id] = t; } });
+      var chase = late.filter(function(i){
+        var t = last[i.id]; if(!t) return true;
+        var ymd = new Date(t + 19800000).toISOString().slice(0, 10);
+        return (fincDaysLate({ due_date: ymd }, T) || 0) >= 7;
+      }).length;
+      meta += chip('shh-c-amber', 'Chase today: ' + chase);
+    }
+    setCard('shh-money', '<span class="shh-big" title="LKR ' + amt.toLocaleString('en-GB') + '">' + esc(lkrShort(amt)) + '</span><span class="shh-unit">to collect</span>',
+      meta, chases ? '' : 'The chase log could not be read, so chase today is left out.');
+    $('shh-money').setAttribute('aria-label', 'Money in: ' + lkrShort(amt) + ' to collect, ' + late.length + ' overdue. Opens Finance Collections.');
+  }
+
+  function paintInvoices(inv){
+    if(!inv){ var f = notRead('Could not read invoices.'); setCard('shh-inv', f[0], f[1], f[2]); return; }
+    var cur = curYm();
+    var rows = inv.filter(function(i){ return String(i.month || '').slice(0, 7) === cur; });
+    var sent = rows.filter(function(i){ return !!i.sent_at; }).length, paid = rows.filter(function(i){ return i.status === 'paid'; }).length;
+    var total = rows.length, left = total - sent, pc = total ? Math.round(sent / total * 1000) / 10 : 0;
+    if(!total){ setCard('shh-inv', '<span class="shh-big">0</span><span class="shh-unit">invoices made yet</span>', '', 'No invoices for ' + monthName(cur) + ' yet.'); return; }
+    setCard('shh-inv', '<span class="shh-big">' + sent + '</span><span class="shh-unit">of ' + total + ' sent</span>',
+      '', esc(left + ' to go' + (paid ? ', ' + paid + ' paid' : '')));
+    var c = $('shh-inv'), bar = c.querySelector('.shh-bar');
+    if(!bar){ bar = document.createElement('span'); bar.className = 'shh-bar'; bar.setAttribute('role', 'img'); c.insertBefore(bar, c.querySelector('.shh-line')); }
+    bar.setAttribute('aria-label', sent + ' of ' + total + ' sent');
+    bar.innerHTML = '<i style="width:' + pc + '%"></i>';
+  }
+
+  function nameMap(clients){
+    var m = {}, src = clients || (typeof CLIENTS !== 'undefined' && CLIENTS && CLIENTS.length ? CLIENTS : null) || (typeof D === 'object' && D && D.clients) || [];
+    src.forEach(function(c){ if(c && c.id != null) m[c.id] = c.name; });
+    return m;
+  }
+  function paintCheck(vids, hist, clients){
+    var rowsEl = $('shh-check-rows'), v = $('shh-check-v'), more = $('shh-check-more'), n = $('shh-check-n');
+    if(!vids){ n.textContent = ''; v.innerHTML = '<span class="shh-big shh-dim">Not read</span>'; rowsEl.innerHTML = ''; more.textContent = 'Could not read the video queue. Open Approvals to try again.'; return; }
+    var since = {}; (hist || []).forEach(function(h){ if(h && h.stage === 'coo_check') since[h.video_project_id] = h.entered_at; });
+    var names = nameMap(clients);
+    var list = vids.map(function(x){
+      var parts = String(x.title || '').split('|'), code = parts.length > 1 ? parts[0].trim() : '', title = (parts.length > 1 ? parts.slice(1).join('|') : parts[0]).trim();
+      return { id:x.id, cid:x.client_id, client:names[x.client_id] || 'Client not named', code:code, title:title || 'Untitled video', since:since[x.id] || x.updated_at };
+    }).sort(function(a, b){ return (Date.parse(a.since) || 0) - (Date.parse(b.since) || 0); });
+    n.textContent = list.length ? String(list.length) : '';
+    v.innerHTML = list.length ? '' : '<span class="shh-big">0</span><span class="shh-unit">videos waiting for you</span>';
+    v.style.display = list.length ? 'none' : '';
+    rowsEl.innerHTML = list.slice(0, 5).map(function(x){
+      return '<div class="shh-vrow"><button type="button" class="shh-vbtn" data-shh-video="' + Number(x.id) + '" aria-label="Open ' + esc(x.title) + ' for ' + esc(x.client) + '">'
+        + '<span class="shh-ico shh-c-amber">' + svg('video') + '</span><span class="shh-cl">' + esc(x.client) + '</span>'
+        + '<span class="shh-tt">' + esc(x.title) + '<small><span class="shh-desk-only">' + esc(x.code) + '</span><span class="shh-ph-only">' + esc(x.client) + ', since ' + esc(dayShort(x.since)) + '</span></small></span>'
+        + '<span class="shh-wt">Waiting since ' + esc(dayShort(x.since)) + '</span><span class="shh-go">' + svg('chevR') + '</span></button>'
+        + '<button type="button" class="shh-btn shh-task shh-needs-ho" data-shh-task="' + Number(x.cid) + '" data-shh-title="' + esc('Last check: ' + x.title) + '" hidden>Task</button></div>';
+    }).join('');
+    var shownDesk = Math.min(list.length, 5);
+    more.textContent = list.length > shownDesk ? 'And ' + (list.length - shownDesk) + ' more in Approvals.' : '';
+    if(list.length > 3 && window.matchMedia && window.matchMedia('(max-width:900px)').matches) more.textContent = 'And ' + (list.length - 3) + ' more in Approvals.';
+    syncHo();
+  }
+
+  function paintContracts(clients, team){
+    if(!clients){ var f = notRead('Could not read client renewals.'); setCard('shh-con', f[0], f[1], f[2]); return; }
+    /* The Renewals radar rule (renderRenewalsRadar): from today to 60 days ahead, client renewal dates and active team contract expiries. */
+    var now = new Date(); now.setHours(0, 0, 0, 0);
+    var limit = new Date(now.getTime() + 60 * 86400000), items = [];
+    clients.forEach(function(c){ if(!c.renewal) return; var d = new Date(c.renewal); if(isNaN(d) || d < now || d > limit) return; items.push({ d:d, k:'c' }); });
+    (team || []).forEach(function(m){ if(m.active === false || !m.contract_expiry) return; var d = new Date(m.contract_expiry); if(isNaN(d) || d < now || d > limit) return; items.push({ d:d, k:'t' }); });
+    items.sort(function(a, b){ return a.d - b.d; });
+    var nc = items.filter(function(i){ return i.k === 'c'; }).length, nt = items.length - nc;
+    var line = items.length ? plural(nc, 'client') + ' and ' + plural(nt, 'team contract') + '. First on ' + items[0].d.toLocaleDateString('en-GB', { day:'numeric', month:'short' }) + '.' : 'Nothing renews in the next 60 days.';
+    if(!team) line += ' Team contracts could not be read.';
+    setCard('shh-con', '<span class="shh-big">' + items.length + '</span><span class="shh-unit">' + (items.length === 1 ? 'renewal' : 'renewals') + ' in 60 days</span>', '', esc(line));
+  }
+
+  function paintToday(events, close, pend, clients){
+    var rows = [], names = nameMap(clients), prev = prevYm();
+    if(events && events.length){
+      events.forEach(function(e){
+        var t = String(e.time || '').slice(0, 5);
+        rows.push('<button type="button" class="shh-trow" data-shh-go="calendar"><span class="shh-ico shh-c-blue">' + svg('cal') + '</span><span class="shh-m"><b class="shh-num">' + esc((t ? t + ' ' : '') + (e.title || 'Event')) + '</b><span>' + esc(names[e.client_id] || (e.type ? e.type.charAt(0).toUpperCase() + e.type.slice(1) : 'On the calendar')) + '</span></span><span class="shh-go">' + svg('chevR') + '</span></button>');
+      });
+    }
+    if(close === null){
+      rows.push('<div class="shh-trow"><span class="shh-ico shh-c-grey">' + svg('sign') + '</span><span class="shh-m"><b>Month close not read</b><span>Open Delivery to see ' + esc(monthName(prev)) + '.</span></span></div>');
+    } else {
+      var toSign = close.filter(function(r){ return r.smm_closed_at && !r.coo_signed_at; }).length;
+      if(toSign){
+        var by = (typeof owWorkDayAfter === 'function') ? owWorkDayAfter(prev, 3) : '';
+        rows.push('<button type="button" class="shh-trow" data-shh-go="close"><span class="shh-ico shh-c-amber">' + svg('sign') + '</span><span class="shh-m"><b class="shh-num">' + esc(plural(toSign, 'month close') + ' to sign') + '</b><span>' + esc(monthName(prev) + (by ? ', sign by ' + dayShort(by + 'T12:00:00Z') : '')) + '</span></span><span class="shh-go">' + svg('chevR') + '</span></button>');
+      }
+    }
+    if(pend === null){
+      rows.push('<div class="shh-trow"><span class="shh-ico shh-c-grey">' + svg('pen') + '</span><span class="shh-m"><b>Decisions not read</b><span>Try again in a minute.</span></span></div>');
+    } else if(pend.length){
+      var first = String(pend[0].item || ''); if(first.length > 80) first = first.slice(0, 78) + '…';
+      rows.push('<button type="button" class="shh-trow" data-shh-go="console"><span class="shh-ico shh-c-green">' + svg('pen') + '</span><span class="shh-m"><b class="shh-num">' + esc(plural(pend.length, 'decision') + ' for you') + '</b><span>' + esc(first) + '</span></span><span class="shh-go">' + svg('chevR') + '</span></button>');
+    }
+    $('shh-today-rows').innerHTML = rows.length ? rows.join('') : '<div class="shh-empty"><span class="shh-ico shh-c-grey">' + svg('cal') + '</span><div><b>Nothing booked for today</b><span>No meeting, month close or decision is waiting for you.</span></div></div>';
+  }
+
+  async function load(){
+    var tok = ++SH.tok, A = authed(), T = today(), prev = prevYm();
+    paintHead();
+    ['shh-money', 'shh-inv', 'shh-con'].forEach(function(id){ setCard(id, LOADING, '', ''); var b = $(id).querySelector('.shh-bar'); if(b) b.remove(); });
+    $('shh-check-v').innerHTML = LOADING; $('shh-check-v').style.display = ''; $('shh-check-rows').innerHTML = ''; $('shh-check-more').textContent = ''; $('shh-check-n').textContent = '';
+    $('shh-today-rows').innerHTML = '<div class="shh-trow">' + LOADING + '</div>';
+    /* invoices, chases, clients and the month close are hidden from a signed out visitor: without a sign in they read as not read, never as zero. */
+    var none = Promise.resolve(null);
+    var r = await Promise.all([
+      A ? rd('invoices', '?select=*&order=month.desc,created_at.desc') : none,
+      A ? rd('invoice_chases', '?select=*&order=at.asc') : none,
+      rd('video_projects', '?select=id,title,client_id,updated_at&is_archived=eq.false&current_stage=eq.coo_check&order=updated_at.asc'),
+      rd('video_stage_history', '?exited_at=is.null&stage=eq.coo_check&select=video_project_id,stage,entered_at'),
+      A ? rd('clients', '?select=id,name,renewal,package&order=name') : none,
+      rd('team_members', '?select=id,name,role,contract_expiry,active'),
+      rd('events', '?date=eq.' + T + '&select=id,title,time,type,client_id&order=time.asc'),
+      A ? rd('bb_month_close', '?period=eq.' + prev + '-01&select=client_id,smm_closed_at,coo_signed_at') : none,
+      rd('bb_pending', '?status=eq.open&for_name=eq.SHIARA&select=id,item,asked_on&order=asked_on.asc,id.asc')
+    ]);
+    if(tok !== SH.tok) return;
+    var steps = [
+      function(){ paintMoney(r[0], r[1]); }, function(){ paintInvoices(r[0]); }, function(){ paintCheck(r[2], r[3], r[4]); },
+      function(){ paintContracts(r[4], r[5]); }, function(){ paintToday(r[6], r[7], r[8], r[4]); }
+    ];
+    steps.forEach(function(f){ try{ f(); }catch(e){ console.error('shiara home', e); } });
+  }
+
+  /* ── the From card, the Stuck strip and Send a task come from @@BBCC_THULAIB_VIEW@@ ── */
+  function syncHo(){
+    var ready = !!(window.BBHO && window.BBHO.ready && isSh());
+    var s = $('shh-send'); if(s) s.hidden = !ready;
+    document.querySelectorAll('#page-shhome .shh-needs-ho').forEach(function(b){ b.hidden = !ready; });
+    if(!isSh()) return;
+    var m = $('shh-ho-mount');
+    ['ho-card-mount', 'ho-stuck-card'].forEach(function(id){ var el = $(id); if(el && m && el.parentNode !== m) m.appendChild(el); });
+  }
+  function putHoBack(){
+    var m = $('shh-ho-mount'), a = $('attention-panel');
+    if(!m || !a || !a.parentNode) return;
+    ['ho-card-mount', 'ho-stuck-card'].forEach(function(id){ var el = $(id); if(el && el.parentNode === m) a.parentNode.insertBefore(el, a); });
+  }
+  function startWatch(){
+    clearInterval(SH.watch); SH.watchN = 0;
+    SH.watch = setInterval(function(){ SH.watchN++; syncHo(); if(!isSh() || SH.watchN > 120) clearInterval(SH.watch); }, 700);
+  }
+
+  /* ── on and off with the role ── */
+  function enter(){
+    applyNav();
+    $('shh-tabbar').hidden = false;
+    var cur = (typeof CURRENT_PAGE !== 'undefined') ? CURRENT_PAGE : 'dashboard';
+    if(cur === 'dashboard' || cur === 'shhome' || !cur) showPage('shhome'); else lightNav(cur);
+    startWatch(); syncHo();
+  }
+  function leave(){
+    restoreNav();
+    $('shh-tabbar').hidden = true;
+    clearInterval(SH.watch); putHoBack(); syncHo();
+    var pg = $('page-shhome');
+    if(pg && pg.style.display !== 'none'){
+      pg.style.display = 'none';
+      var d = $('page-dashboard'); if(d) d.style.display = 'block';
+      try{ CURRENT_PAGE = 'dashboard'; }catch(e){}
+      window._bbCurrentPage = 'dashboard';
+      document.documentElement.setAttribute('data-page', 'dashboard');
+      var nd = $('nav-dashboard'); if(nd) nd.classList.add('active');
+      var tt = $('topbar-title'); if(tt) tt.textContent = 'Dashboard';
+    }
+  }
+  function sync(){
+    var on = isSh();
+    if(on && !SH.on){ SH.on = true; enter(); }
+    else if(!on && SH.on){ SH.on = false; leave(); }
+  }
+
+  /* ── showPage, wrapped. The original runs every time; only her page name and her lit item differ. ── */
+  function wrap(){
+    if(typeof showPage !== 'function' || showPage.__shiara) return;
+    var orig = showPage;
+    var w = function(page){
+      var args = [].slice.call(arguments);
+      if(isSh() && page === 'dashboard' && !SH.dashOK) args[0] = page = 'shhome';
+      SH.dashOK = false;
+      if(page !== 'shhome') SH.apps = false;
+      var out = orig.apply(this, args);
+      if(isSh()){
+        if(page === 'shhome'){ var tt = $('topbar-title'); if(tt) tt.textContent = 'Home'; load(); }
+        lightNav(page);
+      }
+      return out;
+    };
+    w.__pageAttr = orig.__pageAttr; w.__shiara = true;
+    showPage = w;
+  }
+
+  function wire(){
+    var pg = $('page-shhome'), dash = $('page-dashboard');
+    if(pg && dash && dash.parentNode && pg.parentNode !== dash.parentNode) dash.parentNode.appendChild(pg);
+    paintIcons(pg); paintIcons($('shh-tabbar'));
+    wrap();
+    $('shh-money').addEventListener('click', goMoney);
+    $('shh-inv').addEventListener('click', goInvoiceRun);
+    $('shh-con').addEventListener('click', function(){ showPage('clients'); });
+    $('shh-check-open').addEventListener('click', function(){ showPage('approvals'); });
+    $('shh-today-open').addEventListener('click', function(){ showPage('myday'); });
+    $('shh-send').addEventListener('click', function(){ sendTask({}); });
+    $('shh-app-booster').addEventListener('click', function(){ if(typeof openAskBB === 'function') openAskBB(); });
+    $('shh-check-rows').addEventListener('click', function(e){
+      var v = e.target.closest('[data-shh-video]'); if(v){ openVideo(Number(v.getAttribute('data-shh-video'))); return; }
+      var t = e.target.closest('[data-shh-task]'); if(t){ var cid = Number(t.getAttribute('data-shh-task')); sendTask(isFinite(cid) && cid ? { client_id:cid, title:t.getAttribute('data-shh-title') } : {}); }
+    });
+    $('shh-today-rows').addEventListener('click', function(e){
+      var b = e.target.closest('[data-shh-go]'); if(!b) return;
+      var g = b.getAttribute('data-shh-go');
+      if(g === 'close') goMonthClose(); else if(g === 'console') goConsole(); else showPage(g);
+    });
+    $('shh-tabbar').addEventListener('click', function(e){
+      var b = e.target.closest('[data-shh-tab]'); if(!b) return;
+      var t = b.getAttribute('data-shh-tab');
+      if(t === 'home'){ SH.apps = false; showPage('shhome'); }
+      else if(t === 'money') goMoney();
+      else if(t === 'check') showPage('approvals');
+      else if(t === 'clients') showPage('clients');
+      else if(t === 'more' && typeof toggleNav === 'function'){ setMore(true); toggleNav(); }
+    });
+    new MutationObserver(sync).observe(document.body, { attributes:true, attributeFilter:['data-role'] });
+    sync();
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+
+  /* pure checks for the console (no reads, no writes) */
+  window.BBSH = { state:function(){ return SH; }, reload:load, selfcheck:function(){
+    var R = [], ok = function(n, p, d){ R.push({ name:'Shiara home: ' + n, pass:!!p, detail:d || '' }); };
+    ok('LKR 1,234,567 reads LKR 1.2M', lkrShort(1234567) === 'LKR 1.2M', lkrShort(1234567));
+    ok('LKR 45,000 reads LKR 45K', lkrShort(45000) === 'LKR 45K', lkrShort(45000));
+    ok('the month before January is December', prevYm('2027-01') === '2026-12', prevYm('2027-01'));
+    var nav = navEl(), sh = isSh(), mine = !!$('nav-shhome');
+    ok('her menu shows only for her', sh === mine, 'role ' + document.body.getAttribute('data-role') + ', Home item ' + (mine ? 'present' : 'absent'));
+    ok('showPage is wrapped once', typeof showPage === 'function' && showPage.__shiara === true, '');
+    return R;
+  } };
+})();
+</script>
+<!-- @@BBCC_SHIARA_END@@ -->
+
 <!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-SMM-1 (6 Nov 2026, Thulaib approved bb_pending 1460 to 1465). SMM and Heads added after Video.
      SMM-SCORED (6 Nov 2026): an SMM with a Post on date due in the week is scored by the engine on TS_ADAPTER.smmJobs, as Graphics is.
      Was: TEAMSCORE-BUILD-4 (6 Nov 2026, Thulaib approved bb_pending 1440).
