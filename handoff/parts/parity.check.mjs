@@ -33,7 +33,7 @@ for (const [name, file] of targets) {
   const blk = a > -1 && b > a ? t.slice(a, b) : '';
   ok(`${name} card is byte for byte`, blk.includes(card));
   ok(`${name} styles are byte for byte`, blk.includes(css));
-  ok(`${name} has its own glue`, /\/\/ glue: /.test(blk));
+  ok(`${name} has its own glue`, /(\/\/|\/\*) glue: /.test(blk));
 }
 console.log(`RESULT: ${pass} of ${total} PASS`);
 process.exit(pass === total ? 0 : 1);
