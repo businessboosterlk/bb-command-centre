@@ -3,7 +3,7 @@
 --   2. the nudge's once a day check reads the queue time on the Colombo date, not the server's UTC date.
 --   3. the old alert's comment is left as it was (it had none), so the undo puts back exactly what is live.
 -- The old alert body was checked line for line against the live function: one line added, nothing else changed.
--- NOT APPLIED. Rehearse and apply only after H1, from the parent chat, on Thulaib's yes. Undo: H2-alerts-undo.sql.
+-- APPLIED 8 Nov 2026 (migration thulaib_cc_handoff_h2, on Thulaib's typed yes). Rehearse and apply only after H1, from the parent chat, on Thulaib's yes. Undo: H2-alerts-undo.sql.
 -- Migration: H2, handoff phone alert, skip line in old task alert, and 17:00 nudge
 -- Assumes H1 columns (sent_to_id, sent_by, seen_at, etc.) already exist on public.tasks.
 
