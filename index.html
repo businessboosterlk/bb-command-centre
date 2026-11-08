@@ -2864,6 +2864,1634 @@ function weekDays(day) {
 })();
 </script>
 <!-- @@BBCC_NIRVANA_END@@ -->
+<!-- @@BBCC_THULAIB_VIEW@@ BEGIN
+     SEND A TASK, SEE IT DONE (THULAIB CC HANDOFF H3 to H5, 8 Nov 2026). Owners only (body data-role th or sh).
+     A Send a task button in the topbar, a From card and a Stuck strip above #attention-panel. Writes only through the
+     bb_handoff_* functions (H1). The parts are pasted from handoff/parts by build-block.py; change the part, then run it. -->
+<style>
+/* the sheet: the page's .modal-overlay, kept clear of the island and the home bar */
+#ho-sheet{padding:max(12px,var(--sat)) 12px max(12px,var(--sab))}
+#ho-sheet .modal.ho-sheet{max-width:560px;display:flex;flex-direction:column;max-height:calc(100dvh - var(--sat) - var(--sab) - 24px)}
+#ho-sheet .modal-body{max-height:none;flex:1 1 auto;min-height:0}
+#ho-sheet .modal-close{width:44px;height:44px;font-size:20px;touch-action:manipulation}
+.ho-in{font-size:16px!important;min-height:44px;width:100%;box-sizing:border-box;touch-action:manipulation}
+textarea.ho-in{min-height:88px;line-height:1.45}
+.ho-field .form-label{font-size:12.5px}
+.ho-people{display:flex;flex-wrap:wrap;gap:8px}
+.ho-chip{min-height:44px;padding:6px 16px;border-radius:22px;border:1px solid var(--border-strong);background:var(--surface-2);color:var(--text);font:inherit;font-size:15px;font-weight:600;cursor:pointer;touch-action:manipulation;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
+.ho-chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.ho-chip-note{font-size:11px;font-weight:500;opacity:.8;margin-top:1px}
+.ho-read{font-size:13.5px;color:var(--text-2);margin:0;line-height:1.45}
+.ho-read:empty{display:none}
+.ho-err{font-size:13.5px;color:var(--red);margin:0;line-height:1.45}
+.ho-err[hidden]{display:none}
+/* one action bar: primary full width, secondary in equal pairs, quiet cancel last */
+.modal-foot.ho-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px;justify-content:stretch}
+.ho-bar>*{min-height:44px;width:100%;box-sizing:border-box;justify-content:center;align-items:center;touch-action:manipulation;font-size:15px;text-decoration:none;white-space:normal;text-align:center}
+.ho-bar .ho-main,.ho-bar .ho-wide{grid-column:1/-1}
+.ho-bar a.ho-wa:last-of-type:nth-of-type(odd){grid-column:1/-1}
+.ho-bar .ho-quiet{background:none;border:0;color:var(--text-3);font-weight:600}
+.ho-bar button:disabled{opacity:.45;cursor:default}
+.ho-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ho-pair>button,.ho-card .ho-wide{min-height:44px;width:100%;justify-content:center;touch-action:manipulation;font-size:15px}
+.ho-pair>button:disabled,.ho-card .ho-wide:disabled{opacity:.45;cursor:default}
+/* the topbar button */
+.ho-send{min-height:36px;padding:0 14px;touch-action:manipulation}
+.ho-send svg{width:16px;height:16px;stroke:currentColor;stroke-width:2.4;fill:none;stroke-linecap:round}
+@media (max-width:600px){.ho-send{min-width:40px;min-height:40px;padding:0;justify-content:center}.ho-send span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}}
+/* the From card and the Stuck strip */
+.ho-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.ho-card[hidden],#ho-card-mount[hidden]{display:none}
+.ho-card-title{font-size:17px;font-weight:600;color:var(--text);margin:0;letter-spacing:-.01em;line-height:1.3}
+.ho-card-sub{font-size:13px;color:var(--text-3);margin:2px 0 10px}
+.ho-task,.ho-stuck{border-top:1px solid var(--border);padding:12px 0;display:flex;flex-direction:column;gap:8px}
+.ho-task:last-child,.ho-stuck:last-child{padding-bottom:0}
+.ho-t-title,.ho-st-title{font-size:15px;font-weight:600;color:var(--text);line-height:1.4}
+.ho-t-meta,.ho-st-who{font-size:13px;color:var(--text-2);line-height:1.45}
+.ho-late{color:var(--red);font-weight:600}
+.ho-t-note{font-size:13.5px;color:var(--text-2);line-height:1.5}
+.ho-t-stuck,.ho-st-line{background:var(--amber-soft);border-radius:8px;padding:8px 10px;font-size:13.5px;color:var(--text);line-height:1.45}
+.ho-t-stuck p{margin:0}
+.ho-t-reply,.ho-st-reply{border-left:3px solid var(--accent);padding:4px 10px;font-size:13.5px;color:var(--text);line-height:1.45}
+.ho-done .ho-t-title{color:var(--text-3);text-decoration:line-through}
+.ho-t-form{flex-direction:column;gap:8px}
+@media (min-width:900px){.ho-card .ho-pair,.ho-card .ho-wide,.ho-t-form,.ho-st-in{max-width:460px}}
+</style>
+<script>
+/* H3 sentence reader. Written by BB Crew (mould handoff-js-part, brief items-handoff-h3.jsonl, 8 Nov 2026), judged and
+   fixed by Claude: upper case day suffixes, short month names, hyphens read as spaces, client names masked before the
+   day words, "can you" and "please" off the title. Pass mark: handoff/parts/h3-reader.test.mjs, 30 sentences. */
+(function () {
+  'use strict';
+
+  // ── helpers ──────────────────────────────────────────────────────────
+  const DAY_MS = 86400000;
+
+  /** Normalise a string: uppercase, collapse whitespace, trim */
+  function norm(s) {
+    return s.toUpperCase().replace(/\s+/g, ' ').trim();
+  }
+
+  /** Remove punctuation and hyphens for client matching */
+  function stripPunct(s) {
+    return s.replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim().toUpperCase();
+  }
+
+  /** Parse a date string like '2026-11-09' into a Date at noon UTC */
+  function parseDate(str) {
+    const parts = str.split('-');
+    return new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2], 12, 0, 0));
+  }
+
+  /** Format a Date as 'YYYY-MM-DD' */
+  function fmtDate(d) {
+    const y = d.getUTCFullYear();
+    const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  /** Add N days to a Date, return new Date */
+  function addDays(d, n) {
+    const nd = new Date(d);
+    nd.setUTCDate(nd.getUTCDate() + n);
+    return nd;
+  }
+
+  /** Day-of-week 0=Mon … 6=Sun */
+  function dow(d) {
+    return (d.getUTCDay() + 6) % 7;
+  }
+
+  /** Next occurrence of a weekday (0=Mon … 6=Sun) counting today */
+  function nextWeekday(from, targetDow) {
+    const cur = dow(from);
+    const diff = (targetDow - cur + 7) % 7;
+    return addDays(from, diff);
+  }
+
+  /** Monday of the week containing `d` (Mon=0) */
+  function mondayOf(d) {
+    return addDays(d, -dow(d));
+  }
+
+  const WORD_NUMS = {
+    'ONE': 1, 'TWO': 2, 'THREE': 3, 'FOUR': 4, 'FIVE': 5,
+    'SIX': 6, 'SEVEN': 7, 'EIGHT': 8, 'NINE': 9, 'TEN': 10
+  };
+
+  const MONTHS = {
+    'JANUARY': 1, 'FEBRUARY': 2, 'MARCH': 3, 'APRIL': 4,
+    'MAY': 5, 'JUNE': 6, 'JULY': 7, 'AUGUST': 8,
+    'SEPTEMBER': 9, 'OCTOBER': 10, 'NOVEMBER': 11, 'DECEMBER': 12
+  };
+  const MONTH_ABBRS = {
+    'JAN': 1, 'FEB': 2, 'MAR': 3, 'APR': 4, 'MAY': 5, 'JUN': 6,
+    'JUL': 7, 'AUG': 8, 'SEP': 9, 'OCT': 10, 'NOV': 11, 'DEC': 12
+  };
+
+  const WEEKDAYS = {
+    'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
+    'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6,
+    'MON': 0, 'TUE': 1, 'TUES': 1, 'WED': 2, 'THU': 3, 'THUR': 3, 'THURS': 3,
+    'FRI': 4, 'SAT': 5, 'SUN': 6
+  };
+
+  // ── people extraction ────────────────────────────────────────────────
+  function extractPeople(text, peopleList) {
+    const found = [];
+    const seen = new Set();
+    // Build a regex that matches any person name as a whole word, case-insensitive.
+    // We need to process in order of appearance, so we scan the text word by word.
+    const words = text.split(/\b/); // split on word boundaries, keeps punctuation
+    const upperText = text.toUpperCase();
+
+    // We'll walk through the text and try to match each person name at current position.
+    let i = 0;
+    while (i < upperText.length) {
+      let matched = null;
+      let matchedLen = 0;
+      for (const p of peopleList) {
+        const name = p.name.toUpperCase();
+        // Must match as a whole word. Check that the substring matches and is bounded by non-word chars or string ends.
+        if (upperText.startsWith(name, i)) {
+          const afterIdx = i + name.length;
+          const beforeOk = i === 0 || /\W/.test(upperText[i - 1]);
+          const afterOk = afterIdx === upperText.length || /\W/.test(upperText[afterIdx]);
+          if (beforeOk && afterOk) {
+            // Prefer longest match
+            if (name.length > matchedLen) {
+              matched = p;
+              matchedLen = name.length;
+            }
+          }
+        }
+      }
+      if (matched) {
+        if (!seen.has(matched.id)) {
+          found.push(matched.id);
+          seen.add(matched.id);
+        }
+        i += matchedLen;
+      } else {
+        i++;
+      }
+    }
+    return found;
+  }
+
+  // ── day resolution ───────────────────────────────────────────────────
+  function resolveDay(text, todayStr) {
+    const today = parseDate(todayStr);
+    const upper = text.toUpperCase();
+    const words = upper.split(/[\s,;:!?.]+/).filter(Boolean);
+
+    // Immediate keywords
+    if (/\b(TODAY|TONIGHT|END OF DAY|EOD|BY CLOSE)\b/.test(upper)) {
+      return todayStr;
+    }
+    if (/\b(TOMORROW|TMRW)\b/.test(upper)) {
+      return fmtDate(addDays(today, 1));
+    }
+
+    // "next <weekday>"
+    const nextWdMatch = upper.match(/\bNEXT\s+(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|MON|TUE|TUES|WED|THU|THUR|THURS|FRI|SAT|SUN)\b/);
+    if (nextWdMatch) {
+      const targetDow = WEEKDAYS[nextWdMatch[1]];
+      const mon = mondayOf(today);
+      const nextWeekMon = addDays(mon, 7);
+      const target = addDays(nextWeekMon, targetDow);
+      return fmtDate(target);
+    }
+
+    // Plain weekday (full or abbr): "Friday", "on Wed", "by thursday"
+    const wdMatch = upper.match(/\b(MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|MON|TUE|TUES|WED|THU|THUR|THURS|FRI|SAT|SUN)\b/);
+    if (wdMatch) {
+      const targetDow = WEEKDAYS[wdMatch[1]];
+      return fmtDate(nextWeekday(today, targetDow));
+    }
+
+    // "this week", "end of week", "by the weekend" → Friday of this week
+    if (/\b(THIS WEEK|END OF WEEK|BY THE WEEKEND)\b/.test(upper)) {
+      const fri = nextWeekday(today, 4); // 4 = Friday
+      return fmtDate(fri);
+    }
+
+    // "next week" → Monday of next week
+    if (/\bNEXT WEEK\b/.test(upper)) {
+      const mon = mondayOf(today);
+      return fmtDate(addDays(mon, 7));
+    }
+
+    // "in N days" / "in a week"
+    const inDaysMatch = upper.match(/\bIN\s+(A|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|\d+)\s+(DAY|DAYS)\b/);
+    if (inDaysMatch) {
+      let n;
+      if (inDaysMatch[1] === 'A') n = 1;
+      else if (WORD_NUMS[inDaysMatch[1]]) n = WORD_NUMS[inDaysMatch[1]];
+      else n = parseInt(inDaysMatch[1], 10);
+      return fmtDate(addDays(today, n));
+    }
+    if (/\bIN A WEEK\b/.test(upper)) {
+      return fmtDate(addDays(today, 7));
+    }
+
+    // Date patterns: "12 Nov", "12th November", "Nov 12", "November 12th", "12/11", "12/11/2026"
+    const datePatterns = [
+      // 12 Nov / 12th November
+      /\b(\d{1,2})(?:ST|ND|RD|TH)?\s+(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\b/,
+      // Nov 12 / November 12th
+      /\b(JANUARY|FEBRUARY|MARCH|APRIL|MAY|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)\s+(\d{1,2})(?:ST|ND|RD|TH)?\b/,
+      // 12/11 or 12/11/2026
+      /\b(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?\b/
+    ];
+
+    for (const re of datePatterns) {
+      const m = upper.match(re);
+      if (m) {
+        let day, month, year;
+        const monthOf = w => MONTHS[w] || MONTH_ABBRS[w];
+        if (m[1] && m[2] && monthOf(m[2])) {
+          // day month
+          day = parseInt(m[1], 10);
+          month = MONTHS[m[2]] || MONTH_ABBRS[m[2]];
+          year = today.getUTCFullYear();
+        } else if (monthOf(m[1]) && m[2]) {
+          // month day
+          month = MONTHS[m[1]] || MONTH_ABBRS[m[1]];
+          day = parseInt(m[2], 10);
+          year = today.getUTCFullYear();
+        } else if (m[1] && m[2] && !m[3]) {
+          // day/month
+          day = parseInt(m[1], 10);
+          month = parseInt(m[2], 10);
+          year = today.getUTCFullYear();
+        } else if (m[1] && m[2] && m[3]) {
+          // day/month/year
+          day = parseInt(m[1], 10);
+          month = parseInt(m[2], 10);
+          year = parseInt(m[3], 10);
+        }
+        if (day && month) {
+          const candidate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+          if (candidate < today) {
+            candidate.setUTCFullYear(candidate.getUTCFullYear() + 1);
+          }
+          return fmtDate(candidate);
+        }
+      }
+    }
+
+    // "the 15th" / "on the 3rd"
+    const theDayMatch = upper.match(/\bTHE\s+(\d{1,2})(?:ST|ND|RD|TH)?\b/);
+    if (theDayMatch) {
+      const day = parseInt(theDayMatch[1], 10);
+      const thisMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), day, 12, 0, 0));
+      if (thisMonth >= today) return fmtDate(thisMonth);
+      const nextMonth = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() + 1, day, 12, 0, 0));
+      return fmtDate(nextMonth);
+    }
+
+    return '';
+  }
+
+  // ── client extraction ────────────────────────────────────────────────
+  function extractClient(text, clients, peopleNames) {
+    const upperText = text.toUpperCase();
+    let bestMatch = null;
+    let bestLen = 0;
+
+    for (const c of clients) {
+      const cName = c.name.toUpperCase();
+      const cStripped = stripPunct(c.name);
+      // 1. Full name match ignoring punctuation/hyphens
+      const strippedText = stripPunct(text);
+      if ((' ' + strippedText + ' ').includes(' ' + cStripped + ' ')) {
+        if (cName.length > bestLen) {
+          bestMatch = c.id;
+          bestLen = cName.length;
+        }
+      }
+
+      // 2. Initials for names with >=3 words
+      const cWords = cName.split(/\s+/);
+      if (cWords.length >= 3) {
+        const initials = cWords.map(w => w[0]).join('');
+        // Match as a whole word in the original text (case-insensitive)
+        const initRegex = new RegExp('\\b' + initials + '\\b', 'i');
+        if (initRegex.test(text) && initials.length > bestLen) {
+          bestMatch = c.id;
+          bestLen = initials.length;
+        }
+      }
+
+      // 3. First word match (>=4 letters, unique among clients)
+      const firstWord = cWords[0];
+      if (firstWord.length >= 4) {
+        // Check uniqueness
+        const sameFirst = clients.filter(cl => cl.name.toUpperCase().split(/\s+/)[0] === firstWord);
+        if (sameFirst.length === 1) {
+          // Check it appears as a whole word and is not a person name
+          const wordRegex = new RegExp('\\b' + firstWord + '\\b', 'i');
+          if (wordRegex.test(text)) {
+            // Ensure it's not a person name
+            const isPerson = peopleNames.some(pn => pn.toUpperCase() === firstWord);
+            if (!isPerson && firstWord.length > bestLen) {
+              bestMatch = c.id;
+              bestLen = firstWord.length;
+            }
+          }
+        }
+      }
+    }
+
+    return bestMatch;
+  }
+
+  // ── title extraction ─────────────────────────────────────────────────
+  function extractTitle(text, peopleList, dueStr, clientId, clients) {
+    let t = text;
+
+    // Remove leading names and joining words
+    const peopleNames = peopleList.map(p => p.name);
+    // Build a regex that matches a sequence of: person name, optional possessive "'s", and joining words (and, &, comma, colon, "can you", "please")
+    const namePatterns = peopleNames.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+    if (namePatterns) {
+      const leadRegex = new RegExp(
+        '^\\s*((?:' + namePatterns + ')(?:\\s*\'s)?\\s*(?:,|and|&|\\s+can\\s+you\\s*|\\s+please\\s*|:\\s*|\\s+)*)+',
+        'i'
+      );
+      t = t.replace(leadRegex, '');
+    }
+
+    // Remove day words with their little words
+    const dayPhrases = [
+      'today', 'tonight', 'end of day', 'eod', 'by close',
+      'tomorrow', 'tmrw',
+      'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+      'mon', 'tue', 'tues', 'wed', 'thu', 'thur', 'thurs', 'fri', 'sat', 'sun',
+      'next\\s+\\w+', 'this week', 'end of week', 'by the weekend', 'next week',
+      'in\\s+(a|one|two|three|four|five|six|seven|eight|nine|ten|\\d+)\\s+(day|days)',
+      'in a week',
+      '\\d{1,2}(?:st|nd|rd|th)?\\s+(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)',
+      '(?:january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+\\d{1,2}(?:st|nd|rd|th)?',
+      '\\d{1,2}/\\d{1,2}(?:/\\d{4})?',
+      'the\\s+\\d{1,2}(?:st|nd|rd|th)?'
+    ];
+    const dayRegex = new RegExp(
+      '\\b(?:by|on|before|for|until|due)\\s+(' + dayPhrases.join('|') + ')\\b|\\b(' + dayPhrases.join('|') + ')\\b',
+      'gi'
+    );
+    t = t.replace(dayRegex, '');
+
+    // Clean up spaces and punctuation
+    t = t.replace(/\s+/g, ' ').trim();
+    // Remove leading/trailing commas, colons, semicolons
+    t = t.replace(/^[,\s:;]+/, '').replace(/[,\s:;]+$/, '');
+    // Capitalise first letter
+    if (t.length > 0) {
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+    }
+    // Remove trailing full stop
+    t = t.replace(/\.$/, '');
+
+    if (!t) {
+      return text.trim();
+    }
+    return t;
+  }
+
+  // ── main function ────────────────────────────────────────────────────
+  /* Claude fix: a client name is never read as a day ("Sun Zapper" is not Sunday), so every client name is masked
+     before the day words are read or taken out of the title, and put back afterwards. */
+  function maskClients(text, clients) {
+    const kept = [];
+    let t = String(text || '');
+    const names = clients.map(c => c.name).sort((a, b) => b.length - a.length);
+    for (const n of names) {
+      const words = n.split(/[^A-Za-z0-9]+/).filter(Boolean).map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      if (!words.length) continue;
+      const re = new RegExp('\\b' + words.join('[\\s\\-.]*') + '\\b', 'gi');
+      t = t.replace(re, m => { kept.push(m); return '\u0001' + (kept.length - 1) + '\u0001'; });
+    }
+    return { t, put: x => x.replace(/\u0001(\d+)\u0001/g, (_, i) => kept[+i]) };
+  }
+
+  function hoRead(text, ctx) {
+    const peopleList = ctx.people || [];
+    const clients = ctx.clients || [];
+    const today = ctx.today;
+    text = String(text || '');
+
+    const peopleIds = extractPeople(text, peopleList);
+    const masked = maskClients(text, clients);
+    const due = resolveDay(masked.t, today);
+    const peopleNames = peopleList.filter(p => peopleIds.includes(p.id)).map(p => p.name);
+    const clientId = extractClient(text, clients, peopleNames);
+    let title = masked.put(extractTitle(masked.t, peopleList, due, clientId, clients));
+    /* Claude fix: "can you" and "please" after the names come off the front too */
+    title = title.replace(/^(?:can you|could you|please|pls)\s+/i, '').replace(/^(?:please)\s+/i, '');
+    /* Claude fix (round 2): a "please" at the end comes off too */
+    title = title.replace(/[\s,]+(?:please|pls)[\s.!]*$/i, '');
+    if (title) title = title.charAt(0).toUpperCase() + title.slice(1); else title = text.trim();
+
+    return {
+      people: peopleIds,
+      due: due,
+      client: clientId,
+      title: title
+    };
+  }
+
+  // Assign to global
+  (typeof window !== 'undefined' ? window : globalThis).hoRead = hoRead;
+})();
+
+/* H4 Send a task sheet. Crew part (handoff-js-part, DeepSeek V4 Pro) with Claude's fixes: the WhatsApp label,
+   the reader read fresh at Send, labels beside their controls, the client list filled on open. */
+(function () {
+  'use strict';
+
+  const DEBOUNCE_MS = 250;
+  const MAX_TITLE_LEN = 300;
+  const MAX_NOTE_LEN = 2000;
+  const MAX_REPLY_LEN = 1000;
+
+  let deps = null;
+  let root = null;
+  let overlay = null;
+  let closeBtn = null;
+  let textarea = null;
+  let peopleDiv = null;
+  let dueInput = null;
+  let clientSelect = null;
+  let noteInput = null;
+  let readPara = null;
+  let errPara = null;
+  let barDiv = null;
+  let bodyDiv = null;
+  let titleEl = null;
+
+  let picked = new Set();
+  let handChanged = { people: false, due: false, client: false };
+  let debounceTimer = null;
+  let lastReadResult = null;
+
+  function capitalise(name) {
+    if (!name) return '';
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  }
+
+  function formatDate(ymd) {
+    if (!ymd) return '';
+    const d = new Date(ymd + 'T00:00:00Z');
+    if (isNaN(d)) return '';
+    /* Claude fix: Chrome's en-GB puts a comma after the weekday; the house date is 'Fri 13 Nov' */
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()] + ' ' + d.getUTCDate() + ' '
+      + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()];
+  }
+
+  function buildChips() {
+    peopleDiv.innerHTML = '';
+    const people = deps.people();
+    for (const p of people) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ho-chip';
+      btn.setAttribute('aria-pressed', picked.has(p.id) ? 'true' : 'false');
+      btn.textContent = capitalise(p.name);
+      btn.addEventListener('click', () => {
+        if (picked.has(p.id)) {
+          picked.delete(p.id);
+        } else {
+          picked.add(p.id);
+        }
+        handChanged.people = true;
+        refreshChipsAndBar();
+      });
+      peopleDiv.appendChild(btn);
+
+      if (p.phones === 0) {
+        const note = document.createElement('span');
+        note.className = 'ho-chip-note';
+        note.textContent = 'No phone alerts';
+        btn.appendChild(note);
+      }
+    }
+  }
+
+  function refreshChipsAndBar() {
+    const people = deps.people();
+    const buttons = peopleDiv.querySelectorAll('.ho-chip');
+    buttons.forEach((btn, idx) => {
+      const p = people[idx];
+      btn.setAttribute('aria-pressed', picked.has(p.id) ? 'true' : 'false');
+    });
+    renderBar();
+  }
+
+  function anyPickedHasNoPhone() {
+    const people = deps.people();
+    for (const p of people) {
+      if (picked.has(p.id) && p.phones === 0) return true;
+    }
+    return false;
+  }
+
+  function pickedCount() {
+    return picked.size;
+  }
+
+  function pickedNames() {
+    const people = deps.people();
+    const names = [];
+    for (const p of people) {
+      if (picked.has(p.id)) names.push(capitalise(p.name));
+    }
+    return names;
+  }
+
+  function pickedPeople() {
+    const people = deps.people();
+    return people.filter(p => picked.has(p.id));
+  }
+
+  function renderBar() {
+    barDiv.innerHTML = '';
+    const count = pickedCount();
+    const hasNoPhone = anyPickedHasNoPhone();
+    const names = pickedNames();
+
+    let mainLabel = 'Pick who it is for';
+    let mainDisabled = true;
+    if (count === 1) {
+      mainLabel = 'Send to ' + names[0];
+      mainDisabled = false;
+    } else if (count > 1) {
+      mainLabel = 'Send as ' + count + ' tasks';
+      mainDisabled = false;
+    }
+    if (count > 0 && hasNoPhone) mainLabel = 'Send, then WhatsApp them';
+
+    const mainBtn = document.createElement('button');
+    mainBtn.className = 'btn-primary ho-main';
+    mainBtn.textContent = mainLabel;
+    mainBtn.disabled = mainDisabled;
+    mainBtn.addEventListener('click', () => doSend(true));
+    barDiv.appendChild(mainBtn);
+
+    if (hasNoPhone && count > 0) {
+      const wideBtn = document.createElement('button');
+      wideBtn.className = 'btn-ghost ho-wide';
+      wideBtn.textContent = 'Send without WhatsApp';
+      wideBtn.addEventListener('click', () => doSend(false));
+      barDiv.appendChild(wideBtn);
+    }
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn-ghost ho-wide ho-quiet';
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.addEventListener('click', closeSheet);
+    barDiv.appendChild(cancelBtn);
+  }
+
+  function setButtonsDisabled(disabled) {
+    const buttons = barDiv.querySelectorAll('button');
+    buttons.forEach(b => { b.disabled = disabled; });
+  }
+
+  function showError(msg) {
+    errPara.textContent = msg;
+    errPara.hidden = false;
+  }
+
+  function clearError() {
+    errPara.textContent = '';
+    errPara.hidden = true;
+  }
+
+  function closeSheet() {
+    overlay.classList.add('hidden');
+  }
+
+  function resetSheet() {
+    textarea.value = '';
+    dueInput.value = '';
+    clientSelect.value = '';
+    noteInput.value = '';
+    picked.clear();
+    handChanged = { people: false, due: false, client: false };
+    lastReadResult = null;
+    readPara.textContent = '';
+    clearError();
+    buildChips();
+    renderBar();
+    bodyDiv.innerHTML = '';
+    bodyDiv.appendChild(textarea.parentNode);
+    bodyDiv.appendChild(peopleDiv.parentNode);
+    bodyDiv.appendChild(dueInput.parentNode);
+    bodyDiv.appendChild(clientSelect.parentNode);
+    bodyDiv.appendChild(noteInput.parentNode);
+    bodyDiv.appendChild(readPara);
+    bodyDiv.appendChild(errPara);
+  }
+
+  function fillClients() {
+    while (clientSelect.options.length > 1) clientSelect.remove(1);
+    for (const c of deps.clients()) {
+      const o = document.createElement('option');
+      o.value = String(c.id);
+      o.textContent = c.name;
+      clientSelect.appendChild(o);
+    }
+  }
+
+  function openSheet(prefill) {
+    fillClients();
+    resetSheet();
+    if (prefill) {
+      if (prefill.text) {
+        textarea.value = prefill.text;
+        runReader();
+      }
+      if (prefill.clientId !== undefined && prefill.clientId !== null) {
+        clientSelect.value = String(prefill.clientId);
+        handChanged.client = true;
+      }
+      if (prefill.due) {
+        dueInput.value = prefill.due;
+        handChanged.due = true;
+      }
+      if (prefill.people && prefill.people.length) {
+        picked = new Set(prefill.people);
+        handChanged.people = true;
+        refreshChipsAndBar();
+      }
+    }
+    overlay.classList.remove('hidden');
+    textarea.focus();
+  }
+
+  function runReader() {
+    const text = textarea.value.trim();
+    if (!text) {
+      if (!handChanged.people && !handChanged.due && !handChanged.client) {
+        readPara.textContent = '';
+        lastReadResult = null;
+      }
+      return;
+    }
+    Promise.resolve(readNow(text))
+      .then(result => {
+        if (!result) return;
+        lastReadResult = result;
+        const parts = [];
+        if (result.people && result.people.length) {
+          const names = result.people.map(id => {
+            const p = deps.people().find(x => x.id === id);
+            return p ? capitalise(p.name) : '';
+          }).filter(Boolean);
+          if (names.length) parts.push(names.join(' and '));
+          if (!handChanged.people) {
+            picked = new Set(result.people);
+            refreshChipsAndBar();
+          }
+        }
+        if (result.due && !handChanged.due) {
+          dueInput.value = result.due;
+          parts.push(formatDate(result.due));
+        }
+        if (result.client && !handChanged.client) {
+          clientSelect.value = String(result.client);
+          const c = deps.clients().find(x => x.id === result.client);
+          if (c) parts.push(c.name);
+        }
+        readPara.textContent = parts.length ? 'Read: ' + parts.join(', ') : '';
+      })
+      .catch(() => {
+        readPara.textContent = '';
+      });
+  }
+
+  function readNow(text) {
+    try { return deps.read(text, { people: deps.people(), clients: deps.clients(), today: deps.today() }); }
+    catch (e) { return null; }
+  }
+
+  function doSend(whatsapp) {
+    clearError();
+    const text = textarea.value.trim();
+    if (!text) {
+      showError('Say what needs doing first.');
+      return;
+    }
+    const fresh = readNow(text);
+    if (fresh && typeof fresh.then !== 'function') lastReadResult = fresh;
+    const titleRaw = (lastReadResult && lastReadResult.title) ? lastReadResult.title : text;
+    const title = titleRaw.substring(0, MAX_TITLE_LEN);
+    const due = dueInput.value || null;
+    const clientId = clientSelect.value ? Number(clientSelect.value) : null;
+    const note = noteInput.value.trim() || null;
+    const by = deps.me();
+    const targets = pickedPeople();
+    if (!targets.length) {
+      showError('Pick who it is for first.');
+      return;
+    }
+
+    setButtonsDisabled(true);
+    const failed = [];
+    const succeeded = [];
+    let promiseChain = Promise.resolve();
+    for (const p of targets) {
+      promiseChain = promiseChain.then(() => {
+        return deps.rpc('bb_handoff_send', {
+          p_to_id: p.id,
+          p_title: title,
+          p_due: due,
+          p_client_id: clientId,
+          p_note: note,
+          p_by: by
+        }).then(id => {
+          succeeded.push(p);
+        }).catch(err => {
+          failed.push({ person: p, error: err });
+        });
+      });
+    }
+
+    promiseChain.then(() => {
+      setButtonsDisabled(false);
+      if (failed.length === 0) {
+        const names = succeeded.map(p => capitalise(p.name));
+        const toastMsg = succeeded.length === 1 ? 'Sent to ' + names[0] : 'Sent as ' + succeeded.length + ' tasks';
+        deps.toast(toastMsg);
+        deps.onSent();
+
+        if (whatsapp && anyPickedHasNoPhoneInList(succeeded)) {
+          showDoneState(succeeded);
+        } else {
+          closeSheet();
+        }
+      } else {
+        const failedNames = failed.map(f => capitalise(f.person.name));
+        const succeededIds = new Set(succeeded.map(p => p.id));
+        picked = new Set(failed.map(f => f.person.id));
+        handChanged.people = true;
+        refreshChipsAndBar();
+        const errMessages = failed.map(f => {
+          const code = f.error.message.split(':')[0].trim();
+          let plain = f.error.message;
+          if (code === 'HO_CAP') plain = 'Today\'s limit of 200 sent tasks is reached.';
+          else if (code === 'HO_NOT_YOURS') plain = 'This task is not yours to change.';
+          else if (code === 'HO_STATE') plain = 'This task has already moved on. Refresh to see it.';
+          else if (code === 'HO_NOT_FOUND') plain = 'This task is no longer there.';
+          else if (code === 'HO_BAD_INPUT') plain = f.error.message.substring(f.error.message.indexOf(':') + 1).trim();
+          else plain = 'That did not go through. Check the connection and try again.';
+          return capitalise(f.person.name) + ': ' + plain;
+        });
+        showError('Not sent to ' + failedNames.join(', ') + '. ' + errMessages.join(' ') + ' Press Send again for the rest.');
+      }
+    });
+  }
+
+  function anyPickedHasNoPhoneInList(list) {
+    for (const p of list) {
+      if (p.phones === 0) return true;
+    }
+    return false;
+  }
+
+  function showDoneState(succeeded) {
+    bodyDiv.innerHTML = '';
+    const msg = document.createElement('p');
+    msg.className = 'ho-read';
+    msg.textContent = 'Saved. Now tell them on WhatsApp.';
+    bodyDiv.appendChild(msg);
+    bodyDiv.appendChild(errPara);
+
+    barDiv.innerHTML = '';
+    const noPhonePeople = succeeded.filter(p => p.phones === 0);
+    const title = (lastReadResult && lastReadResult.title) ? lastReadResult.title : textarea.value.trim();
+    const client = clientSelect.value ? deps.clients().find(c => c.id === Number(clientSelect.value)) : null;
+    const due = dueInput.value;
+
+    for (let i = 0; i < noPhonePeople.length; i++) {
+      const p = noPhonePeople[i];
+      const name = capitalise(p.name);
+      let message = name + ', a task from ' + capitalise(deps.me()) + ': ' + title;
+      if (client) message += ' (' + client.name + ')';
+      if (due) message += ', by ' + formatDate(due);
+      message += '.';
+      const a = document.createElement('a');
+      a.className = 'btn-primary ho-wa';
+      a.textContent = 'WhatsApp ' + name;
+      a.href = 'https://wa.me/?text=' + encodeURIComponent(message);
+      a.target = '_blank';
+      a.rel = 'noopener';
+      barDiv.appendChild(a);
+    }
+
+    const closeBtn2 = document.createElement('button');
+    closeBtn2.className = 'btn-ghost ho-wide ho-quiet';
+    closeBtn2.textContent = 'Close';
+    closeBtn2.addEventListener('click', closeSheet);
+    barDiv.appendChild(closeBtn2);
+  }
+
+  function stuck(mount, rows) {
+    mount.innerHTML = '';
+    for (const row of rows) {
+      const div = document.createElement('div');
+      div.className = 'ho-stuck';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'ho-st-title';
+      titleDiv.textContent = row.title;
+      div.appendChild(titleDiv);
+
+      const whoDiv = document.createElement('div');
+      whoDiv.className = 'ho-st-who';
+      whoDiv.textContent = capitalise(row.sent_to_name) + ' is stuck';
+      div.appendChild(whoDiv);
+
+      const lines = row.stuck_note ? row.stuck_note.split('\n') : [];
+      for (const line of lines) {
+        const lineDiv = document.createElement('div');
+        lineDiv.className = 'ho-st-line';
+        lineDiv.textContent = line;
+        div.appendChild(lineDiv);
+      }
+
+      if (row.stuck_reply && row.stuck_reply_at && row.stuck_at && row.stuck_reply_at >= row.stuck_at) {
+        const replyDiv = document.createElement('div');
+        replyDiv.className = 'ho-st-reply';
+        replyDiv.textContent = 'You replied: ' + row.stuck_reply;
+        div.appendChild(replyDiv);
+      }
+
+      const input = document.createElement('input');
+      input.className = 'form-input ho-in ho-st-in';
+      input.placeholder = 'Reply in one line';
+      input.maxLength = MAX_REPLY_LEN;
+      div.appendChild(input);
+
+      const errP = document.createElement('p');
+      errP.className = 'ho-err';
+      errP.hidden = true;
+      errP.setAttribute('role', 'alert');
+      div.appendChild(errP);
+
+      const pairDiv = document.createElement('div');
+      pairDiv.className = 'ho-pair';
+
+      const sendBtn = document.createElement('button');
+      sendBtn.className = 'btn-primary';
+      sendBtn.textContent = 'Send reply';
+      sendBtn.addEventListener('click', () => {
+        const reply = input.value.trim();
+        if (!reply) {
+          errP.textContent = 'Type a reply first.';
+          errP.hidden = false;
+          return;
+        }
+        errP.hidden = true;
+        sendBtn.disabled = true;
+        deps.rpc('bb_handoff_reply', { p_id: row.id, p_by: deps.me(), p_reply: reply })
+          .then(() => {
+            deps.toast('Reply sent to ' + capitalise(row.sent_to_name));
+            deps.onSent();
+          })
+          .catch(err => {
+            const code = err.message.split(':')[0].trim();
+            let plain = err.message;
+            if (code === 'HO_NOT_YOURS') plain = 'This task is not yours to change.';
+            else if (code === 'HO_STATE') plain = 'This task has already moved on. Refresh to see it.';
+            else if (code === 'HO_NOT_FOUND') plain = 'This task is no longer there.';
+            else if (code === 'HO_BAD_INPUT') plain = err.message.substring(err.message.indexOf(':') + 1).trim();
+            else plain = 'That did not go through. Check the connection and try again.';
+            errP.textContent = plain;
+            errP.hidden = false;
+            sendBtn.disabled = false;
+          });
+      });
+      pairDiv.appendChild(sendBtn);
+
+      const fwdBtn = document.createElement('button');
+      fwdBtn.className = 'btn-ghost';
+      fwdBtn.textContent = 'Forward';
+      fwdBtn.addEventListener('click', () => {
+        const lastLine = lines[lines.length - 1] || '';
+        const text = lastLine.replace(/^\d{2}\s\w{3}\s\d{2}:\d{2}\s/, '');
+        openSheet({ text: text, clientId: row.client_id });
+      });
+      pairDiv.appendChild(fwdBtn);
+
+      div.appendChild(pairDiv);
+      mount.appendChild(div);
+    }
+  }
+
+  window.hoSheet = {
+    init(d) {
+      deps = d;
+      root = document.createElement('div');
+      root.id = 'ho-sheet';
+      root.className = 'modal-overlay hidden';
+      root.innerHTML = `
+        <div class="modal ho-sheet" role="dialog" aria-modal="true" aria-labelledby="ho-sh-title">
+          <div class="modal-head">
+            <div class="modal-title" id="ho-sh-title">Send a task</div>
+            <button type="button" class="modal-close" aria-label="Close">×</button>
+          </div>
+          <div class="modal-body"></div>
+          <div class="modal-foot ho-bar"></div>
+        </div>
+      `;
+      document.body.appendChild(root);
+
+      overlay = root;
+      closeBtn = root.querySelector('.modal-close');
+      bodyDiv = root.querySelector('.modal-body');
+      barDiv = root.querySelector('.ho-bar');
+      titleEl = root.querySelector('#ho-sh-title');
+
+      closeBtn.addEventListener('click', closeSheet);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeSheet();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !overlay.classList.contains('hidden')) closeSheet();
+      });
+
+      // Build fields: each a div.form-field holding its label then its control (Claude: a label wrapping
+      // the chips made a tap on the word Who press the first chip)
+      const field = (labelText, control, isGroup) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'form-field ho-field';
+        const lab = document.createElement(isGroup ? 'div' : 'label');
+        lab.className = 'form-label';
+        lab.textContent = labelText;
+        if (isGroup) { wrap.setAttribute('role', 'group'); lab.id = 'ho-who-label'; wrap.setAttribute('aria-labelledby', 'ho-who-label'); }
+        else if (control.id) lab.htmlFor = control.id;
+        wrap.appendChild(lab);
+        wrap.appendChild(control);
+        return wrap;
+      };
+      textarea = document.createElement('textarea');
+      textarea.id = 'ho-text';
+      textarea.className = 'form-textarea ho-in';
+      textarea.rows = 3;
+      textarea.placeholder = 'Ushane, cut the Sastho reel by Friday';
+
+      peopleDiv = document.createElement('div');
+      peopleDiv.className = 'ho-people';
+
+      dueInput = document.createElement('input');
+      dueInput.id = 'ho-due';
+      dueInput.type = 'date';
+      dueInput.className = 'form-input ho-in';
+
+      clientSelect = document.createElement('select');
+      clientSelect.id = 'ho-client';
+      clientSelect.className = 'form-select ho-in';
+      const emptyOpt = document.createElement('option');
+      emptyOpt.value = '';
+      emptyOpt.textContent = 'No client';
+      clientSelect.appendChild(emptyOpt);
+
+      noteInput = document.createElement('input');
+      noteInput.id = 'ho-note';
+      noteInput.className = 'form-input ho-in';
+      noteInput.maxLength = MAX_NOTE_LEN;
+
+      readPara = document.createElement('p');
+      readPara.className = 'ho-read';
+      readPara.setAttribute('aria-live', 'polite');
+
+      errPara = document.createElement('p');
+      errPara.className = 'ho-err';
+      errPara.setAttribute('role', 'alert');
+      errPara.hidden = true;
+
+      bodyDiv.appendChild(field('What needs doing', textarea));
+      bodyDiv.appendChild(field('Who', peopleDiv, true));
+      bodyDiv.appendChild(field('Day', dueInput));
+      bodyDiv.appendChild(field('Client', clientSelect));
+      bodyDiv.appendChild(field('Note (optional)', noteInput));
+      bodyDiv.appendChild(readPara);
+      bodyDiv.appendChild(errPara);
+
+      textarea.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(runReader, DEBOUNCE_MS);
+      });
+
+      dueInput.addEventListener('change', () => { handChanged.due = true; });
+      clientSelect.addEventListener('change', () => { handChanged.client = true; });
+
+      buildChips();
+      renderBar();
+    },
+    open: openSheet,
+    stuck: stuck
+  };
+})();
+
+/* H5 From Thulaib card. Crew part (handoff-js-part, DeepSeek V4 Pro) with Claude's fixes: rows found by data-id
+   (nth-child counted the title and the line above), the error codes read anywhere in the message, no 60 s
+   repaint while a Done or Stuck line is being typed. */
+const hoCard = (function() {
+  function capitalise(s) {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+  }
+
+  function formatDate(yyyymmdd) {
+    if (!yyyymmdd) return '';
+    const d = new Date(yyyymmdd + 'T00:00:00Z');
+    if (isNaN(d)) return '';
+    /* Claude fix: Chrome's en-GB puts a comma after the weekday; the house date is 'Fri 13 Nov' */
+    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()] + ' ' + d.getUTCDate() + ' '
+      + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()];
+  }
+
+  function senderName(row) {
+    return capitalise(row.sent_by);
+  }
+
+  function isLate(row, today) {
+    return row.due && row.due < today;
+  }
+
+  function isStuck(row) {
+    return !!row.stuck_at;
+  }
+
+  function hasReply(row) {
+    return row.stuck_reply && row.stuck_reply_at && row.stuck_reply_at >= row.stuck_at;
+  }
+
+  function isDone(row) {
+    return row.done;
+  }
+
+  function isOpen(row) {
+    return !row.done;
+  }
+
+  return function hoCard(mount, deps) {
+    const me = deps.me();
+    const myId = deps.myId();
+    const today = deps.today();
+    let rows = [];
+    let seenSet = new Set();
+    let reloadTimer = null;
+    let reloading = false;
+    let openFormRowId = null;
+
+    function stopTimer() {
+      if (reloadTimer) {
+        clearInterval(reloadTimer);
+        reloadTimer = null;
+      }
+    }
+
+    function startTimer() {
+      stopTimer();
+      if (document.visibilityState === 'visible') {
+        reloadTimer = setInterval(() => {
+          if (document.visibilityState === 'visible') {
+            reload();
+          }
+        }, 60000);
+      }
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        reload();
+        startTimer();
+      } else {
+        stopTimer();
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    async function reload(force) {
+      if (reloading) return;
+      if (openFormRowId !== null && force !== true) return;
+      reloading = true;
+      try {
+        const path = `tasks?select=id,title,due,client_id,notes,sent_by,seen_at,stuck_note,stuck_at,stuck_reply,stuck_reply_at,done,done_note,completed_at,created_at&sent_to_id=eq.${myId}&cancelled_at=is.null&or=(done.is.false,completed_at.gte.${today}T00:00:00%2B05:30)&order=created_at.asc`;
+        const data = await deps.get(path);
+        if (!data || data.length === 0) {
+          mount.innerHTML = '';
+          mount.hidden = true;
+          rows = [];
+          return;
+        }
+        mount.hidden = false;
+        rows = data;
+
+        // Mark unseen rows as seen
+        for (const row of rows) {
+          if (row.seen_at === null && !row.done && !seenSet.has(row.id)) {
+            seenSet.add(row.id);
+            deps.rpc('bb_handoff_seen', { p_id: row.id, p_who: me, p_carry_on: false }).catch(() => {});
+          }
+        }
+
+        paint();
+      } catch (e) {
+        // Silently fail reload
+      } finally {
+        reloading = false;
+      }
+    }
+
+    function paint() {
+      mount.innerHTML = '';
+      const section = document.createElement('section');
+      section.className = 'ho-card';
+
+      const senders = new Set(rows.map(r => r.sent_by));
+      let titleText = '';
+      if (senders.size === 1) {
+        titleText = `From ${capitalise([...senders][0])}`;
+      } else if (senders.size === 2) {
+        titleText = `From ${capitalise([...senders][0])} and ${capitalise([...senders][1])}`;
+      } else {
+        titleText = 'From Thulaib and Shiara';
+      }
+
+      const h2 = document.createElement('h2');
+      h2.className = 'ho-card-title';
+      h2.textContent = titleText;
+      section.appendChild(h2);
+
+      const openCount = rows.filter(r => isOpen(r)).length;
+      const sub = document.createElement('p');
+      sub.className = 'ho-card-sub';
+      if (openCount === 0) {
+        sub.textContent = 'All done for today';
+      } else if (openCount === 1) {
+        sub.textContent = '1 to do';
+      } else {
+        sub.textContent = `${openCount} to do`;
+      }
+      section.appendChild(sub);
+
+      const openRows = rows.filter(r => isOpen(r));
+      const doneRows = rows.filter(r => isDone(r));
+      const sortedRows = [...openRows, ...doneRows];
+
+      for (const row of sortedRows) {
+        const taskDiv = document.createElement('div');
+        taskDiv.className = 'ho-task';
+        taskDiv.dataset.id = String(row.id);
+        if (isDone(row)) {
+          taskDiv.classList.add('ho-done');
+        }
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'ho-t-title';
+        titleDiv.textContent = row.title;
+        taskDiv.appendChild(titleDiv);
+
+        if (isOpen(row)) {
+          const metaParts = [];
+          if (senders.size > 1) {
+            metaParts.push(`From ${senderName(row)}`);
+          }
+          if (row.client_id) {
+            const clientName = deps.clientName(row.client_id);
+            if (clientName) metaParts.push(clientName);
+          }
+          if (row.due) {
+            if (isLate(row, today)) {
+              const span = document.createElement('span');
+              span.className = 'ho-late';
+              span.textContent = `was due ${formatDate(row.due)}`;
+              const metaDiv = document.createElement('div');
+              metaDiv.className = 'ho-t-meta';
+              if (metaParts.length) {
+                metaDiv.textContent = metaParts.join(' · ') + ' · ';
+                metaDiv.appendChild(span);
+              } else {
+                metaDiv.appendChild(span);
+              }
+              taskDiv.appendChild(metaDiv);
+            } else {
+              metaParts.push(`by ${formatDate(row.due)}`);
+            }
+          }
+          if (metaParts.length && (!row.due || !isLate(row, today))) {
+            const metaDiv = document.createElement('div');
+            metaDiv.className = 'ho-t-meta';
+            metaDiv.textContent = metaParts.join(' · ');
+            taskDiv.appendChild(metaDiv);
+          }
+
+          if (row.notes) {
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'ho-t-note';
+            noteDiv.textContent = row.notes;
+            taskDiv.appendChild(noteDiv);
+          }
+
+          if (isStuck(row)) {
+            const stuckDiv = document.createElement('div');
+            stuckDiv.className = 'ho-t-stuck';
+            const lines = row.stuck_note.split('\n');
+            lines.forEach((line, i) => {
+              const p = document.createElement('p');
+              p.textContent = (i === 0 ? 'You said: ' : '') + line;
+              stuckDiv.appendChild(p);
+            });
+            taskDiv.appendChild(stuckDiv);
+
+            if (hasReply(row)) {
+              const replyDiv = document.createElement('div');
+              replyDiv.className = 'ho-t-reply';
+              replyDiv.textContent = `${senderName(row)}: ${row.stuck_reply}`;
+              taskDiv.appendChild(replyDiv);
+
+              const carryBtn = document.createElement('button');
+              carryBtn.className = 'btn-primary ho-wide';
+              carryBtn.textContent = 'Carry on';
+              carryBtn.style.touchAction = 'manipulation';
+              carryBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                carryBtn.disabled = true;
+                try {
+                  await deps.rpc('bb_handoff_seen', { p_id: row.id, p_who: me, p_carry_on: true });
+                  deps.toast('Back on it');
+                  await reload();
+                } catch (err) {
+                  showError(taskDiv, err.message);
+                } finally {
+                  carryBtn.disabled = false;
+                }
+              });
+              taskDiv.appendChild(carryBtn);
+            }
+
+            const pairDiv = document.createElement('div');
+            pairDiv.className = 'ho-pair';
+
+            const doneBtn = document.createElement('button');
+            /* Claude fix: once Carry on is the primary, Done steps back so the row has one primary */
+            doneBtn.className = hasReply(row) ? 'btn-ghost' : 'btn-primary';
+            doneBtn.textContent = 'Done';
+            doneBtn.style.touchAction = 'manipulation';
+            doneBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              openForm(row.id, 'done');
+            });
+            pairDiv.appendChild(doneBtn);
+
+            const stuckBtn = document.createElement('button');
+            stuckBtn.className = 'btn-ghost';
+            stuckBtn.textContent = 'Stuck';
+            stuckBtn.style.touchAction = 'manipulation';
+            stuckBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              openForm(row.id, 'stuck');
+            });
+            pairDiv.appendChild(stuckBtn);
+
+            taskDiv.appendChild(pairDiv);
+          } else {
+            const pairDiv = document.createElement('div');
+            pairDiv.className = 'ho-pair';
+
+            const doneBtn = document.createElement('button');
+            doneBtn.className = 'btn-primary';
+            doneBtn.textContent = 'Done';
+            doneBtn.style.touchAction = 'manipulation';
+            doneBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              openForm(row.id, 'done');
+            });
+            pairDiv.appendChild(doneBtn);
+
+            const stuckBtn = document.createElement('button');
+            stuckBtn.className = 'btn-ghost';
+            stuckBtn.textContent = 'Stuck';
+            stuckBtn.style.touchAction = 'manipulation';
+            stuckBtn.addEventListener('click', (e) => {
+              e.preventDefault();
+              openForm(row.id, 'stuck');
+            });
+            pairDiv.appendChild(stuckBtn);
+
+            taskDiv.appendChild(pairDiv);
+          }
+
+          // Form container
+          const formContainer = document.createElement('div');
+          formContainer.className = 'ho-t-form';
+          formContainer.style.display = 'none';
+          taskDiv.appendChild(formContainer);
+
+        } else {
+          // Done row
+          const metaDiv = document.createElement('div');
+          metaDiv.className = 'ho-t-meta';
+          let metaText = 'Done';
+          if (row.done_note) {
+            metaText += ' · ' + row.done_note;
+          }
+          metaDiv.textContent = metaText;
+          taskDiv.appendChild(metaDiv);
+        }
+
+        section.appendChild(taskDiv);
+      }
+
+      mount.appendChild(section);
+    }
+
+    function openForm(rowId, type) {
+      if (openFormRowId === rowId) return;
+      closeForm();
+      openFormRowId = rowId;
+
+      const taskDiv = taskEl(rowId);
+      if (!taskDiv) return;
+      const formContainer = taskDiv.querySelector('.ho-t-form');
+      if (!formContainer) return;
+      formContainer.innerHTML = '';
+      formContainer.style.display = 'flex';
+
+      const input = document.createElement('input');
+      input.className = 'form-input ho-in';
+      input.style.fontSize = '16px';
+      input.maxLength = 1000;
+      if (type === 'done') {
+        input.placeholder = 'What I did (optional)';
+      } else {
+        input.placeholder = 'What is in the way';
+        input.required = true;
+      }
+      formContainer.appendChild(input);
+
+      const errP = document.createElement('p');
+      errP.className = 'ho-err';
+      errP.style.display = 'none';
+      formContainer.appendChild(errP);
+
+      const pairDiv = document.createElement('div');
+      pairDiv.className = 'ho-pair';
+
+      const submitBtn = document.createElement('button');
+      submitBtn.className = 'btn-primary';
+      submitBtn.textContent = type === 'done' ? 'Mark done' : 'Send';
+      submitBtn.style.touchAction = 'manipulation';
+      submitBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const value = input.value.trim();
+        if (type === 'stuck' && !value) {
+          errP.textContent = 'Say what is in the way first.';
+          errP.style.display = 'block';
+          return;
+        }
+        errP.style.display = 'none';
+        submitBtn.disabled = true;
+        try {
+          if (type === 'done') {
+            await deps.rpc('bb_handoff_done', { p_id: rowId, p_who: me, p_note: value || null });
+            const row = rows.find(r => r.id === rowId);
+            deps.toast(`Done. ${senderName(row)} can see it`);
+          } else {
+            await deps.rpc('bb_handoff_stuck', { p_id: rowId, p_who: me, p_note: value });
+            const row = rows.find(r => r.id === rowId);
+            deps.toast(`Sent to ${senderName(row)}`);
+          }
+          closeForm();
+          await reload(true);
+        } catch (err) {
+          showError(taskDiv, err.message);
+        } finally {
+          submitBtn.disabled = false;
+        }
+      });
+      pairDiv.appendChild(submitBtn);
+
+      const backBtn = document.createElement('button');
+      backBtn.className = 'btn-ghost';
+      backBtn.textContent = 'Back';
+      backBtn.style.touchAction = 'manipulation';
+      backBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        closeForm();
+      });
+      pairDiv.appendChild(backBtn);
+
+      formContainer.appendChild(pairDiv);
+    }
+
+    function closeForm() {
+      if (openFormRowId === null) return;
+      const taskDiv = taskEl(openFormRowId);
+      if (taskDiv) {
+        const formContainer = taskDiv.querySelector('.ho-t-form');
+        if (formContainer) {
+          formContainer.style.display = 'none';
+          formContainer.innerHTML = '';
+        }
+      }
+      openFormRowId = null;
+    }
+
+    function taskEl(rowId) {
+      return mount.querySelector('.ho-task[data-id="' + String(Number(rowId)) + '"]');
+    }
+
+    function showError(taskDiv, message) {
+      let errEl = taskDiv.querySelector('.ho-err');
+      if (!errEl) {
+        errEl = document.createElement('p');
+        errEl.className = 'ho-err';
+        taskDiv.appendChild(errEl);
+      }
+      const m = String(message || '');
+      const code = (m.match(/HO_[A-Z_]+/) || [''])[0];
+      const plain = {
+        HO_CAP: 'Today\'s limit of 200 sent tasks is reached.',
+        HO_NOT_YOURS: 'This task is not yours to change.',
+        HO_STATE: 'This task has already moved on. Refresh to see it.',
+        HO_NOT_FOUND: 'This task is no longer there.'
+      };
+      const displayMsg = code === 'HO_BAD_INPUT' ? m.slice(m.indexOf(':') + 1).trim()
+        : (plain[code] || 'That did not go through. Check the connection and try again.');
+      errEl.textContent = displayMsg;
+      errEl.style.display = 'block';
+    }
+
+    mount.innerHTML = '';
+    mount.hidden = true;
+    startTimer();
+    reload();
+
+    return {
+      reload: reload
+    };
+  };
+})();
+
+/* Glue for the Send a task loop (Claude, 8 Nov 2026). Owners only: THULAIB (th) and SHIARA (sh).
+   For any other role nothing below is in the page. Writes go only through the bb_handoff_* functions. */
+(function () {
+  'use strict';
+  var OWNERS = { th: { name: 'THULAIB', id: 23 }, sh: { name: 'SHIARA', id: 24 } };
+  var S = { team: null, reach: {}, clients: null, card: null, cardFor: null, inited: false, waitT: null };
+
+  function owner() { return OWNERS[document.body.getAttribute('data-role')] || null; }
+  function me() { var o = owner(); return o ? o.name : ''; }
+  function today() { return new Date(Date.now() + 19800000).toISOString().slice(0, 10); }
+
+  async function call(path, body) {
+    if (typeof bbAuthEnsure === 'function') await bbAuthEnsure();
+    var h = { apikey: SB_KEY, Authorization: bbBearer() };
+    var o = { headers: h, cache: 'no-store' };
+    if (body) { h['Content-Type'] = 'application/json'; o.method = 'POST'; o.body = JSON.stringify(body); }
+    var r = await fetch(SB_URL + '/rest/v1/' + path, o);
+    var t = await r.text(), j = null;
+    try { j = t ? JSON.parse(t) : null; } catch (e) { j = null; }
+    if (!r.ok) throw new Error((j && j.message) || ('HTTP ' + r.status));
+    return j;
+  }
+  function rpc(name, body) { return call('rpc/' + name, body); }
+
+  function toast(msg) {
+    if (typeof fincToast === 'function') fincToast(msg);
+    else if (typeof sbWriteToast === 'function') sbWriteToast(msg);
+  }
+
+  async function loadRefs() {
+    var res = await Promise.all([
+      call('team_members?active=eq.true&select=id,name&order=name').catch(function () { return null; }),
+      call('bb_push_reach?select=team_member_id,phones').catch(function () { return null; }),
+      call('clients?status=eq.active&select=id,name&order=name').catch(function () { return null; })
+    ]);
+    if (res[0]) S.team = res[0];
+    if (res[1]) { S.reach = {}; res[1].forEach(function (x) { S.reach[x.team_member_id] = Number(x.phones) || 0; }); }
+    if (res[2]) S.clients = res[2];
+  }
+  function people() {
+    var mine = me();
+    return (S.team || []).filter(function (m) { return m.name && m.name.toUpperCase() !== mine; })
+      .map(function (m) { return { id: m.id, name: m.name, phones: S.reach[m.id] || 0 }; });
+  }
+  function clients() {
+    var c = S.clients || ((typeof D === 'object' && D && D.clients) || []).filter(function (x) { return !x.status || x.status === 'active'; });
+    return c.map(function (x) { return { id: x.id, name: x.name }; });
+  }
+  function clientName(id) {
+    var all = (S.clients || []).concat((typeof D === 'object' && D && D.clients) || []);
+    for (var i = 0; i < all.length; i++) if (String(all[i].id) === String(id)) return all[i].name;
+    return '';
+  }
+
+  /* the sender's strip: tasks I sent that are stuck now, with Reply and Forward (H4 stuck rows) */
+  async function loadStuck() {
+    var o = owner(), sec = document.getElementById('ho-stuck-card');
+    if (!o || !sec) return;
+    var rows = null;
+    try {
+      rows = await call('tasks?select=id,title,client_id,sent_to_id,stuck_note,stuck_at,stuck_reply,stuck_reply_at'
+        + '&sent_by=eq.' + o.name + '&stuck_at=not.is.null&done=is.false&cancelled_at=is.null&order=stuck_at.asc');
+    } catch (e) { rows = null; }
+    if (!rows || !rows.length) { sec.hidden = true; return; }
+    var names = {}; (S.team || []).forEach(function (m) { names[m.id] = m.name; });
+    rows.forEach(function (r) { r.sent_to_name = names[r.sent_to_id] || 'Someone'; });
+    sec.querySelector('.ho-card-sub').textContent = rows.length === 1 ? '1 person needs you' : rows.length + ' tasks need you';
+    window.hoSheet.stuck(sec.querySelector('.ho-stuck-list'), rows);
+    sec.hidden = false;
+  }
+  function onSent() {
+    loadStuck();
+    if (S.card) S.card.reload(true);
+  }
+
+  function sendButton() {
+    var b = document.createElement('button');
+    b.type = 'button'; b.id = 'ho-send-btn'; b.className = 'btn-primary ho-send';
+    b.setAttribute('aria-label', 'Send a task');
+    b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Send a task</span>';
+    b.addEventListener('click', function () { if (window.hoSheet) window.hoSheet.open(); });
+    return b;
+  }
+  function stuckShell() {
+    var sec = document.createElement('section');
+    sec.className = 'ho-card'; sec.id = 'ho-stuck-card'; sec.hidden = true;
+    var h = document.createElement('h2'); h.className = 'ho-card-title'; h.textContent = 'Stuck on what you sent';
+    var p = document.createElement('p'); p.className = 'ho-card-sub';
+    var l = document.createElement('div'); l.className = 'ho-stuck-list';
+    sec.appendChild(h); sec.appendChild(p); sec.appendChild(l);
+    return sec;
+  }
+
+  function takeOut() {
+    ['ho-send-btn', 'ho-card-mount', 'ho-stuck-card', 'ho-sheet'].forEach(function (id) { var el = document.getElementById(id); if (el) el.remove(); });
+    S.card = null; S.cardFor = null; S.inited = false; S.team = null; S.clients = null; clearTimeout(S.waitT);
+  }
+
+  async function gate() {
+    var o = owner();
+    if (!o) { takeOut(); return; }
+    if (S.cardFor && S.cardFor !== o.name) takeOut();
+    var right = document.querySelector('.topbar-right');
+    if (right && !document.getElementById('ho-send-btn')) right.insertBefore(sendButton(), right.firstChild);
+    var anchor = document.getElementById('attention-panel');
+    if (!anchor || !anchor.parentNode) return;
+    await loadRefs();
+    if (!owner() || owner().name !== o.name) return;
+    if (!S.inited) {
+      window.hoSheet.init({ me: me, people: people, clients: clients,
+        read: function (text, ctx) { return window.hoRead(text, ctx); },
+        today: today, rpc: rpc, toast: toast, onSent: onSent });
+      S.inited = true;
+    }
+    if (!document.getElementById('ho-stuck-card')) anchor.parentNode.insertBefore(stuckShell(), anchor);
+    if (!document.getElementById('ho-card-mount')) {
+      var m = document.createElement('div'); m.id = 'ho-card-mount';
+      anchor.parentNode.insertBefore(m, document.getElementById('ho-stuck-card'));
+      S.card = hoCard(m, { me: me, myId: function () { return o.id; }, get: function (p) { return call(p); },
+        rpc: rpc, clientName: clientName, today: today, toast: toast });
+      S.cardFor = o.name;
+    }
+    loadStuck();
+  }
+
+  /* pure checks for runSelfTest (no reads, no writes) */
+  function selfcheck() {
+    var R = [], ok = function (n, p, d) { R.push({ name: 'Send a task: ' + n, pass: !!p, detail: d || '' }); };
+    var ppl = [{ id: 5, name: 'USHANE' }, { id: 12, name: 'NIRVANA' }, { id: 3, name: 'SUHANA' }];
+    var cl = [{ id: 1, name: 'SASTHO' }, { id: 2, name: 'SUN ZAPPER' }];
+    var r = window.hoRead ? window.hoRead('Ushane and Suhana, cut the Sastho reel by Friday', { people: ppl, clients: cl, today: '2026-11-09' }) : null;
+    ok('the reader finds both people', r && r.people.join() === '5,3', r && r.people.join());
+    ok('the reader reads Friday as Fri 13 Nov', r && r.due === '2026-11-13', r && r.due);
+    ok('the reader finds the client', r && r.client === 1, r && String(r.client));
+    var z = window.hoRead ? window.hoRead('Nirvana, the Sun Zapper post', { people: ppl, clients: cl, today: '2026-11-09' }) : null;
+    ok('Sun Zapper is a client, not Sunday', z && z.client === 2 && !z.due, z && JSON.stringify(z));
+    var present = !!document.getElementById('ho-send-btn');
+    ok('only Thulaib and Shiara have Send a task', !!owner() === present, 'role ' + document.body.getAttribute('data-role') + ', button ' + (present ? 'present' : 'absent'));
+    return R;
+  }
+
+  window.BBHO = { selfcheck: selfcheck, reload: function () { onSent(); }, state: function () { return S; } };
+  function wire() {
+    new MutationObserver(function () { gate(); }).observe(document.body, { attributes: true, attributeFilter: ['data-role'] });
+    if (document.body.getAttribute('data-role')) gate();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+})();
+</script>
+<!-- @@BBCC_THULAIB_VIEW@@ END -->
 
 
       <!-- HERO -->
