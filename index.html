@@ -12,6 +12,15 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 <title>BB Command Centre</title>
+<style id="bb-ico-css">.bb-ico{width:1em;height:1em;vertical-align:-0.125em;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.bb-dot{display:inline-block;width:.6em;height:.6em;border-radius:50%;vertical-align:.05em;background:var(--text-3)}.bb-dot.red{background:var(--red)}.bb-dot.orange{background:#f97316}.bb-dot.amber{background:var(--amber)}.bb-dot.green{background:var(--green)}</style>
+<script>
+/* ICONS THAT WERE EMOJI (BUILD 5 click path, 8 Nov 2026). runSelfTest flags an emoji used as an icon, so the
+   pictographs on the agent cards, empty states and headings are stroke icons in the nav style. BBICO(name) gives the
+   svg; BBDOT(colour) gives the priority and status dot. */
+window.BBICO=(function(){var P={"lock": "<rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\"/><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"/>", "health": "<polyline points=\"22 12 18 12 15 21 9 3 6 12 2 12\"/>", "money": "<path d=\"M20 12V8H6a2 2 0 0 1 0-4h12v4\"/><path d=\"M4 6v12a2 2 0 0 0 2 2h14v-4\"/><path d=\"M18 12a2 2 0 0 0 0 4h4v-4z\"/>", "users": "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"/><circle cx=\"9\" cy=\"7\" r=\"4\"/><path d=\"M23 21v-2a4 4 0 0 0-3-3.87\"/><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"/>", "clipboard": "<path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/>", "chart": "<line x1=\"18\" y1=\"20\" x2=\"18\" y2=\"10\"/><line x1=\"12\" y1=\"20\" x2=\"12\" y2=\"4\"/><line x1=\"6\" y1=\"20\" x2=\"6\" y2=\"14\"/>", "key": "<circle cx=\"7.5\" cy=\"15.5\" r=\"5.5\"/><path d=\"M21 2l-9.6 9.6\"/><path d=\"M15.5 7.5l3 3L22 7l-3-3\"/>", "film": "<rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"2.18\"/><path d=\"M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5\"/>", "inbox": "<polyline points=\"22 12 16 12 14 15 10 15 8 12 2 12\"/><path d=\"M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><polyline points=\"12 6 12 12 16 14\"/>", "note": "<rect x=\"2\" y=\"6\" width=\"20\" height=\"12\" rx=\"2\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/><path d=\"M6 12h.01M18 12h.01\"/>", "archive": "<polyline points=\"21 8 21 21 3 21 3 8\"/><rect x=\"1\" y=\"3\" width=\"22\" height=\"5\"/><line x1=\"10\" y1=\"12\" x2=\"14\" y2=\"12\"/>", "bot": "<rect x=\"4\" y=\"4\" width=\"16\" height=\"16\" rx=\"2\"/><rect x=\"9\" y=\"9\" width=\"6\" height=\"6\"/><path d=\"M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3\"/>", "target": "<circle cx=\"12\" cy=\"12\" r=\"10\"/><circle cx=\"12\" cy=\"12\" r=\"6\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/>", "idea": "<path d=\"M9 18h6M10 22h4\"/><path d=\"M12 2a7 7 0 0 0-4 12.74V16h8v-1.26A7 7 0 0 0 12 2z\"/>", "pen": "<path d=\"M12 19l7-7 3 3-7 7-3-3z\"/><path d=\"M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z\"/><path d=\"M2 2l7.586 7.586\"/><circle cx=\"11\" cy=\"11\" r=\"2\"/>", "phone": "<rect x=\"5\" y=\"2\" width=\"14\" height=\"20\" rx=\"2\"/><line x1=\"12\" y1=\"18\" x2=\"12.01\" y2=\"18\"/>", "folder": "<path d=\"M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z\"/>"};return function(n){return P[n]?'<svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true">'+P[n]+'</svg>':'';};})();
+window.BBDOT=function(c){return '<span class="bb-dot '+(c||'')+'" aria-hidden="true"></span>';};
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -1836,7 +1845,7 @@ window.__ST_LOG=[];
       <div class="bb-sub" style="margin-top:6px">Command Centre</div>
       <div class="sidebar-clock">
         <div class="clk-time" id="clk-time">--:-- --</div>
-        <div class="clk-date" id="clk-date">—</div>
+        <div class="clk-date" id="clk-date">·</div>
       </div>
     </div>
     <div class="nav">
@@ -1903,7 +1912,7 @@ window.__ST_LOG=[];
       </div>
     </header>
 
-    <div id="demo-banner" style="background:linear-gradient(90deg,#8b5cf6,#6d28d9);color:white;padding:7px 20px;font-size:11.5px;font-weight:700;letter-spacing:0;text-align:center;flex-shrink:0">🔒 DEMO MODE · BB Command Centre Preview · Contact Business Booster to build this for your business</div>
+    <div id="demo-banner" style="background:linear-gradient(90deg,#8b5cf6,#6d28d9);color:white;padding:7px 20px;font-size:11.5px;font-weight:700;letter-spacing:0;text-align:center;flex-shrink:0"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> DEMO MODE · BB Command Centre Preview · Contact Business Booster to build this for your business</div>
 
     <div class="content"><div id="page-dashboard" class="page-section" style="display:block">
 
@@ -4562,7 +4571,7 @@ const hoCard = (function() {
       <!-- HERO -->
       <div class="hero">
         <h1 class="hero-title" id="hero-title">Welcome back</h1>
-        <div class="hero-sub" id="hero-sub">—</div>
+        <div class="hero-sub" id="hero-sub">·</div>
       </div>
 
 
@@ -4588,7 +4597,7 @@ const hoCard = (function() {
             <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             Needs your attention
           </div>
-          <div class="attention-cnt" id="att-cnt">—</div>
+          <div class="attention-cnt" id="att-cnt">·</div>
         </div>
         <div id="att-rows"><div class="skel"></div><div class="skel" style="width:75%"></div></div>
       </div>
@@ -4597,27 +4606,27 @@ const hoCard = (function() {
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-lbl">Active clients</div>
-          <div class="stat-val accent" id="s-clients">—</div>
+          <div class="stat-val accent" id="s-clients">·</div>
           <div class="stat-note">Target: 35 by 2026</div>
         </div>
         <div class="stat-card">
           <div class="stat-lbl">Monthly MRR</div>
-          <div class="stat-val green" id="s-mrr">—</div>
+          <div class="stat-val green" id="s-mrr">·</div>
           <div class="stat-note" id="s-mrr-note">LKR / month</div>
         </div>
         <div class="stat-card ceo-only">
           <div class="stat-lbl">Pipeline leads</div>
-          <div class="stat-val" id="s-pipe">—</div>
-          <div class="stat-note" id="s-pipe-hot">—</div>
+          <div class="stat-val" id="s-pipe">·</div>
+          <div class="stat-note" id="s-pipe-hot">·</div>
         </div>
         <div class="stat-card coo-only">
           <div class="stat-lbl">Team members</div>
-          <div class="stat-val accent" id="s-team-checked">—</div>
+          <div class="stat-val accent" id="s-team-checked">·</div>
           <div class="stat-note" id="s-team-note">checked in today</div>
         </div>
         <div class="stat-card">
           <div class="stat-lbl">Overdue tasks</div>
-          <div class="stat-val red" id="s-overdue">—</div>
+          <div class="stat-val red" id="s-overdue">·</div>
           <div class="stat-note">Across all clients</div>
         </div>
       </div>
@@ -4629,11 +4638,11 @@ const hoCard = (function() {
           Video
         </div>
         <div class="strip-div"></div>
-        <div class="strip-stat"><div class="strip-val accent" id="vid-active">—</div><div class="strip-lbl">Active</div></div>
-        <div class="strip-stat"><div class="strip-val blue" id="vid-editing">—</div><div class="strip-lbl">Editing</div></div>
-        <div class="strip-stat"><div class="strip-val amber" id="vid-review">—</div><div class="strip-lbl">In review</div></div>
-        <div class="strip-stat"><div class="strip-val red" id="vid-sent">—</div><div class="strip-lbl">Sent, waiting</div></div>
-        <div class="strip-stat"><div class="strip-val green" id="vid-posted">—</div><div class="strip-lbl">Finished</div></div>
+        <div class="strip-stat"><div class="strip-val accent" id="vid-active">·</div><div class="strip-lbl">Active</div></div>
+        <div class="strip-stat"><div class="strip-val blue" id="vid-editing">·</div><div class="strip-lbl">Editing</div></div>
+        <div class="strip-stat"><div class="strip-val amber" id="vid-review">·</div><div class="strip-lbl">In review</div></div>
+        <div class="strip-stat"><div class="strip-val red" id="vid-sent">·</div><div class="strip-lbl">Sent, waiting</div></div>
+        <div class="strip-stat"><div class="strip-val green" id="vid-posted">·</div><div class="strip-lbl">Finished</div></div>
         <div class="strip-div"></div>
         <div class="ed-list" id="ed-list"><div class="skel" style="width:80px;height:24px;border-radius:20px"></div></div>
       </div>
@@ -4647,10 +4656,10 @@ const hoCard = (function() {
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <span style="font-size:11.5px;font-weight:700;letter-spacing:0;color:var(--text-3);">Potential</span>
-            <span id="pipe-hot-count" style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:600;color:var(--accent)">—</span>
+            <span id="pipe-hot-count" style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:600;color:var(--accent)">·</span>
             <div style="width:1px;height:16px;background:var(--border);margin:0 4px"></div>
             <span style="font-size:11.5px;font-weight:700;letter-spacing:0;color:var(--text-3);">Total</span>
-            <span id="pipe-total-count" style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:600;color:var(--text-2)">—</span>
+            <span id="pipe-total-count" style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:14px;font-weight:600;color:var(--text-2)">·</span>
           </div>
         </div>
         <div id="pipeline-rows"><div class="skel"></div><div class="skel" style="width:80%"></div><div class="skel" style="width:65%"></div></div>
@@ -4842,11 +4851,11 @@ const hoCard = (function() {
         </div>
       </div>
       <div class="stat-row">
-        <div class="stat-card"><div class="stat-lbl">Total Active</div><div class="stat-val accent" id="st-total">—</div><div class="stat-note">Target: 35 by 2026</div></div>
-        <div class="stat-card"><div class="stat-lbl">Monthly MRR</div><div class="stat-val green" id="st-mrr">—</div><div class="stat-note">LKR / month</div></div>
-        <div class="stat-card"><div class="stat-lbl">Green</div><div class="stat-val green" id="st-green">—</div><div class="stat-note">On track</div></div>
-        <div class="stat-card"><div class="stat-lbl">Amber</div><div class="stat-val amber" id="st-amber">—</div><div class="stat-note">Monitor</div></div>
-        <div class="stat-card"><div class="stat-lbl">Red</div><div class="stat-val red" id="st-red">—</div><div class="stat-note">Act now</div></div>
+        <div class="stat-card"><div class="stat-lbl">Total Active</div><div class="stat-val accent" id="st-total">·</div><div class="stat-note">Target: 35 by 2026</div></div>
+        <div class="stat-card"><div class="stat-lbl">Monthly MRR</div><div class="stat-val green" id="st-mrr">·</div><div class="stat-note">LKR / month</div></div>
+        <div class="stat-card"><div class="stat-lbl">Green</div><div class="stat-val green" id="st-green">·</div><div class="stat-note">On track</div></div>
+        <div class="stat-card"><div class="stat-lbl">Amber</div><div class="stat-val amber" id="st-amber">·</div><div class="stat-note">Monitor</div></div>
+        <div class="stat-card"><div class="stat-lbl">Red</div><div class="stat-val red" id="st-red">·</div><div class="stat-note">Act now</div></div>
       </div>
       <div class="toolbar">
         <div class="tab-group" style="max-width:100%;overflow-x:auto">
@@ -4877,11 +4886,11 @@ const hoCard = (function() {
     </div>
     <!-- CLIENT PROFILE -->
     <div class="profile-page" id="profile-page">
-      <div class="breadcrumb"><a onclick="backToClients()">Clients</a><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg><span id="profile-breadcrumb">—</span></div>
+      <div class="breadcrumb"><a onclick="backToClients()">Clients</a><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg><span id="profile-breadcrumb">·</span></div>
       <div class="profile-head">
         <div class="profile-id">
-          <div class="avatar" id="profile-avatar">—</div>
-          <div><div class="profile-name" id="profile-name">—</div><div class="profile-meta" id="profile-meta">—</div><div class="profile-pills" id="profile-pills"></div></div>
+          <div class="avatar" id="profile-avatar">·</div>
+          <div><div class="profile-name" id="profile-name">·</div><div class="profile-meta" id="profile-meta">·</div><div class="profile-pills" id="profile-pills"></div></div>
         </div>
         <div class="profile-actions">
           <button class="btn-ghost btn-sm" onclick="openEditClientModal()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</button>
@@ -4890,18 +4899,18 @@ const hoCard = (function() {
       </div>
       <!-- KPI ROW — auto for current month -->
       <div class="kpi-row">
-        <div class="kpi"><div class="kpi-lbl">Open Tasks</div><div class="kpi-val" id="kpi-open">—</div><div class="kpi-note">Pending</div></div>
-        <div class="kpi"><div class="kpi-lbl">Overdue</div><div class="kpi-val red" id="kpi-overdue">—</div><div class="kpi-note">Need action</div></div>
-        <div class="kpi"><div class="kpi-lbl">Posts <span style="font-weight:400;text-transform:none;letter-spacing:0" id="kpi-m1">—</span></div><div class="kpi-val accent" id="kpi-posts">—</div><div class="kpi-note">posted this month</div></div>
-        <div class="kpi"><div class="kpi-lbl">Videos <span style="font-weight:400;text-transform:none;letter-spacing:0" id="kpi-m2">—</span></div><div class="kpi-val" style="color:var(--pink)" id="kpi-videos">—</div><div class="kpi-note">posted this month</div></div>
-        <div class="kpi"><div class="kpi-lbl">Invoice</div><div class="kpi-val" id="kpi-invoice">—</div><div class="kpi-note" id="kpi-invoice-note">this month</div></div>
-        <div class="kpi"><div class="kpi-lbl">Phase</div><div class="kpi-val accent" id="kpi-phase">—</div><div class="kpi-note" id="kpi-phase-note">—</div></div>
+        <div class="kpi"><div class="kpi-lbl">Open Tasks</div><div class="kpi-val" id="kpi-open">·</div><div class="kpi-note">Pending</div></div>
+        <div class="kpi"><div class="kpi-lbl">Overdue</div><div class="kpi-val red" id="kpi-overdue">·</div><div class="kpi-note">Need action</div></div>
+        <div class="kpi"><div class="kpi-lbl">Posts <span style="font-weight:400;text-transform:none;letter-spacing:0" id="kpi-m1">·</span></div><div class="kpi-val accent" id="kpi-posts">·</div><div class="kpi-note">posted this month</div></div>
+        <div class="kpi"><div class="kpi-lbl">Videos <span style="font-weight:400;text-transform:none;letter-spacing:0" id="kpi-m2">·</span></div><div class="kpi-val" style="color:var(--pink)" id="kpi-videos">·</div><div class="kpi-note">posted this month</div></div>
+        <div class="kpi"><div class="kpi-lbl">Invoice</div><div class="kpi-val" id="kpi-invoice">·</div><div class="kpi-note" id="kpi-invoice-note">this month</div></div>
+        <div class="kpi"><div class="kpi-lbl">Phase</div><div class="kpi-val accent" id="kpi-phase">·</div><div class="kpi-note" id="kpi-phase-note">·</div></div>
       </div>
       <!-- FIELDS BAR — 2 rows, all editable, all auto-save -->
       <div class="fields-bar">
         <div class="fields-bar-row">
           <div class="field-cell"><div class="field-cell-lbl">Month</div><input class="field-cell-input" id="cpf-month" type="number" min="1" max="7" placeholder="1" onchange="saveField('month',this.value)"></div>
-          <div class="field-cell"><div class="field-cell-lbl">Retainer (LKR)</div><input class="field-cell-input" id="cpf-mrr" type="number" placeholder="—" onchange="saveField('mrr',this.value)"></div>
+          <div class="field-cell"><div class="field-cell-lbl">Retainer (LKR)</div><input class="field-cell-input" id="cpf-mrr" type="number" placeholder="·" onchange="saveField('mrr',this.value)"></div>
           <div class="field-cell"><div class="field-cell-lbl">Package</div><select class="field-cell-input" id="cpf-package" onchange="saveField('package',this.value)"><option value="Spark">Spark</option><option value="Ignite">Ignite</option><option value="Blaze">Blaze</option><option value="SEO Essential">SEO Essential</option><option value="SEO+Maintenance">SEO+Maint.</option><option value="Custom">Custom</option></select></div>
           <div class="field-cell"><div class="field-cell-lbl">Health</div><select class="field-cell-input" id="cpf-health" onchange="saveField('health',this.value)"><option value="green">Green ●</option><option value="amber">Amber ●</option><option value="red">Red ●</option></select></div>
           <div class="field-cell"><div class="field-cell-lbl">Plan Ready</div><select class="field-cell-input" id="cpf-plan-ready" onchange="saveField('plan_ready',this.value)"><option value="false">Pending</option><option value="true">Ready ✓</option></select></div>
@@ -5129,7 +5138,7 @@ const hoCard = (function() {
     <!-- Day Detail Panel -->
     <div id="cal-detail" class="card" style="margin-top:14px;display:none">
       <div class="card-hd" style="margin-bottom:10px">
-        <div class="card-ttl" id="cal-detail-title">—</div>
+        <div class="card-ttl" id="cal-detail-title">·</div>
         <button class="btn-ghost btn-sm" onclick="document.getElementById('cal-detail').style.display='none'">Close</button>
       </div>
       <div id="cal-detail-list"></div>
@@ -5354,7 +5363,7 @@ const hoCard = (function() {
         <select class="form-select" style="width:150px;font-size:11px;padding:5px 8px" id="vp-filter-client" onchange="renderVideoPipeline()"><option value="">All clients</option></select>
         <select class="form-select" style="width:120px;font-size:11px;padding:5px 8px" id="vp-filter-editor" onchange="renderVideoPipeline()"><option value="">All editors</option></select>
         <button class="btn-ghost btn-sm" id="vp-bulk-btn" onclick="vpToggleBulk()" style="font-size:10px">☐ Bulk Select</button>
-        <button class="btn-ghost btn-sm" id="vp-archive-btn" onclick="vpToggleArchive()" style="font-size:10px">🗄 Archive</button>
+        <button class="btn-ghost btn-sm" id="vp-archive-btn" onclick="vpToggleArchive()" style="font-size:10px"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> Archive</button>
         <button class="btn-primary btn-sm" onclick="openNewVideoModal()">+ New Project</button>
       </div>
     </div>
@@ -5470,7 +5479,7 @@ const hoCard = (function() {
 <!-- ══════════════ FINANCE PAGE ══════════════ -->
 <div id="page-finance" class="page-section" style="display:none;position:relative">
   <div id="finance-demo-overlay" style="display:none;position:absolute;inset:0;background:var(--bg);z-index:10;align-items:center;justify-content:center;flex-direction:column;gap:14px;text-align:center;padding:40px">
-    <div style="font-size:56px">🔒</div>
+    <div style="font-size:44px;color:var(--text-3)"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
     <div style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:20px;font-weight:600;color:var(--text)">Financial data is private</div>
     <div style="font-size:13px;color:var(--text-2);max-width:400px;line-height:1.6">This module tracks all BB revenue, costs and profit in real time. Contact Business Booster to see a full walkthrough of this and the complete system.</div>
     <div style="margin-top:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;padding:10px 24px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em">businessboosterlk@gmail.com</div>
@@ -5479,7 +5488,7 @@ const hoCard = (function() {
     <!-- Finance Agent Alerts -->
     <div style="margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
       <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:12px;font-weight:600;color:var(--text);letter-spacing:0;">🤖 Finance Agent Alerts</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text);letter-spacing:0;"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg> Finance Agent Alerts</div>
         <button onclick="loadFinanceAgentAlerts()" style="background:none;border:none;color:var(--text-3);font-size:11px;cursor:pointer;">↻ Refresh</button>
       </div>
       <div id="finance-agent-alerts" style="padding:12px 16px;max-height:260px;overflow-y:auto;">
@@ -5872,8 +5881,8 @@ const hoCard = (function() {
         <div class="form-row">
           <label class="form-label">Priority</label>
           <select class="form-input" id="ms-f-priority">
-            <option value="critical">🔴 Critical</option><option value="high" selected>🟠 High</option>
-            <option value="medium">🟡 Medium</option><option value="low">🟢 Low</option>
+            <option value="critical">Critical</option><option value="high" selected>High</option>
+            <option value="medium">Medium</option><option value="low">Low</option>
           </select>
         </div>
       </div>
@@ -5912,7 +5921,7 @@ const hoCard = (function() {
   <div class="content">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
       <div>
-        <h1 style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:600;margin:0;color:var(--text)">🤖 Agents</h1>
+        <h1 style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:600;margin:0;color:var(--text)">Agents</h1>
         <div style="font-size:12px;color:var(--text-3);margin-top:3px">Live alerts from all BB system agents, updated automatically</div>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
@@ -5967,7 +5976,7 @@ const hoCard = (function() {
     <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
       <div>
         <h1 style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:600;margin:0;color:var(--text)">Content Readiness</h1>
-        <div style="color:var(--text-3);font-size:13px;margin-top:2px">Every client's Video / Post / Story progress at a glance, auto-counted live from the pipelines. <span style="color:var(--green)">&#9989; Ready</span> &middot; <span style="color:var(--amber)">&#9888;&#65039; Behind</span> &middot; <span style="color:var(--red)">&#128308; Not started</span></div>
+        <div style="color:var(--text-3);font-size:13px;margin-top:2px">Every client's Video / Post / Story progress at a glance, auto-counted live from the pipelines. <span style="color:var(--green)">&#9989; Ready</span> &middot; <span style="color:var(--amber)">&#9888;&#65039; Behind</span> &middot; <span style="color:var(--red)"><span class="bb-dot red" aria-hidden="true"></span> Not started</span></div>
       </div>
       <div class="tab-group" id="rb-roll-tabs" style="padding:2px;gap:2px"></div>
     </div>
@@ -6074,8 +6083,8 @@ const hoCard = (function() {
         <div class="form-field"><label class="form-label">Logo URL</label><input class="form-input" type="text" id="bk-logo" placeholder="https://…" oninput="bkLogoPreview()"></div>
         <div class="form-field"><label class="form-label">Fonts</label><input class="form-input" type="text" id="bk-fonts" placeholder="Poppins, Inter"></div>
         <div class="form-field"><label class="form-label">Guidelines URL</label><input class="form-input" type="text" id="bk-guidelines" placeholder="Drive / Figma link"></div>
-        <div class="form-field"><label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Assets Folder (Drive root) <a href="#" id="bk-assets-open" onclick="bkOpenAssets(event)" style="font-size:0.68rem;color:var(--accent);text-decoration:none">📁 Open</a></label><input class="form-input" type="text" id="bk-assets" placeholder="Drive folder link"></div>
-        <div class="form-field" style="grid-column:1/-1"><div style="font-size:0.68rem;color:var(--text-3);background:var(--surface-2,#1a1a26);border:1px solid var(--border);border-radius:6px;padding:8px 10px">📂 <b>Standard Drive structure</b> (per client): <code>/Clients/&lt;Client&gt;/&lt;Month&gt;/</code> → <b>Raw</b> · <b>Edited</b> · <b>Graphics</b> · <b>Final</b> · <b>Approved</b>. Paste this client's Drive root above so every role opens files from one place.</div></div>
+        <div class="form-field"><label class="form-label" style="display:flex;justify-content:space-between;align-items:center">Assets Folder (Drive root) <a href="#" id="bk-assets-open" onclick="bkOpenAssets(event)" style="font-size:0.68rem;color:var(--accent);text-decoration:none"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Open</a></label><input class="form-input" type="text" id="bk-assets" placeholder="Drive folder link"></div>
+        <div class="form-field" style="grid-column:1/-1"><div style="font-size:0.68rem;color:var(--text-3);background:var(--surface-2,#1a1a26);border:1px solid var(--border);border-radius:6px;padding:8px 10px"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> <b>Standard Drive structure</b> (per client): <code>/Clients/&lt;Client&gt;/&lt;Month&gt;/</code> → <b>Raw</b> · <b>Edited</b> · <b>Graphics</b> · <b>Final</b> · <b>Approved</b>. Paste this client's Drive root above so every role opens files from one place.</div></div>
         <div class="form-field" style="grid-column:1/-1"><label class="form-label">Notes</label><input class="form-input" type="text" id="bk-notes" placeholder="Optional"></div>
       </div>
       <div id="bk-logo-preview" style="margin-top:8px"></div>
@@ -6299,7 +6308,7 @@ const hoCard = (function() {
   <div class="modal-body">
     <div class="form-field"><label class="form-label">Client *</label><select class="form-select" id="sp-client"></select></div>
     <div class="form-field"><label class="form-label">Shoot Title *</label><input class="form-input" id="sp-title" placeholder="e.g. May Product Shoot"></div>
-    <div class="field-row"><div class="form-field"><label class="form-label">Month</label><select class="form-select" id="sp-month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div><div class="form-field"><label class="form-label">Quarter</label><select class="form-select" id="sp-quarter"><option value="">—</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div></div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Month</label><select class="form-select" id="sp-month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div><div class="form-field"><label class="form-label">Quarter</label><select class="form-select" id="sp-quarter"><option value="">Not set</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div></div>
     <div class="field-row"><div class="form-field"><label class="form-label">Shoot Date</label><input class="form-input" id="sp-date" type="date"></div><div class="form-field"><label class="form-label">Videos to Shoot</label><input class="form-input" id="sp-vcount" type="number" placeholder="e.g. 6"></div></div>
     <div class="form-field"><label class="form-label">Stage</label><select class="form-select" id="sp-stage"><option value="Videos Confirmed">Videos Confirmed</option><option value="Script Made">Script Made</option><option value="Script Changes">Script Changes</option><option value="Final Script">Final Script</option><option value="Shoot Date Set">Get Shoot Date</option><option value="Date Confirmed">Date Confirmed</option><option value="Shot">Shot</option></select></div>
     <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="sp-notes" placeholder="Optional context"></div>
@@ -6357,7 +6366,7 @@ const hoCard = (function() {
         <div class="form-field"><label class="form-label">Editor</label><select class="form-select" id="ev-editor"><option value="">Unassigned</option></select></div>
       </div>
       <div class="field-row" style="margin-top:10px">
-        <div class="form-field"><label class="form-label">Target Month</label><select class="form-select" id="ev-month"><option value="">—</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
+        <div class="form-field"><label class="form-label">Target Month</label><select class="form-select" id="ev-month"><option value="">Not set</option><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select></div>
         <div class="form-field"><label class="form-label">Year</label><input class="form-input" id="ev-year" type="number"></div>
       </div>
       <div class="field-row" style="margin-top:10px">
@@ -6425,7 +6434,7 @@ const hoCard = (function() {
   <div class="modal"><div class="modal-head"><div class="modal-title" id="sh-modal-title">Add Shoot</div><button class="modal-close" onclick="closeModal('modal-shoot')">×</button></div>
   <div class="modal-body">
     <div class="form-field"><label class="form-label">Shoot Title *</label><input class="form-input" id="sh-title" placeholder="e.g. May Product Shoot"></div>
-    <div class="field-row"><div class="form-field"><label class="form-label">Month</label><select class="form-select" id="sh-month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div><div class="form-field"><label class="form-label">Quarter</label><select class="form-select" id="sh-quarter"><option value="">—</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div></div>
+    <div class="field-row"><div class="form-field"><label class="form-label">Month</label><select class="form-select" id="sh-month"><option>January</option><option>February</option><option>March</option><option>April</option><option>May</option><option>June</option><option>July</option><option>August</option><option>September</option><option>October</option><option>November</option><option>December</option></select></div><div class="form-field"><label class="form-label">Quarter</label><select class="form-select" id="sh-quarter"><option value="">Not set</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div></div>
     <div class="field-row"><div class="form-field"><label class="form-label">Shoot Date</label><input class="form-input" id="sh-date" type="date"></div><div class="form-field"><label class="form-label">Videos to Shoot</label><input class="form-input" id="sh-vcount" type="number" placeholder="e.g. 6"></div></div>
     <div class="form-field"><label class="form-label">Stage</label><select class="form-select" id="sh-stage"><option>Videos Confirmed</option><option>Script Made</option><option>Script Changes</option><option>Final Script</option><option>Get Shoot Date</option><option>Date Confirmed</option><option>Shot</option></select></div>
     <div class="form-field"><label class="form-label">Notes</label><input class="form-input" id="sh-notes" placeholder="Optional context"></div>
@@ -7049,7 +7058,7 @@ function workableClients(list){ return (list||[]).filter(isWorkableClient); }
 function mrrUnknownCount(list){return (list||[]).filter(function(x){return !Number(x&&x.mrr);}).length}
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 function fmtK(n){
-  if(!n&&n!==0)return '—';
+  if(!n&&n!==0)return '·';
   if(n>=1000000)return 'LKR '+(n/1000000).toFixed(1).replace(/\.0$/,'')+'M';
   if(n>=1000)return 'LKR '+(n/1000).toFixed(0)+'K';
   return 'LKR '+n;
@@ -7376,8 +7385,8 @@ function renderPipelinePanel(){
     return `<div class="pipe-row">
       <div class="pipe-dot ${p.status||'potential'}"></div>
       <div class="pipe-name">${esc(p.name)}</div>
-      <div class="pipe-ind">${esc(p.industry||'—')}</div>
-      <div class="pipe-contact">${esc(p.owner||'—')}</div>
+      <div class="pipe-ind">${esc(p.industry||'·')}</div>
+      <div class="pipe-contact">${esc(p.owner||'·')}</div>
       <div class="pipe-act ${ac}">${al}</div>
     </div>`;
   }).join('');
@@ -7414,7 +7423,7 @@ function renderWeekStrip(){
     return `<div class="day-cell${isToday?' today':''}">
       <div class="day-nm">${dayNames[d.getDay()]}</div>
       <div class="day-num">${d.getDate()}</div>
-      ${chips.join('')||'<div class="day-empty">—</div>'}
+      ${chips.join('')||'<div class="day-empty">·</div>'}
     </div>`;
   }).join('');
 }
@@ -8038,7 +8047,7 @@ function pipeCardHTML(p){
       <div style="display:flex;gap:5px;align-items:center">
         ${p._synced?`<span class="pill pill-blue" title="Owned by the Leads app (stage: ${esc(p.stage||'')}): manage it there">SYNCED</span>`:''}
         <span class="pill pill-neutral" style="font-size:8.5px;padding:2px 7px">${typeBadge}</span>
-        <span class="pill ${p._synced?'pill-neutral':pipeStatusPill(p.status)}">${p._synced?esc(p.stage||'—'):pipeStatusLabel(p.status)}</span>
+        <span class="pill ${p._synced?'pill-neutral':pipeStatusPill(p.status)}">${p._synced?esc(p.stage||'·'):pipeStatusLabel(p.status)}</span>
       </div>
     </div>
     <div class="pipe-meta">
@@ -8858,18 +8867,18 @@ function renderTable(){
       <td><div class="client-name">${esc(c.name)}</div>${c.industry?`<div class="client-note">${esc(c.industry)}</div>`:''}</td>
       <td>${typePill(c.client_type)}</td><td>${pkgPill(c.package)}</td>
       <td style="text-align:center"><span class="month-badge">M${c.month||1}</span></td>
-      <td style="font-size:12.5px;font-weight:700">${getMRR(c)?fmtK(getMRR(c)):'—'}</td>
+      <td style="font-size:12.5px;font-weight:700">${getMRR(c)?fmtK(getMRR(c)):'·'}</td>
       <td><div class="health-cell"><span class="health-dot ${c.health||'green'}"></span><span class="health-label ${c.health||'green'}">${hlbl(c.health)}</span></div></td>
-      <td style="text-align:center"><span class="content-num ${c.monthly_posts?'posts':'dash'}">${c.monthly_posts||'—'}</span></td>
-      <td style="text-align:center"><span class="content-num ${c.monthly_stories?'posts':'dash'}">${c.monthly_stories||'—'}</span></td>
-      <td style="text-align:center"><span class="content-num ${c.monthly_videos?'videos':'dash'}">${c.monthly_videos||'—'}</span></td>
-      <td><span class="task-cell ${od?'has-overdue':open?'has-tasks':'clear'}">${open?open+' open'+(od?' · '+od+' od':''):'—'}</span></td>
+      <td style="text-align:center"><span class="content-num ${c.monthly_posts?'posts':'dash'}">${c.monthly_posts||'·'}</span></td>
+      <td style="text-align:center"><span class="content-num ${c.monthly_stories?'posts':'dash'}">${c.monthly_stories||'·'}</span></td>
+      <td style="text-align:center"><span class="content-num ${c.monthly_videos?'videos':'dash'}">${c.monthly_videos||'·'}</span></td>
+      <td><span class="task-cell ${od?'has-overdue':open?'has-tasks':'clear'}">${open?open+' open'+(od?' · '+od+' od':''):'·'}</span></td>
       <td onclick="event.stopPropagation()">${tabFilter==='ended'?'':`<button class="del-row-btn" title="End client" aria-label="End client" onclick="confirmDeleteClient(${Number(c.id)})">×</button>`}</td>
     </tr>`;
   }).join('');
 }
 function typePill(t){if(t==='web')return '<span class="pill pill-blue">Web/SEO</span>';if(t==='both')return '<span class="pill pill-pink">SM+Web</span>';return '<span class="pill pill-orange">Social Media</span>';}
-function pkgPill(p){const m={Spark:'pill-orange',Ignite:'pill-amber',Blaze:'pill-red','SEO Essential':'pill-blue','SEO+Maintenance':'pill-pink',Custom:'pill-neutral'};return `<span class="pill ${m[p]||'pill-neutral'}">${esc(p||'—')}</span>`;}
+function pkgPill(p){const m={Spark:'pill-orange',Ignite:'pill-amber',Blaze:'pill-red','SEO Essential':'pill-blue','SEO+Maintenance':'pill-pink',Custom:'pill-neutral'};return `<span class="pill ${m[p]||'pill-neutral'}">${esc(p||'·')}</span>`;}
 function hlbl(h){return h==='amber'?'Amber':h==='red'?'Red':'Green';}
 function hpill(h){const c={green:'pill-green',amber:'pill-amber',red:'pill-red'}[h]||'pill-green';return `<span class="pill ${c}">${hlbl(h)}</span>`;}
 
@@ -8940,8 +8949,8 @@ function renderKPIs(c){
      read as "behind on 12 posts" when nothing has been planned yet. */
   const pPlan=posts.length,vPlan=vids.length;
   const pTgt=!pPlan&&Number(c.monthly_posts)>0,vTgt=!vPlan&&Number(c.monthly_videos)>0;
-  document.getElementById('kpi-posts').textContent=pPlan?`${posts.filter(p=>p.posted).length}/${pPlan}`:(pTgt?`0/${c.monthly_posts}`:'—');
-  document.getElementById('kpi-videos').textContent=vPlan?`${vids.filter(p=>p.posted).length}/${vPlan}`:(vTgt?`0/${c.monthly_videos}`:'—');
+  document.getElementById('kpi-posts').textContent=pPlan?`${posts.filter(p=>p.posted).length}/${pPlan}`:(pTgt?`0/${c.monthly_posts}`:'·');
+  document.getElementById('kpi-videos').textContent=vPlan?`${vids.filter(p=>p.posted).length}/${vPlan}`:(vTgt?`0/${c.monthly_videos}`:'·');
   document.getElementById('kpi-m1').textContent=ml+(pTgt?' · target':'');
   document.getElementById('kpi-m2').textContent=ml+(vTgt?' · target':'');
   const ki=document.getElementById('kpi-invoice'),kin=document.getElementById('kpi-invoice-note');
@@ -8957,7 +8966,7 @@ function renderKPIs(c){
     kin.textContent=unpaidInv.map(i=>fmtInvMonth(i.month)).join(', ')+' unpaid';
   }else if(allInv.length){
     ki.textContent='ALL PAID';ki.className='kpi-val green';kin.textContent=fmtK(allInv.reduce((s,i)=>s+(i.amount||0),0))+' collected';
-  }else{ki.textContent='—';ki.className='kpi-val';kin.textContent='no invoices yet';}
+  }else{ki.textContent='·';ki.className='kpi-val';kin.textContent='no invoices yet';}
   document.getElementById('kpi-phase').textContent=`M${c.month||1}/7`;
   document.getElementById('kpi-phase-note').textContent=PHASES[(c.month||1)-1]||'Foundation';
 }
@@ -8995,12 +9004,12 @@ function renderOverviewTab(c){
   let months,label;
   if(ovView==='rolling'){
     months=[-1,0,1].map(o=>{const d=new Date(y,m-1+o,1);return{y:d.getFullYear(),m:d.getMonth()+1,name:MS[d.getMonth()]+' '+d.getFullYear()};});
-    label='— Rolling 3 Months';
+    label='· Rolling 3 Months';
   }else{
     const qMap={Q1:[1,2,3],Q2:[4,5,6],Q3:[7,8,9],Q4:[10,11,12]};
-    const qLabels={Q1:'Jan – Mar',Q2:'Apr – Jun',Q3:'Jul – Sep',Q4:'Oct – Dec'};
+    const qLabels={Q1:'Jan to Mar',Q2:'Apr to Jun',Q3:'Jul to Sep',Q4:'Oct to Dec'};
     months=qMap[ovView].map(mo=>({y,m:mo,name:MS[mo-1]+' '+y}));
-    label=`— ${ovView} ${qLabels[ovView]} ${y}`;
+    label=`· ${ovView} ${qLabels[ovView]} ${y}`;
   }
   const lbl=document.getElementById('ov-period-label');if(lbl)lbl.textContent=label;
   // Adjust grid to always show 3 columns
@@ -9159,7 +9168,7 @@ function renderShootsTab(id){
 function shootHTML(s,compact){
   const sc=STAGE_CLS[s.stage]||'st-default';
   return `<div class="shoot-row">
-    <span class="stage-badge ${sc}">${esc(s.stage||'—')}</span>
+    <span class="stage-badge ${sc}">${esc(s.stage||'·')}</span>
     <span class="shoot-title">${esc(s.title||'Untitled')}</span>
     ${s.month?`<span class="shoot-meta">${esc(s.month)}${s.quarter?' · '+esc(s.quarter):''}</span>`:''}
     ${s.shoot_date?`<span class="shoot-meta">${fmtDate(s.shoot_date)}</span>`:''}
@@ -9205,10 +9214,10 @@ function renderFinanceTab(id){
   el.innerHTML=Object.entries(byYear).sort((a,b)=>b[0].localeCompare(a[0])).map(([yr,invs])=>`
     <div class="inv-yr-hd">${yr}</div>
     ${invs.map(inv=>`<div class="inv-row">
-      <span class="inv-month">${String(inv.month||'').slice(5)||'—'}</span>
+      <span class="inv-month">${String(inv.month||'').slice(5)||'·'}</span>
       <span class="inv-desc">${esc(inv.notes||'Retainer')}</span>
       <span class="inv-amount">${fmtK(inv.amount)}</span>
-      <span class="inv-badge ${inv.status==='paid'?'inv-paid':inv.status==='overdue'?'inv-overdue':'inv-unpaid'}">${(inv.status||'—').toUpperCase()}</span>
+      <span class="inv-badge ${inv.status==='paid'?'inv-paid':inv.status==='overdue'?'inv-overdue':'inv-unpaid'}">${(inv.status||'·').toUpperCase()}</span>
       <button class="item-btn" onclick="openEditInv(${inv.id})" title="Edit"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
       <button class="item-btn del" onclick="deleteInv(${inv.id})">×</button>
     </div>`).join('')}`).join('');
@@ -9668,7 +9677,7 @@ function renderFinReports(){
   const prev=finMonthShift(cur,-1), lastYr=finMonthShift(cur,-12);
   const C=finMonthStats(cur), P=finMonthStats(prev), Y=finMonthStats(lastYr);
   const money=n=>'LKR '+(n||0).toLocaleString();
-  const dash='—';
+  const dash='·';
 
   /* ── A. compare ── */
   const cmpRow=(lbl,a)=>`<tr>
@@ -10105,11 +10114,11 @@ function renderMonthlyRecap(){
     if(r.unstamped) sentence+=' · '+r.unstamped+' finished without a time';
     html+='<tr style="border-bottom:1px solid var(--border)">'
       +'<td style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--text)">'+esc(r.c.name)+'</td>'
-      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+(r.opened||'—')+'</td>'
-      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:'+(r.finished?'var(--green)':'var(--text-3)')+'">'+(r.finished||'—')+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+(r.opened||'·')+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:'+(r.finished?'var(--green)':'var(--text-3)')+'">'+(r.finished||'·')+'</td>'
       +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)" title="'+(r.nTurns?'measured on '+r.nTurns+' tasks':'nothing measurable')+'">'
         +(r.med===null?'<span style="color:var(--text-3)">not measurable</span>':fmtD(r.med)+'<span style="color:var(--text-3);font-size:9.5px"> /'+r.nTurns+'</span>')+'</td>'
-      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+(r.max===null?'—':fmtD(r.max))+'</td>'
+      +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+(r.max===null?'·':fmtD(r.max))+'</td>'
       +'<td style="padding:8px 12px;font-size:11.5px;text-align:right;color:var(--text-2)">'+r.vFin+'/'+r.vOpen+'</td>'
       +'<td style="padding:8px 12px;font-size:11px;color:var(--text-3)">'+sentence+'</td></tr>';
   });
@@ -11351,10 +11360,10 @@ function renderFinYearly(){
     const pft=rev-cost;const mg=rev>0?Math.round(pft/rev*100):0;
     return `<tr>
       <td style="font-weight:700">${bbMonthLabel(m)}</td>
-      <td style="color:var(--green)">${rev?'LKR '+rev.toLocaleString():'—'}</td>
-      <td style="color:var(--red)">${cost?'LKR '+cost.toLocaleString():'—'}</td>
-      <td style="color:${pft>=0?'var(--green)':'var(--red)'};font-weight:700">${rev||cost?'LKR '+pft.toLocaleString():'—'}</td>
-      <td style="color:var(--text-3)">${rev?mg+'%':'—'}</td>
+      <td style="color:var(--green)">${rev?'LKR '+rev.toLocaleString():'·'}</td>
+      <td style="color:var(--red)">${cost?'LKR '+cost.toLocaleString():'·'}</td>
+      <td style="color:${pft>=0?'var(--green)':'var(--red)'};font-weight:700">${rev||cost?'LKR '+pft.toLocaleString():'·'}</td>
+      <td style="color:var(--text-3)">${rev?mg+'%':'·'}</td>
     </tr>`;
   }).filter(Boolean).join('');
   const totPft=totRev-totCost;const totMg=totRev>0?Math.round(totPft/totRev*100):0;
@@ -11407,10 +11416,10 @@ function renderFinByClient(){
       ${sortedInv.map(inv=>{
         const sc={paid:'var(--green)',unpaid:'var(--amber)',overdue:'var(--red)'}[inv.status]||'var(--text-2)';
         const sb={paid:'var(--green-soft)',unpaid:'var(--amber-soft)',overdue:'var(--red-soft)'}[inv.status]||'var(--surface-2)';
-        const sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||'—';
+        const sl={paid:'PAID',unpaid:'PENDING',overdue:'OVERDUE'}[inv.status]||'·';
         return `<div style="display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">
-          <div style="font-size:11px;color:var(--text-3);font-weight:700;min-width:60px">${inv.month?bbMonthLabel(inv.month,true):'—'}</div>
-          <div style="flex:1;font-size:12px;color:var(--text-2)">${inv.notes?esc(inv.notes):'—'}</div>
+          <div style="font-size:11px;color:var(--text-3);font-weight:700;min-width:60px">${inv.month?bbMonthLabel(inv.month,true):'·'}</div>
+          <div style="flex:1;font-size:12px;color:var(--text-2)">${inv.notes?esc(inv.notes):'·'}</div>
           <div style="font-size:13px;font-weight:600">LKR ${(inv.amount||0).toLocaleString()}</div>
           <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:6px;background:${sb};color:${sc};min-width:56px;text-align:center">${sl}</span>
           ${finSentBtn(inv)}${inv.status!=='paid'?`<button style="font-size:10px;padding:3px 8px;background:var(--green-soft);border:1px solid var(--green);color:var(--green);border-radius:var(--r-sm);cursor:pointer;font-weight:600" onclick="finMarkPaid(${inv.id})">Paid \u2713</button>`:''}
@@ -11953,7 +11962,7 @@ function renderJourneyTab(id){
   const{y,m}=nowYM();
   el.innerHTML=entries.map(j=>{
     const isCurr=Number(j.month)===m&&Number(j.year)===y;
-    const mName=MN[Number(j.month)-1]||'—';
+    const mName=MN[Number(j.month)-1]||'·';
     return `<div class="journal-entry${isCurr?' curr':''}">
       <div class="journal-hd">
         <div class="journal-left">
@@ -11968,7 +11977,7 @@ function renderJourneyTab(id){
           <button class="item-btn del" onclick="deleteJnl(${j.id})">×</button>
         </div>
       </div>
-      <div class="journal-situation">${esc(j.situation||'—')}</div>
+      <div class="journal-situation">${esc(j.situation||'·')}</div>
     </div>`;
   }).join('');
 }
@@ -12116,8 +12125,8 @@ function rbStatus(done,target){
   if(target==null) return {icon:'',cls:'',label:'',txt:done+' done'};
   if(target>0 && done>=target) return {icon:'✅',cls:'green',label:'Ready',txt:done+' / '+target};
   if(done>0 && done<target)    return {icon:'⚠️',cls:'amber',label:'Behind',txt:done+' / '+target};
-  if(done===0 && target>0)     return {icon:'🔴',cls:'red',label:'Not started',txt:'0 / '+target};
-  return {icon:'—',cls:'',label:'',txt:'0 / 0'};
+  if(done===0 && target>0)     return {icon:BBDOT('red'),cls:'red',label:'Not started',txt:'0 / '+target};
+  return {icon:'·',cls:'',label:'',txt:'0 / 0'};
 }
 function rbTabBtns(active, fn){
   return [['month','This Month'],['Q1','Q1'],['Q2','Q2'],['Q3','Q3'],['Q4','Q4'],['year','Year']]
@@ -12128,7 +12137,7 @@ function rbChip(st){ return st.label?`<span style="font-size:9px;font-weight:700
 async function renderReadinessTab(c){
   await loadReadinessData();
   const tabsEl=document.getElementById('rb-period-tabs'); if(tabsEl)tabsEl.innerHTML=rbTabBtns(rbPeriod,'rbSetPeriod');
-  const lblEl=document.getElementById('rb-period-label'); if(lblEl)lblEl.textContent='— '+rbPeriodLabel(rbPeriod);
+  const lblEl=document.getElementById('rb-period-label'); if(lblEl)lblEl.textContent='· '+rbPeriodLabel(rbPeriod);
   const months=rbMonths(rbPeriod), ct=rbCounts(c.id,months);
   const rows=[['Video','video','monthly_videos'],['Post','post','monthly_posts'],['Story','story','monthly_stories']].map(([lbl,key,col])=>{
     const done=ct[key], target=rbTarget(c,col,months), st=rbStatus(done,target);
@@ -12170,7 +12179,7 @@ function renderReadinessRollup(){
       if(target!=null){ if(st.cls==='green')ready++; else if(st.cls==='amber')behind++; else if(st.cls==='red')notstarted++; }
       return `<td style="padding:10px 12px;white-space:nowrap">${rbCell(done,target)}</td>`;
     }).join('');
-    return `<tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="openProfile(${c.id});setTimeout(()=>switchTab('readiness'),80)"><td style="padding:10px 12px;font-weight:600;color:var(--text)">${esc(c.name||'—')}</td>${cells}</tr>`;
+    return `<tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="openProfile(${c.id});setTimeout(()=>switchTab('readiness'),80)"><td style="padding:10px 12px;font-weight:600;color:var(--text)">${esc(c.name||'·')}</td>${cells}</tr>`;
   }).join('');
   const statsEl=document.getElementById('rb-roll-stats'); if(statsEl)statsEl.innerHTML=rbStat('Ready',ready,'green')+rbStat('Behind',behind,'amber')+rbStat('Not started',notstarted,'red');
   const body=document.getElementById('rb-roll-body');
@@ -12651,7 +12660,7 @@ function openVideoDetail(id,_fresh){
   const v=VP_videos.find(x=>x.id===id);if(!v)return;
   VP_detailId=id;vpCommentImage=null;
   const cn=v.clients?.name||'Unknown';const en=v.team_members?.name||'Unassigned';
-  const smm=v.clients?.assigned_smm||'—';
+  const smm=v.clients?.assigned_smm||'·';
   const links=VP_links.filter(l=>l.video_project_id===id);
   const rawLinks=links.filter(l=>l.tag==='raw_footage');
   const finalLinks=links.filter(l=>l.tag==='final_cut');
@@ -12660,7 +12669,7 @@ function openVideoDetail(id,_fresh){
   /* 6 Oct 2026: a video still sitting at a retired stage keeps that stage as its selected option. */
   const stageOpts=(VP_STAGES.includes(v.current_stage)||!v.current_stage?VP_STAGES:[v.current_stage,...VP_STAGES]).map(st=>`<option value="${st}" ${v.current_stage===st?'selected':''}>${VP_LABEL[st]||st}</option>`).join('');
   const priOpts=['low','medium','high','urgent'].map(p=>`<option value="${p}" ${v.priority===p?'selected':''}>${p.charAt(0).toUpperCase()+p.slice(1)}</option>`).join('');
-  function fmtDur(s){if(!s&&s!==0)return'—';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);if(h>0)return h+'h '+m+'m';return m+'m';}
+  function fmtDur(s){if(!s&&s!==0)return'·';const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);if(h>0)return h+'h '+m+'m';return m+'m';}
   function relTime(d){if(!d)return'';const ms=Date.now()-new Date(d).getTime();const days=Math.floor(ms/86400000);if(days<1)return'today';if(days===1)return'1d ago';return days+'d ago';}
   const priDot={low:'var(--green)',medium:'var(--accent)',high:'var(--orange)',urgent:'var(--red)'}[v.priority]||'var(--text-3)';
   const monthNames=['','January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -12673,13 +12682,13 @@ function openVideoDetail(id,_fresh){
   // OVERVIEW section
   html+=`<div class="vp-detail-sec-hd" style="margin-top:0;padding-top:0;border:none">Overview</div>
   <div class="vp-ov-grid">
-    <div class="vp-ov-card"><div class="vp-ov-lbl">Added</div><div class="vp-ov-val">${v.created_at?fmtDate(v.created_at.split('T')[0]):'—'}<span style="font-size:10px;color:var(--text-3);margin-left:6px;font-weight:400">${relTime(v.created_at)}</span></div></div>
-    <div class="vp-ov-card"><div class="vp-ov-lbl">Due</div><div class="vp-ov-val" style="${v.deadline&&v.deadline<todayStr()?'color:var(--red)':''}">${v.deadline?fmtDate(v.deadline):'—'}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Added</div><div class="vp-ov-val">${v.created_at?fmtDate(v.created_at.split('T')[0]):'·'}<span style="font-size:10px;color:var(--text-3);margin-left:6px;font-weight:400">${relTime(v.created_at)}</span></div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Due</div><div class="vp-ov-val" style="${v.deadline&&v.deadline<todayStr()?'color:var(--red)':''}">${v.deadline?fmtDate(v.deadline):'·'}</div></div>
     <div class="vp-ov-card"><div class="vp-ov-lbl">Priority</div><div class="vp-ov-val"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${priDot};margin-right:6px"></span>${(v.priority||'medium').charAt(0).toUpperCase()+(v.priority||'medium').slice(1)}</div></div>
-    <div class="vp-ov-card"><div class="vp-ov-lbl">Type</div><div class="vp-ov-val">${(v.type||'—').charAt(0).toUpperCase()+(v.type||'').slice(1)}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Type</div><div class="vp-ov-val">${(v.type||'·').charAt(0).toUpperCase()+(v.type||'').slice(1)}</div></div>
     <div class="vp-ov-card"><div class="vp-ov-lbl">Editor</div><div class="vp-ov-val">${esc(en)}</div></div>
     <div class="vp-ov-card"><div class="vp-ov-lbl">SMM (Handles Client)</div><div class="vp-ov-val">${esc(smm)}</div></div>
-    <div class="vp-ov-card"><div class="vp-ov-lbl">Month</div><div class="vp-ov-val">${v.target_month?monthNames[v.target_month]+' '+(v.target_year||''):'—'}</div></div>
+    <div class="vp-ov-card"><div class="vp-ov-lbl">Month</div><div class="vp-ov-val">${v.target_month?monthNames[v.target_month]+' '+(v.target_year||''):'·'}</div></div>
     <div class="vp-ov-card"><div class="vp-ov-lbl">Current Stage</div><div class="vp-ov-val">${esc(VP_LABEL[v.current_stage]||v.current_stage)}</div></div>
   </div>`;
 
@@ -12881,7 +12890,7 @@ async function vpToggleArchive(){
     if(board)board.style.display='';
     if(stats)stats.style.display='';
     if(archView)archView.style.display='none';
-    if(btn)btn.textContent='\uD83D\uDDC4 Archive';
+    if(btn)btn.innerHTML=BBICO('archive')+' Archive';
   }
 }
 async function loadArchivedVideos(){
@@ -12892,8 +12901,8 @@ async function loadArchivedVideos(){
     if(!archived||!archived.length){tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-3);font-size:12px">No archived projects</td></tr>';return;}
     tbody.innerHTML=archived.map(v=>`<tr style="border-bottom:1px solid var(--border)">
       <td style="padding:10px 12px;font-size:12px;font-weight:600;color:var(--text)">${esc(v.title||'Untitled')}</td>
-      <td style="padding:10px 12px;font-size:11px;color:var(--text-2)">${esc(v.clients?.name||'—')}</td>
-      <td style="padding:10px 12px;font-size:11px;color:var(--text-3)">${VP_LABEL[v.current_stage]||v.current_stage||'—'}</td>
+      <td style="padding:10px 12px;font-size:11px;color:var(--text-2)">${esc(v.clients?.name||'·')}</td>
+      <td style="padding:10px 12px;font-size:11px;color:var(--text-3)">${VP_LABEL[v.current_stage]||v.current_stage||'·'}</td>
       <td style="padding:10px 12px;text-align:right"><button class="btn-ghost btn-sm" style="font-size:10px;color:var(--accent)" onclick="restoreVideo(${v.id})">Restore</button></td>
     </tr>`).join('');
   }catch(e){console.error('loadArchivedVideos',e);}
@@ -13469,7 +13478,7 @@ function renderContentPlans(){
 
   if(!items.length){
     el.innerHTML=`<div class="card" style="text-align:center;padding:48px 32px;color:var(--text-3)">
-      <div style="font-size:40px;margin-bottom:12px">\uD83D\uDCCB</div>
+      <div style="font-size:36px;margin-bottom:12px">${BBICO('clipboard')}</div>
       <div style="font-size:15px;font-weight:700;color:var(--text-2);margin-bottom:6px">No content planned yet</div>
       <div style="font-size:12px;margin-bottom:18px">Click <b>+ Add Content</b> to start planning your clients' content for this month.</div>
       <button class="btn-primary btn-sm" onclick="openCpAddModal()">+ Add Content</button>
@@ -13825,7 +13834,7 @@ function renderMissions(){
 
   if(!items.length){
     el.innerHTML=`<div class="card" style="text-align:center;padding:48px 32px;color:var(--text-3)">
-      <div style="font-size:40px;margin-bottom:12px">\uD83C\uDFAF</div>
+      <div style="font-size:36px;margin-bottom:12px">${BBICO('target')}</div>
       <div style="font-size:15px;font-weight:700;color:var(--text-2);margin-bottom:6px">No missions set for ${quarter}</div>
       <div style="font-size:12px;margin-bottom:18px">Add your strategic objectives for the quarter: what must BB achieve?</div>
       <button class="btn-primary btn-sm" onclick="openMsModal()">+ Add Mission</button>
@@ -13833,7 +13842,7 @@ function renderMissions(){
     return;
   }
 
-  const PRIORITY_ICO={critical:'\uD83D\uDD34',high:'\uD83D\uDFE0',medium:'\uD83D\uDFE1',low:'\uD83D\uDFE2'};
+  const PRIORITY_ICO={critical:BBDOT('red'),high:BBDOT('orange'),medium:BBDOT('amber'),low:BBDOT('green')};
   const STATUS_COLOR={not_started:'var(--text-3)',in_progress:'var(--accent)',done:'var(--green)',dropped:'var(--text-3)'};
   const STATUS_BG={not_started:'var(--surface-2)',in_progress:'rgba(123,97,255,.12)',done:'var(--green-soft)',dropped:'var(--surface-2)'};
   const STATUS_LBL={not_started:'Not Started',in_progress:'In Progress',done:'Done \u2713',dropped:'Dropped'};
@@ -13850,7 +13859,7 @@ function renderMissions(){
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
           <div style="flex:1;min-width:0">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px">
-              <span style="font-size:15px">${PRIORITY_ICO[item.priority]||'\uD83D\uDFE0'}</span>
+              <span style="font-size:15px">${PRIORITY_ICO[item.priority]||PRIORITY_ICO.high}</span>
               <span style="font-size:14px;font-weight:600;color:var(--text)">${esc(item.title)}</span>
               <span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;background:${STATUS_BG[item.status]};color:${STATUS_COLOR[item.status]};letter-spacing:0">${STATUS_LBL[item.status]||item.status}</span>
               ${isOverdue?'<span style="font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--red-soft);color:var(--red);letter-spacing:0">OVERDUE</span>':''}
@@ -17968,6 +17977,8 @@ if('serviceWorker' in navigator){
     { key:'no-checkin',    icon:'👋', label:'No Check-In',     desc:'Clients silent 14 days',     group:'clients'  },
     { key:'invoice-due',   icon:'💸', label:'Invoice Overdue', desc:'Unpaid past due date',       group:'finance'  }
   ];
+  /* the card shows a stroke icon in the nav style; the emoji above stays for the plain text places that name an agent */
+  var BBA3_ICO = {'client-health':'health',revenue:'money',team:'users',content:'clipboard','ceo-brief':'chart',onboarding:'key',shoot:'film','lead-stale':'inbox','no-checkin':'clock','invoice-due':'note'};
 
   var STATE = {};
   AGENTS.forEach(function(a){ STATE[a.key]={count:null,level:'idle',items:[]}; });
@@ -18081,7 +18092,7 @@ if('serviceWorker' in navigator){
     if (document.getElementById('bba3-section')) return;
     var cards = AGENTS.map(function(a){
       return '<div class="bba3-card" id="bba3-card-'+a.key+'" data-key="'+a.key+'" data-level="scanning" onclick="window.BBA3&&window.BBA3.open(\''+a.key+'\')">' +
-        '<span class="bba3-icon">'+a.icon+'</span>' +
+        '<span class="bba3-icon">'+(BBA3_ICO[a.key]?BBICO(BBA3_ICO[a.key]):a.icon)+'</span>' +
         '<div class="bba3-name">'+a.label+'</div>' +
         '<div class="bba3-desc">'+a.desc+'</div>' +
         '<div class="bba3-val" id="bba3-val-'+a.key+'"><span style="display:inline-block;width:16px;height:2px;background:#6366f1;border-radius:2px;animation:bba3shimmer 1s infinite;vertical-align:middle;margin-bottom:2px;"></span></div>' +
@@ -18222,7 +18233,7 @@ if('serviceWorker' in navigator){
     var s = STATE[key] || { items: [], level: 'idle' };
     var colors = { red:'linear-gradient(90deg,#ef4444,#dc2626)', amber:'linear-gradient(90deg,#f59e0b,#d97706)', green:'linear-gradient(90deg,#22c55e,#16a34a)', idle:'linear-gradient(90deg,#6366f1,#8b5cf6)', scanning:'linear-gradient(90deg,#6366f1,#8b5cf6)' };
 
-    title.textContent = a.icon + '  ' + a.label;
+    title.textContent = a.label;
     accent.style.background = colors[s.level] || colors.idle;
     count.textContent = s.items.length ? s.items.length + ' item' + (s.items.length !== 1 ? 's' : '') + ' found' : (s.count === 0 ? 'All clear' : 'Scanning…');
 
@@ -19116,7 +19127,7 @@ function twRenderGrid(){
               <span class="tw-status-dot ${t.status}" style="margin-left:2px"></span>
               <span style="font-size:0.62rem;color:var(--text-3);margin-left:auto">${t.task_count>1?'×'+t.task_count:''}</span>
             </div>
-            <div class="tw-card-client">${esc(t.client_name||'—')}</div>
+            <div class="tw-card-client">${esc(t.client_name||'·')}</div>
             <div class="tw-card-type">${TW_TYPES[t.task_type]||t.task_type||''}</div>
             ${t.notes?`<div style="font-size:0.62rem;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(t.notes)}">${esc(t.notes)}</div>`:''}
             <select class="form-select" style="margin-top:5px;font-size:0.65rem;padding:2px 4px;height:auto;width:100%" onclick="event.stopPropagation()" onchange="twQuickStatus(${t.id},'${t._sys}',this.value)">
@@ -19180,10 +19191,10 @@ function twRenderList(){
   }
   sorted.forEach(t=>{
     html += `<tr>
-      <td><strong>${esc(t.assigned_to||'—')}</strong></td>
+      <td><strong>${esc(t.assigned_to||'·')}</strong></td>
       <td>${DAY_NAMES[t.day_of_week]||t.day_of_week}</td>
-      <td>${esc(t.client_name||'—')}</td>
-      <td>${TW_TYPES[t.task_type]||t.task_type||'—'}</td>
+      <td>${esc(t.client_name||'·')}</td>
+      <td>${TW_TYPES[t.task_type]||t.task_type||'·'}</td>
       <td>${t.task_count||1}</td>
       <td><span class="tw-status-chip ${t.status}">${t.status?.replace('_',' ')}</span></td>
       <td><span class="tw-badge sys-${t._sys}">${t._sys}</span></td>
@@ -19684,7 +19695,7 @@ function renderOnboarding(){
   grid.innerHTML = names.map(n=>{
     const p = obPct(n);
     const kit = obKit(n);
-    const sw = (c)=>`<span style="display:inline-block;width:20px;height:20px;border-radius:6px;border:1px solid var(--border);background:${c&&/^#?[0-9a-fA-F]{3,8}$/.test(c)?(c[0]==='#'?c:'#'+c):'transparent'}" title="${esc(c||'—')}"></span>`;
+    const sw = (c)=>`<span style="display:inline-block;width:20px;height:20px;border-radius:6px;border:1px solid var(--border);background:${c&&/^#?[0-9a-fA-F]{3,8}$/.test(c)?(c[0]==='#'?c:'#'+c):'transparent'}" title="${esc(c||'·')}"></span>`;
     const barColor = p===null?'var(--text-3)':p===100?'var(--green)':p>=50?'var(--amber)':'var(--red)';
     const flag = (p!==null && p<100);
     return `<div style="background:var(--surface);border:1px solid var(--border);${flag?'border-left:3px solid var(--amber);':''}border-radius:14px;padding:16px;cursor:pointer" onclick="obOpen('${esc(n).replace(/'/g,"\\'")}')">
@@ -19816,8 +19827,8 @@ let PROD_videos = [];
 let PROD_clientMap = {};
 let prodCurrentTab = 'overview';
 
-function prodClientName(id){ return PROD_clientMap[String(id)] || ((CLIENTS||[]).find(x=>String(x.id)===String(id))||{}).name || '—'; }
-function prodFileLink(url){ return url ? `<a href="${esc(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:0.72rem;color:var(--accent);text-decoration:none;white-space:nowrap">📁 Open files</a>` : '<span style="font-size:0.68rem;color:var(--text-3)">no file link</span>'; }
+function prodClientName(id){ return PROD_clientMap[String(id)] || ((CLIENTS||[]).find(x=>String(x.id)===String(id))||{}).name || '·'; }
+function prodFileLink(url){ return url ? `<a href="${esc(url)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:0.72rem;color:var(--accent);text-decoration:none;white-space:nowrap">${BBICO('folder')} Open files</a>` : '<span style="font-size:0.68rem;color:var(--text-3)">no file link</span>'; }
 function prodDaysSince(iso){ if(!iso) return null; return Math.floor((Date.now()-new Date(iso).getTime())/86400000); }
 
 async function loadProduction(){
@@ -19898,15 +19909,15 @@ function prodOverviewHTML(){
   let sRows = Object.entries(sByStatus).sort((a,b)=>b[1]-a[1]).map(([s,n])=>prodBar(s,n,PROD_smm.length,'#00E5FF')).join('');
 
   return `<div style="display:flex;gap:14px;flex-wrap:wrap;align-items:stretch">
-    ${prodColCard('🎬 Video','#a855f7',PROD_videos.length,vRows,'No active video projects.')}
-    ${prodColCard('🎨 Graphic','#FF1F8E',PROD_graphic.length,gRows,'No active graphic projects in the Graphic System.')}
-    ${prodColCard('📱 SMM','#00b8cc',PROD_smm.length,sRows,'No SMM content logged yet.')}
+    ${prodColCard(BBICO('film')+' Video','#a855f7',PROD_videos.length,vRows,'No active video projects.')}
+    ${prodColCard(BBICO('pen')+' Graphic','#FF1F8E',PROD_graphic.length,gRows,'No active graphic projects in the Graphic System.')}
+    ${prodColCard(BBICO('phone')+' SMM','#00b8cc',PROD_smm.length,sRows,'No SMM content logged yet.')}
   </div>
   <div style="margin-top:14px;font-size:0.74rem;color:var(--text-3)">Read-only roll-up. Video = video_projects · Graphic = graphic_projects · SMM = smm_content. Open the tabs for item-level detail.</div>`;
 }
 
 function prodGraphicHTML(){
-  if(!PROD_graphic.length) return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;text-align:center;color:var(--text-3)">🎨 No active graphic projects in the Graphic System right now.<div style="font-size:0.78rem;margin-top:6px">When the Graphic team has live work, it appears here automatically (read from <code>graphic_projects</code>).</div></div>`;
+  if(!PROD_graphic.length) return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;text-align:center;color:var(--text-3)">${BBICO('pen')} No active graphic projects in the Graphic System right now.<div style="font-size:0.78rem;margin-top:6px">When the Graphic team has live work, it appears here automatically (read from <code>graphic_projects</code>).</div></div>`;
   // group by stage in pipeline order
   let html='';
   GP_STAGES.forEach(stage=>{
@@ -19919,7 +19930,7 @@ function prodGraphicHTML(){
       return `<div style="background:var(--surface);border:1px solid var(--border);${stuck?'border-left:3px solid var(--amber);':''}border-radius:10px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <div style="flex:1;min-width:160px"><div style="font-weight:700;color:var(--text)">${esc(g.client_name||prodClientName(g.client_id))}</div><div style="font-size:0.78rem;color:var(--text-2)">${esc(g.title||g.type||'Design')}${g.dimensions?' · '+esc(g.dimensions):''}</div></div>
         <div style="font-size:0.74rem;color:var(--text-2)">${g.assigned_designer?'👤 '+esc(g.assigned_designer):'<span style="color:var(--text-3)">unassigned</span>'}</div>
-        <div style="font-size:0.74rem;color:${stuck?'var(--amber)':'var(--text-3)'}">${days===null?'—':days+'d in stage'}${stuck?' ⚠':''}</div>
+        <div style="font-size:0.74rem;color:${stuck?'var(--amber)':'var(--text-3)'}">${days===null?'·':days+'d in stage'}${stuck?' ⚠':''}</div>
         ${prodFileLink(g.drive_link)}
       </div>`;
     }).join('');
@@ -19928,7 +19939,7 @@ function prodGraphicHTML(){
 }
 
 function prodSmmHTML(){
-  if(!PROD_smm.length) return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;text-align:center;color:var(--text-3)">📱 No SMM content logged in the SMM Workspace yet.<div style="font-size:0.78rem;margin-top:6px">Production rows appear here as the SMM team works (read from <code>smm_content</code>).</div></div>`;
+  if(!PROD_smm.length) return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:40px;text-align:center;color:var(--text-3)">${BBICO('phone')} No SMM content logged in the SMM Workspace yet.<div style="font-size:0.78rem;margin-top:6px">Production rows appear here as the SMM team works (read from <code>smm_content</code>).</div></div>`;
   // group by client
   const byClient={};
   PROD_smm.forEach(s=>{ const n=prodClientName(s.client_id); (byClient[n]=byClient[n]||[]).push(s); });
@@ -19957,7 +19968,7 @@ const AP_THRESHOLD = 2; // days
 let AP_items = [];
 let AP_clientMap = {};
 
-function apClient(id, fallback){ return AP_clientMap[String(id)] || fallback || ((CLIENTS||[]).find(x=>String(x.id)===String(id))||{}).name || '—'; }
+function apClient(id, fallback){ return AP_clientMap[String(id)] || fallback || ((CLIENTS||[]).find(x=>String(x.id)===String(id))||{}).name || '·'; }
 function apAgeDays(iso){ return iso ? (Date.now()-new Date(iso).getTime())/86400000 : null; }
 
 async function loadApprovals(){
@@ -20062,8 +20073,8 @@ function renderChurn(){
   if(pat){
     if(CH_learn.length){
       pat.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px">
-        <div style="font-size:12px;font-weight:600;letter-spacing:0;color:var(--text-2);margin-bottom:8px">🧠 Learned ops patterns <span style="color:var(--text-3)">· compounding daily</span></div>
-        ${CH_learn.slice(0,8).map(l=>{const cc=l.confidence==='high'?'var(--red)':l.confidence==='medium'?'var(--amber)':'var(--text-3)';return `<div style="padding:6px 0;border-top:1px solid var(--border);font-size:0.84rem;color:var(--text)">${esc(l.pattern)} ${l.client_name?`<b>— ${esc(l.client_name)}</b>`:'<span style="color:var(--text-3)">(general)</span>'} <span style="font-size:0.68rem;border:1px solid ${cc};color:${cc};border-radius:10px;padding:1px 7px;margin-left:4px">${esc(l.confidence)} · seen ${l.evidence_count}×</span></div>`;}).join('')}
+        <div style="font-size:12px;font-weight:600;letter-spacing:0;color:var(--text-2);margin-bottom:8px">${BBICO('idea')} Learned ops patterns <span style="color:var(--text-3)">· compounding daily</span></div>
+        ${CH_learn.slice(0,8).map(l=>{const cc=l.confidence==='high'?'var(--red)':l.confidence==='medium'?'var(--amber)':'var(--text-3)';return `<div style="padding:6px 0;border-top:1px solid var(--border);font-size:0.84rem;color:var(--text)">${esc(l.pattern)} ${l.client_name?`<b>· ${esc(l.client_name)}</b>`:'<span style="color:var(--text-3)">(general)</span>'} <span style="font-size:0.68rem;border:1px solid ${cc};color:${cc};border-radius:10px;padding:1px 7px;margin-left:4px">${esc(l.confidence)} · seen ${l.evidence_count}×</span></div>`;}).join('')}
       </div>`;
     } else pat.innerHTML='';
   }
