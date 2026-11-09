@@ -1,6 +1,6 @@
 # RECIPE: Thulaib Home (Command Centre, role th) and the three Shiara Home gaps
 Kind: system
-Live: on the branch claude/thulaib-shiara-dashboards-2-571fd9, waiting for Thulaib's go live yes (bb_pending 1606). Shiara gaps 1 to 3 are commit b5945a6 on the same branch.
+Live: on main since 9 Nov 2026 on Thulaib's typed yes (bb_pending 1606), at https://businessboosterlk.github.io/bb-command-centre/. Thulaib Home is commit dc8b4b9, Shiara gaps 1 to 3 are b5945a6.
 Last verified: 2026-11-09, by THULAIB SHIARA DASHBOARDS 2
 
 Checked by `python3 ~/bb-systems/qa/recipe-check.py <this folder>`. A fresh chat rebuilds from this file
@@ -70,7 +70,7 @@ What each showed on 9 Nov 2026:
 - The iOS Simulator look was not done in this sitting. The phone pictures come from a phone sized browser.
 
 ## 5. Deliver or deploy
-Nothing goes live without Thulaib's yes on bb_pending 1606. On his yes, from the main checkout:
+Went live on 9 Nov 2026 on Thulaib's typed yes (bb_pending 1606). A later change goes the same way, only on his yes, from the main checkout:
 ```bash
 cd ~/bb-command-centre
 git fetch origin
