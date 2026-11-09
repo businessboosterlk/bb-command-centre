@@ -71,9 +71,11 @@ for (const [L, opts] of SIZES) {
   const { ctx, p, writes, reads, errs, pops } = await open(b, opts);
   let s = await state(p);
   pass(`${L} signed in with no password (login screen hidden)`, s.login === 'none', s.login);
-  pass(`${L} opens on Dashboard`, s.title === 'Dashboard' && s.visible.includes('page-dashboard'), s.title);
+  pass(`${L} opens on his Home (THULAIB HOME, 8 Nov 2026)`, s.title === 'Home' && s.visible.includes('page-thhome'), s.title);
 
   /* main buttons in the topbar */
+  /* his More folds shut again after a reload, so anything under it is pressed with More open */
+  const moreOpen = async () => { if (await p.$('#nav-thmore') && (await p.getAttribute('#nav-thmore', 'aria-expanded')) !== 'true') { await p.click('#nav-thmore'); await p.waitForTimeout(250); } };
   const navOpen = async () => { if (L === 'phone' && !(await p.evaluate(() => document.getElementById('sidebar').classList.contains('open')))) { await p.click('.menu-btn'); await p.waitForTimeout(350); } };
   if (L === 'phone') {
     await p.click('.menu-btn'); await p.waitForTimeout(350); touch.push('menu');
@@ -97,11 +99,23 @@ for (const [L, opts] of SIZES) {
 
   /* every top-level nav item, then every segmented tab on that page */
   await navOpen();
+  /* THULAIB HOME (8 Nov 2026): his menu keeps the rarely used pages under More. More is an opener, not a page, so it is
+     pressed once here and every item under it is then pressed like the rest. */
+  if (await p.$('#nav-thmore')) {
+    const shown = () => p.$$eval('#sidebar .nav-item', xs => xs.filter(x => x.offsetParent !== null).length);
+    const n0 = await shown();
+    if ((await p.getAttribute('#nav-thmore', 'aria-expanded')) !== 'true') { await p.click('#nav-thmore'); await p.waitForTimeout(250); touch.push('More'); }
+    const n1 = await shown();
+    pass(`${L} More opens the rest of his menu`, n1 > n0, `${n0} -> ${n1} items`);
+    await p.click('#nav-thmore'); await p.waitForTimeout(250);
+    pass(`${L} More again folds it away`, (await shown()) === n0, `${await shown()} items`);
+    await p.click('#nav-thmore'); await p.waitForTimeout(250);
+  }
   const navIds = await p.$$eval('#sidebar .nav-item', xs => xs.filter(x => x.offsetParent !== null && getComputedStyle(x).display !== 'none').map(x => x.id));
   if (L === 'phone') { await p.mouse.click(p.viewportSize().width - 8, p.viewportSize().height / 2); await p.waitForTimeout(300); }
   const tabsSeen = new Set();
   for (const id of navIds) {
-    if (id === 'nav-brain' || id === 'nav-askbb' || id === 'bbset-nav') continue;
+    if (id === 'nav-brain' || id === 'nav-askbb' || id === 'bbset-nav' || id === 'nav-thmore') continue;
     await navOpen();
     const label = (await p.textContent('#' + id)).trim();
     const e0 = errs.length;
@@ -149,11 +163,13 @@ for (const [L, opts] of SIZES) {
   /* Digital Brain opens a new tab; Booster opens the owners' desk */
   await navOpen();
   const popP = ctx.waitForEvent('page', { timeout: 4000 }).catch(() => null);
+  await moreOpen();
   await p.click('#nav-brain'); const pop = await popP; touch.push('Digital Brain');
   pass(`${L} Digital Brain opens bb-brain in a new tab`, !!pop, pop ? pop.url() : 'no tab');
   if (pop) await pop.close();
   if (L === 'phone') { s = await state(p); if (s.sidebarOpen) { rows.push(`INFO ${L} side nav still open after Digital Brain (the person returns to the menu)`); await p.mouse.click(p.viewportSize().width - 8, p.viewportSize().height / 2); await p.waitForTimeout(300); } }
   await navOpen();
+  await moreOpen();
   await p.click('#nav-askbb'); await p.waitForTimeout(3500); touch.push('Booster');
   const covered = () => p.evaluate(() => { const e = document.elementFromPoint(innerWidth / 2, innerHeight / 2); return e && !e.closest('#app') && !e.closest('#sidebar') ? (e.id || e.tagName) : ''; });
   const askOpen = [await covered()].filter(Boolean);
@@ -169,8 +185,8 @@ for (const [L, opts] of SIZES) {
   await p.keyboard.press('Escape'); await p.waitForTimeout(200);
   await p.evaluate(() => { const c = document.querySelector('[id*=askbb] .close, #askbb-close'); if (c) c.click(); });
 
-  /* back on Dashboard for the sheet */
-  await navOpen(); await p.click('#nav-dashboard'); await p.waitForTimeout(1200);
+  /* back on his Home for the sheet: the From card and Send a task live there now */
+  await navOpen(); await p.click('#nav-thhome'); await p.waitForTimeout(1200);
 
   /* Send a task: the whole sheet */
   const histBefore = (await state(p)).hist;

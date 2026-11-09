@@ -20816,6 +20816,817 @@ div.shh-trow{cursor:default}
 })();
 </script>
 <!-- @@BBCC_SHIARA_END@@ -->
+<!-- @@BBCC_THULAIB_HOME_BEGIN@@ THULAIB HOME (8 Nov 2026, from ~/Downloads/THULAIB-SHIARA-DASHBOARDS/MOULD.md and thulaib-dashboard-mockup.html).
+     His own home and menu. Does nothing unless body[data-role="th"]. Every other role keeps today's menu and Dashboard.
+     Same shape as Shiara Home (@@BBCC_SHIARA_BEGIN@@): showPage is wrapped (whatever showPage is at the time, so her wrap
+     and this one both run), his menu reuses the existing .nav-item elements in his order and puts the snapshot back on
+     the way out, #ho-card-mount and #ho-stuck-card are moved in by id and put back before #attention-panel.
+     More today moves old Dashboard parts in by id on open and puts each back where it was on close or leave.
+     Reads only through SBget. A refused read draws "Not read", never a zero. The one write is the existing
+     bb_pending_close rpc behind Done. Duty ticks live in this device's localStorage until bb_pending 1605 has a yes.
+     Rollback: delete this block. -->
+<style>
+#page-thhome,.thh-tabbar,.nav.thh-nav{--th-ink:#FF7F47;--th-btn:#C24400}
+[data-theme="light"] #page-thhome,[data-theme="light"] .thh-tabbar,[data-theme="light"] .nav.thh-nav{--th-ink:#B53E00}
+.nav.thh-nav .nav-item.active{color:var(--th-ink)}
+.nav.thh-nav.thh-more-shut .thh-in-more{display:none!important}
+.nav.thh-nav .thh-in-more{padding-left:20px}
+.thh-more-hd .thh-chev{margin-left:auto;display:grid;place-items:center;transition:transform .2s var(--ease)}
+.thh-more-hd[aria-expanded="true"] .thh-chev{transform:rotate(180deg)}
+.thh-more-hd .thh-chev svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#page-thhome svg,.thh-tabbar svg{stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#page-thhome .thh-num{font-variant-numeric:tabular-nums lining-nums;font-feature-settings:'tnum' 1,'lnum' 1}
+#page-thhome button{font-family:inherit;color:inherit;cursor:pointer}
+.thh-home{display:flex;flex-direction:column;gap:20px;min-width:0}
+.thh-hd{display:flex;align-items:center;gap:16px;min-width:0}
+.thh-hd-g{flex:1;min-width:0;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.thh-hd h2{margin:0;font-size:24px;font-weight:600;letter-spacing:-.02em;line-height:1.2;color:var(--text)}
+.thh-date{font-size:14px;color:var(--text-2);font-weight:500}
+.thh-av{width:36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--th-ink);display:grid;place-items:center;font-weight:700;font-size:12.5px;line-height:1;flex:none}
+.thh-btn{min-height:44px;padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--border-strong);background:var(--surface);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;color:var(--text)}
+.thh-btn:hover{background:var(--surface-2)}
+.thh-btn svg{width:16px;height:16px}
+.thh-btn-p{background:var(--th-btn);border-color:var(--th-btn);color:#fff}
+.thh-btn-p:hover{background:var(--th-ink);border-color:var(--th-ink)}
+.thh-btn[hidden]{display:none}
+.thh-btn[disabled]{opacity:.6;cursor:default}
+.thh-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-xs);min-width:0}
+.thh-skel{display:inline-block;width:120px;height:28px;border-radius:8px;background:var(--surface-2);animation:thPulse 1.2s ease-in-out infinite}
+@keyframes thPulse{50%{opacity:.5}}
+.thh-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.thh-line{font-size:12.5px;color:var(--text-2);line-height:1.45}
+.thh-line:empty{display:none}
+.thh-calm{font-size:12px;color:var(--text-3);line-height:1.45}
+.thh-ico{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;flex:none}
+.thh-ico svg{width:17px;height:17px}
+.thh-c-red{color:var(--red);background:var(--red-soft)}
+.thh-c-amber{color:var(--amber);background:var(--amber-soft)}
+.thh-c-green{color:var(--green);background:var(--green-soft)}
+.thh-c-blue{color:var(--blue);background:var(--blue-soft)}
+.thh-c-grey{color:var(--text-2);background:var(--surface-2)}
+.thh-c-ink{color:var(--th-ink);background:var(--accent-soft)}
+.thh-ph{display:flex;align-items:center;gap:10px;min-width:0}
+.thh-ph h3{margin:0;font-size:15px;font-weight:600;flex:1;min-width:0;display:flex;align-items:center;gap:9px;color:var(--text)}
+.thh-panel{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+/* 1. push */
+.thh-push{border-color:rgba(255,107,43,.35);background:linear-gradient(180deg,rgba(255,107,43,.07),transparent 60%),var(--surface)}
+.thh-n{min-width:24px;height:24px;padding:0 8px;border-radius:99px;background:var(--accent);color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+.thh-n:empty{display:none}
+.thh-pi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:11px 0;border-top:1px solid var(--border)}
+.thh-pis>.thh-pi:first-child{border-top:0}
+.thh-pi b{display:block;font-size:13.5px;font-weight:600;color:var(--text);overflow-wrap:anywhere}
+.thh-pi span{display:block;font-size:12.5px;color:var(--text-2);margin-top:2px}
+.thh-pi span.thh-hint{color:var(--text-3)}
+.thh-acts{display:flex;gap:6px}
+.thh-since{font-size:12.5px;color:var(--text-3)}
+.thh-since:empty{display:none}
+/* 2. glance */
+.thh-tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px}
+.thh-tile{padding:16px 18px;display:flex;flex-direction:column;gap:10px;text-align:left;width:100%;transition:transform .15s var(--ease),box-shadow .25s var(--ease)}
+.thh-tile:hover{box-shadow:var(--shadow-md)}
+.thh-tile:active{transform:scale(.985)}
+.thh-h{display:flex;align-items:center;gap:9px;min-width:0}
+.thh-h .thh-t{font-size:12.5px;font-weight:600;color:var(--text-2);flex:1;min-width:0}
+.thh-h .thh-go{width:16px;height:16px;color:var(--text-3)}
+.thh-tile .thh-ico{width:30px;height:30px}
+.thh-tile .thh-ico svg{width:16px;height:16px}
+.thh-val{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-height:30px}
+.thh-big{font-size:30px;font-weight:600;letter-spacing:-.025em;line-height:1;white-space:nowrap;color:var(--text)}
+.thh-big.thh-dim{font-size:22px;color:var(--text-3)}
+.thh-tile.thh-red .thh-big{color:var(--red)}
+.thh-unit{font-size:12.5px;color:var(--text-2)}
+.thh-trend{font-size:12.5px;color:var(--text-2);line-height:1.45}
+.thh-trend:empty{display:none}
+.thh-trend.thh-down{color:var(--red)}
+.thh-chips{display:flex;flex-wrap:wrap;gap:6px}
+.thh-chips:empty{display:none}
+.thh-chip{display:inline-flex;align-items:center;gap:6px;height:23px;padding:0 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;line-height:1}
+.thh-chip .thh-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+/* 3. team */
+.thh-tbl{width:100%;border-collapse:collapse}
+.thh-tbl th{font-size:11.5px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;text-align:right;padding:6px 10px;border-bottom:1px solid var(--border)}
+.thh-tbl th:first-child{text-align:left;padding-left:0}
+.thh-tbl td{padding:11px 10px;border-bottom:1px solid var(--border);text-align:right;font-size:14px;font-weight:600;color:var(--text);height:44px}
+.thh-tbl td:first-child{text-align:left;padding-left:0}
+.thh-tbl tr:last-child td{border-bottom:0}
+.thh-tbl tbody tr{cursor:pointer}
+.thh-tbl tbody tr:hover td{background:var(--surface-2)}
+.thh-tbl tbody tr:focus-visible{outline:2px solid var(--th-ink);outline-offset:-2px}
+.thh-who{display:flex;align-items:center;gap:10px}
+.thh-who small{display:block;font-size:12px;color:var(--text-3);font-weight:500}
+.thh-who .thh-av{width:32px;height:32px;font-size:12px}
+.thh-tbl td.thh-zero{color:var(--text-3);font-weight:500}
+.thh-tbl td.thh-bad{color:var(--red)}
+.thh-tbl td.thh-ok{color:var(--green)}
+.thh-tbl td .thh-go{width:16px;height:16px;color:var(--text-3);vertical-align:middle}
+#thh-ho-mount{display:flex;flex-direction:column;gap:12px}
+#thh-ho-mount:empty{display:none}
+#thh-ho-mount .ho-card{margin:0}
+/* 4. how it runs */
+.thh-duties{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.thh-duty{display:flex;align-items:center;gap:12px;padding:10px 0;min-height:52px;border:0;border-top:1px solid var(--border);background:transparent;width:100%;text-align:left}
+.thh-dl>.thh-duty:first-child{border-top:0}
+.thh-tick{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--border-strong);display:grid;place-items:center;color:var(--green);flex:none}
+.thh-tick svg{width:14px;height:14px;visibility:hidden}
+.thh-duty[aria-pressed="true"] .thh-tick{background:var(--green-soft);border-color:transparent}
+.thh-duty[aria-pressed="true"] .thh-tick svg{visibility:visible}
+.thh-duty .thh-m{flex:1;min-width:0}
+.thh-duty .thh-m b{display:block;font-size:13.5px;font-weight:600;color:var(--text)}
+.thh-duty .thh-m span{font-size:12px;color:var(--text-3)}
+.thh-rhythm{font-size:11.5px;font-weight:600;color:var(--text-2);background:var(--surface-2);border-radius:99px;padding:3px 9px;white-space:nowrap}
+/* 5. more today */
+.thh-fold{padding:14px 20px;min-height:52px;display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:transparent}
+.thh-fold b{flex:1;font-size:14px;white-space:nowrap;color:var(--text)}
+.thh-fold .thh-cnt{font-size:12.5px;color:var(--text-3)}
+.thh-fold svg{width:16px;height:16px;color:var(--text-3);transition:transform .2s var(--ease)}
+.thh-fold[aria-expanded="true"] svg{transform:rotate(180deg)}
+#thh-more-mount{padding:0 20px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+#thh-more-mount[hidden]{display:none}
+/* phone tab bar */
+.thh-tabbar{position:fixed;left:0;right:0;bottom:0;z-index:95;padding:6px 8px var(--sab);background:color-mix(in srgb,var(--surface) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.thh-tabbar[hidden]{display:none!important}
+.thh-tabbar button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--text-3);min-height:50px;font-family:inherit;cursor:pointer}
+.thh-tabbar button svg{width:21px;height:21px}
+.thh-tabbar button[aria-current="page"]{color:var(--th-ink)}
+@media(min-width:901px){.thh-tabbar{display:none!important}}
+@media(max-width:1280px) and (min-width:901px){.thh-tiles{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.thh-tile{padding:14px}.thh-big{font-size:24px}}
+@media(max-width:900px){
+  body[data-role="th"] .main > .content{padding-bottom:calc(24px + 58px + var(--sab))}
+  body[data-role="th"] #bbcc-bubble,body[data-role="th"] #bba-fab{bottom:calc(24px + 58px + var(--sab))!important}
+  body[data-role="th"] #bba3-checkin-fab,body[data-role="th"] #bbcc-panel,body[data-role="th"] #bba-panel{bottom:calc(90px + 58px + var(--sab))!important}
+  body[data-role="th"] #finc-toast{bottom:calc(80px + 58px + var(--sab))}
+  /* the red error badge is fixed at the bottom right with an inline style: lifted clear of his tab bar or it swallows the Money and More taps */
+  body[data-role="th"] #bb-bug-badge{bottom:calc(18px + 58px + var(--sab))!important}
+  .thh-home{gap:12px}
+  .thh-hd{gap:12px}
+  .thh-hd{flex-direction:column;align-items:center}
+  .thh-hd-g{display:block;text-align:center;width:100%;flex:none}
+  .thh-hd h2{font-size:20px}
+  .thh-date{display:block;font-size:13px;margin-top:2px}
+  .thh-hd .thh-av{display:none}
+  .thh-hd .thh-btn .thh-lbl{display:none}
+  .thh-hd .thh-btn{width:44px;padding:0}
+  .thh-panel{padding:14px 16px}
+  .thh-pi{grid-template-columns:1fr;gap:8px}
+  .thh-acts .thh-btn{flex:1}
+  .thh-tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .thh-tiles>.thh-tile:last-child{grid-column:1/-1}
+  .thh-tile{padding:13px 14px}
+  .thh-big{font-size:26px}
+  .thh-fold{padding:14px 16px}
+  .thh-fold .thh-cnt{display:none}
+  #thh-more-mount{padding:0 12px 14px}
+  .thh-tbl th:nth-child(5),.thh-tbl td:nth-child(5){display:none}
+  .thh-tbl td{padding:10px 6px;font-size:13.5px}
+  /* a phone has no room for "Done this week" on one line: the heads wrap and shrink so the table stays inside its card */
+  .thh-tbl th{padding:6px 5px;font-size:10.5px;letter-spacing:.03em;line-height:1.25;white-space:normal;vertical-align:bottom}
+  .thh-tbl th:nth-child(3){max-width:62px}
+  .thh-tbl td:last-child,.thh-tbl th:last-child{padding-left:0;padding-right:0;width:18px}
+  .thh-who{gap:8px;min-width:0}
+  .thh-duties{grid-template-columns:1fr;gap:12px}
+}
+@media(prefers-reduced-motion:reduce){.thh-tile,.thh-skel,.thh-fold svg,.thh-more-hd .thh-chev{transition:none;animation:none}}
+</style>
+<div id="page-thhome" class="page-section" style="display:none">
+  <div class="thh-home">
+    <div class="thh-hd">
+      <div class="thh-hd-g"><h2 id="thh-hello">Hello, Thulaib</h2><span class="thh-date" id="thh-date"></span></div>
+      <button type="button" class="thh-btn thh-btn-p" id="thh-send" aria-label="Send a task" hidden><span data-thh-i="plus"></span><span class="thh-lbl">Send a task</span></button>
+      <div class="thh-av" aria-hidden="true">TH</div>
+    </div>
+
+    <!-- 1. PUSH. bb_pending open for Thulaib, newest three. Last looked: localStorage bb_th_last_seen. -->
+    <section class="thh-card thh-panel thh-push" id="thh-push" aria-labelledby="thh-push-t">
+      <div class="thh-ph"><h3 id="thh-push-t">Only you can clear these today</h3><span class="thh-n thh-num" id="thh-push-n"></span></div>
+      <div class="thh-pis" id="thh-push-rows"></div>
+      <div class="thh-since" id="thh-since"></div>
+    </section>
+
+    <!-- 2. GLANCE: five tiles, one row on a desk, 2+2+1 on a phone -->
+    <div class="thh-tiles">
+      <button type="button" class="thh-card thh-tile" id="thh-money">
+        <span class="thh-h"><span class="thh-ico thh-c-green" data-thh-i="wallet"></span><span class="thh-t" id="thh-money-t">Money in</span><span data-thh-i="chevR" class="thh-go"></span></span>
+        <span class="thh-val thh-num"></span><span class="thh-chips"></span><span class="thh-trend"></span>
+      </button>
+      <button type="button" class="thh-card thh-tile" id="thh-sales">
+        <span class="thh-h"><span class="thh-ico thh-c-blue" data-thh-i="chart"></span><span class="thh-t">Sales and spend</span><span data-thh-i="chevR" class="thh-go"></span></span>
+        <span class="thh-val thh-num"></span><span class="thh-chips"></span><span class="thh-trend"></span>
+      </button>
+      <button type="button" class="thh-card thh-tile" id="thh-clients">
+        <span class="thh-h"><span class="thh-ico thh-c-amber" data-thh-i="user"></span><span class="thh-t">Clients</span><span data-thh-i="chevR" class="thh-go"></span></span>
+        <span class="thh-val thh-num"></span><span class="thh-chips"></span><span class="thh-trend"></span>
+      </button>
+      <button type="button" class="thh-card thh-tile" id="thh-mine">
+        <span class="thh-h"><span class="thh-ico thh-c-grey" data-thh-i="pen"></span><span class="thh-t">Your backlog</span><span data-thh-i="chevR" class="thh-go"></span></span>
+        <span class="thh-val thh-num"></span><span class="thh-chips"></span><span class="thh-trend"></span>
+      </button>
+      <button type="button" class="thh-card thh-tile" id="thh-hers">
+        <span class="thh-h"><span class="thh-ico thh-c-grey" data-thh-i="check"></span><span class="thh-t">Shiara's backlog</span><span data-thh-i="chevR" class="thh-go"></span></span>
+        <span class="thh-val thh-num"></span><span class="thh-chips"></span><span class="thh-trend"></span>
+      </button>
+    </div>
+
+    <!-- 3. TEAM. bb_handoff_board: pending, overdue, stuck, done_this_week per member. -->
+    <section class="thh-card thh-panel" id="thh-team" aria-labelledby="thh-team-t">
+      <div class="thh-ph"><h3 id="thh-team-t"><span class="thh-ico thh-c-ink" data-thh-i="users"></span>Team</h3><button type="button" class="thh-btn" id="thh-score">Team Score<span data-thh-i="chevR"></span></button></div>
+      <div id="thh-team-body"></div>
+      <div class="thh-calm">Counts come from Send a task. The pilot with Ushane, Nirvana and Farhath starts Monday 9 November.</div>
+    </section>
+    <div id="thh-ho-mount"></div>
+
+    <!-- 4. HOW THIS BUSINESS RUNS. From TH_DUTIES below until bb_owner_duties has a typed yes (bb_pending 1605). -->
+    <div class="thh-duties">
+      <section class="thh-card thh-panel" aria-labelledby="thh-d-th-t">
+        <div class="thh-ph"><h3 id="thh-d-th-t">What Thulaib does</h3><span class="thh-calm thh-num" id="thh-d-th-n"></span></div>
+        <div class="thh-dl" id="thh-d-th"></div>
+      </section>
+      <section class="thh-card thh-panel" aria-labelledby="thh-d-sh-t">
+        <div class="thh-ph"><h3 id="thh-d-sh-t">What Shiara does</h3><span class="thh-calm thh-num" id="thh-d-sh-n"></span></div>
+        <div class="thh-dl" id="thh-d-sh"></div>
+      </section>
+    </div>
+    <div class="thh-calm">Ticks stay on this device until the owner duties table is approved (bb_pending 1605).</div>
+
+    <!-- 5. MORE TODAY: the old Dashboard parts, moved in by id on open, put back on close -->
+    <section class="thh-card" id="thh-more">
+      <button type="button" class="thh-fold" id="thh-fold" aria-expanded="false" aria-controls="thh-more-mount"><b>More today</b><span class="thh-cnt">Decisions by group, video pipeline, Nirvana's checks, AI alerts</span><span data-thh-i="chevD"></span></button>
+      <div id="thh-more-mount" hidden></div>
+    </section>
+  </div>
+</div>
+<nav class="thh-tabbar" id="thh-tabbar" aria-label="Thulaib quick menu" hidden>
+  <button type="button" data-thh-tab="home"><span data-thh-i="house"></span>Home</button>
+  <button type="button" data-thh-tab="team"><span data-thh-i="users"></span>Team</button>
+  <button type="button" data-thh-tab="money"><span data-thh-i="wallet"></span>Money</button>
+  <button type="button" data-thh-tab="clients"><span data-thh-i="user"></span>Clients</button>
+  <button type="button" data-thh-tab="more"><span data-thh-i="dots"></span>More</button>
+</nav>
+<script>
+(function(){
+  'use strict';
+  var P = {
+    house:'<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    wallet:'<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    chart:'<path d="M3 3v18h18"/><path d="m7 15 4-4 4 4 5-6"/>',
+    pen:'<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838.838-2.872a2 2 0 0 1 .506-.854z"/>',
+    grid:'<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+    check:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+    tick:'<path d="m5 12 4 4L19 6"/>',
+    plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+    dots:'<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+    chevD:'<path d="m6 9 6 6 6-6"/>', chevR:'<path d="m9 18 6-6-6-6"/>'
+  };
+  function svg(n){ return '<svg viewBox="0 0 24 24" aria-hidden="true">' + (P[n] || '') + '</svg>'; }
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  function paintIcons(root){ (root || document).querySelectorAll('[data-thh-i]').forEach(function(el){ if(!el.firstChild) el.innerHTML = svg(el.getAttribute('data-thh-i')); }); }
+
+  var TH = { on:false, wired:false, snap:null, more:false, dashOK:false, tok:0, watch:null, watchN:0, moved:[], fold:false, leaveCheck:null };
+  var TH_CAPS = { thulaib:10, shiara:10 };   /* the backlog caps in the mould, until Thulaib changes them */
+  var BB_ADS_ACCOUNT = '761350430382370';     /* bb_ads_accounts row with client_id null: the only ad account that is BB's own money */
+  var TH_PARENT = { thhome:'thhome', dashboard:'thdecide' };
+  var TOP = [['thhome','Home'],['team','Team'],['finance','Money'],['clients','Clients'],['pipeline','Leads'],['thdecide','Decisions'],['agents','Systems']];
+  var MORE = ['myday','production','shoots','ads','teamscore','brain','askbb'];
+  var MON = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  /* How this business runs. The nine duties from the mould; swaps for bb_owner_duties once bb_pending 1605 has a yes. */
+  var TH_DUTIES = [
+    { owner:'thulaib', key:'th-selling',  title:'Selling block, calls only',             detail:'14:00 to 17:00, no meetings inside',         rhythm:'Daily' },
+    { owner:'thulaib', key:'th-founders', title:'Founders meeting with Shiara',          detail:'Shoots first, then the week',                rhythm:'Monday 08:00' },
+    { owner:'thulaib', key:'th-clear',    title:'Clear old decisions with Shiara',       detail:'Under 100 by 31 December',                   rhythm:'Friday' },
+    { owner:'thulaib', key:'th-ads',      title:'Watch every client\'s ads',             detail:'Thulaib first, Shiara backup',               rhythm:'Weekly' },
+    { owner:'shiara',  key:'sh-check',    title:'Last check on videos and graphics',     detail:'After editor, head and SMM',                 rhythm:'Daily' },
+    { owner:'shiara',  key:'sh-wed',      title:'Chair the Wednesday team meeting',      detail:'Five line note to Thulaib by 10:00',         rhythm:'Wednesday' },
+    { owner:'shiara',  key:'sh-invoice',  title:'Invoice run and collections',           detail:'From the November payments',                 rhythm:'Month start' },
+    { owner:'shiara',  key:'sh-close',    title:'Sign the month close',                  detail:'Three working days after the SMM close',     rhythm:'Month end' },
+    { owner:'shiara',  key:'sh-contract', title:'Contract out within five days of a yes', detail:'Scopes and agreements, with Claude',        rhythm:'Per client' }
+  ];
+
+  function isTh(){ return document.body && document.body.getAttribute('data-role') === 'th'; }
+  function authed(){ try{ return (typeof DEMO_MODE !== 'undefined' && DEMO_MODE) || (typeof AUTH_TOKEN !== 'undefined' && !!AUTH_TOKEN); }catch(e){ return false; } }
+  async function rd(t, q){ try{ var r = await SBget(t, q); return Array.isArray(r) ? r : null; }catch(e){ return null; } }
+  function today(){ return new Date(Date.now() + 19800000).toISOString().slice(0, 10); }
+  function curYm(){ return today().slice(0, 7); }
+  function nextYm(ym){ var y = +ym.slice(0, 4), m = +ym.slice(5, 7) + 1; if(m > 12){ m = 1; y++; } return y + '-' + String(m).padStart(2, '0'); }
+  function monthName(ym){ return MON[parseInt(String(ym).slice(5, 7), 10) - 1] || ''; }
+  function colomboIso(ymd){ return new Date(Date.parse(ymd + 'T00:00:00+05:30')).toISOString(); }
+  function mondayOf(ymd){ var t = Date.parse(ymd + 'T00:00:00Z'), dow = (new Date(t).getUTCDay() + 6) % 7; return new Date(t - dow * 86400000).toISOString().slice(0, 10); }
+  function isoWeek(ymd){
+    var t = Date.parse(ymd + 'T00:00:00Z'), dow = (new Date(t).getUTCDay() + 6) % 7;
+    var thu = new Date(t + (3 - dow) * 86400000), y = thu.getUTCFullYear();
+    var wk = 1 + Math.floor((thu.getTime() - Date.UTC(y, 0, 1)) / 86400000 / 7);
+    return y + '-W' + String(wk).padStart(2, '0');
+  }
+  function cycleId(rhythm, ymd){
+    ymd = ymd || today();
+    if(rhythm === 'Daily') return ymd;
+    if(/^(Month start|Month end|Per client)$/.test(rhythm)) return ymd.slice(0, 7);
+    return isoWeek(ymd);                 /* Monday, Friday, Wednesday and Weekly tick once a week */
+  }
+  function dayShort(ts){ var t = Date.parse(ts); return isNaN(t) ? '' : new Date(t).toLocaleDateString('en-GB', {weekday:'short', day:'numeric', month:'short', timeZone:'Asia/Colombo'}).replace(/,/g, ''); }
+  function dayTime(ts){ var t = Date.parse(ts); return isNaN(t) ? '' : dayShort(ts) + ' ' + new Date(t).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Asia/Colombo'}); }
+  function short(n){
+    n = Number(n) || 0;
+    if(n >= 1e6) return String(Math.round(n / 1e4) / 100) + 'M';
+    if(n >= 1e4) return Math.round(n / 1e3) + 'K';
+    return n.toLocaleString('en-GB');
+  }
+  function plural(n, one, many){ return n + ' ' + (n === 1 ? one : (many || one + 's')); }
+  function cap1(s){ s = String(s || '').toLowerCase(); return s.replace(/(^|[\s-])([a-z])/g, function(m, a, b){ return a + b.toUpperCase(); }); }
+  function initials(s){ var w = String(s || '').trim().split(/\s+/); return ((w[0] || '').slice(0, w.length > 1 ? 1 : 2) + (w.length > 1 ? (w[1] || '').slice(0, 1) : '')).toUpperCase(); }
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+
+  /* ── his menu ── */
+  var TH_TITLE = { finance:'Money', agents:'Systems' };
+  function navEl(){ return document.querySelector('#sidebar .nav') || document.querySelector('.nav'); }
+  function textNode(n){ var t = null; (n.childNodes || []).forEach(function(c){ if(!t && c.nodeType === 3 && c.textContent.trim()) t = c; }); return t; }
+  function made(id, label, icon, fn, cls){
+    var el = $(id);
+    if(el) return el;
+    el = document.createElement('div');
+    el.className = 'nav-item' + (cls ? ' ' + cls : ''); el.id = id;
+    el.setAttribute('role', 'button'); el.tabIndex = 0;
+    el.innerHTML = '<span class="nav-ico">' + svg(icon) + '</span>' + label;
+    el.addEventListener('click', fn);
+    el.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fn(); } });
+    return el;
+  }
+  function setMore(open){
+    TH.more = !!open;
+    var nav = navEl(), hd = $('nav-thmore');
+    if(nav) nav.classList.toggle('thh-more-shut', !TH.more);
+    if(hd) hd.setAttribute('aria-expanded', TH.more ? 'true' : 'false');
+  }
+  function applyNav(){
+    var nav = navEl();
+    if(!nav || TH.snap) return;
+    if(!nav.dataset.grouped && typeof buildNavGroups === 'function') buildNavGroups();
+    TH.snap = [].slice.call(nav.children).map(function(n){ var t = textNode(n); return { n:n, d:n.style ? n.style.display : '', t:t, l:t ? t.textContent : null }; });
+    var mine = { thhome: made('nav-thhome', 'Home', 'house', function(){ showPage('thhome'); }), thdecide: made('nav-thdecide', 'Decisions', 'pen', goDecisions) };
+    var hd = made('nav-thmore', 'More', 'dots', function(){ setMore(!TH.more); }, 'thh-more-hd');
+    if(!hd.querySelector('.thh-chev')){ var c = document.createElement('span'); c.className = 'thh-chev'; c.innerHTML = svg('chevD'); hd.appendChild(c); hd.setAttribute('aria-controls', 'sidebar'); }
+    nav.querySelectorAll('.nav-item').forEach(function(it){ it.style.display = 'none'; });
+    TOP.forEach(function(x){ var el = mine[x[0]] || $('nav-' + x[0]); if(!el) return; el.style.display = ''; var t = textNode(el); if(t) t.textContent = x[1]; nav.appendChild(el); });
+    hd.style.display = ''; nav.appendChild(hd);
+    MORE.forEach(function(id){ var el = $('nav-' + id); if(!el) return; el.style.display = ''; el.classList.add('thh-in-more'); nav.appendChild(el); });
+    nav.classList.add('thh-nav');
+    fixSettings();
+    setMore(TH.more);
+  }
+  /* Settings holds Sign out. Its script clones the last menu item a little after load, so the clone can arrive inside
+     More; it is pulled out and kept last, shown, in his menu and put last again when his menu goes back. */
+  function fixSettings(){
+    var nav = navEl(), set = $('bbset-nav');
+    if(!nav || !set || set.parentNode !== nav) return;
+    set.classList.remove('thh-in-more', 'active'); set.style.display = '';
+    if(nav.lastElementChild !== set) nav.appendChild(set);
+  }
+  function restoreNav(){
+    var nav = navEl();
+    if(!nav || !TH.snap) return;
+    ['nav-thhome', 'nav-thdecide', 'nav-thmore'].forEach(function(id){ var el = $(id); if(el){ el.classList.remove('active'); el.remove(); } });
+    nav.querySelectorAll('.thh-in-more').forEach(function(el){ el.classList.remove('thh-in-more'); });
+    TH.snap.forEach(function(s){ nav.appendChild(s.n); if(s.n.style) s.n.style.display = s.d; if(s.t && s.l !== null) s.t.textContent = s.l; });
+    nav.classList.remove('thh-nav', 'thh-more-shut');
+    TH.snap = null;
+    fixSettings();
+  }
+  function tabFor(page){
+    if(page === 'thhome') return 'home';
+    if(page === 'team' || page === 'teamweekly') return 'team';
+    if(page === 'finance') return 'money';
+    if(page === 'clients' || page === 'onboarding' || page === 'readiness' || page === 'churn') return 'clients';
+    return '';
+  }
+  function lightNav(page){
+    if(!isTh()) return;
+    var id = TH_PARENT[page] || (typeof NAV_PARENT !== 'undefined' && NAV_PARENT[page]) || page;
+    document.querySelectorAll('.nav-item.active').forEach(function(e){ e.classList.remove('active'); });
+    var el = $('nav-' + id);
+    if(el){ el.classList.add('active'); if(el.classList.contains('thh-in-more')) setMore(true); }
+    var tab = tabFor(page);
+    document.querySelectorAll('#thh-tabbar [data-thh-tab]').forEach(function(b){ if(b.getAttribute('data-thh-tab') === tab) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  }
+
+  /* ── More today: old Dashboard parts moved in by id, each put back where it was ── */
+  function foldParts(){
+    var dash = $('page-dashboard'), out = [];
+    function add(el){ if(el && dash && dash.contains(el) && el !== dash && !el.classList.contains('hero') && out.indexOf(el) < 0) out.push(el); }
+    add($('attention-panel'));
+    var ed = $('ed-list'); add(ed && ed.parentElement);
+    var pr = $('pipeline-rows'); add(pr && pr.closest('.card'));
+    var sh = $('shoot-items'); add(sh && sh.parentElement);
+    var wk = $('week-strip'); add(wk && wk.closest('.card'));
+    add($('renewals-card'));
+    add($('bb-brief'));
+    return out;
+  }
+  function foldOpen(){
+    if(TH.fold) return;
+    var m = $('thh-more-mount');
+    TH.moved = foldParts().map(function(el){ return { el:el, parent:el.parentNode, next:el.nextSibling }; });
+    TH.moved.forEach(function(r){ m.appendChild(r.el); });
+    TH.fold = true; m.hidden = false; $('thh-fold').setAttribute('aria-expanded', 'true');
+  }
+  function foldClose(){
+    var m = $('thh-more-mount');
+    for(var i = TH.moved.length - 1; i >= 0; i--){
+      var r = TH.moved[i];
+      if(!r.parent) continue;
+      if(r.next && r.next.parentNode === r.parent) r.parent.insertBefore(r.el, r.next); else r.parent.appendChild(r.el);
+    }
+    TH.fold = false; if(m) m.hidden = true;
+    var f = $('thh-fold'); if(f) f.setAttribute('aria-expanded', 'false');
+  }
+  function goDecisions(){
+    foldClose();
+    TH.dashOK = true; showPage('dashboard');
+    setTimeout(function(){ var b = $('bb-brief'); if(b && b.scrollIntoView) b.scrollIntoView({ block:'start' }); }, 60);
+  }
+
+  /* ── tiles ── */
+  function part(id, sel){ var c = $(id); return c ? c.querySelector(sel) : null; }
+  function setTile(id, val, chips, trend, red){
+    var v = part(id, '.thh-val'), c = part(id, '.thh-chips'), t = part(id, '.thh-trend'), el = $(id);
+    if(v) v.innerHTML = val; if(c) c.innerHTML = chips || ''; if(t) t.innerHTML = trend || '';
+    if(el) el.classList.toggle('thh-red', !!red);
+    var ic = part(id, '.thh-ico');
+    if(ic && (id === 'thh-mine' || id === 'thh-hers')){ ic.classList.toggle('thh-c-red', !!red); ic.classList.toggle('thh-c-grey', !red); }
+    if(t) t.classList.toggle('thh-down', !!red && (id === 'thh-mine'));
+  }
+  var LOADING = '<span class="thh-skel" aria-hidden="true"></span><span class="thh-sr">Reading</span>';
+  var NOTREAD = '<span class="thh-big thh-dim">Not read</span>';
+  function chip(cls, txt, dot){ return '<span class="thh-chip ' + cls + ' thh-num">' + (dot ? '<span class="thh-dot"></span>' : '') + esc(txt) + '</span>'; }
+
+  function paintHead(){
+    var h = new Date(Date.now() + 19800000).getUTCHours();
+    $('thh-hello').textContent = (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', Thulaib';
+    $('thh-date').textContent = new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', timeZone:'Asia/Colombo' }).replace(/,/g, '');
+    $('thh-money-t').textContent = 'Money in, ' + monthName(curYm());
+  }
+
+  function paintPush(rows){
+    var el = $('thh-push-rows'), n = $('thh-push-n');
+    if(!rows){ n.textContent = ''; el.innerHTML = '<div class="thh-pi"><div><b>Not read</b><span>Could not read your decisions. Open Decisions to try again.</span></div></div>'; return; }
+    n.textContent = rows.length ? String(rows.length) : '';
+    if(!rows.length){ el.innerHTML = '<div class="thh-pi"><div><b>Nothing is waiting on you</b><span>New decisions land here first.</span></div></div>'; return; }
+    el.innerHTML = rows.map(function(r){
+      return '<div class="thh-pi"><div><b>' + esc(r.item) + '</b><span class="thh-num">Asked ' + esc(dayShort(r.asked_on) || 'earlier') + '</span>'
+        + (r.answer_hint ? '<span class="thh-hint">' + esc(r.answer_hint) + '</span>' : '') + '</div>'
+        + '<div class="thh-acts"><button type="button" class="thh-btn thh-btn-p" data-thh-done="' + Number(r.id) + '">Done</button>'
+        + '<button type="button" class="thh-btn" data-thh-decide="' + Number(r.id) + '">Decide</button></div></div>';
+    }).join('');
+  }
+
+  function paintSince(last, leads, answered){
+    var s = $('thh-since');
+    if(!last){ s.textContent = 'First look. Welcome.'; return; }
+    var bits = [];
+    if(leads) bits.push(plural(leads.length, 'new lead'));                 /* pipeline rows created since last look */
+    if(answered) bits.push('Shiara answered ' + answered.length);         /* bb_pending closed by Shiara since last look */
+    s.textContent = 'Since you last looked, ' + dayTime(last) + ': ' + (bits.length ? bits.join(', ') + '.' : 'nothing could be read.');
+  }
+
+  function paintMoney(inv){
+    if(!inv){ setTile('thh-money', NOTREAD, '', authed() ? 'Could not read invoices. Open Money to try again.' : 'Sign in to read invoices.'); return; }
+    /* an empty month reads as no invoices yet, never as LKR 0, so a read the policy filtered to nothing cannot pass for a zero */
+    if(!inv.length){ setTile('thh-money', '<span class="thh-big thh-dim">None yet</span>', '', esc('No invoices for ' + monthName(curYm()) + ' yet.')); return; }
+    var paid = inv.filter(function(i){ return i.status === 'paid'; });
+    var paidAmt = paid.reduce(function(s, i){ return s + (Number(i.amount) || 0); }, 0);   /* invoices.amount where status is paid */
+    var all = inv.reduce(function(s, i){ return s + (Number(i.amount) || 0); }, 0);        /* invoices.amount, every invoice this month */
+    setTile('thh-money', '<span class="thh-big" title="LKR ' + paidAmt.toLocaleString('en-GB') + '">LKR ' + esc(short(paidAmt)) + '</span><span class="thh-unit">of ' + esc(short(all)) + ' invoiced</span>',
+      '', esc(paid.length + ' of ' + plural(inv.length, 'invoice') + ' paid'));
+    $('thh-money').setAttribute('aria-label', 'Money in: LKR ' + short(paidAmt) + ' of ' + short(all) + ' invoiced. Opens Money.');
+  }
+
+  function paintSales(week, spend, form){
+    var line = [];
+    if(spend){
+      var usd = spend.reduce(function(s, r){ return s + (Number(r.spend) || 0); }, 0);     /* bb_ads_daily.spend, BB's own account, USD */
+      line.push('BB ads USD ' + usd.toFixed(2) + ' this month.');
+      if(form){
+        /* Cost per lead is DERIVED here: bb_ads_daily spend divided by pipeline rows with meta_lead_id this month.
+           BB-METRICS.md has no cost per lead metric, so it is labelled derived and never quoted as a BB metric. */
+        line.push(form.length ? 'USD ' + (usd / form.length).toFixed(2) + ' per form lead (derived).' : 'No form lead yet, so no cost per lead.');
+      }
+    } else line.push('Ad spend not read.');
+    if(!week){ setTile('thh-sales', NOTREAD, '', esc((authed() ? 'Could not read leads. ' : 'Sign in to read leads. ') + line.join(' '))); return; }
+    setTile('thh-sales', '<span class="thh-big">' + week.length + '</span><span class="thh-unit">' + (week.length === 1 ? 'lead' : 'leads') + ' this week</span>', '', esc(line.join(' ')));
+  }
+
+  function paintClients(list){
+    if(!list){ setTile('thh-clients', NOTREAD, '', 'Could not read clients.'); return; }
+    var n = { red:0, amber:0, green:0 };
+    list.forEach(function(c){ var h = String(c.health || '').toLowerCase(); if(n[h] != null) n[h]++; });   /* clients.health, the Dashboard rule */
+    var ic = part('thh-clients', '.thh-ico');
+    if(ic){ ic.classList.toggle('thh-c-red', n.red > 0); ic.classList.toggle('thh-c-amber', !n.red); }
+    setTile('thh-clients', '<span class="thh-big">' + n.red + '</span><span class="thh-unit">red</span>',
+      chip('thh-c-amber', n.amber + ' amber', true) + chip('thh-c-green', n.green + ' green', true), '');
+  }
+
+  function paintMine(ids){
+    if(!ids){ setTile('thh-mine', NOTREAD, '', 'Could not read your decisions.'); return; }
+    var c = ids.length, over = c > TH_CAPS.thulaib;                                          /* bb_pending open for Thulaib */
+    setTile('thh-mine', '<span class="thh-big">' + c + '</span><span class="thh-unit">' + (c === 1 ? 'decision' : 'decisions') + ' waiting</span>', '',
+      'Cap is ' + TH_CAPS.thulaib + '. Friday owners hour clears them.', over);
+  }
+
+  function paintHers(pend, vids, inv){
+    var total = 0, chips = '', got = 0;
+    if(pend){ total += pend.length; got++; chips += chip('thh-c-grey', plural(pend.length, 'decision')); }             /* bb_pending open for Shiara */
+    else chips += chip('thh-c-grey', 'decisions not read');
+    if(vids){ total += vids.length; got++; chips += chip('thh-c-grey', plural(vids.length, 'last check')); }           /* video_projects in coo_check */
+    else chips += chip('thh-c-grey', 'last checks not read');
+    if(inv && !inv.length) chips += chip('thh-c-grey', 'no invoices made yet');
+    else if(inv){ var u = inv.filter(function(i){ return !i.sent_at; }).length; total += u; got++; chips += chip('thh-c-grey', plural(u, 'invoice') + ' to send'); }   /* invoices this month, sent_at null */
+    else chips += chip('thh-c-grey', authed() ? 'invoices not read' : 'invoices need a sign in');
+    if(!got){ setTile('thh-hers', NOTREAD, chips, ''); return; }
+    setTile('thh-hers', '<span class="thh-big">' + total + '</span><span class="thh-unit">waiting on her</span>', chips, '', total > TH_CAPS.shiara);
+  }
+
+  function cell(n, kind){
+    n = Number(n) || 0;
+    var cls = !n ? 'thh-zero' : kind === 'bad' ? 'thh-bad' : kind === 'ok' ? 'thh-ok' : '';
+    return '<td class="' + cls + '">' + n + '</td>';
+  }
+  function paintTeam(rows){
+    var b = $('thh-team-body');
+    if(!rows){ b.innerHTML = '<div class="thh-line">Not read. Could not read the team board. Open Team to try again.</div>'; return; }
+    if(!rows.length){ b.innerHTML = '<div class="thh-line">No one on the team board yet.</div>'; return; }
+    b.innerHTML = '<table class="thh-tbl thh-num"><thead><tr><th>Person</th><th>Sent</th><th>Done this week</th><th>Overdue</th><th>Stuck</th><th><span class="thh-sr">Open</span></th></tr></thead><tbody>'
+      + rows.map(function(r){
+        /* bb_handoff_board: pending, done_this_week, overdue, stuck per member */
+        return '<tr tabindex="0" role="button" data-thh-member="' + esc(r.member_id) + '" aria-label="Open Team for ' + esc(cap1(r.name)) + '">'
+          + '<td><span class="thh-who"><span class="thh-av">' + esc(initials(r.name)) + '</span><span>' + esc(cap1(r.name)) + '<small>' + esc(String(r.role || '').replace(/_/g, ' ')) + '</small></span></span></td>'
+          + cell(r.pending) + cell(r.done_this_week, 'ok') + cell(r.overdue, 'bad') + cell(r.stuck, 'bad')
+          + '<td>' + svg('chevR').replace('<svg ', '<svg class="thh-go" ') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  function paintDuties(){
+    var ticks = {}; try{ ticks = JSON.parse(lsGet('bb_th_duty_ticks') || '{}') || {}; }catch(e){ ticks = {}; }
+    ['thulaib', 'shiara'].forEach(function(o){
+      var list = TH_DUTIES.filter(function(d){ return d.owner === o; }), k = o === 'thulaib' ? 'th' : 'sh';
+      $('thh-d-' + k + '-n').textContent = plural(list.length, 'duty', 'duties');
+      $('thh-d-' + k).innerHTML = list.map(function(d){
+        var on = !!ticks[d.key + ':' + cycleId(d.rhythm)];
+        return '<button type="button" class="thh-duty" data-thh-duty="' + esc(d.key) + '" aria-pressed="' + (on ? 'true' : 'false') + '">'
+          + '<span class="thh-tick">' + svg('tick') + '</span><span class="thh-m"><b>' + esc(d.title) + '</b><span>' + esc(d.detail) + '</span></span>'
+          + '<span class="thh-rhythm">' + esc(d.rhythm) + '</span></button>';
+      }).join('');
+    });
+  }
+  function toggleDuty(key){
+    var d = TH_DUTIES.filter(function(x){ return x.key === key; })[0]; if(!d) return;
+    var ticks = {}; try{ ticks = JSON.parse(lsGet('bb_th_duty_ticks') || '{}') || {}; }catch(e){ ticks = {}; }
+    var id = key + ':' + cycleId(d.rhythm);
+    if(ticks[id]) delete ticks[id]; else ticks[id] = true;
+    lsSet('bb_th_duty_ticks', JSON.stringify(ticks));
+    paintDuties();
+  }
+
+  /* Done: the decisions console's own path (bb_pending_close rpc, same headers, same sign in message). */
+  async function closeDecision(id, btn){
+    if(btn) btn.disabled = true;
+    try{
+      var r = await fetch(SB_URL + '/rest/v1/rpc/bb_pending_close', { method:'POST', headers:{ apikey:SB_KEY, Authorization:bbBearer(), 'Content-Type':'application/json' },
+        body:JSON.stringify({ p_id:id, p_answer:null, p_status:'done' }) });
+      if(!r.ok){
+        var t = await r.text();
+        var msg = /42501|permission denied|sign in/i.test(t) || r.status === 401 ? 'Sign in as CEO or COO to answer a decision.' : 'Could not save just now. Nothing was changed.';
+        if(typeof toast === 'function') toast(msg);
+        if(btn) btn.disabled = false; return;
+      }
+      if(typeof toast === 'function') toast('Marked done.');
+      load();
+    }catch(e){ if(typeof toast === 'function') toast('Could not save just now. Nothing was changed.'); if(btn) btn.disabled = false; }
+  }
+
+  async function readInvoices(ym){
+    /* invoices for the month. month may be stored as YYYY-MM or as a first of month date, so the date form is the fallback. */
+    var a = await rd('invoices', '?select=amount,status,month,paid_at,sent_at&month=eq.' + ym);
+    if(a) return a;
+    var b = await rd('invoices', '?select=amount,status,month,paid_at,sent_at&month=gte.' + ym + '-01&month=lt.' + nextYm(ym) + '-01');
+    return b ? b.filter(function(i){ return String(i.month || '').slice(0, 7) === ym; }) : null;
+  }
+
+  /* The decisions card and the Team table keep the height they had last time on this screen width while they read
+     again, so the tiles and cards under them do not jump when the rows arrive. First ever look uses the usual height
+     of three decisions and the team list. Heights only, no content, in localStorage.bb_th_heights. */
+  var TH_HOLD = { 'thh-push-rows':[560, 290], 'thh-team-body':[1100, 1000] };   /* [phone, desk] px, measured 9 Nov 2026 */
+  function holdMap(){ try{ return JSON.parse(lsGet('bb_th_heights') || '{}') || {}; }catch(e){ return {}; } }
+  function holdOn(){
+    var m = holdMap(), w = window.innerWidth;
+    Object.keys(TH_HOLD).forEach(function(id){ var el = $(id); if(el) el.style.minHeight = (m[w + ':' + id] || TH_HOLD[id][w <= 900 ? 0 : 1]) + 'px'; });
+  }
+  function holdOff(){
+    var m = holdMap(), w = window.innerWidth;
+    Object.keys(TH_HOLD).forEach(function(id){
+      var el = $(id); if(!el) return;
+      el.style.minHeight = '';
+      var h = Math.round(el.getBoundingClientRect().height); if(h > 0) m[w + ':' + id] = h;
+    });
+    lsSet('bb_th_heights', JSON.stringify(m));
+  }
+
+  async function load(){
+    var tok = ++TH.tok, A = authed(), T = today(), ym = curYm(), last = lsGet('bb_th_last_seen');
+    paintHead(); paintDuties();
+    ['thh-money', 'thh-sales', 'thh-clients', 'thh-mine', 'thh-hers'].forEach(function(id){ setTile(id, LOADING, '', ''); });
+    $('thh-push-rows').innerHTML = '<div class="thh-pi">' + LOADING + '</div>'; $('thh-push-n').textContent = ''; $('thh-since').textContent = '';
+    $('thh-team-body').innerHTML = LOADING;
+    holdOn();
+    var lastOk = last && !isNaN(Date.parse(last));
+    var none = Promise.resolve(null);
+    var haveClients = (typeof D === 'object' && D && Array.isArray(D.clients) && D.clients.length && typeof countableClients === 'function');
+    /* pipeline and invoices are hidden from a signed out visitor: without a sign in they read as not read, never as zero. */
+    var r = await Promise.all([
+      rd('bb_pending', '?status=eq.open&for_name=ilike.thulaib&select=id,item,answer_hint,asked_on&order=asked_on.desc,id.desc&limit=3'),   /* 0 push */
+      A && lastOk ? rd('pipeline', '?select=id&created_at=gt.' + encodeURIComponent(last)) : none,                                         /* 1 new leads since */
+      lastOk ? rd('bb_pending', '?select=id&for_name=ilike.shiara&status=neq.open&closed_on=gt.' + encodeURIComponent(last)) : none,       /* 2 Shiara answered */
+      A ? readInvoices(ym) : none,                                                                                                          /* 3 invoices this month */
+      A ? rd('pipeline', '?select=id,created_at,meta_lead_id&created_at=gte.' + encodeURIComponent(colomboIso(mondayOf(T)))) : none,      /* 4 leads this week */
+      rd('bb_ads_daily', '?select=spend,day&account_id=eq.' + BB_ADS_ACCOUNT + '&day=gte.' + ym + '-01'),                                  /* 5 BB ad spend */
+      A ? rd('pipeline', '?select=id&meta_lead_id=not.is.null&created_at=gte.' + encodeURIComponent(colomboIso(ym + '-01'))) : none,      /* 6 form leads this month */
+      haveClients ? Promise.resolve(D.clients) : rd('clients', '?select=id,name,health,status'),                                           /* 7 clients */
+      rd('bb_pending', '?select=id&status=eq.open&for_name=ilike.thulaib'),                                                                /* 8 his backlog */
+      rd('bb_pending', '?select=id&status=eq.open&for_name=ilike.shiara'),                                                                 /* 9 her decisions */
+      rd('video_projects', '?select=id&current_stage=eq.coo_check&is_archived=eq.false'),                                                  /* 10 her last checks */
+      rd('bb_handoff_board', '?select=*&order=name')                                                                                       /* 11 team */
+    ]);
+    if(tok !== TH.tok) return;
+    var clients = r[7] ? (typeof countableClients === 'function' ? countableClients(r[7]) : r[7]) : null;
+    var steps = [
+      function(){ paintPush(r[0]); }, function(){ paintSince(lastOk ? last : null, r[1], r[2]); },
+      function(){ paintMoney(r[3]); }, function(){ paintSales(r[4], r[5], r[6]); }, function(){ paintClients(clients); },
+      function(){ paintMine(r[8]); }, function(){ paintHers(r[9], r[10], r[3]); }, function(){ paintTeam(r[11]); }
+    ];
+    steps.forEach(function(f){ try{ f(); }catch(e){ console.error('thulaib home', e); } });
+    holdOff();
+    lsSet('bb_th_last_seen', new Date().toISOString());
+    syncHo();
+  }
+
+  /* ── the From card, the Stuck strip and Send a task come from @@BBCC_THULAIB_VIEW@@ ── */
+  function syncHo(){
+    var ready = !!(window.BBHO && window.BBHO.ready && isTh());
+    var s = $('thh-send'), top = $('ho-send-btn');
+    /* one Send a task on a screen: the top bar already carries it, so this one shows only if that one is missing */
+    if(s) s.hidden = !ready || !!(top && top.offsetParent !== null);
+    if(!isTh()) return;
+    if(TH.snap) fixSettings();
+    /* the boot code can write Dashboard into the title after his Home opened; Home stays Home */
+    var pg = $('page-thhome'), tt = $('topbar-title');
+    if(pg && pg.style.display === 'block' && tt && tt.textContent !== 'Home') tt.textContent = 'Home';
+    var m = $('thh-ho-mount');
+    ['ho-card-mount', 'ho-stuck-card'].forEach(function(id){ var el = $(id); if(el && m && el.parentNode !== m) m.appendChild(el); });
+  }
+  function putHoBack(){
+    var m = $('thh-ho-mount'), a = $('attention-panel');
+    if(!m || !a || !a.parentNode) return;
+    ['ho-card-mount', 'ho-stuck-card'].forEach(function(id){ var el = $(id); if(el && el.parentNode === m) a.parentNode.insertBefore(el, a); });
+  }
+  function startWatch(){
+    clearInterval(TH.watch); TH.watchN = 0;
+    TH.watch = setInterval(function(){ TH.watchN++; syncHo(); if(!isTh() || TH.watchN > 120) clearInterval(TH.watch); }, 700);
+  }
+
+  /* ── on and off with the role ── */
+  function enter(){
+    if(!isTh() || TH.snap) return;
+    applyNav();
+    $('thh-tabbar').hidden = false;
+    var cur = (typeof CURRENT_PAGE !== 'undefined') ? CURRENT_PAGE : 'dashboard';
+    /* already on his Home (sync() swapped the page a tick ago): light the menu, do not read everything twice */
+    if(cur === 'dashboard' || !cur) showPage('thhome'); else lightNav(cur);
+    startWatch(); syncHo();
+  }
+  function leave(){
+    foldClose();
+    restoreNav();
+    $('thh-tabbar').hidden = true;
+    clearInterval(TH.watch); putHoBack(); syncHo();
+    var pg = $('page-thhome');
+    if(pg && pg.style.display !== 'none'){
+      pg.style.display = 'none';
+      var d = $('page-dashboard'); if(d) d.style.display = 'block';
+      try{ CURRENT_PAGE = 'dashboard'; }catch(e){}
+      window._bbCurrentPage = 'dashboard';
+      document.documentElement.setAttribute('data-page', 'dashboard');
+      var nd = $('nav-dashboard'); if(nd) nd.classList.add('active');
+      var tt = $('topbar-title'); if(tt) tt.textContent = 'Dashboard';
+    }
+    var hm = $('thh-ho-mount'), mm = $('thh-more-mount'), ap = $('attention-panel'), dash = $('page-dashboard');
+    TH.leaveCheck = !!(hm && !hm.children.length && mm && !mm.children.length && (!ap || (dash && dash.contains(ap))));
+  }
+  /* This observer is made when the script is parsed, before Shiara's and the Send a task observers (made on load), so his
+     menu is put back before hers takes its snapshot. Entering waits one tick so her menu is put back before his snapshot. */
+  function sync(){
+    if(!TH.wired) return;
+    var on = isTh();
+    if(on && !TH.on){
+      TH.on = true;
+      /* his Home takes the screen in the same frame the app appears, so the old Dashboard never flashes first.
+         Only the page swaps here; his menu and tab bar follow one tick later in enter(). */
+      try{ var c0 = (typeof CURRENT_PAGE !== 'undefined') ? CURRENT_PAGE : 'dashboard'; if(c0 === 'dashboard' || !c0) showPage('thhome'); }catch(e){ console.error('thulaib home', e); }
+      setTimeout(function(){ if(TH.on) enter(); }, 0);
+    }
+    else if(!on && TH.on){ TH.on = false; leave(); }
+  }
+  new MutationObserver(sync).observe(document.body, { attributes:true, attributeFilter:['data-role'] });
+
+  /* ── showPage, wrapped once. Wraps whatever showPage is now (Shiara's wrap included); the original runs every time. ── */
+  function wrap(){
+    if(typeof showPage !== 'function' || showPage.__thulaib) return;
+    var orig = showPage;
+    var w = function(page){
+      var args = [].slice.call(arguments);
+      if(isTh() && page === 'dashboard' && !TH.dashOK) args[0] = page = 'thhome';
+      var viaDecide = TH.dashOK && page === 'dashboard';
+      TH.dashOK = false;
+      /* the old Dashboard parts live in the fold only while his Home is on screen: leaving Home puts every one back first */
+      if(isTh() && page !== 'thhome' && TH.fold) foldClose();
+      var out = orig.apply(this, args);
+      if(isTh()){
+        /* the top bar says the word his menu says: Money, Systems, Decisions */
+        var tt = $('topbar-title'), word = page === 'thhome' ? 'Home' : page === 'dashboard' ? (viaDecide ? 'Decisions' : '') : (TH_TITLE[page] || '');
+        if(tt && word) tt.textContent = word;
+        if(page === 'thhome') load();
+        lightNav(page);
+      }
+      return out;
+    };
+    w.__pageAttr = orig.__pageAttr; w.__shiara = orig.__shiara; w.__thulaib = true;
+    showPage = w;
+  }
+
+  function wire(){
+    var pg = $('page-thhome'), dash = $('page-dashboard');
+    if(pg && dash && dash.parentNode && pg.parentNode !== dash.parentNode) dash.parentNode.appendChild(pg);
+    paintIcons(pg); paintIcons($('thh-tabbar'));
+    wrap();
+    $('thh-money').addEventListener('click', function(){ showPage('finance'); });
+    $('thh-sales').addEventListener('click', function(){ showPage('pipeline'); });
+    $('thh-clients').addEventListener('click', function(){ showPage('clients'); });
+    $('thh-mine').addEventListener('click', goDecisions);
+    $('thh-hers').addEventListener('click', function(){ showPage('approvals'); });
+    $('thh-score').addEventListener('click', function(){ showPage('teamscore'); });
+    $('thh-send').addEventListener('click', function(){ if(window.BBHO && window.BBHO.ready) window.BBHO.open({}); });
+    $('thh-fold').addEventListener('click', function(){ if(TH.fold) foldClose(); else foldOpen(); });
+    $('thh-push-rows').addEventListener('click', function(e){
+      var d = e.target.closest('[data-thh-done]'); if(d){ closeDecision(Number(d.getAttribute('data-thh-done')), d); return; }
+      if(e.target.closest('[data-thh-decide]')) goDecisions();
+    });
+    /* no per person list exists inside @@BBCC_THULAIB_VIEW@@, so a row opens Team */
+    function openRow(e){ var tr = e.target.closest('[data-thh-member]'); if(tr) showPage('team'); }
+    $('thh-team-body').addEventListener('click', openRow);
+    $('thh-team-body').addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ if(e.target.closest('[data-thh-member]')){ e.preventDefault(); openRow(e); } } });
+    document.querySelector('#page-thhome .thh-duties').addEventListener('click', function(e){ var b = e.target.closest('[data-thh-duty]'); if(b) toggleDuty(b.getAttribute('data-thh-duty')); });
+    $('thh-tabbar').addEventListener('click', function(e){
+      var b = e.target.closest('[data-thh-tab]'); if(!b) return;
+      var t = b.getAttribute('data-thh-tab');
+      if(t === 'home') showPage('thhome');
+      else if(t === 'team') showPage('team');
+      else if(t === 'money') showPage('finance');
+      else if(t === 'clients') showPage('clients');
+      else if(t === 'more' && typeof toggleNav === 'function'){ setMore(true); toggleNav(); }
+    });
+    TH.wired = true;
+    if(isTh()){ TH.on = true; enter(); }
+  }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+
+  /* pure checks for the console (no reads, no writes) */
+  window.BBTH = { state:function(){ return TH; }, reload:load, selfcheck:function(){
+    var R = [], ok = function(n, p, d){ R.push({ name:'Thulaib home: ' + n, pass:!!p, detail:d || '' }); };
+    ok('125,000 reads 125K', short(125000) === '125K', short(125000));
+    ok('2,750,000 reads 2.75M', short(2750000) === '2.75M', short(2750000));
+    ok('Sunday 8 Nov 2026 is week 45, Monday 9 Nov is week 46', isoWeek('2026-11-08') === '2026-W45' && isoWeek('2026-11-09') === '2026-W46', isoWeek('2026-11-08') + ' ' + isoWeek('2026-11-09'));
+    ok('the Monday of Sunday 8 Nov is 2 Nov', mondayOf('2026-11-08') === '2026-11-02', mondayOf('2026-11-08'));
+    ok('a month start duty ticks once a month', cycleId('Month start', '2026-11-08') === '2026-11', cycleId('Month start', '2026-11-08'));
+    ok('the page exists', !!$('page-thhome'), '');
+    var th = isTh(), nav = navEl(), mine = !!$('nav-thhome');
+    var first = nav ? [].slice.call(nav.querySelectorAll('.nav-item')).filter(function(n){ return n.style.display !== 'none'; })[0] : null;
+    if(th) ok('his menu is reordered, Home first', mine && first && first.id === 'nav-thhome' && !!$('nav-thdecide'), first ? first.id : 'no item');
+    else ok('his menu is put back for every other role', !mine && !$('nav-thdecide') && !document.querySelector('.thh-in-more') && !(nav && nav.classList.contains('thh-nav')), 'role ' + document.body.getAttribute('data-role'));
+    var tb = $('thh-tabbar'), desk = window.matchMedia && window.matchMedia('(min-width:901px)').matches, shown = tb && getComputedStyle(tb).display !== 'none';
+    ok(desk ? 'the tab bar is hidden on a desk' : 'the tab bar shows on a phone for him only', desk ? !shown : (shown === th), (desk ? 'desk' : 'phone') + ', ' + (shown ? 'shown' : 'hidden'));
+    ok('showPage is wrapped once', typeof showPage === 'function' && showPage.__thulaib === true, '');
+    if(th){
+      var placed = TH.moved.every(function(m){ return TH.fold ? m.el.parentNode === $('thh-more-mount') : m.el.parentNode === m.parent; });
+      ok('every moved part is in the fold or back in its place', placed, TH.moved.length + ' parts, fold ' + (TH.fold ? 'open' : 'shut'));
+    } else {
+      var hm = $('thh-ho-mount'), mm = $('thh-more-mount'), ap = $('attention-panel'), dash = $('page-dashboard');
+      var back = hm && !hm.children.length && mm && !mm.children.length && (!ap || (dash && dash.contains(ap)));
+      ok('every moved element is put back on leave', back && TH.leaveCheck !== false, 'last leave ' + (TH.leaveCheck === null ? 'not yet' : TH.leaveCheck ? 'clean' : 'left parts behind'));
+    }
+    return R;
+  } };
+})();
+</script>
+<!-- @@BBCC_THULAIB_HOME_END@@ -->
 
 <!-- @@BBCC_TEAMSCORE_BEGIN@@ TEAMSCORE-SMM-1 (6 Nov 2026, Thulaib approved bb_pending 1460 to 1465). SMM and Heads added after Video.
      SMM-SCORED (6 Nov 2026): an SMM with a Post on date due in the week is scored by the engine on TS_ADAPTER.smmJobs, as Graphics is.
