@@ -9144,7 +9144,7 @@ function taskHTML(t,compact){
         ${!compact&&t.category?`<span class="tag tag-cat">${esc(t.category)}</span>`:''}
       </div>
     </div>
-    <div class="task-av ${avM[t.assign]||'av-th'}">${avT[t.assign]||'TH'}</div>
+    <div class="task-av ${avM[ccAssignKey(t.assign)]||'av-th'}">${avT[ccAssignKey(t.assign)]||(t.assign?esc(String(t.assign).slice(0,2).toUpperCase()):'?')}</div>
     ${!compact?`<button class="item-btn" style="font-size:9px;color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;padding:2px 4px" onclick="editTaskBook(${t.id})">Edit</button><button class="item-btn" style="font-size:9px;color:var(--blue);font-weight:600;background:none;border:none;cursor:pointer;padding:2px 4px" onclick="openDuplicateTask(${t.id})">Dup</button><button class="item-btn del" onclick="deleteTask(${t.id})">×</button>`:''}
   </div>`;
 }
@@ -9153,7 +9153,7 @@ async function toggleTask(id){const t=TASKS.find(x=>x.id===id);if(!t)return;t.do
    them. The column existed the whole time; nothing filled it. Same fault was fixed in the
    SMM Workspace on 2026-08-22; this is the other writer. Un-ticking clears it so a reopened
    task never carries a stale completion date. */
-const _now=new Date().toISOString();t.completed_at=t.done?_now:null;await SBpatch('tasks',id,{done:t.done,completed_at:t.completed_at,updated_at:_now});const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);}
+const _now=new Date().toISOString();t.completed_at=t.done?_now:null;ccTaskApply(id,{done:t.done,completed_at:t.completed_at,updated_at:_now});await SBpatch('tasks',id,{done:t.done,completed_at:t.completed_at,updated_at:_now});const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);}
 async function deleteTask(id){if(!confirm('Delete task?'))return;await SBdel('tasks',id);TASKS=TASKS.filter(t=>t.id!==id);const c=CLIENTS.find(x=>Number(x.id)===currentId);renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);renderTable();}
 function openAddTaskModal(){document.getElementById('task-title').value='';document.getElementById('task-due').value='';document.getElementById('task-notes').value='';document.getElementById('modal-task').classList.remove('hidden');document.getElementById('task-title').focus();}
 async function saveTask(){
@@ -12239,6 +12239,69 @@ async function loadTaskBook(){
   renderTaskBook();
 }
 
+
+/* SHARED TASK BOOK (20 Nov 2026). `tasks` is ONE table read by this app, the SMM Workspace
+   and the Video System. Three faults lived here:
+   1. This app kept TWO copies of the rows (D.tasks for the Task Book, TASKS for a client's
+      page) and a tick in one never reached the other until a reload.
+   2. Nothing refreshed, so a tick made in another app showed only after a reload.
+   3. `assign` holds codes (th, sh), names (Nirvana), legacy initials (TH, SH) and blanks, and
+      the filter compared exact strings, so a task for Shiara written as "SH" or "Shiara" fell
+      out of the Shiara view.
+   ccAssignKey turns any of those into one code; ccTaskApply writes to both copies. */
+const CC_ASSIGN_ALIAS={th:'th',thulaib:'th',sh:'sh',shiara:'sh',both:'both',smm:'smm',gd:'gd',video:'video'};
+function ccAssignKey(a){const k=String(a==null?'':a).trim().toLowerCase();return CC_ASSIGN_ALIAS[k]||k}
+function ccAssignMatches(assign,filter){
+  const a=ccAssignKey(assign),f=ccAssignKey(filter);
+  if(!f)return true;
+  return a===f||a==='both'&&(f==='th'||f==='sh'||f==='both');
+}
+function ccTaskApply(id,patch){
+  [(typeof D!=='undefined'&&D.tasks)||[],(typeof TASKS!=='undefined'&&TASKS)||[]].forEach(list=>{
+    const t=list.find(x=>String(x.id)===String(id));if(t)Object.assign(t,patch);
+  });
+}
+function ccRefreshTaskViews(){
+  try{
+    if(document.getElementById('page-taskbook')&&document.getElementById('page-taskbook').style.display==='block')renderTaskBook();
+    if(typeof currentId!=='undefined'&&currentId&&document.getElementById('profile-page')&&document.getElementById('profile-page').classList.contains('active')&&document.getElementById('t-open-list')){
+      const c=CLIENTS.find(x=>Number(x.id)===currentId);
+      if(c){renderKPIs(c);renderOverviewTab(c);renderTasksTab(currentId);}
+    }
+    if(document.getElementById('page-dashboard')&&document.getElementById('page-dashboard').style.display==='block')renderAll();
+  }catch(e){console.warn('ccRefreshTaskViews',e)}
+}
+(function(){
+  let busy=false,last='';
+  const sig=a=>(a||[]).map(t=>t.id+(t.done?'d':'o')+(t.assign||'')+(t.due||'')+(t.title||'')+(t.client_id||'')).join(',');
+  async function pull(){
+    if(busy||document.hidden)return;
+    if(typeof SB_URL==='undefined'||typeof DEMO_MODE!=='undefined'&&DEMO_MODE)return;
+    if(!(typeof D!=='undefined'&&D.tasks&&D.tasks.length)&&!(typeof TASKS!=='undefined'&&TASKS.length))return;
+    if(document.querySelector('.modal-overlay:not(.hidden)'))return;
+    const ae=document.activeElement;if(ae&&/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName))return;
+    busy=true;
+    try{
+      await bbAuthEnsure();
+      const r=await fetch(SB_URL+'/rest/v1/tasks?select=*&order=id.asc&limit=1000',{cache:'no-store',headers:{apikey:SB_KEY,Authorization:bbBearer()}});
+      if(!r.ok)return;
+      const rows=await r.json();if(!Array.isArray(rows))return;
+      const now=sig(rows);
+      if(!last)last=sig(D.tasks&&D.tasks.length?D.tasks:TASKS);
+      if(now===last)return;
+      last=now;
+      /* drop the read cache so any later read of tasks is fresh too */
+      Object.keys(_sbCache).forEach(k=>{if(k.indexOf('tasks|')===0)delete _sbCache[k]});
+      D.tasks=rows;
+      TASKS=rows.map(t=>({...t,clientId:Number(t.client_id||0),done:t.done||false}));
+      ccRefreshTaskViews();
+    }catch(e){console.warn('task sync',e)}
+    finally{busy=false}
+  }
+  setInterval(pull,30000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()});
+  window.ccTaskSyncNow=pull;
+})();
 function renderTaskBook(){
   const assignFilter=document.getElementById('tb-filter-assign')?.value||'';
   const statusFilter=document.getElementById('tb-filter-status')?.value||'open';
@@ -12258,7 +12321,7 @@ function renderTaskBook(){
 
   // Filter — client tasks only (pipeline tasks shown in Leads)
   let tasks=clientTasks.filter(t=>!t.pipeline_id);
-  if(assignFilter) tasks=tasks.filter(t=>t.assign===assignFilter||t.assign==='both');
+  if(assignFilter) tasks=tasks.filter(t=>ccAssignMatches(t.assign,assignFilter));
   if(statusFilter==='open') tasks=tasks.filter(t=>!t.done);
   else if(statusFilter==='overdue') tasks=tasks.filter(t=>isOverdue(t));
   else if(statusFilter==='done') tasks=tasks.filter(t=>t.done);
@@ -12325,8 +12388,9 @@ function renderTaskBook(){
       const od=isOverdue(t);
       const dueTxt=t.due?fmtDate(t.due):'No date';
       const dueColor=od?'var(--red)':t.done?'var(--text-3)':'var(--text-2)';
-      const av=assignLabel[t.assign]||(t.assign?String(t.assign).slice(0,2).toUpperCase():'?');
-      const avStyle=assignColor[t.assign]||'background:var(--blue,#3b82f6)';
+      const _ak=ccAssignKey(t.assign);
+      const av=assignLabel[_ak]||(t.assign?String(t.assign).slice(0,2).toUpperCase():'?');
+      const avStyle=assignColor[_ak]||'background:var(--blue,#3b82f6)';
       const pri=t.priority||'medium';
       rows+=`<tr style="border-bottom:1px solid var(--border);${t.done?'opacity:.45':''}${od?';background:rgba(239,68,68,.03)':''}">
         <td style="padding:10px 12px;text-align:center">
@@ -12367,9 +12431,11 @@ async function toggleTaskBook(id){
   const t=(D.tasks||[]).find(x=>String(x.id)===String(id));
   if(!t)return;
   const newDone=!t.done;
-  t.done=newDone;
+  const _now=new Date().toISOString();
+  ccTaskApply(id,{done:newDone,completed_at:newDone?_now:null,updated_at:_now});
   renderTaskBook();
-  try{ await sbC('tasks','PATCH',{done:newDone},`?id=eq.${id}`); }catch(e){console.error('toggleTaskBook',e);}
+  try{ await sbC('tasks','PATCH',{done:newDone,completed_at:newDone?_now:null,updated_at:_now},`?id=eq.${id}`); }catch(e){console.error('toggleTaskBook',e);}
+  ccRefreshTaskViews();
   // Refresh dashboard counts if visible
   if(document.getElementById('page-dashboard')?.style.display!=='none') renderAll();
 }
