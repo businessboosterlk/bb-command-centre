@@ -1450,6 +1450,18 @@ html[data-page="finance"] .main > .content{overflow-x:clip;overflow-y:visible}
 .finc-tbl tr.finc-tr:hover td{background:var(--surface-2)}
 .finc-tbl .finc-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .finc-tbl .finc-nm{font-weight:700}
+.finc-tbl-m{table-layout:fixed}
+.finc-tbl tr.finc-mrow td{padding:0;border-bottom:1px solid var(--border)}
+.finc-mh{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px 18px;flex-wrap:wrap;padding:14px 16px;min-height:52px;background:var(--surface-2);border:0;border-top:1px solid var(--border);color:var(--text);font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}
+.finc-mh:hover{background:var(--surface-3,var(--surface-2));filter:brightness(1.08)}
+.finc-mh-name{display:flex;align-items:baseline;gap:10px;font-size:15px;font-weight:700}
+.finc-mh-chev{width:12px;color:var(--text-3);font-size:12px}
+.finc-mh-n{font-size:12px;font-weight:600;color:var(--text-3)}
+.finc-mh-figs{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-3)}
+.finc-mh-figs b{font-size:13px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;margin-left:4px}
+.finc-mblock{border-bottom:1px solid var(--border)}
+.finc-mblock .finc-mh{border-top:0}
+.finc-mblock .finc-mh-figs{gap:4px 14px}
 .finc-mute{color:var(--text-3)}
 /* a whole 20px box with the text one pixel lower: the capital band of 10.5px Inter sits high in an even padding, read with optical.mjs (fix round 1) */
 .finc-st{display:inline-block;font-size:10.5px;font-weight:700;line-height:16px;padding:3px 8px 1px;border-radius:6px;white-space:nowrap}
@@ -5493,25 +5505,15 @@ const hoCard = (function() {
     <div style="margin-top:8px;background:linear-gradient(135deg,#8b5cf6,#6d28d9);color:white;padding:10px 24px;border-radius:6px;font-size:12px;font-weight:700;letter-spacing:.05em">businessboosterlk@gmail.com</div>
   </div>
   <div class="content">
-    <!-- Finance Agent Alerts -->
-    <div style="margin-bottom:18px;background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
-      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-size:12px;font-weight:600;color:var(--text);letter-spacing:0;"><svg class="bb-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg> Finance Agent Alerts</div>
-        <button onclick="loadFinanceAgentAlerts()" style="background:none;border:none;color:var(--text-3);font-size:11px;cursor:pointer;">↻ Refresh</button>
-      </div>
-      <div id="finance-agent-alerts" style="padding:12px 16px;max-height:260px;overflow-y:auto;">
-        <div style="color:var(--text-3);font-size:13px;">Loading...</div>
-      </div>
-    </div>
     <!-- Page Header -->
     <div class="fin-ph">
       <div>
         <h1 style="font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:22px;font-weight:600;margin:0;color:var(--text)">Finance</h1>
-        <div style="font-size:12px;color:var(--text-3);margin-top:3px">Revenue, costs and profit: updated in real time</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:3px">Money in and money out, month by month</div>
       </div>
       <div class="fin-ph-right">
         <div class="fin-view-tabs">
-          <button class="fin-vtab active" id="fvt-month" onclick="setFinView('month')">Collections</button>
+          <button class="fin-vtab active" id="fvt-month" onclick="setFinView('month')">Months</button>
           <button class="fin-vtab" id="fvt-year" onclick="setFinView('year')">Yearly</button>
           <button class="fin-vtab" id="fvt-client" onclick="setFinView('client')">By Client</button>
           <button class="fin-vtab" id="fvt-reports" onclick="setFinView('reports')">Reports</button>
@@ -5522,10 +5524,11 @@ const hoCard = (function() {
       </div>
     </div>
 
-    <!-- Stat Cards. COLLECTIONS KPI ROW (BB FINANCE UPGRADE 1, 7 Nov 2026): the six collection
-         figures first, then costs and the profit card, which keeps its honesty guard. Invoiced,
-         Collected, To collect and Collection rate are the month in the picker; Overdue and
-         Expected look across every month, because money owed does not stop at a month end. -->
+    <!-- FOUR FIGURES ONLY (25 Nov 2026). Thulaib: "complicated... don't show me unwanted things".
+         Collection rate, Expected in 30 days, Total costs and the not-profit card came off, with the
+         Finance Agent alerts, the reconciliation panel, the smart check, the overdue box, To do today
+         and the ageing strip. Invoiced, Collected and Still to collect are the picked month; Overdue
+         looks across every month. The invoices below are grouped month by month. -->
     <div class="fin-stats" id="fin-stat-wrap">
       <div class="fin-stat" style="border-top:2px solid var(--green)">
         <div class="fin-stat-lbl">Invoiced</div>
@@ -5538,7 +5541,7 @@ const hoCard = (function() {
         <div class="fin-stat-note" id="fst-collected-note">Paid so far this month</div>
       </div>
       <div class="fin-stat" style="border-top:2px solid var(--amber)">
-        <div class="fin-stat-lbl">To collect</div>
+        <div class="fin-stat-lbl">Still to collect</div>
         <div class="fin-stat-val" id="fst-outstanding" style="color:var(--amber)">LKR 0</div>
         <div class="fin-stat-note" id="fst-outstanding-note">Not paid yet this month</div>
       </div>
@@ -5546,72 +5549,6 @@ const hoCard = (function() {
         <div class="fin-stat-lbl">Overdue</div>
         <div class="fin-stat-val" id="fst-overdue" style="color:var(--red)">LKR 0</div>
         <div class="fin-stat-note" id="fst-overdue-note">Past the due date, all months</div>
-      </div>
-      <div class="fin-stat" style="border-top:2px solid var(--blue)">
-        <div class="fin-stat-lbl">Collection rate</div>
-        <div class="fin-stat-val" id="fst-rate">None billed</div>
-        <div class="fin-stat-note" id="fst-rate-note">Collected out of invoiced</div>
-      </div>
-      <div class="fin-stat" style="border-top:2px solid var(--blue)">
-        <div class="fin-stat-lbl">Expected in the next 30 days</div>
-        <div class="fin-stat-val" id="fst-expected">LKR 0</div>
-        <div class="fin-stat-note" id="fst-expected-note">Unpaid and due within 30 days</div>
-      </div>
-      <div class="fin-stat" style="border-top:2px solid var(--red)">
-        <div class="fin-stat-lbl">Total Costs</div>
-        <div class="fin-stat-val" id="fst-costs" style="color:var(--red)">LKR 0</div>
-        <div class="fin-stat-note">All expenses this month</div>
-      </div>
-      <div class="fin-stat" style="border-top:2px solid var(--accent)">
-        <div class="fin-stat-lbl" id="fst-profit-lbl">Invoiced minus costs recorded</div>
-        <div class="fin-stat-val" id="fst-profit">LKR 0</div>
-        <div class="fin-stat-note" id="fst-margin">Revenue minus costs</div>
-      </div>
-    </div>
-
-    <!-- Delayed Payments Alert -->
-    <div id="fin-delayed-wrap" style="display:none;margin-bottom:14px">
-      <div class="card" style="padding:0;overflow:hidden;border-color:rgba(239,68,68,0.3)">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--red-soft);border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="width:7px;height:7px;border-radius:50%;background:var(--red);display:inline-block;box-shadow:0 0 6px var(--red)"></span>
-            <span style="font-size:11px;font-weight:700;color:var(--red);letter-spacing:0">Overdue <span id="fin-delayed-count" style="font-weight:600;color:var(--text-3);text-transform:none;letter-spacing:0"></span></span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <span style="font-size:12px;font-weight:600;color:var(--red)" id="fin-delayed-total">LKR 0</span>
-            <button type="button" id="fin-delayed-toggle" class="btn-ghost btn-sm" style="font-size:11px" onclick="finShowOverdueByMonth()">See who, by month</button>
-          </div>
-        </div>
-        <!-- FOLDED BY DEFAULT. This list listed every unpaid invoice in every month
-             and ran to 4,137 pixels, so the invoices themselves started about eight
-             screens down the page. The total and the ageing strip are the part that
-             matters at a glance; the rows are one tap away. -->
-        <div id="fin-delayed-list" style="display:none"></div>
-      </div>
-    </div>
-
-    <!-- Smart Flag -->
-    <div id="fin-recon-wrap" style="display:none;margin-bottom:14px">
-      <div class="card" style="padding:0;overflow:hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:11px 18px;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:var(--text-2);letter-spacing:0">Finance Agent · Reconciliation</span>
-          </div>
-          <span id="fin-recon-when" style="font-size:11px;color:var(--text-3)"></span>
-        </div>
-        <div id="fin-recon-body" style="padding:14px 18px"></div>
-      </div>
-    </div>
-    <div id="fin-smartflag-wrap" style="display:none;margin-bottom:14px">
-      <div class="card" style="padding:0;overflow:hidden;border-color:rgba(251,191,36,0.3)">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 18px;background:var(--amber-soft);border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:13px">⚠️</span>
-            <span style="font-size:11px;font-weight:700;color:var(--amber);letter-spacing:0">Smart Check: Client Costs Not On Invoice</span>
-          </div>
-          <span style="font-size:11px;color:var(--text-3)">These costs are linked to a client but not yet added to their invoice</span>
-        </div>
-        <div id="fin-smartflag-list"></div>
       </div>
     </div>
 
@@ -5625,15 +5562,11 @@ const hoCard = (function() {
          lists are already grouped so filtering is optional, and each section
          header stays on screen while you read its rows. -->
     <div id="fin-monthly-view">
-      <!-- TO DO TODAY and the AGEING STRIP (BB FINANCE UPGRADE 1). Each line and each bucket
-           is a button that filters the invoice table below; tapping it again clears it. -->
-      <section class="card finc-todo" id="finc-todo" aria-label="To do today"></section>
-      <div class="finc-age" id="finc-age" role="group" aria-label="Ageing of unpaid invoices"></div>
       <div class="fin-stack">
         <section class="card fin-sect" id="fin-sect-in">
           <div class="fin-sect-head">
             <div class="fin-sect-title">
-              <div class="fin-sect-name">Invoices <span>money coming in</span></div>
+              <div class="fin-sect-name">Invoices <span>month by month</span></div>
               <div class="fin-sect-total"><span id="finc-shown">0 shown</span> · Total <b id="fin-inv-total">LKR 0</b></div>
             </div>
             <div class="fin-sect-tools">
@@ -5646,7 +5579,6 @@ const hoCard = (function() {
                 <select class="form-select" id="finc-f-status" aria-label="Status" onchange="fincSet('status',this.value)"></select>
                 <select class="form-select" id="finc-f-from" aria-label="From month" onchange="fincSet('from',this.value)"></select>
                 <select class="form-select" id="finc-f-to" aria-label="To month" onchange="fincSet('to',this.value)"></select>
-                <select class="form-select" id="finc-f-sent" aria-label="Sent" onchange="fincSet('sent',this.value)"></select>
                 <button type="button" class="btn-ghost btn-sm" id="finc-clear" onclick="fincClearAll()">Clear all</button>
               </div>
               <button type="button" class="btn-ghost finc-fbtn" id="finc-fbtn" onclick="fincOpenFilters()">Filters <span class="finc-fb-n" id="finc-fb-n"></span></button>
@@ -9393,7 +9325,6 @@ async function loadFinancePage(){
     INVOICES=FIN_INVOICES;
     if(needClients&&clients&&clients.length)CLIENTS=clients;
   }catch(e){console.error('loadFinancePage',e);}
-  loadFinRecon();
 
   /* OPEN ON THE LATEST MONTH THAT HAS ANYTHING IN IT, not blindly on today's.
      Found 2026-09-01, when Thulaib asked for a "mark this cost as paid" button
@@ -9416,9 +9347,8 @@ async function loadFinancePage(){
   const sel=document.getElementById('fin-month-sel');
   if(sel&&sel.querySelector(`option[value="${want}"]`))sel.value=want;
   /* The invoice table opens on the same month as the picker; the filter bar widens it from there. */
-  if(!fincInited){ fincInited=true; const m=getFinMonth(); fincF.from=m; fincF.to=m; }
+  if(!fincInited){ fincInited=true; fincOpenMonths=new Set([getFinMonth()]); }
   renderFinancePage();
-  loadFinanceAgentAlerts();
 }
 
 async function loadFinanceAgentAlerts(){
@@ -10188,8 +10118,9 @@ function renderFinancePage(){
 
   document.getElementById('fst-revenue').textContent='LKR '+invTotal.toLocaleString();
   document.getElementById('fst-outstanding').textContent='LKR '+outstanding.toLocaleString();
-  document.getElementById('fst-costs').textContent='LKR '+totalCosts.toLocaleString();
   const profEl=document.getElementById('fst-profit');
+  if(profEl){
+  document.getElementById('fst-costs').textContent='LKR '+totalCosts.toLocaleString();
   profEl.textContent='LKR '+profit.toLocaleString();
   /* HONESTY GUARD. BB-METRICS.md VERIFIED monthly cost base = payroll 1,755,000
      plus non-payroll 309,000. The costs table currently captures under half of
@@ -10209,6 +10140,7 @@ function renderFinancePage(){
     profEl.style.color='var(--text-2)';
     document.getElementById('fst-margin').innerHTML='<span style="color:var(--amber)">Not profit \u00b7 only '+complete+'% of costs recorded</span>';
   }
+  }
   document.getElementById('fin-cost-total').textContent='LKR '+totalCosts.toLocaleString();
 
   /* COLLECTIONS (BB FINANCE UPGRADE 1, 7 Nov 2026). The overdue box, its ageing strip and the
@@ -10218,8 +10150,6 @@ function renderFinancePage(){
   try{ fincPaintKpis(invoices,fincToday()); }catch(e){ console.error('fincPaintKpis',e); }
   const _dw=document.getElementById('fin-delayed-wrap'); if(_dw) _dw.style.display='none';
 
-  // Smart flag
-  renderFinSmartFlag(month);
 
   fincRender();
 
@@ -10534,6 +10464,8 @@ let fincF={q:'',status:'',from:'',to:'',sent:'',age:'',todo:''};
 let fincSort={key:'month',dir:-1};
 let fincPrevRange=null; /* the month range in force before an ageing or to do tap cleared it */
 let fincInited=false;
+let fincOpenMonths=new Set();
+let fincShutMonths=new Set();
 let fincSheetId=null, fincForm='', fincBusy=false;
 const fincLastStatus={}; /* invoice id -> status before it was marked paid, for Undo */
 const FINC_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -10653,7 +10585,8 @@ function fincSortBy(k){
   fincRender();
 }
 function fincSetSortValue(v){ const p=String(v||'month:-1').split(':'); fincSort={key:p[0],dir:Number(p[1])===1?1:-1}; fincRender(); }
-function fincMonthPicked(){ const m=getFinMonth(); fincF.from=m; fincF.to=m; fincPrevRange=null; renderFinancePage(); }
+function fincMonthPicked(){ const m=getFinMonth(); fincOpenMonths=new Set([m]); fincF.sent=''; renderFinancePage(); }
+function fincToggleMonth(m){ const S=(fincF.status||fincF.q)?fincShutMonths:fincOpenMonths; if(S.has(m)) S.delete(m); else S.add(m); fincRenderList(); }
 function fincOpenFilters(){ fincPaintControls(); openModal('finc-fsheet'); }
 
 /* ── Painting ── */
@@ -10748,34 +10681,58 @@ function fincRenderList(){
     return;
   }
   const one=inv=>{ const o=!inv.client_id&&(inv.client_name||'').trim(); return esc(fincClientName(inv)||'No name')+(o?' <span class="finc-mute" style="font-size:11px;font-weight:600">one off</span>':''); };
+  /* MONTH BY MONTH (25 Nov 2026). Thulaib: "you have not even broken it down month by month".
+     Each billed month is its own block: a header with the month, how many invoices, what was
+     invoiced, collected and still to collect, then its rows. Newest month first. A tap on the
+     header folds or opens it; the picked month opens on its own. */
+  const amt=r=>Number(r.amount)||0;
+  const byMonth=new Map(); rows.forEach(r=>{ const k=String(r.month||''); if(!byMonth.has(k)) byMonth.set(k,[]); byMonth.get(k).push(r); });
+  const asc=fincSort.key==='month'&&fincSort.dir===1;
+  const months=[...byMonth.keys()].sort((x,y)=>asc?x.localeCompare(y):y.localeCompare(x));
+  if(months.length===1) fincOpenMonths.add(months[0]);
+  /* A filter or a search opens EVERY month (Thulaib, 25 Nov: "if I put unpaid... the month
+     structure"), so "To collect" reads as who owes what, month by month. A tap still folds one. */
+  const wide=!!(fincF.status||fincF.q);
+  const isOpen=m=>wide?!fincShutMonths.has(m):fincOpenMonths.has(m);
+  const head=(m,list,cols)=>{
+    const inv=list.reduce((t,r)=>t+amt(r),0), got=list.filter(r=>r.status==='paid').reduce((t,r)=>t+amt(r),0), open=isOpen(m);
+    const late=list.filter(r=>fincIsLate(r,today)).length;
+    const inner=`<span class="finc-mh-name"><span class="finc-mh-chev" aria-hidden="true">${open?'▾':'▸'}</span>${esc(fincMonthLong(m)||'No month')}<span class="finc-mh-n">${fincPlural(list.length,'invoice','invoices')}${late?` · <b style="color:var(--red)">${late} late</b>`:''}</span></span>`
+      +`<span class="finc-mh-figs"><span>Invoiced <b>${fincLkr(inv)}</b></span><span>Collected <b style="color:var(--green)">${fincLkr(got)}</b></span><span>Still to collect <b style="color:${inv-got?'var(--amber)':'var(--text-3)'}">${fincLkr(inv-got)}</b></span></span>`;
+    const btn=`<button type="button" class="finc-mh" id="finc-mh-${esc(m)}" aria-expanded="${open}" onclick="fincToggleMonth('${esc(m)}')">${inner}</button>`;
+    return cols?`<tr class="finc-mrow"><td colspan="${cols}">${btn}</td></tr>`:btn;
+  };
   if(phone){
-    el.innerHTML=rows.map(inv=>{
-      const st=fincStatus(inv,today), ch=withChase?fincChaseText(inv.id,true):'';
-      return `<div class="finc-card" role="button" tabindex="0" onclick="fincOpenSheet(${Number(inv.id)})">`
-        +`<div class="finc-card-top"><span>${one(inv)}</span><b>${fincLkr(inv.amount)}</b></div>`
-        +`<div class="finc-card-meta"><span class="finc-st ${st.cls}">${st.txt}</span><span>${esc(bbMonthLabel(inv.month))}</span>`
-        +(inv.status!=='paid'?`<span onclick="event.stopPropagation()">${finSentBtn(inv)}</span>`:'')
-        +(withChase&&fincChasesOf(inv.id).length?`<span>${esc(ch)}</span>`:'')+`</div></div>`;
+    el.innerHTML=months.map(m=>{
+      const list=byMonth.get(m);
+      return `<div class="finc-mblock">`+head(m,list,0)+(isOpen(m)?list.map(inv=>{
+        const st=fincStatus(inv,today);
+        return `<div class="finc-card" role="button" tabindex="0" onclick="fincOpenSheet(${Number(inv.id)})">`
+          +`<div class="finc-card-top"><span>${one(inv)}</span><b>${fincLkr(inv.amount)}</b></div>`
+          +`<div class="finc-card-meta"><span class="finc-st ${st.cls}">${st.txt}</span>`
+          +(inv.status!=='paid'?`<span onclick="event.stopPropagation()">${finSentBtn(inv)}</span>`:'')+`</div></div>`;
+      }).join(''):'')+`</div>`;
     }).join('');
     return;
   }
   const th=(k,lbl,num)=>{ const on=fincSort.key===k, arrow=on?(fincSort.dir===1?' ▲':' ▼'):'';
     return `<th class="finc-sortable"${num?' style="text-align:right"':''} aria-sort="${on?(fincSort.dir===1?'ascending':'descending'):'none'}"><button type="button" class="finc-th${on?' on':''}" id="finc-sort-${k}" onclick="fincSortBy('${k}')">${lbl}${arrow}</button></th>`; };
-  el.innerHTML=`<div style="overflow-x:auto"><table class="finc-tbl"><thead><tr>`
-    +th('client','Client')+th('month','Month')+th('amount','Amount',true)+`<th>Status</th><th>Sent</th>`+th('due','Due')+th('paid','Paid on')+(withChase?'<th>Chased</th>':'')
+  el.innerHTML=`<div style="overflow-x:auto"><table class="finc-tbl finc-tbl-m"><colgroup><col><col style="width:150px"><col style="width:150px"><col style="width:130px"><col style="width:100px"><col style="width:100px"></colgroup><thead><tr>`
+    +th('client','Client')+th('amount','Amount',true)+`<th>Status</th><th>Sent</th>`+th('due','Due')+th('paid','Paid on')
     +`</tr></thead><tbody>`
-    +rows.map(inv=>{
-      const st=fincStatus(inv,today);
-      return `<tr class="finc-tr" tabindex="0" onclick="fincOpenSheet(${Number(inv.id)})">`
-        +`<td class="finc-nm">${one(inv)}</td>`
-        +`<td>${esc(bbMonthLabel(inv.month))}</td>`
-        +`<td class="finc-num">${fincLkr(inv.amount)}</td>`
-        +`<td><span class="finc-st ${st.cls}">${st.txt}</span></td>`
-        +`<td onclick="event.stopPropagation()">${inv.status!=='paid'?finSentBtn(inv):(inv.sent_at?'<span class="finc-mute">'+fincDay(inv.sent_at)+'</span>':'')}</td>`
-        +`<td>${String(inv.due_date||'').trim()?fincDayOfYmd(inv.due_date):'<span class="finc-mute">Not set</span>'}</td>`
-        +`<td>${inv.paid_at?fincDay(inv.paid_at):'<span class="finc-mute">Not yet</span>'}</td>`
-        +(withChase?`<td>${fincChasesOf(inv.id).length?esc(fincChaseText(inv.id,false)):'<span class="finc-mute">Not yet</span>'}</td>`:'')
-        +`</tr>`;
+    +months.map(m=>{
+      const list=byMonth.get(m);
+      return head(m,list,6)+(isOpen(m)?list.map(inv=>{
+        const st=fincStatus(inv,today);
+        return `<tr class="finc-tr" tabindex="0" onclick="fincOpenSheet(${Number(inv.id)})">`
+          +`<td class="finc-nm">${one(inv)}</td>`
+          +`<td class="finc-num">${fincLkr(inv.amount)}</td>`
+          +`<td><span class="finc-st ${st.cls}">${st.txt}</span></td>`
+          +`<td onclick="event.stopPropagation()">${inv.status!=='paid'?finSentBtn(inv):(inv.sent_at?'<span class="finc-mute">'+fincDay(inv.sent_at)+'</span>':'')}</td>`
+          +`<td>${String(inv.due_date||'').trim()?fincDayOfYmd(inv.due_date):'<span class="finc-mute">Not set</span>'}</td>`
+          +`<td>${inv.paid_at?fincDay(inv.paid_at):'<span class="finc-mute">Not yet</span>'}</td>`
+          +`</tr>`;
+      }).join(''):'');
     }).join('')
     +`</tbody></table></div>`;
 }
